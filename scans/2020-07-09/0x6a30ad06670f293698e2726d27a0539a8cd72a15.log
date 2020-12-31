@@ -1,0 +1,36 @@
+mythril.mythril.mythril_config [INFO]: Using RPC settings: ('localhost', 8545, False) 
+mythril.support.signatures [INFO]: Using signature database at /home/agdean/.mythril/signatures.db
+mythril.laser.ethereum.svm [INFO]: LASER EVM initialized with dynamic loader: <mythril.support.loader.DynLoader object at 0x7fe3288a8fd0>
+mythril.laser.ethereum.strategy.extensions.bounded_loops [INFO]: Loaded search strategy extension: Loop bounds (limit = 3)
+mythril.laser.ethereum.plugins.plugin_loader [INFO]: Loading plugin: <mythril.laser.ethereum.plugins.implementations.mutation_pruner.MutationPruner object at 0x7fe3281769e8>
+mythril.laser.ethereum.plugins.plugin_loader [INFO]: Loading plugin: <mythril.laser.ethereum.plugins.implementations.coverage.coverage_plugin.InstructionCoveragePlugin object at 0x7fe328176400>
+mythril.laser.ethereum.plugins.plugin_loader [INFO]: Loading plugin: <mythril.laser.ethereum.plugins.implementations.dependency_pruner.DependencyPruner object at 0x7fe328176978>
+mythril.laser.ethereum.svm [INFO]: Starting message call transaction to 606238530081006059450961974142223220362771376661
+mythril.laser.ethereum.svm [INFO]: Starting message call transaction, iteration: 0, 1 initial states
+mythril.laser.ethereum.plugins.implementations.coverage.coverage_plugin [INFO]: Number of new instructions covered in tx 0: 545 
+mythril.laser.ethereum.svm [INFO]: Finished symbolic execution
+mythril.laser.ethereum.plugins.implementations.coverage.coverage_plugin [INFO]: Achieved 94.95% coverage for code: 0x608060405234801561001057600080fd5b506004361061004c5760003560e01c806301ffc9a714610051578063369205b4146100b6578063893d20e8146100fc5780638a4e376914610146575b600080fd5b61009c6004803603602081101561006757600080fd5b8101908080357bffffffffffffffffffffffffffffffffffffffffffffffffffffffff191690602001909291905050506101c9565b604051808215151515815260200191505060405180910390f35b6100be61024a565b6040518082600260200280838360005b838110156100e95780820151818401526020810190506100ce565b5050505090500191505060405180910390f35b610104610295565b604051808273ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200191505060405180910390f35b61014e6102be565b6040518080602001828103825283818151815260200191508051906020019080838360005b8381101561018e578082015181840152602081019050610173565b50505050905090810190601f1680156101bb5780820380516001836020036101000a031916815260200191505b509250505060405180910390f35b60006335e1123560e01b7bffffffffffffffffffffffffffffffffffffffffffffffffffffffff1916827bffffffffffffffffffffffffffffffffffffffffffffffffffffffff1916148061024357506301ffc9a760e01b827bffffffffffffffffffffffffffffffffffffffffffffffffffffffff1916145b9050919050565b610252610360565b600160028060200260405190810160405280929190826002801561028b576020028201915b815481526020019060010190808311610277575b5050505050905090565b60008060009054906101000a900473ffffffffffffffffffffffffffffffffffffffff16905090565b606060038054600181600116156101000203166002900480601f0160208091040260200160405190810160405280929190818152602001828054600181600116156101000203166002900480156103565780601f1061032b57610100808354040283529160200191610356565b820191906000526020600020905b81548152906001019060200180831161033957829003601f168201915b5050505050905090565b604051806040016040528060029060208202803883398082019150509050509056fea265627a7a72315820b160df1330c97e3b0d96d7393fffd65e19d637f61fb4b03d5429ba877f62c97b64736f6c634300050f0032 
+mythril.analysis.security [INFO]: Starting analysis
+mythril.mythril.mythril_analyzer [INFO]: Solver statistics: 
+Query count: 63 
+Solver time: 0.3094649314880371
+==== Integer Arithmetic Bugs ====
+SWC ID: 101
+Severity: High
+Contract: 0x6a30ad06670f293698e2726d27a0539a8cd72a15
+Function name: _function_0x8a4e3769
+PC address: 772
+Estimated Gas Usage: 5183 - 7585
+The arithmetic operator can underflow.
+It is possible to cause an integer overflow or underflow in the arithmetic operation. 
+--------------------
+Initial State:
+
+Account: [ATTACKER], balance: 0x0, nonce:0, storage:{}
+Account: [SOMEGUY], balance: 0x0, nonce:0, storage:{}
+
+Transaction Sequence:
+
+Caller: [CREATOR], function: unknown, txdata: 0x8a4e3769, value: 0x0
+
+
