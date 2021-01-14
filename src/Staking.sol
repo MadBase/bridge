@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity >= 0.5.15;
+pragma solidity >=0.5.15;
 
 import "ds-stop/stop.sol";
 
@@ -9,43 +9,6 @@ import "./SafeMath.sol";
 import "./SimpleAuth.sol";
 import "./Token.sol";
 import "./Validators.sol";
-
-interface StakeManager {
-
-    // Set's the most recently completed epoch
-    function setCurrentEpoch(uint256) external;
-
-    // Stake related
-    function lockStake(uint256) external returns (bool);
-    function lockStakeFor(address, uint256) external returns (bool);
-
-    function balanceStake() external view returns (uint256);
-    function balanceStakeFor(address) external view returns (uint256);
-
-    function unlockStake(uint256) external returns (bool);
-    function unlockStakeFor(address, uint256) external returns (bool);
-
-    // Reward related
-    function lockRewardFor(address, uint256, uint256) external returns (bool);
-
-    function balanceReward() external view returns (uint256);
-    function balanceRewardFor(address) external view returns (uint256);
-
-    function unlockReward() external returns (bool);
-    function unlockRewardFor(address) external returns (bool);
-
-    // Unlocked
-    function balanceUnlocked() external view returns (uint256);
-    function balanceUnlockedFor(address) external view returns (uint256);
-
-    // Punishment
-    function burnStake(address, uint256) external returns (bool);
-    function fine(address, uint256) external returns (bool);
-
-    // There is no distinction between unlocked stake and unlocked reward
-    function withdraw(uint256) external returns (bool);
-    function withdrawFor(address, uint256) external returns (bool);
-}
 
 contract StakingEvents {
     event LockedStake(address indexed who, uint256 amount);
@@ -57,7 +20,7 @@ contract StakingEvents {
     event RequestedUnlockStake(address indexed who);
 }
 
-contract Staking is Constants, RegistryClient, StakeManager, StakingEvents, SimpleAuth, DSStop {
+contract Staking is Constants, RegistryClient, StakingEvents, SimpleAuth, DSStop {
 
     using SafeMath for uint256;
 
@@ -92,7 +55,7 @@ contract Staking is Constants, RegistryClient, StakeManager, StakingEvents, Simp
         registry = registry_;
     }
 
-    function reloadRegistry() public onlyOperator {
+    function reloadRegistry() public override onlyOperator {
 
         address stakingTokenAddr = registry.lookup(STAKING_TOKEN);
         stakingToken = BasicERC20(stakingTokenAddr);
