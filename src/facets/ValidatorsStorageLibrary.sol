@@ -1,0 +1,19 @@
+// SPDX-License-Identifier: UNLICENSED
+pragma solidity >=0.6.4;
+
+library ValidatorsStorageLibrary {
+
+    bytes32 constant STORAGE_LOCATION = keccak256("validators.storage");
+
+    struct ValidatorsStorage {
+        mapping(bytes4 => address) routing; // function selector to contract address with function
+    }
+
+    function validatorsStorage() internal pure returns (ValidatorsStorage storage s) {
+        bytes32 position = STORAGE_LOCATION;
+        assembly { // solium-disable-line
+            s_slot := position
+        }
+    }
+
+}
