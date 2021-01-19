@@ -9,7 +9,6 @@ import "./Registry.sol";
 import "./Staking.sol";
 import "./SignatureLibrary.sol";
 import "./SimpleAuth.sol";
-import "./Validator.sol";
 import "./ValidatorsStorage.sol";
 
 contract Validators is Constants, DSStop, SimpleAuth, RegistryClient, ValidatorsStorage {
@@ -27,7 +26,7 @@ contract Validators is Constants, DSStop, SimpleAuth, RegistryClient, Validators
         rewardBonus = 1_000;
     }
 
-    function reloadRegistry() public onlyOperator {
+    function reloadRegistry() public override onlyOperator {
         address cryptoAddr = registry.lookup(CRYPTO_CONTRACT);
         crypto = Crypto(cryptoAddr);
         require(cryptoAddr != address(0), "invalid address for crypto");
@@ -57,27 +56,27 @@ contract Validators is Constants, DSStop, SimpleAuth, RegistryClient, Validators
         staking.fine(who, minorStakeFine);
     }
 
-    function createValidator(uint256[2] calldata madNetID, bytes calldata signature) external stoppable returns (Validator) {
-        return _createValidator(msg.sender, madNetID, signature);
-    }
+    // function createValidator(uint256[2] calldata madNetID, bytes calldata signature) external stoppable returns (Validator) {
+    //     return _createValidator(msg.sender, madNetID, signature);
+    // }
 
-    function createValidator(address who, uint256[2] calldata madNetID, bytes calldata signature) external stoppable returns (Validator) {
-        return _createValidator(who, madNetID, signature);
-    }
+    // function createValidator(address who, uint256[2] calldata madNetID, bytes calldata signature) external stoppable returns (Validator) {
+    //     return _createValidator(who, madNetID, signature);
+    // }
 
-    function _createValidator(address owner, uint256[2] memory madNetID, bytes memory signature) internal returns (Validator) {
-        Validator validator = new ValidatorStandin(madNetID, signature);
+    // function _createValidator(address owner, uint256[2] memory madNetID, bytes memory signature) internal returns (Validator) {
+    //     Validator validator = new ValidatorStandin(madNetID, signature);
 
-        bytes memory madNetIDBytes = abi.encodePacked(madNetID);
+    //     bytes memory madNetIDBytes = abi.encodePacked(madNetID);
 
-        address signer = signature.recoverSigner(madNetIDBytes);
+    //     address signer = signature.recoverSigner(madNetIDBytes);
 
-        emit ValidatorCreated(address(validator), signer, madNetID);
+    //     emit ValidatorCreated(address(validator), signer, madNetID);
 
-        require(signer == owner, "Signer doesn't match owner.");
+    //     require(signer == owner, "Signer doesn't match owner.");
 
-        return validator;
-    }
+    //     return validator;
+    // }
 
     function confirmValidators() external stoppable returns (bool) {
         // More filthyness. I _know_ there will be few iterations (if any) but this is still shit.

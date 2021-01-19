@@ -3,13 +3,12 @@ pragma solidity >=0.5.15;
 
 import "ds-test/test.sol";
 
+import "./Constants.sol";
 import "./Crypto.sol";
 import "./ETHDKG.sol";
 import "./ETHDKGCompletion.sol";
 import "./ETHDKGGroupAccusation.sol";
 import "./ETHDKGSubmitMPK.sol";
-import "./Persistence.sol";
-import "./QueueLibrary.sol";
 import "./Registry.sol";
 import "./Staking.sol";
 import "./Token.sol";
@@ -32,20 +31,21 @@ contract ValidatorsTest is Constants, DSTest {
     Validators validators;
     ValidatorsSnapshot validatorsSnapshot;
 
-    uint256[2] madID;
-
     function setUp() public {
         reg = new Registry();
         staking = new Staking(reg);
 
-        stakingToken = new Token("STK", "MadNet Staking");
+        stakingToken = BasicERC20(address(new Token("STK", "MadNet Staking")));
         stakingToken.approve(address(staking), INITIAL_AMOUNT);
 
-        utilityToken = new Token("UTL", "MadNet Utility");
+        utilityToken = BasicERC20(address(new Token("UTL", "MadNet Utility")));
         utilityToken.approve(address(staking), INITIAL_AMOUNT);
 
         ethdkg = new ETHDKG(reg);
+
         validators = new Validators(10, reg);
+        assertTrue(10 == validators.validatorMaxCount());
+
         validatorsSnapshot = new ValidatorsSnapshot();
 
         reg.register(ETHDKG_CONTRACT, address(ethdkg));
@@ -65,14 +65,19 @@ contract ValidatorsTest is Constants, DSTest {
         staking.reloadRegistry();
         validators.reloadRegistry();
 
-        madID[0] = 1977;
-        madID[1] = 1105;
-
-        assertTrue(10 == validators.validatorMaxCount());
-
+        uint256[2] memory madID;
         for (uint256 i; i<VALIDATOR_COUNT;i++) {
+            madID[0] = i;
+            madID[1] = i;
             validators.addValidator(address(i+1), madID);
         }
+    }
+
+    function testFoo() public {
+        assertTrue(true);
+    }
+    function testFailFoo() public {
+        assertTrue(false);
     }
 
     function testSnapshot() public {
@@ -121,12 +126,17 @@ contract ValidatorsTest is Constants, DSTest {
     }
 
     function testAddValidator() public {
+        uint256[2] memory madID;
         uint8 n = validators.addValidator(address(VALIDATOR_COUNT+1), madID);
         assertEq(n, VALIDATOR_COUNT+1);
     }
 
     function testRemoveValidator() public {
-        assertEq(validators.removeValidator(address(1), madID), VALIDATOR_COUNT-1);
+        uint256 id = 1;
+        uint256[2] memory madID;
+        madID[0] = id;
+        madID[1] = id;
+        assertEq(validators.removeValidator(address(id+1), madID), VALIDATOR_COUNT-1);
     }
 
     function testIsValidator() public {
@@ -135,17 +145,20 @@ contract ValidatorsTest is Constants, DSTest {
 
         bool valid;
 
-        valid = validators.isValidator(address(this));
+        address madAddress = address(this);
+        uint256[2] memory madID = generateMadID(10);
+
+        valid = validators.isValidator(madAddress);
         assertTrue(!valid); // Not added yet
 
-        n = validators.addValidator(address(this), madID);
+        n = validators.addValidator(madAddress, madID);
         assertTrue(n == VALIDATOR_COUNT+1);
 
-        valid = validators.isValidator(address(this));
+        valid = validators.isValidator(madAddress);
         assertTrue(!valid); // Added but not staked
 
-        staking.lockStakeFor(address(this), validators.minimumStake());
-        valid = validators.isValidator(address(this));
+        staking.lockStakeFor(madAddress, validators.minimumStake());
+        valid = validators.isValidator(madAddress);
         assertTrue(valid); // Added and staked
     }
 
@@ -154,18 +167,10 @@ contract ValidatorsTest is Constants, DSTest {
 
         assertEq(validatorAddresses.length, VALIDATOR_COUNT);
     }
-}
 
-contract UserRepresentative {
-
-    Validators validators;
-
-    constructor(Validators _validators) public {
-        validators = _validators;
-    }
-
-    function register() public {
-        // validators.
+    function generateMadID(uint256 id) internal pure returns (uint256[2] memory madID) {
+        madID[0] = id;
+        madID[1] = id;
     }
 
 }

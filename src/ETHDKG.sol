@@ -27,7 +27,7 @@ contract ETHDKG is Constants, ETHDKGStorage, RegistryClient {
         owner = msg.sender;
     }
 
-    function reloadRegistry() public {
+    function reloadRegistry() public override {
         // The require()'s are commented out because they push us over the code size limit
         require(msg.sender == owner, "Not authorized");
 

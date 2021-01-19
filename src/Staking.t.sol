@@ -35,10 +35,13 @@ contract StakingTest is Constants, DSTest {
         reg = new Registry();
         staking = new Staking(reg);
 
-        stakingToken = new Token("STK", "MadNet Staking");
+        // Token t = new Token("STK", "MadNet Staking");
+        // BasicERC20 bt = BasicERC20(address(t));
+
+        stakingToken = BasicERC20(address(new Token("STK", "MadNet Staking")));
         stakingToken.approve(address(staking), INITIAL_AMOUNT);
 
-        utilityToken = new Token("UTL", "MadNet Utility");
+        utilityToken = BasicERC20(address(new Token("UTL", "MadNet Utility")));
         utilityToken.approve(address(staking), INITIAL_AMOUNT);
 
         ethdkg = new ETHDKG(reg);

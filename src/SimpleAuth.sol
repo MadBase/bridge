@@ -13,12 +13,12 @@ contract SimpleAuth  {
         grantOperator(owner_);
     }
 
-    function grantOperator(address _operator) public onlyOperator {
+    function grantOperator(address _operator) public virtual onlyOperator {
         authorizedOperators_[_operator] = true;
         authorizedOperatorCount_++;
     }
 
-    function revokeOperator(address _operator) public onlyOperator {
+    function revokeOperator(address _operator) public virtual onlyOperator {
         require(authorizedOperatorCount_ > 1, "Can't remove all operators");
         delete authorizedOperators_[_operator];
         authorizedOperatorCount_--;

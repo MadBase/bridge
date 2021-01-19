@@ -11,7 +11,6 @@ import "./Registry.sol";
 import "./Staking.sol";
 import "./SignatureLibrary.sol";
 import "./SimpleAuth.sol";
-import "./Validator.sol";
 
 contract ValidatorsSnapshot is Constants, DSStop, SimpleAuth, ValidatorsStorage {
 
@@ -23,7 +22,7 @@ contract ValidatorsSnapshot is Constants, DSStop, SimpleAuth, ValidatorsStorage 
     }
 
     function extractUint256(bytes memory src, uint offset) public pure returns (uint256 val) {
-        for (uint idx=offset+31; idx > offset; idx--) {
+        for (uint idx = offset+31; idx > offset; idx--) {
             val = uint8(src[idx]) | (val << 8);
         }
 
@@ -32,7 +31,7 @@ contract ValidatorsSnapshot is Constants, DSStop, SimpleAuth, ValidatorsStorage 
 
     function reverse(bytes memory orig) public pure returns (bytes memory reversed) {
         reversed = new bytes(orig.length);
-        for (uint idx=0; idx<orig.length; idx++) {
+        for (uint idx = 0; idx<orig.length; idx++) {
             reversed[orig.length-idx-1] = orig[idx];
         }
     }

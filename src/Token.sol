@@ -27,34 +27,34 @@ interface MintableERC20 {
 
 contract TokenAuthority is DSAuthority, SimpleAuth {
 
-   function canCall(address, address, bytes4) public onlyOperator view returns (bool) {
+   function canCall(address, address, bytes4) public override onlyOperator view returns (bool) {
         return true;
     }
 }
 
-contract Token is BasicERC20, DSToken, SimpleAuth {
+contract Token is DSToken, SimpleAuth {
 
     uint constant initialSupply = 1_000_000_000_000_000_000_000_000_000_000;
-    TokenAuthority authority = new TokenAuthority();
+    TokenAuthority authority_ = new TokenAuthority();
 
     constructor(bytes32 symbol_, bytes32 name_) DSToken(symbol_) public {
-        setName(name_);
-        setAuthority(authority);
+        setAuthority(authority_);
+        name = name_;
 
-        authority.grantOperator(msg.sender);
+        authority_.grantOperator(msg.sender);
 
         decimals = 18;
 
         mint(msg.sender, initialSupply);
     }
 
-    function grantOperator(address _operator) public onlyOperator {
-        authority.grantOperator(_operator);
+    function grantOperator(address _operator) public override onlyOperator {
+        authority_.grantOperator(_operator);
         super.grantOperator(_operator);
     }
 
-    function revokeOperator(address _operator) public onlyOperator {
-        authority.revokeOperator(_operator);
+    function revokeOperator(address _operator) public override onlyOperator {
+        authority_.revokeOperator(_operator);
         super.revokeOperator(_operator);
     }
 

@@ -8,16 +8,11 @@ import "./Registry.sol";
 import "./SafeMath.sol";
 import "./Token.sol";
 
-
-interface DepositManager {
-    function deposit(uint256 amount) external returns (bool);
-}
-
 interface DepositEvents {
     event DepositReceived(uint256 depositID, address depositor, uint256 amount);
 }
 
-contract Deposit is Constants, DepositManager, DepositEvents, DSStop, RegistryClient, SimpleAuth {
+contract Deposit is Constants, DepositEvents, DSStop, RegistryClient, SimpleAuth {
 
     using SafeMath for uint256;
 
@@ -36,7 +31,7 @@ contract Deposit is Constants, DepositManager, DepositEvents, DSStop, RegistryCl
         registry = registry_;
     }
 
-    function reloadRegistry() external onlyOperator {
+    function reloadRegistry() external override onlyOperator {
         // Lookup Token -- this is the utility token NOT the staking token
         token = BasicERC20(registry.lookup(UTILITY_TOKEN));
         require(address(token) != address(0), "invalid address for token");
