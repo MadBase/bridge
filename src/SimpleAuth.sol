@@ -8,7 +8,7 @@ contract SimpleAuth  {
 
     address private owner_;
 
-    constructor() public {
+    constructor() {
         owner_ = msg.sender;
         grantOperator(owner_);
     }

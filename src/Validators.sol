@@ -13,7 +13,9 @@ import "./ValidatorsStorage.sol";
 
 contract Validators is Constants, DSStop, SimpleAuth, RegistryClient, ValidatorsStorage {
 
-    constructor(uint8 maxValidators, Registry registry_) public {
+    using QueueLibrary for QueueLibrary.Queue;
+
+    constructor(uint8 maxValidators, Registry registry_) {
         epoch = 1; // No options here
         validatorMaxCount = maxValidators;
         registry = registry_;

@@ -3,21 +3,28 @@ pragma solidity >=0.5.15;
 
 import "ds-test/test.sol";
 
+import "./facets/ParticipantsFacet.sol";
 import "./facets/SnapshotsFacet.sol";
 import "./facets/ValidatorsUpdateFacet.sol";
 import "./Staking.sol";
 import "./ValidatorsDiamond.sol";
 
-contract ValidatorsDiamondTest is DSTest{
+contract ValidatorsDiamondTest is Constants, DSTest{
 
     ValidatorsDiamond vd;
     SnapshotsFacet sf;
     ValidatorsUpdateFacet vu;
 
     function setUp() public {
+        Crypto crypto = new Crypto();
+        Registry registry = new Registry();
+        
+        registry.register(CRYPTO_CONTRACT, address(crypto));
+
         vd = new ValidatorsDiamond();
+        // pf = ParticipantsFacet(address(vd));
         sf = SnapshotsFacet(address(vd));
-        vu = ValidatorsUpdateFacet(address(vd));
+        vu = ValidatorsUpdateFacet(address(vd)); // These facets are added by Diamond constructor
 
         // Add facets for Snapshots
         SnapshotsFacet snapshots = new SnapshotsFacet();
@@ -33,11 +40,18 @@ contract ValidatorsDiamondTest is DSTest{
         vu.addFacet(SnapshotsFacet.getRawBlockClaimsSnapshot.selector, address(snapshots));
         vu.addFacet(SnapshotsFacet.getRawSignatureSnapshot.selector, address(snapshots));
 
+        vu.addFacet(SnapshotsFacet.initializeSnapshots.selector, address(snapshots));
+
+        // Add facets for Participants
+        // ParticipantsFacet participants = new ParticipantsFacet();
+        // vu.addFacet(ParticipantsFacet.)
+
         // Initialize
+        sf.initializeSnapshots(registry);
         sf.setNextSnapshot(1);
     }
 
-    function testBuild() public {
+    function testBuildCost() public {
         ValidatorsDiamond vd2 = new ValidatorsDiamond();
         SnapshotsFacet sf2 = SnapshotsFacet(address(vd2));
         ValidatorsUpdateFacet vu2 = ValidatorsUpdateFacet(address(vd2));
@@ -103,8 +117,6 @@ contract ValidatorsDiamondTest is DSTest{
             hex"22d313f80eb31f8cac30cd98686f815d38b8ea2d46748e9f8971db83f5311a24";
 
         assertEq(signatureGroup.length, 192);
-
-        // sf.setNextSnapshot(1);
 
         uint256 epoch = sf.nextSnapshot();
         assertEq(epoch, 1);

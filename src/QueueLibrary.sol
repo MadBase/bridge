@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: UNLICENSED
 pragma solidity >=0.5.15;
 
 import "./SafeMath.sol";
@@ -8,40 +9,31 @@ library QueueLibrary {
 
     struct Queue {
         mapping(address => bool) present;
-        mapping(uint256 => address) queue;
-        uint256 first;
-        uint256 last;
+        mapping(uint32 => address) queue;
+        uint32 first; // By convention, this is the first index in queue with a value
+        uint32 last;  // ... this is the first index in queue *without* a value -- queue defaults are empty
     }
-
-    function NewQueue() internal pure returns (Queue memory) {
-        return Queue({first:1, last:0});
-    }
-
 
     function size(Queue storage queue) internal view returns (uint256) {
-        uint256 sz = queue.last;
-        sz = sz.add(1);
-        sz = sz.sub(queue.first);
-        return sz;
+        return queue.last - queue.first;
     }
 
     function enqueue(Queue storage queue, address data) internal {
-        require(!queue.present[data], "Duplicate entries not allowed");
-        queue.last = queue.last.add(1);
+        require(!queue.present[data], "duplicates not allowed");
+
         queue.queue[queue.last] = data;
         queue.present[data] = true;
+        queue.last++;
     }
 
-    function dequeue(Queue storage queue) internal returns (address) {
-        require(queue.last >= queue.first, "Queue is empty");
+    function dequeue(Queue storage queue) internal returns (address val) {
+        require(queue.last > queue.first, "queue is empty");
 
-        address data;
-        data = queue.queue[queue.first];
-
-        delete queue.present[data];
+        val = queue.queue[queue.first];
         delete queue.queue[queue.first];
-        queue.first = queue.first.add(1);
+        delete queue.present[val];
 
-        return data;
+        queue.first++;
     }
+
 }

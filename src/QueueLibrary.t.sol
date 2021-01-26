@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: UNLICENSED
 pragma solidity >=0.5.15;
 
 import "ds-test/test.sol";
@@ -7,55 +8,110 @@ import "./QueueLibrary.sol";
 contract QueueLibraryTest is DSTest {
 
     using QueueLibrary for QueueLibrary.Queue;
-    QueueLibrary.Queue queue = QueueLibrary.NewQueue();
 
-    // Need wrapper functions to catch failed require()s
-    function wrappedEnqueue(address val) internal {
-        queue.enqueue(val);
-    }
-
-    function wrappedDequeue() internal returns (address) {
-        return queue.dequeue();
-    }
-
-    function safeWrappedEnqueue(address val) internal returns (bool, bytes memory) {
-        bool ok;
-        bytes memory res;
-
-        (ok, res) = address(this).call( // solium-disable-line
-            abi.encodeWithSignature("wrappedEnqueue(address)", val));
-
-        return (ok, res);
-    }
-
-    function safeWrappedDequeue() internal returns (bool, bytes memory) {
-        bool ok;
-        bytes memory res;
-
-        (ok, res) = address(this).call( // solium-disable-line
-            abi.encodeWithSignature("wrappedDequeue()"));
-
-        return (ok, res);
-    }
+    QueueLibrary.Queue queue;
 
     // Here is where real tests start
     function testInitialization() public {
         assertEq(queue.size(), 0);
     }
 
-    function testEnqueueBad() public {
+    function testEnqueue1() public {
+        queue.enqueue(address(1));
+        assertEq(queue.size(), 1);
+    }
+
+    function testEnqueue2() public {
+        queue.enqueue(address(1));
+        queue.enqueue(address(2));
+        assertEq(queue.size(), 2);
+    }
+
+    function testEnqueue3() public {
+        queue.enqueue(address(1));
+        queue.enqueue(address(2));
+        queue.enqueue(address(3));
+        assertEq(queue.size(), 3);
+    }
+
+    function testDequeue1() public {
+        queue.enqueue(address(1));
+
+        assertEq(queue.dequeue(), address(1));
+
+        assertEq(queue.size(), 0);
+    }
+
+    function testDequeue2() public {
+        queue.enqueue(address(1));
+        queue.enqueue(address(2));
+
+        assertEq(queue.dequeue(), address(1));
+        assertEq(queue.dequeue(), address(2));
+
+        assertEq(queue.size(), 0);
+    }
+
+    function testDequeue3() public {
+        queue.enqueue(address(1));
+        queue.enqueue(address(2));
+        queue.enqueue(address(3));
+
+        assertEq(queue.dequeue(), address(1));
+        assertEq(queue.dequeue(), address(2));
+        assertEq(queue.dequeue(), address(3));
+
+        assertEq(queue.size(), 0);
+    }
+
+    function testRequeue1() public {
+        queue.enqueue(address(1));
+
+        assertEq(queue.dequeue(), address(1));
+        assertEq(queue.size(), 0);
+
+        queue.enqueue(address(1));
+        assertEq(queue.size(), 1);
+    }
+
+    function testRequeue2() public {
+        queue.enqueue(address(1));
+        queue.enqueue(address(2));
+
+        assertEq(queue.dequeue(), address(1));
+        assertEq(queue.dequeue(), address(2));
+
+        assertEq(queue.size(), 0);
+
+        queue.enqueue(address(1));
+        queue.enqueue(address(2));
+        assertEq(queue.size(), 2);
+    }
+
+    function testRequeue3() public {
+        queue.enqueue(address(1));
+        queue.enqueue(address(2));
+        queue.enqueue(address(3));
+
+        assertEq(queue.dequeue(), address(1));
+        assertEq(queue.dequeue(), address(2));
+        assertEq(queue.dequeue(), address(3));
+
+        queue.enqueue(address(1));
+        queue.enqueue(address(2));
+        queue.enqueue(address(3));
+        assertEq(queue.size(), 3);
+    }
+
+    function testFailEnqueueDuplicate() public {
 
         address fakeId = address(13);
 
         queue.enqueue(fakeId);
         assertEq(queue.size(), 1);
 
-        bool ok;
-        bytes memory res;
-        (ok, res) = safeWrappedEnqueue(fakeId);
+        queue.enqueue(fakeId);
 
-        assertTrue(!ok);
-        assertEq(queue.size(), 1);
     }
 
     function testEnqueueGood() public {
@@ -71,15 +127,10 @@ contract QueueLibraryTest is DSTest {
         assertEq(queue.size(), 5);
     }
 
-    function testDequeueBad() public {
+    function testFailDequeueEmpty() public {
         assertEq(queue.size(), 0);
 
-        bool ok;
-        bytes memory res;
-
-        (ok, res) = safeWrappedDequeue();
-
-        assertTrue(!ok);
+        queue.dequeue();
     }
 
     function testDequeueGood() public {

@@ -26,7 +26,7 @@ contract ValidatorsStorage is Constants, ValidatorEvents {
     using SignatureLibrary for bytes;
 
     // Required contracts
-    QueueLibrary.Queue queue = QueueLibrary.NewQueue();
+    QueueLibrary.Queue queue;
     Crypto crypto;
     ETHDKG ethdkg;
     Registry registry;

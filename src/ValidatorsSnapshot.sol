@@ -26,7 +26,7 @@ contract ValidatorsSnapshot is Constants, DSStop, SimpleAuth, ValidatorsStorage 
             val = uint8(src[idx]) | (val << 8);
         }
 
-        val = uint8(src[offset]) | (val << 8) ;
+        val = uint8(src[offset]) | (val << 8);
     }
 
     function reverse(bytes memory orig) public pure returns (bytes memory reversed) {

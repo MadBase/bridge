@@ -37,7 +37,7 @@ contract Token is DSToken, SimpleAuth {
     uint constant initialSupply = 1_000_000_000_000_000_000_000_000_000_000;
     TokenAuthority authority_ = new TokenAuthority();
 
-    constructor(bytes32 symbol_, bytes32 name_) DSToken(symbol_) public {
+    constructor(bytes32 symbol_, bytes32 name_) DSToken(symbol_) {
         setAuthority(authority_);
         name = name_;
 

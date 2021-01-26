@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity >=0.6.4;
+pragma solidity >=0.7.4;
 
 library ValidatorsStorageLibrary {
 
@@ -12,7 +12,7 @@ library ValidatorsStorageLibrary {
     function validatorsStorage() internal pure returns (ValidatorsStorage storage s) {
         bytes32 position = STORAGE_LOCATION;
         assembly { // solium-disable-line
-            s_slot := position
+            s.slot := position
         }
     }
 

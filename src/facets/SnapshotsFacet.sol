@@ -2,22 +2,29 @@
 pragma solidity >=0.6.4;
 pragma experimental ABIEncoderV2;
 
-import "../Crypto.sol";
+import "./AccessControlLibrary.sol";
 import "./SnapshotsStorageLibrary.sol";
 
-contract SnapshotsFacet {
+import "../Constants.sol";
+import "../Crypto.sol";
+import "../Registry.sol";
+
+contract SnapshotsFacet is AccessControlled, Constants {
 
     event SnapshotTaken(uint32 chainId, uint256 indexed epoch, uint32 height, address indexed validator, bool startingETHDKG);
 
-    Crypto crypto;
+    function initializeSnapshots(Registry registry) external {
+        require(address(registry) != address(0), "nil registry address");
 
-    constructor() public {
-        crypto = new Crypto();
+        address cryptoAddress = registry.lookup(CRYPTO_CONTRACT);
+        require(cryptoAddress != address(0), "nil crypto address");
+
+        SnapshotsStorageLibrary.SnapshotsStorage storage ss = SnapshotsStorageLibrary.snapshotsStorage();
+        ss.cryptoAddress = cryptoAddress;
     }
 
-    function setNextSnapshot(uint256 ns) external {
+    function setNextSnapshot(uint256 ns) external onlyOperator {
         SnapshotsStorageLibrary.SnapshotsStorage storage ss = SnapshotsStorageLibrary.snapshotsStorage();
-
         ss.nextSnapshot = ns;
     }
 
@@ -76,7 +83,7 @@ contract SnapshotsFacet {
         return snapshotDetail.rawBlockClaims;
     }
 
-    function getRawSignatureSnapshot(uint256 snapshotNumber) public returns (bytes memory) {
+    function getRawSignatureSnapshot(uint256 snapshotNumber) public view returns (bytes memory) {
         SnapshotsStorageLibrary.SnapshotsStorage storage ss = SnapshotsStorageLibrary.snapshotsStorage();
         SnapshotsStorageLibrary.Snapshot storage snapshotDetail = ss.snapshots[snapshotNumber];
 
@@ -97,7 +104,10 @@ contract SnapshotsFacet {
         return snapshotDetail.madHeight;
     }
 
-    function snapshot(bytes calldata _signatureGroup, bytes calldata _bclaims) external returns (bool) {
+    function snapshot(bytes calldata _signatureGroup, bytes calldata _bclaims) external onlyOperator returns (bool) {
+
+        SnapshotsStorageLibrary.SnapshotsStorage storage ss = SnapshotsStorageLibrary.snapshotsStorage();
+        require(ss.cryptoAddress != address(0), "nil crypto address");
 
         uint256[4] memory publicKey;
         uint256[2] memory signature;
@@ -105,9 +115,13 @@ contract SnapshotsFacet {
 
         bytes memory blockHash = abi.encodePacked(keccak256(_bclaims));
 
-        bool ok;
-        bytes memory res;
-        (ok, res) = address(crypto).call(abi.encodeWithSignature("Verify(bytes,uint256[2],uint256[4])", blockHash, signature, publicKey)); // solium-disable-line
+
+        Crypto crypto = Crypto(ss.cryptoAddress);
+        bool ok = crypto.Verify(blockHash, signature, publicKey);
+
+        // bool ok;
+        // bytes memory res;
+        // (ok, res) = ss.cryptoAddress.call(abi.encodeWithSignature("Verify(bytes,uint256[2],uint256[4])", blockHash, signature, publicKey)); // solium-disable-line
         require(ok, "Signature verification failed");
 
         // Extract
@@ -115,7 +129,6 @@ contract SnapshotsFacet {
         uint32 height = extractUint32(_bclaims, 12);
 
         // Store snapshot
-        SnapshotsStorageLibrary.SnapshotsStorage storage ss = SnapshotsStorageLibrary.snapshotsStorage();
         SnapshotsStorageLibrary.Snapshot storage currentSnapshot = ss.snapshots[ss.nextSnapshot];
 
         currentSnapshot.saved = true;

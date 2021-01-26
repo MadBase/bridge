@@ -1,4 +1,6 @@
-all    :; dapp build
+FLAGS = --use solc:0.7.6
+	
+all    :; dapp $(FLAGS) build
 clean  :; dapp clean
-test   :; dapp test
+test   :; dapp $(FLAGS) test
 deploy :; dapp create Bridge

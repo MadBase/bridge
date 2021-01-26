@@ -27,7 +27,7 @@ contract Staking is Constants, RegistryClient, StakingEvents, SimpleAuth, DSStop
     Registry registry;
     BasicERC20 stakingToken;
     MintableERC20 utilityToken;
-    Validators validators;
+    // Validators validators;
 
     uint256 utilityTokenBalance;
 
@@ -66,10 +66,11 @@ contract Staking is Constants, RegistryClient, StakingEvents, SimpleAuth, DSStop
         require(utilityTokenAddr != address(0), "invalid address for utilityToken");
 
         address validatorsAddr = registry.lookup(VALIDATORS_CONTRACT);
-        validators = Validators(validatorsAddr);
+        // validators = Validators(validatorsAddr);
         require(validatorsAddr != address(0), "invalid address for validators");
 
-        grantOperator(address(validators));
+        // grantOperator(address(validators));
+        grantOperator(validatorsAddr);
     }
 
     // Used for unlocking

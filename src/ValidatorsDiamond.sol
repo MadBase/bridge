@@ -1,13 +1,17 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity >=0.6.4;
 
-import "./facets/SnapshotsFacet.sol";
+import "./facets/AccessControlLibrary.sol";
 import "./facets/ValidatorsUpdateFacet.sol";
 import "./facets/ValidatorsStorageLibrary.sol";
 
 contract ValidatorsDiamond {
 
-    constructor() public payable {
+    constructor() payable {
+        AccessControlLibrary.AccessStorage storage ac = AccessControlLibrary.accessStorage();
+        ac.owner = msg.sender;
+        ac.operators[msg.sender] = true;
+
         ValidatorsStorageLibrary.ValidatorsStorage storage vs = ValidatorsStorageLibrary.validatorsStorage();
         
         // Wire in the updatability functions

@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity >=0.6.4;
+pragma solidity >=0.7.4;
 pragma experimental ABIEncoderV2;
+
+import "../Crypto.sol";
 
 library SnapshotsStorageLibrary {
     bytes32 constant STORAGE_LOCATION = keccak256("snapshots.storage");
@@ -20,12 +22,13 @@ library SnapshotsStorageLibrary {
         bool validatorsChanged;     // i.e. when we do nextSnapshot will there be different validators?
         uint256 minEthSnapshotSize;
         uint256 minMadSnapshotSize;
+        address cryptoAddress;
     }
 
     function snapshotsStorage() internal pure returns (SnapshotsStorage storage ss) {
         bytes32 position = STORAGE_LOCATION;
         assembly { // solium-disable-line
-            ss_slot := position // From solidity 0.6 -> 0.7 syntax changes from '_' to '.'
+            ss.slot := position // From solidity 0.6 -> 0.7 syntax changes from '_' to '.'
         }
     }
 
