@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: MIT-open-group
 pragma solidity >=0.7.4;
 pragma experimental ABIEncoderV2;
 
@@ -6,6 +6,10 @@ import "../QueueLibrary.sol";
 
 library ParticipantsStorageLibrary {
     bytes32 constant STORAGE_LOCATION = keccak256("participants.storage");
+
+    struct StakingValues {
+        uint256 minimumStake;
+    }
 
     struct ParticipantsStorage {
         address[] validators;
@@ -17,7 +21,7 @@ library ParticipantsStorageLibrary {
         bool validatorsChanged; // TODO need to centralize where this is stored
         QueueLibrary.Queue queue;
         address stakingAddress;
-        uint256 minimumStake;
+        StakingValues values;
     }
 
     function participantsStorage() internal pure returns (ParticipantsStorage storage ps) {

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT-open-group
 pragma solidity >=0.5.15;
 
 import "./ETHDKGStorage.sol";
@@ -6,7 +7,7 @@ contract ETHDKGSubmitMPK is ETHDKGStorage {
 
     function submit_master_public_key(
         uint256[4] memory _master_public_key
-    ) 
+    )
     public returns (bool)
     {
         require(
@@ -18,12 +19,12 @@ contract ETHDKGSubmitMPK is ETHDKGStorage {
         if (!key_share_submission_check) {
             bool isValid = true;
             for (uint256 idx; idx<addresses.length; idx++) {
-                address addr = addresses[idx];
-                if (key_shares[addr][0] == 0) {
+                address vaddr = addresses[idx];
+                if (key_shares[vaddr][0] == 0) {
                     // Someone did not submit shares;
                     // should receive a minor fine.
                     isValid = false;
-                    validators.minorFine(addr);
+                    validators.minorFine(vaddr);
                 }
             }
             if (!isValid) {

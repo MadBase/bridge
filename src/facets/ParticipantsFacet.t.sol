@@ -1,11 +1,17 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: MIT-open-group
 pragma solidity >=0.6.4;
 pragma experimental ABIEncoderV2;
 
 import "ds-test/test.sol";
 
 import "./ParticipantsFacet.sol";
+import "./StakingValuesFacet.sol";
+import "./ValidatorsUpdateFacet.sol";
+
+import "../interfaces/Validators.sol";
+
 import "../Staking.sol";
+import "../ValidatorsDiamond.sol";
 
 contract ParticipantsFacetTest is Constants, DSTest {
 
@@ -14,7 +20,10 @@ contract ParticipantsFacetTest is Constants, DSTest {
     uint constant VALIDATOR_COUNT = 6;
     Representative[VALIDATOR_COUNT] representatives;
 
+    Validators validators;
     ParticipantsFacet pf;
+    StakingValuesFacet sf;
+
     Registry registry;
     Staking staking;
     Token stakingToken;
@@ -26,27 +35,44 @@ contract ParticipantsFacetTest is Constants, DSTest {
         staking = new Staking(registry);
         
         stakingToken = new Token("STK", "MadNet Staking");
-        // stakingToken.approve(address(staking), INITIAL_AMOUNT);
-
         stakingToken.approve(address(staking), INITIAL_AMOUNT);
 
         utilityToken = new Token("UTL", "MadNet Utility");
-        // utilityToken.approve(address(staking), INITIAL_AMOUNT);
+
+        address vd = address(new ValidatorsDiamond());
+        validators = Validators(vd);
+        pf = ParticipantsFacet(vd);
+        sf = StakingValuesFacet(vd);
+        ValidatorsUpdateFacet vu = ValidatorsUpdateFacet(vd);
 
         registry.register(STAKING_CONTRACT, address(staking));
         registry.register(STAKING_TOKEN, address(stakingToken));
         registry.register(UTILITY_TOKEN, address(utilityToken));
-        registry.register(VALIDATORS_CONTRACT, address(this)); // Only used _by staking_ for access
+        registry.register(VALIDATORS_CONTRACT, vd);
 
         staking.reloadRegistry();
 
-        pf = new ParticipantsFacet();
+        address basepf = address(new ParticipantsFacet());
+        address basesf = address(new StakingValuesFacet());
+
+        vu.addFacet(Validators.validatorCount.selector, basepf);
+        vu.addFacet(Validators.isValidator.selector, basepf);
+        vu.addFacet(Validators.addValidator.selector, basepf);
+        vu.addFacet(Validators.getValidators.selector, basepf);
+        vu.addFacet(Validators.removeValidator.selector, basepf);
+        vu.addFacet(Validators.setValidatorMaxCount.selector, basepf);
+        vu.addFacet(Validators.validatorMaxCount.selector, basepf);
+
+        vu.addFacet(StakingValuesFacet.minimumStake.selector, basesf);
+        vu.addFacet(StakingValuesFacet.setMinimumStake.selector, basesf);
+
+        vu.addFacet(ParticipantsFacet.initializeParticipants.selector, basepf);
+
         pf.initializeParticipants(registry);
+        validators.setValidatorMaxCount(20);
+        validators.setMinimumStake(999_999_999);
 
-        pf.setMinimumStake(999_999_999);
-        pf.setValidatorMaxCount(20);
-
-        // Now actually build validators
+        // // Now actually build validators
         uint256[2] memory madID;
         for (uint256 i; i<VALIDATOR_COUNT;i++) {
             madID[0] = i;
@@ -56,10 +82,12 @@ contract ParticipantsFacetTest is Constants, DSTest {
         }
     }
 
- function testAddValidator() public {
+    function testAddValidator() public {
         uint256[2] memory madID;
+
         Representative rep = new Representative(madID);
         uint8 n = rep.add(pf);
+
         assertEq(n, VALIDATOR_COUNT+1);
     }
 
@@ -91,7 +119,7 @@ contract ParticipantsFacetTest is Constants, DSTest {
         valid = pf.isValidator(madAddress);
         assertTrue(!valid); // Added but not staked
 
-        staking.lockStakeFor(madAddress, pf.minimumStake());
+        staking.lockStakeFor(madAddress, sf.minimumStake());
         valid = pf.isValidator(madAddress);
         assertTrue(valid); // Added and staked
     }

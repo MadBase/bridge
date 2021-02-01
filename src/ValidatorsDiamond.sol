@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: MIT-open-group
 pragma solidity >=0.6.4;
 
 import "./facets/AccessControlLibrary.sol";
@@ -13,7 +13,7 @@ contract ValidatorsDiamond {
         ac.operators[msg.sender] = true;
 
         ValidatorsStorageLibrary.ValidatorsStorage storage vs = ValidatorsStorageLibrary.validatorsStorage();
-        
+
         // Wire in the updatability functions
         ValidatorsUpdateFacet update = new ValidatorsUpdateFacet();
 
@@ -33,10 +33,10 @@ contract ValidatorsDiamond {
         // Delegatecall to facet
         assembly {
             calldatacopy(0, 0, calldatasize())
-            
+
             let result := delegatecall(gas(), facet, 0, calldatasize(), 0, 0)
             returndatacopy(0, 0, returndatasize())
-            
+
             switch result
                 case 0 {
                     revert(0, returndatasize())

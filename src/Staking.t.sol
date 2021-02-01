@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: MIT-open-group
 pragma solidity >=0.5.15;
 
 import "ds-test/test.sol";
@@ -8,12 +8,14 @@ import "./ETHDKG.sol";
 import "./ETHDKGCompletion.sol";
 import "./ETHDKGGroupAccusation.sol";
 import "./ETHDKGSubmitMPK.sol";
-import "./Persistence.sol";
 import "./QueueLibrary.sol";
 import "./Registry.sol";
 import "./Staking.sol";
 import "./Token.sol";
-import "./Validators.sol";
+
+import "./ValidatorsDiamond.sol";
+import "./facets/ValidatorsUpdateFacet.sol";
+import "./interfaces/Validators.sol";
 
 contract StakingTest is Constants, DSTest {
     ETHDKG ethdkg;
@@ -48,7 +50,8 @@ contract StakingTest is Constants, DSTest {
         ethdkgCompletion = new ETHDKGCompletion();
         ethdkgGroupAccusation = new ETHDKGGroupAccusation();
         ethdkgSubmitMPK = new ETHDKGSubmitMPK();
-        validators = new Validators(10, reg);
+        // validators = new Validators(10, reg);
+        validators = Validators(address(new ValidatorsDiamond()));
 
         reg.register(ETHDKG_CONTRACT, address(ethdkg));
         reg.register(ETHDKG_COMPLETION_CONTRACT, address(ethdkgCompletion));

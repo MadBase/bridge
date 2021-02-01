@@ -1,8 +1,9 @@
+// SPDX-License-Identifier: MIT-open-group
 pragma solidity >=0.5.15;
 
 import "./Crypto.sol";
 import "./Registry.sol";
-import "./Validators.sol";
+import "./interfaces/Validators.sol";
 
 contract ETHDKGStorage {
     
@@ -208,7 +209,6 @@ contract ETHDKGStorage {
     Crypto crypto;
     Registry registry;
     Validators validators;
-    address validatorsSnapshot;
 
     address ethdkgCompletion;
     address ethdkgGroupAccusation;

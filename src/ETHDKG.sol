@@ -1,11 +1,11 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: MIT-open-group
 pragma solidity >=0.5.15;
 
 import "./Constants.sol";
 import "./Crypto.sol";
 import "./ETHDKGStorage.sol";
 import "./Registry.sol";
-import "./Validators.sol";
+import "./interfaces/Validators.sol";
 
 /*
     Author: Philipp Schindler
@@ -22,7 +22,7 @@ import "./Validators.sol";
 
 contract ETHDKG is Constants, ETHDKGStorage, RegistryClient {
 
-    constructor(Registry registry_) public { // Crypto _crypto, Validators _validators) public {
+    constructor(Registry registry_) {
         registry = registry_;
         owner = msg.sender;
     }
@@ -38,10 +38,6 @@ contract ETHDKG is Constants, ETHDKGStorage, RegistryClient {
         // Lookup Validators
         validators = Validators(registry.lookup(VALIDATORS_CONTRACT));
         // require(address(validators) != address(0), "invalid address for validators");
-
-        // Lookup ValidatorsSnapshot
-        validatorsSnapshot = registry.lookup(VALIDATORS_SNAPSHOT_CONTRACT);
-        // require(validatorsSnapshot != address(0), "invalid address for validatorsSnapshot");
 
         // Lookup ETHDKGCompletion
         ethdkgCompletion = registry.lookup(ETHDKG_COMPLETION_CONTRACT);

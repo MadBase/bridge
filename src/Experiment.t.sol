@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: MIT-open-group
 pragma solidity >=0.5.15;
 
 import "ds-test/test.sol";
@@ -7,14 +7,14 @@ contract ConStorage {
     uint256 public number;
     address special;
 
-    constructor() public {
+    constructor() {
         number = 5;
     }
 }
 
 contract ConBase is ConStorage {
 
-    constructor(address special_) public {
+    constructor(address special_) {
         special = special_;
     }
 

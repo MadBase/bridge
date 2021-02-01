@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: MIT-open-group
 pragma solidity >=0.5.15;
 
 import "ds-stop/stop.sol";
@@ -8,7 +8,7 @@ import "./Registry.sol";
 import "./SafeMath.sol";
 import "./SimpleAuth.sol";
 import "./Token.sol";
-import "./Validators.sol";
+import "./interfaces/Validators.sol";
 
 contract StakingEvents {
     event LockedStake(address indexed who, uint256 amount);
@@ -51,7 +51,7 @@ contract Staking is Constants, RegistryClient, StakingEvents, SimpleAuth, DSStop
     mapping(address => StakeDetails) details;
 
     //
-    constructor(Registry registry_) public {
+    constructor(Registry registry_) {
         registry = registry_;
     }
 
@@ -161,40 +161,6 @@ contract Staking is Constants, RegistryClient, StakingEvents, SimpleAuth, DSStop
         bool defined;
     }
 
-    // Alternative for rewards
-    // mapping(uint256 => mapping(address => Reward)) recipientRewards; // mapping (lockUntilEpoch => mapping (address => amount & definied))
-    // mapping(uint256 => address[]) recipients; // mapping (lockUntilEpoch => addresses of recipients)
-    // uint256 public tokenBatchSize = 1_000_000_000; // must be larger than any single reward issuance
-
-    // Called by Validation contract to reward validators during Epoch
-    // function lockRewardFor(address who, uint256 amountReward, uint256) public onlyOperator stoppable returns (bool) {
-    //     require(amountReward <= tokenBatchSize, "reward amount to larger than token batch size");
-
-    //     uint256 unlockEpoch = currentEpoch + epochDelay;
-
-    //     // Record all the reward info
-    //     Reward storage reward = recipientRewards[unlockEpoch][who];
-    //     if (!reward.defined) {
-    //         recipients[unlockEpoch].push(who);
-    //     }
-    //     reward.defined = true;
-    //     reward.amount += amountReward;
-
-    //     // Make sure we have enough tokens to cover
-    //     if (amountReward > utilityToken.balanceOf(address(this))) {
-    //         utilityToken.mint(address(this), tokenBatchSize);
-    //     }
-
-    //     emit LockedReward(who, amountReward);
-
-    //     return true;
-    // }
-
-    // must be larger than any single reward issuance
-    // function setTokenBatchSize(uint256 _tokenBatchSize) external {
-    //     tokenBatchSize = _tokenBatchSize;
-    // }
-    
     function lockRewardFor(address who, uint256 amountReward, uint256 unlockEpoch) public onlyOperator stoppable returns (bool) {
         StakeDetails storage detail = details[who];
 

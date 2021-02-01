@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: MIT-open-group
 pragma solidity >= 0.5.15;
 
 import "ds-stop/stop.sol";
@@ -27,7 +27,7 @@ contract Deposit is Constants, DepositEvents, DSStop, RegistryClient, SimpleAuth
     uint256 public depositID = 1;                       // Monatomically increasing
     mapping(uint256 => DepositDetails) public deposits; // Key is depositID
 
-    constructor(Registry registry_) public {
+    constructor(Registry registry_) {
         registry = registry_;
     }
 

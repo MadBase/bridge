@@ -1,9 +1,10 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: MIT-open-group
 pragma solidity >=0.6.4;
 pragma experimental ABIEncoderV2;
 
 import "./AccessControlLibrary.sol";
 import "./ParticipantsStorageLibrary.sol";
+import "./StakingValuesLibrary.sol";
 
 import "../Constants.sol";
 import "../QueueLibrary.sol";
@@ -50,11 +51,12 @@ contract ParticipantsFacet is AccessControlled, Constants {
      function isValidator(address validator) public view returns (bool) {
 
         ParticipantsStorageLibrary.ParticipantsStorage storage ps = ParticipantsStorageLibrary.participantsStorage();
+        StakingValuesLibrary.StakingValuesStorage storage sv = StakingValuesLibrary.stakingValuesStorage();
 
         require(ps.stakingAddress != address(0), "nil staking address");
         Staking staking = Staking(ps.stakingAddress);
 
-        return ps.validatorPresent[validator] && staking.balanceStakeFor(validator) >= ps.minimumStake;
+        return ps.validatorPresent[validator] && staking.balanceStakeFor(validator) >= sv.minimumStake;
     }
 
     function addValidator(address _validator, uint256[2] calldata _madID) external returns (uint8) {
@@ -100,18 +102,6 @@ contract ParticipantsFacet is AccessControlled, Constants {
         ParticipantsStorageLibrary.ParticipantsStorage storage ps = ParticipantsStorageLibrary.participantsStorage();
 
         ps.validatorMaxCount = max;
-    }
-
-    function minimumStake() external returns (uint256) {
-        ParticipantsStorageLibrary.ParticipantsStorage storage ps = ParticipantsStorageLibrary.participantsStorage();
-
-        return ps.minimumStake;
-    }
-
-    function setMinimumStake(uint256 ms) external onlyOwner {
-        ParticipantsStorageLibrary.ParticipantsStorage storage ps = ParticipantsStorageLibrary.participantsStorage();
-
-        ps.minimumStake = ms;
     }
 
     function removeValidator(address _validator, uint256[2] calldata _madID) external returns (uint8) {

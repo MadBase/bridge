@@ -1,8 +1,9 @@
+// SPDX-License-Identifier: MIT-open-group
 pragma solidity >=0.5.15;
 
 
 import "./Staking.sol";
-import "./Validators.sol";
+import "./interfaces/Validators.sol";
 
 /*
     Author: Philipp Schindler
