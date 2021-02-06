@@ -1,7 +1,9 @@
 // SPDX-License-Identifier: MIT-open-group
 pragma solidity >=0.5.15;
 
-interface Validators {
+import "./ValidatorsEvents.sol";
+
+interface Validators is ValidatorsEvents {
 
     // Functions mostly related to the validator pool
     function addValidator(address _validator, uint256[2] calldata _madID) external returns (uint8);
@@ -45,14 +47,4 @@ interface Validators {
     function majorFine(address who) external;
 
     function minorFine(address who) external;
-
-    function setMinimumStake(uint256 _minimumStake) external;
-
-    function setMajorStakeFine(uint256 _majorStakeFine) external;
-
-    function setMinorStakeFine(uint256 _minorStakeFine) external;
-
-    function setRewardAmount(uint256 _rewardAmount) external;
-
-    function setRewardBonus(uint256 _rewardBonus) external;
 }

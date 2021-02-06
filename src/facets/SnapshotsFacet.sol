@@ -2,6 +2,8 @@
 pragma solidity >=0.6.4;
 pragma experimental ABIEncoderV2;
 
+import "../interfaces/ValidatorsEvents.sol";
+
 import "./AccessControlLibrary.sol";
 import "./SnapshotsStorageLibrary.sol";
 
@@ -9,9 +11,7 @@ import "../Constants.sol";
 import "../Crypto.sol";
 import "../Registry.sol";
 
-contract SnapshotsFacet is AccessControlled, Constants {
-
-    event SnapshotTaken(uint32 chainId, uint256 indexed epoch, uint32 height, address indexed validator, bool startingETHDKG);
+contract SnapshotsFacet is AccessControlled, Constants, ValidatorsEvents {
 
     function initializeSnapshots(Registry registry) external {
         require(address(registry) != address(0), "nil registry address");

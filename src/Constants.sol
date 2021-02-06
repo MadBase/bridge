@@ -15,5 +15,4 @@ contract Constants {
     string constant UTILITY_TOKEN = "utilityToken/v1";
 
     string constant VALIDATORS_CONTRACT = "validators/v1";
-    string constant VALIDATORS_SNAPSHOT_CONTRACT = "validatorsSnapshot/v1";
 }

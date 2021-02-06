@@ -118,7 +118,7 @@ contract ETHDKGTest is Constants, DSTest {
 
         bool ok;
         bytes memory results;
-        
+
         (ok, results) = wrappedSubmitMPK(mpk);
 
         assertTrue(!ok);

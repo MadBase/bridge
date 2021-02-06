@@ -4,6 +4,8 @@ pragma experimental ABIEncoderV2;
 
 import "ds-test/test.sol";
 
+import "../interfaces/Validators.sol";
+
 import "./SnapshotsFacet.sol";
 
 contract SnapshotsFacetTest is Constants, DSTest {
@@ -80,13 +82,17 @@ contract SnapshotsFacetTest is Constants, DSTest {
         assertEq(rawSig.length, signatureGroup.length);
 
         uint32 madHeight = s.getMadHeightFromSnapshot(epoch);
-        assertEq(int(madHeight), 5);
+        assertEq(uint256(madHeight), 5);
 
         uint32 height = s.getHeightFromSnapshot(epoch);
-        assertEq(int(height), 0);
+        assertEq(uint256(height), 0);
 
         uint32 chainId = s.getChainIdFromSnapshot(epoch);
-        assertEq(int(chainId), 42);
+        assertEq(uint256(chainId), 42);
+    }
+
+    function testCreation() public {
+        SnapshotsFacet sf = new SnapshotsFacet();
     }
     
     function testSnapshot2() public {

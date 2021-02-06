@@ -70,7 +70,7 @@ contract ParticipantsFacetTest is Constants, DSTest {
 
         pf.initializeParticipants(registry);
         validators.setValidatorMaxCount(20);
-        validators.setMinimumStake(999_999_999);
+        sf.setMinimumStake(999_999_999);
 
         // // Now actually build validators
         uint256[2] memory madID;

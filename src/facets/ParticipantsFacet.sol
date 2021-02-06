@@ -2,6 +2,8 @@
 pragma solidity >=0.6.4;
 pragma experimental ABIEncoderV2;
 
+import "../interfaces/ValidatorsEvents.sol";
+
 import "./AccessControlLibrary.sol";
 import "./ParticipantsStorageLibrary.sol";
 import "./StakingValuesLibrary.sol";
@@ -11,12 +13,7 @@ import "../QueueLibrary.sol";
 import "../Registry.sol";
 import "../Staking.sol";
 
-contract ParticipantsFacet is AccessControlled, Constants {
-
-    event ValidatorCreated(address indexed validator, address indexed signer, uint256[2] madID);
-    event ValidatorJoined(address indexed validator, uint256[2] madID);
-    event ValidatorLeft(address indexed validator, uint256[2] pkHash);
-    event ValidatorQueued(address indexed validator, uint256[2] pkHash);
+contract ParticipantsFacet is AccessControlled, Constants, ValidatorsEvents {
 
     using QueueLibrary for QueueLibrary.Queue;
 

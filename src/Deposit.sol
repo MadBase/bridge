@@ -3,16 +3,14 @@ pragma solidity >= 0.5.15;
 
 import "ds-stop/stop.sol";
 
+import "./interfaces/ValidatorsEvents.sol";
+
 import "./Constants.sol";
 import "./Registry.sol";
 import "./SafeMath.sol";
 import "./Token.sol";
 
-interface DepositEvents {
-    event DepositReceived(uint256 depositID, address depositor, uint256 amount);
-}
-
-contract Deposit is Constants, DepositEvents, DSStop, RegistryClient, SimpleAuth {
+contract Deposit is Constants, DSStop, RegistryClient, SimpleAuth, ValidatorsEvents {
 
     using SafeMath for uint256;
 
