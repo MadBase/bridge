@@ -23,12 +23,12 @@ contract SnapshotsFacet is AccessControlled, Constants, ValidatorsEvents {
         ss.cryptoAddress = cryptoAddress;
     }
 
-    function setNextSnapshot(uint256 ns) external onlyOperator {
+    function setEpoch(uint256 ns) external onlyOperator {
         SnapshotsStorageLibrary.SnapshotsStorage storage ss = SnapshotsStorageLibrary.snapshotsStorage();
         ss.nextSnapshot = ns;
     }
 
-    function nextSnapshot() external view returns (uint256) {
+    function epoch() external view returns (uint256) {
         SnapshotsStorageLibrary.SnapshotsStorage storage ss = SnapshotsStorageLibrary.snapshotsStorage();
 
         return ss.nextSnapshot;

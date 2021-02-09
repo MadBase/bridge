@@ -20,13 +20,13 @@ contract SnapshotsFacetTest is Constants, DSTest {
         registry.register(CRYPTO_CONTRACT, address(crypto));
 
         s = new SnapshotsFacet();
-        s.setNextSnapshot(1);
+        s.setEpoch(1);
         s.initializeSnapshots(registry);
     }
 
     function testNextSnapshot() public {
-        s.setNextSnapshot(13);
-        assertEq(s.nextSnapshot(), 13);
+        s.setEpoch(13);
+        assertEq(s.epoch(), 13);
     }
 
     function testExtractUint32() public {
@@ -70,12 +70,12 @@ contract SnapshotsFacetTest is Constants, DSTest {
 
         assertEq(signatureGroup.length, 192);
 
-        uint256 epoch = s.nextSnapshot();
+        uint256 epoch = s.epoch();
         assertEq(epoch, 1);
 
         s.snapshot(signatureGroup, bclaims);
 
-        uint256 newEpoch = s.nextSnapshot();
+        uint256 newEpoch = s.epoch();
         assertEq(newEpoch, 2);
 
         bytes memory rawSig = s.getRawSignatureSnapshot(epoch);
@@ -92,7 +92,7 @@ contract SnapshotsFacetTest is Constants, DSTest {
     }
 
     function testCreation() public {
-        SnapshotsFacet sf = new SnapshotsFacet();
+        new SnapshotsFacet();
     }
     
     function testSnapshot2() public {
@@ -114,12 +114,12 @@ contract SnapshotsFacetTest is Constants, DSTest {
 
         assertEq(signatureGroup.length, 192);
 
-        uint256 epoch = s.nextSnapshot();
+        uint256 epoch = s.epoch();
         assertEq(epoch, 1);
 
         s.snapshot(signatureGroup, bclaims);
 
-        uint256 newEpoch = s.nextSnapshot();
+        uint256 newEpoch = s.epoch();
         assertEq(newEpoch, 2);
 
         bytes memory rawSig = s.getRawSignatureSnapshot(epoch);

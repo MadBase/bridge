@@ -9,18 +9,9 @@ import "./SafeMath.sol";
 import "./SimpleAuth.sol";
 import "./Token.sol";
 import "./interfaces/Validators.sol";
+import "./interfaces/ValidatorsEvents.sol";
 
-contract StakingEvents {
-    event LockedStake(address indexed who, uint256 amount);
-    event LockedReward(address indexed who, uint256 amount);
-    event UnlockedStake(address indexed who, uint256 amount);
-    event UnlockedReward(address indexed who, uint256 amount);
-    event BurntStake(address indexed who, uint256 amount);
-    event Fined(address indexed who, uint256 amount);
-    event RequestedUnlockStake(address indexed who);
-}
-
-contract Staking is Constants, RegistryClient, StakingEvents, SimpleAuth, DSStop {
+contract Staking is Constants, RegistryClient, ValidatorsEvents, SimpleAuth, DSStop {
 
     using SafeMath for uint256;
 

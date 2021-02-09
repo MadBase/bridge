@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: MIT-open-group
 pragma solidity >=0.5.15;
 
+import "./StakingEvents.sol";
 
 /// @notice  Collection of all events that are considered for public use of system
-interface ValidatorsEvents {
+interface ValidatorsEvents is StakingEvents {
 
     /// @notice Event emitted when a deposit is received
     event DepositReceived(uint256 depositID, address depositor, uint256 amount);
@@ -16,15 +17,6 @@ interface ValidatorsEvents {
     event ValidatorJoined(address indexed validator, uint256[2] madID);
     event ValidatorLeft(address indexed validator, uint256[2] pkHash);
     event ValidatorQueued(address indexed validator, uint256[2] pkHash);
-
-    /// @notice Events used by Staking
-    event LockedStake(address indexed who, uint256 amount);
-    event LockedReward(address indexed who, uint256 amount);
-    event UnlockedStake(address indexed who, uint256 amount);
-    event UnlockedReward(address indexed who, uint256 amount);
-    event BurntStake(address indexed who, uint256 amount);
-    event Fined(address indexed who, uint256 amount);
-    event RequestedUnlockStake(address indexed who);
 
     /// @notice Events used by ETHDKG
     event KeyShareSubmission(

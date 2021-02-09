@@ -5,7 +5,7 @@ pragma experimental ABIEncoderV2;
 import "ds-test/test.sol";
 
 import "./ParticipantsFacet.sol";
-import "./StakingValuesFacet.sol";
+import "./StakingFacet.sol";
 import "./ValidatorsUpdateFacet.sol";
 
 import "../interfaces/Validators.sol";
@@ -22,7 +22,7 @@ contract ParticipantsFacetTest is Constants, DSTest {
 
     Validators validators;
     ParticipantsFacet pf;
-    StakingValuesFacet sf;
+    StakingFacet sf;
 
     Registry registry;
     Staking staking;
@@ -42,7 +42,7 @@ contract ParticipantsFacetTest is Constants, DSTest {
         address vd = address(new ValidatorsDiamond());
         validators = Validators(vd);
         pf = ParticipantsFacet(vd);
-        sf = StakingValuesFacet(vd);
+        sf = StakingFacet(vd);
         ValidatorsUpdateFacet vu = ValidatorsUpdateFacet(vd);
 
         registry.register(STAKING_CONTRACT, address(staking));
@@ -53,7 +53,7 @@ contract ParticipantsFacetTest is Constants, DSTest {
         staking.reloadRegistry();
 
         address basepf = address(new ParticipantsFacet());
-        address basesf = address(new StakingValuesFacet());
+        address basesf = address(new StakingFacet());
 
         vu.addFacet(Validators.validatorCount.selector, basepf);
         vu.addFacet(Validators.isValidator.selector, basepf);
@@ -63,8 +63,8 @@ contract ParticipantsFacetTest is Constants, DSTest {
         vu.addFacet(Validators.setValidatorMaxCount.selector, basepf);
         vu.addFacet(Validators.validatorMaxCount.selector, basepf);
 
-        vu.addFacet(StakingValuesFacet.minimumStake.selector, basesf);
-        vu.addFacet(StakingValuesFacet.setMinimumStake.selector, basesf);
+        vu.addFacet(StakingFacet.minimumStake.selector, basesf);
+        vu.addFacet(StakingFacet.setMinimumStake.selector, basesf);
 
         vu.addFacet(ParticipantsFacet.initializeParticipants.selector, basepf);
 

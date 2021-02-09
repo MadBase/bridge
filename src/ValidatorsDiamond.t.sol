@@ -30,8 +30,8 @@ contract ValidatorsDiamondTest is Constants, DSTest{
         SnapshotsFacet snapshots = new SnapshotsFacet();
         vu.addFacet(SnapshotsFacet.extractUint256.selector, address(snapshots));
         vu.addFacet(SnapshotsFacet.extractUint32.selector, address(snapshots));
-        vu.addFacet(SnapshotsFacet.nextSnapshot.selector, address(snapshots));
-        vu.addFacet(SnapshotsFacet.setNextSnapshot.selector, address(snapshots));
+        vu.addFacet(SnapshotsFacet.epoch.selector, address(snapshots));
+        vu.addFacet(SnapshotsFacet.setEpoch.selector, address(snapshots));
         vu.addFacet(SnapshotsFacet.snapshot.selector, address(snapshots));
         
         vu.addFacet(SnapshotsFacet.getChainIdFromSnapshot.selector, address(snapshots));
@@ -48,30 +48,29 @@ contract ValidatorsDiamondTest is Constants, DSTest{
 
         // Initialize
         sf.initializeSnapshots(registry);
-        sf.setNextSnapshot(1);
+        sf.setEpoch(1);
     }
 
     function testBuildCost() public {
         ValidatorsDiamond vd2 = new ValidatorsDiamond();
-        SnapshotsFacet sf2 = SnapshotsFacet(address(vd2));
         ValidatorsUpdateFacet vu2 = ValidatorsUpdateFacet(address(vd2));
 
         // Add facets for Snapshots
         SnapshotsFacet snapshots = new SnapshotsFacet();
         vu2.addFacet(SnapshotsFacet.extractUint256.selector, address(snapshots));
         vu2.addFacet(SnapshotsFacet.extractUint32.selector, address(snapshots));
-        vu2.addFacet(SnapshotsFacet.nextSnapshot.selector, address(snapshots));
-        vu2.addFacet(SnapshotsFacet.setNextSnapshot.selector, address(snapshots));
+        vu2.addFacet(SnapshotsFacet.epoch.selector, address(snapshots));
+        vu2.addFacet(SnapshotsFacet.setEpoch.selector, address(snapshots));
     }
 
     function testSetSnapshot() public {
 
-        sf.setNextSnapshot(13);
+        sf.setEpoch(13);
 
-        assertEq(sf.nextSnapshot(), 13);
+        assertEq(sf.epoch(), 13);
     }
 
-    function testFailNotFacet() public {
+    function testFailNotFacet() public view {
         Staking s = Staking(address(vd)); // Staking is not a facet of ValidatorsDiamond so calls should fail
 
         s.balanceReward();
@@ -118,12 +117,12 @@ contract ValidatorsDiamondTest is Constants, DSTest{
 
         assertEq(signatureGroup.length, 192);
 
-        uint256 epoch = sf.nextSnapshot();
+        uint256 epoch = sf.epoch();
         assertEq(epoch, 1);
 
         sf.snapshot(signatureGroup, bclaims);
 
-        uint256 newEpoch = sf.nextSnapshot();
+        uint256 newEpoch = sf.epoch();
         assertEq(newEpoch, 2);
 
         bytes memory rawSig = sf.getRawSignatureSnapshot(epoch);

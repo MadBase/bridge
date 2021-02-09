@@ -6,7 +6,7 @@ import "../interfaces/ValidatorsEvents.sol";
 
 import "./AccessControlLibrary.sol";
 import "./ParticipantsStorageLibrary.sol";
-import "./StakingValuesLibrary.sol";
+import "./StakingStorageLibrary.sol";
 
 import "../Constants.sol";
 import "../QueueLibrary.sol";
@@ -48,7 +48,7 @@ contract ParticipantsFacet is AccessControlled, Constants, ValidatorsEvents {
      function isValidator(address validator) public view returns (bool) {
 
         ParticipantsStorageLibrary.ParticipantsStorage storage ps = ParticipantsStorageLibrary.participantsStorage();
-        StakingValuesLibrary.StakingValuesStorage storage sv = StakingValuesLibrary.stakingValuesStorage();
+        StakingStorageLibrary.StakingStorage storage sv = StakingStorageLibrary.stakingStorage();
 
         require(ps.stakingAddress != address(0), "nil staking address");
         Staking staking = Staking(ps.stakingAddress);

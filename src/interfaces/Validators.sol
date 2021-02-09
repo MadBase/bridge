@@ -27,7 +27,7 @@ interface Validators is ValidatorsEvents {
     function getValidators() external view returns (address[] memory);
 
     // Snapshot related
-    function epoch() external returns (uint256);
+    function epoch() external view returns (uint256);
 
     function snapshot(bytes calldata _signatureGroup, bytes calldata _bclaims) external;
 
