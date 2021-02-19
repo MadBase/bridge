@@ -112,14 +112,14 @@ contract SnapshotsFacetTest is Constants, DSTest, DiamondSetup {
         bytes memory rawSig = snapshots.getRawSignatureSnapshot(epoch);
         assertEq(rawSig.length, signatureGroup.length);
 
-        uint32 madHeight = snapshots.getMadHeightFromSnapshot(epoch);
-        assertEq(int(madHeight), 5);
+        uint256 madHeight = snapshots.getMadHeightFromSnapshot(epoch);
+        assertEq(madHeight, 5);
 
-        uint32 height = snapshots.getHeightFromSnapshot(epoch);
-        assertEq(int(height), 0);
+        uint256 height = snapshots.getHeightFromSnapshot(epoch);
+        assertEq(height, 0);
 
-        uint32 chainId = snapshots.getChainIdFromSnapshot(epoch);
-        assertEq(int(chainId), 42);
+        uint256 chainId = snapshots.getChainIdFromSnapshot(epoch);
+        assertEq(chainId, 42);
     }
     
 }
