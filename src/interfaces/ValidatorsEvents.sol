@@ -4,19 +4,13 @@ pragma solidity >=0.5.15;
 import "./StakingEvents.sol";
 
 /// @notice  Collection of all events that are considered for public use of system
-interface ValidatorsEvents is StakingEvents {
+interface ValidatorsEvents {
 
     /// @notice Event emitted when a deposit is received
     event DepositReceived(uint256 depositID, address depositor, uint256 amount);
 
-    /// @notice Event emmitted after taking a snapshot
-    event SnapshotTaken(uint32 chainId, uint256 indexed epoch, uint32 height, address indexed validator, bool startingETHDKG);
-
     /// @notice Events used directly by Validators
-    event ValidatorCreated(address indexed validator, address indexed signer, uint256[2] madID);
-    event ValidatorJoined(address indexed validator, uint256[2] madID);
-    event ValidatorLeft(address indexed validator, uint256[2] pkHash);
-    event ValidatorQueued(address indexed validator, uint256[2] pkHash);
+
 
     /// @notice Events used by ETHDKG
     event KeyShareSubmission(

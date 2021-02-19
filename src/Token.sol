@@ -5,26 +5,6 @@ import "ds-token/token.sol";
 
 import "./SimpleAuth.sol";
 
-interface BasicERC20 {
-    function totalSupply() external view returns (uint);
-    function balanceOf(address who) external view returns (uint);
-    function allowance(address src, address who) external view returns (uint);
-    function approve(address who, uint wad) external returns (bool);
-    function transfer(address dst, uint wad) external returns (bool);
-    function transferFrom(address src, address dst, uint wad) external returns (bool);
-}
-
-interface MintableERC20 {
-    function totalSupply() external view returns (uint);
-    function balanceOf(address who) external view returns (uint);
-    function allowance(address src, address who) external view returns (uint);
-    function approve(address who, uint wad) external returns (bool);
-    function transfer(address dst, uint wad) external returns (bool);
-    function transferFrom(address src, address dst, uint wad) external returns (bool);
-    function mint(address guy, uint wad) external;
-    function grantOperator(address _operator) external;
-}
-
 contract TokenAuthority is DSAuthority, SimpleAuth {
 
    function canCall(address, address, bytes4) public override onlyOperator view returns (bool) {

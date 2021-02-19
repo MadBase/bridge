@@ -8,6 +8,7 @@ library AccessControlLibrary {
     struct AccessStorage {
         mapping(address => bool) operators;
         address owner;
+        address pendingOwner;
     }
 
     function accessStorage() internal pure returns (AccessStorage storage ac) {
@@ -26,6 +27,20 @@ contract AccessControlled {
 
         ac.owner = msg.sender;
         ac.operators[msg.sender] = true;
+    }
+
+    function grantOwner(address who) external onlyOwner {
+        AccessControlLibrary.AccessStorage storage ac = AccessControlLibrary.accessStorage();
+
+        ac.pendingOwner = who;
+    }
+
+    function takeOwnership() external onlyOwner {
+        AccessControlLibrary.AccessStorage storage ac = AccessControlLibrary.accessStorage();
+
+        require(msg.sender == ac.pendingOwner, "ownership not granted");
+
+        ac.owner = msg.sender;
     }
 
     function grantOperator(address who) external onlyOperator {

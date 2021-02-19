@@ -4,130 +4,103 @@ pragma experimental ABIEncoderV2;
 
 import "ds-test/test.sol";
 
+import "./DiamondSetup.t.sol";
 import "./ParticipantsFacet.sol";
 import "./StakingFacet.sol";
 import "./ValidatorsUpdateFacet.sol";
 
+import "../interfaces/Staking.sol";
+import "../interfaces/Token.sol";
 import "../interfaces/Validators.sol";
 
-import "../Staking.sol";
+import "../Token.sol";
 import "../ValidatorsDiamond.sol";
 
-contract ParticipantsFacetTest is Constants, DSTest {
+contract ParticipantsFacetTest is Constants, DSTest, DiamondSetup {
 
-   uint constant INITIAL_AMOUNT = 1_000_000_000_000_000_000_000_000;
-
-    uint constant VALIDATOR_COUNT = 6;
-    Representative[VALIDATOR_COUNT] representatives;
-
-    Validators validators;
-    ParticipantsFacet pf;
-    StakingFacet sf;
-
-    Registry registry;
-    Staking staking;
-    Token stakingToken;
-    Token utilityToken;
-
-    function setUp() public {
-
-        registry = new Registry();
-        staking = new Staking(registry);
-        
-        stakingToken = new Token("STK", "MadNet Staking");
-        stakingToken.approve(address(staking), INITIAL_AMOUNT);
-
-        utilityToken = new Token("UTL", "MadNet Utility");
-
-        address vd = address(new ValidatorsDiamond());
-        validators = Validators(vd);
-        pf = ParticipantsFacet(vd);
-        sf = StakingFacet(vd);
-        ValidatorsUpdateFacet vu = ValidatorsUpdateFacet(vd);
-
-        registry.register(STAKING_CONTRACT, address(staking));
-        registry.register(STAKING_TOKEN, address(stakingToken));
-        registry.register(UTILITY_TOKEN, address(utilityToken));
-        registry.register(VALIDATORS_CONTRACT, vd);
-
-        staking.reloadRegistry();
-
-        address basepf = address(new ParticipantsFacet());
-        address basesf = address(new StakingFacet());
-
-        vu.addFacet(Validators.validatorCount.selector, basepf);
-        vu.addFacet(Validators.isValidator.selector, basepf);
-        vu.addFacet(Validators.addValidator.selector, basepf);
-        vu.addFacet(Validators.getValidators.selector, basepf);
-        vu.addFacet(Validators.removeValidator.selector, basepf);
-        vu.addFacet(Validators.setValidatorMaxCount.selector, basepf);
-        vu.addFacet(Validators.validatorMaxCount.selector, basepf);
-
-        vu.addFacet(StakingFacet.minimumStake.selector, basesf);
-        vu.addFacet(StakingFacet.setMinimumStake.selector, basesf);
-
-        vu.addFacet(ParticipantsFacet.initializeParticipants.selector, basepf);
-
-        pf.initializeParticipants(registry);
-        validators.setValidatorMaxCount(20);
-        sf.setMinimumStake(999_999_999);
-
-        // // Now actually build validators
-        uint256[2] memory madID;
-        for (uint256 i; i<VALIDATOR_COUNT;i++) {
-            madID[0] = i;
-            madID[1] = i;
-            representatives[i] = new Representative(madID);
-            representatives[i].add(pf);
-        }
-    }
+    uint representativeNumber;
 
     function testAddValidator() public {
-        uint256[2] memory madID;
 
-        Representative rep = new Representative(madID);
-        uint8 n = rep.add(pf);
+        // Create 4 validators
+        Representative[] memory reps = new Representative[](4);
+        for (uint256 i; i<4;i++) {
+            reps[i] = createRepresentative();
+        }
+        uint n = participants.validatorCount();
+        assertEq(n, 4);
 
-        assertEq(n, VALIDATOR_COUNT+1);
+        // Add 1 more
+        Representative rep = createRepresentative();
+        n = participants.validatorCount();
+        assertEq(n, 5);
     }
 
     function testRemoveValidator() public {
-        uint256[2] memory madID;
 
-        Representative rep = new Representative(madID);
+        // Create 4 validators
+        Representative[] memory reps = new Representative[](4);
+        for (uint256 i; i<4;i++) {
+            reps[i] = createRepresentative();
+        }
 
-        uint8 n = rep.add(pf);
-        assertEq(n, VALIDATOR_COUNT+1);
+        uint n = participants.validatorCount();
+        assertEq(n, 4);
 
-        n = rep.remove(pf);
-        assertEq(n, VALIDATOR_COUNT);
+        reps[1].remove(participants);
+        n = participants.validatorCount();
+        assertEq(n, 3);
     }
 
+
     function testIsValidator() public {
-        uint n = pf.validatorCount();
-        assertEq(n, VALIDATOR_COUNT);
+
+        // Create 4 validators
+        Representative[] memory reps = new Representative[](4);
+        for (uint256 i; i<4;i++) {
+            reps[i] = createRepresentative();
+        }
+
+        uint n = participants.validatorCount();
+        assertEq(n, 4);
 
         address madAddress = address(this);
-        uint256[2] memory madID = generateMadID(10);
 
-        bool valid = pf.isValidator(madAddress);
+        bool valid = participants.isValidator(madAddress);
         assertTrue(!valid); // Not added yet
 
-        n = pf.addValidator(madAddress, madID);
-        assertTrue(n == VALIDATOR_COUNT+1);
+        uint256[2] memory madID = generateMadID(10);
+        n = participants.addValidator(madAddress, madID);
+        assertTrue(n == 5);
 
-        valid = pf.isValidator(madAddress);
+        valid = participants.isValidator(madAddress);
         assertTrue(!valid); // Added but not staked
 
-        staking.lockStakeFor(madAddress, sf.minimumStake());
-        valid = pf.isValidator(madAddress);
+        staking.lockStakeFor(madAddress, staking.minimumStake());
+        valid = participants.isValidator(madAddress);
         assertTrue(valid); // Added and staked
     }
 
     function testGetValidators() public {
-        address[] memory validatorAddresses = pf.getValidators();
+        // Create 4 validators
+        Representative[] memory reps = new Representative[](4);
+        for (uint256 i; i<4;i++) {
+            reps[i] = createRepresentative();
+        }
 
-        assertEq(validatorAddresses.length, VALIDATOR_COUNT);
+        // Retrieve validators and confirm we have 4
+        address[] memory validatorAddresses = participants.getValidators();
+
+        assertEq(validatorAddresses.length, 4);
+    }
+
+    function createRepresentative() internal returns (Representative) {
+        uint256[2] memory representativeID = generateMadID(representativeNumber++);
+        Representative rep = new Representative(representativeID);
+
+        rep.add(participants);
+
+        return rep;
     }
 
     function generateMadID(uint256 id) internal pure returns (uint256[2] memory madID) {
@@ -146,11 +119,11 @@ contract Representative {
         madID[1] = _madID[1];
     }
 
-    function add(ParticipantsFacet pf) external returns (uint8) {
+    function add(Participants pf) external returns (uint8) {
         return pf.addValidator(address(this), madID);
     }
 
-    function remove(ParticipantsFacet pf) external returns (uint8) {
+    function remove(Participants pf) external returns (uint8) {
         return pf.removeValidator(address(this), madID);
     }
 }

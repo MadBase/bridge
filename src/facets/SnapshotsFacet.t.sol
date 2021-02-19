@@ -6,34 +6,21 @@ import "ds-test/test.sol";
 
 import "../interfaces/Validators.sol";
 
+import "./DiamondSetup.t.sol";
 import "./SnapshotsFacet.sol";
 
-contract SnapshotsFacetTest is Constants, DSTest {
-
-    SnapshotsFacet s;
-
-    function setUp() public {
-
-        Crypto crypto = new Crypto();
-        Registry registry = new Registry();
-        
-        registry.register(CRYPTO_CONTRACT, address(crypto));
-
-        s = new SnapshotsFacet();
-        s.setEpoch(1);
-        s.initializeSnapshots(registry);
-    }
+contract SnapshotsFacetTest is Constants, DSTest, DiamondSetup {
 
     function testNextSnapshot() public {
-        s.setEpoch(13);
-        assertEq(s.epoch(), 13);
+        snapshots.setEpoch(13);
+        assertEq(snapshots.epoch(), 13);
     }
 
     function testExtractUint32() public {
         bytes memory b = hex"01020400";
 
         uint expected = 262657;
-        uint32 actual = s.extractUint32(b, 0);
+        uint32 actual = snapshots.extractUint32(b, 0);
 
         assertEq(actual, expected);
     }
@@ -46,7 +33,7 @@ contract SnapshotsFacetTest is Constants, DSTest {
             hex"0f0bb886f1f1e04bcfa575020e3f47cceb3c11cd5cba496e5aedddc3a04d5b5c";
 
         uint256 expected = 0xd8d6b02811ca34cef0bcbc79cc5dfaf2dc6b8133ea46d552ebfc96f1c2b2d710;
-        uint256 actual = s.extractUint256(b, 0);
+        uint256 actual = snapshots.extractUint256(b, 0);
 
         assertEq(actual, expected);
     }
@@ -70,24 +57,24 @@ contract SnapshotsFacetTest is Constants, DSTest {
 
         assertEq(signatureGroup.length, 192);
 
-        uint256 epoch = s.epoch();
+        uint256 epoch = snapshots.epoch();
         assertEq(epoch, 1);
 
-        s.snapshot(signatureGroup, bclaims);
+        snapshots.snapshot(signatureGroup, bclaims);
 
-        uint256 newEpoch = s.epoch();
+        uint256 newEpoch = snapshots.epoch();
         assertEq(newEpoch, 2);
 
-        bytes memory rawSig = s.getRawSignatureSnapshot(epoch);
+        bytes memory rawSig = snapshots.getRawSignatureSnapshot(epoch);
         assertEq(rawSig.length, signatureGroup.length);
 
-        uint32 madHeight = s.getMadHeightFromSnapshot(epoch);
+        uint32 madHeight = snapshots.getMadHeightFromSnapshot(epoch);
         assertEq(uint256(madHeight), 5);
 
-        uint32 height = s.getHeightFromSnapshot(epoch);
+        uint32 height = snapshots.getHeightFromSnapshot(epoch);
         assertEq(uint256(height), 0);
 
-        uint32 chainId = s.getChainIdFromSnapshot(epoch);
+        uint32 chainId = snapshots.getChainIdFromSnapshot(epoch);
         assertEq(uint256(chainId), 42);
     }
 
@@ -114,24 +101,24 @@ contract SnapshotsFacetTest is Constants, DSTest {
 
         assertEq(signatureGroup.length, 192);
 
-        uint256 epoch = s.epoch();
+        uint256 epoch = snapshots.epoch();
         assertEq(epoch, 1);
 
-        s.snapshot(signatureGroup, bclaims);
+        snapshots.snapshot(signatureGroup, bclaims);
 
-        uint256 newEpoch = s.epoch();
+        uint256 newEpoch = snapshots.epoch();
         assertEq(newEpoch, 2);
 
-        bytes memory rawSig = s.getRawSignatureSnapshot(epoch);
+        bytes memory rawSig = snapshots.getRawSignatureSnapshot(epoch);
         assertEq(rawSig.length, signatureGroup.length);
 
-        uint32 madHeight = s.getMadHeightFromSnapshot(epoch);
+        uint32 madHeight = snapshots.getMadHeightFromSnapshot(epoch);
         assertEq(int(madHeight), 5);
 
-        uint32 height = s.getHeightFromSnapshot(epoch);
+        uint32 height = snapshots.getHeightFromSnapshot(epoch);
         assertEq(int(height), 0);
 
-        uint32 chainId = s.getChainIdFromSnapshot(epoch);
+        uint32 chainId = snapshots.getChainIdFromSnapshot(epoch);
         assertEq(int(chainId), 42);
     }
     

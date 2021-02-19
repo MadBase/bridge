@@ -3,12 +3,12 @@ pragma solidity >= 0.5.15;
 
 import "ds-stop/stop.sol";
 
+import "./interfaces/Token.sol";
 import "./interfaces/ValidatorsEvents.sol";
 
 import "./Constants.sol";
 import "./Registry.sol";
 import "./SafeMath.sol";
-import "./Token.sol";
 
 contract Deposit is Constants, DSStop, RegistryClient, SimpleAuth, ValidatorsEvents {
 

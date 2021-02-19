@@ -2,7 +2,7 @@
 pragma solidity >=0.5.15;
 
 
-import "./Staking.sol";
+import "./interfaces/Staking.sol";
 import "./interfaces/Validators.sol";
 
 /*

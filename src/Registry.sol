@@ -16,7 +16,7 @@ contract Registry is SimpleAuth {
     }
 
     function register(string memory name, address dst) public onlyOperator {
-            registry[name] = dst;
+        registry[name] = dst;
     }
 
     function remove(string memory name) public onlyOperator {
