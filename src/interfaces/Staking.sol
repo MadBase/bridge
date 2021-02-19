@@ -11,6 +11,8 @@ interface Staking is StakingEvents {
 
     function burn(address who) external;
 
+    function currentEpoch() external view returns (uint256);
+
     function majorFine(address who) external;
 
     function minorFine(address who) external;
@@ -88,6 +90,8 @@ interface Staking is StakingEvents {
     function withdraw(uint256 amount) external returns (bool);
 
     function withdrawFor(address who, uint256 amount) external returns (bool);
+
+    function setCurrentEpoch(uint256 _epoch) external;
 
     function setEpochDelay(uint256 _epochDelay) external;
 }

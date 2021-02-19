@@ -5,6 +5,7 @@ pragma experimental ABIEncoderV2;
 import "../interfaces/StakingEvents.sol";
 
 import "./AccessControlLibrary.sol";
+import "./SnapshotsLibrary.sol";
 import "./StakingLibrary.sol";
 import "./StopLibrary.sol";
 
@@ -72,9 +73,14 @@ contract StakingFacet is AccessControlled, Constants, StakingEvents, Stoppable {
         StakingLibrary.stakingStorage().rewardBonus = _rewardBonus;
     }
 
-    //
-    //
-    //
+    // Setting and retrieving epoch / Snapshots "epoch()" is preferred method
+    function currentEpoch() external view returns (uint256) {
+        return SnapshotsLibrary.epoch();
+    }
+
+    function setCurrentEpoch(uint256 _epoch) external onlyOperator {
+        SnapshotsLibrary.setEpoch(_epoch);
+    }
 
     function lockStake(uint256 amount) external stoppable returns (bool) {
         return StakingLibrary.lockStakeFor(msg.sender, amount);
