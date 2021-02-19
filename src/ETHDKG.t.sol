@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: MIT-open-group
 pragma solidity >=0.5.15;
 
 import "ds-test/test.sol";
@@ -9,8 +9,10 @@ import "./ETHDKGCompletion.sol";
 import "./ETHDKGGroupAccusation.sol";
 import "./ETHDKGSubmitMPK.sol";
 import "./Registry.sol";
-import "./Validators.sol";
-import "./ValidatorsSnapshot.sol";
+
+import "./ValidatorsDiamond.sol";
+import "./facets/ValidatorsUpdateFacet.sol";
+import "./interfaces/Validators.sol";
 
 contract ETHDKGTest is Constants, DSTest {
 
@@ -20,12 +22,11 @@ contract ETHDKGTest is Constants, DSTest {
     ETHDKGSubmitMPK private ethdkgSubmitMPK;
     Registry private registry;
     Validators private validators;
-    ValidatorsSnapshot private validatorsSnapshot;
 
     function setUp() public {
         Registry reg = new Registry();
-        validators = new Validators(10, reg);
-        validatorsSnapshot = new ValidatorsSnapshot();
+        validators = Validators(address(new ValidatorsDiamond()));
+        // validators = new Validators(10, reg);
         ethdkg = new ETHDKG(reg);
         ethdkgCompletion = new ETHDKGCompletion();
         ethdkgGroupAccusation = new ETHDKGGroupAccusation();
@@ -36,7 +37,6 @@ contract ETHDKGTest is Constants, DSTest {
         reg.register(ETHDKG_GROUPACCUSATION_CONTRACT, address(ethdkgGroupAccusation));
         reg.register(ETHDKG_SUBMITMPK_CONTRACT, address(ethdkgSubmitMPK));
         reg.register(VALIDATORS_CONTRACT, address(validators));
-        reg.register(VALIDATORS_SNAPSHOT_CONTRACT, address(validatorsSnapshot));
 
         ethdkg.reloadRegistry();
     }
@@ -118,7 +118,7 @@ contract ETHDKGTest is Constants, DSTest {
 
         bool ok;
         bytes memory results;
-        
+
         (ok, results) = wrappedSubmitMPK(mpk);
 
         assertTrue(!ok);

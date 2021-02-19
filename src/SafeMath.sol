@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT-open-group
 /// math.sol -- mixin for inline numerical wizardry
 
 // This program is free software: you can redistribute it and/or modify

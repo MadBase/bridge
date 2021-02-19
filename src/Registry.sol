@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: MIT-open-group
 pragma solidity >=0.5.15;
 
 import "./SimpleAuth.sol";
@@ -16,7 +16,7 @@ contract Registry is SimpleAuth {
     }
 
     function register(string memory name, address dst) public onlyOperator {
-            registry[name] = dst;
+        registry[name] = dst;
     }
 
     function remove(string memory name) public onlyOperator {

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: MIT-open-group
 pragma solidity >=0.5.15;
 
 contract SimpleAuth  {
@@ -8,17 +8,17 @@ contract SimpleAuth  {
 
     address private owner_;
 
-    constructor() public {
+    constructor() {
         owner_ = msg.sender;
         grantOperator(owner_);
     }
 
-    function grantOperator(address _operator) public onlyOperator {
+    function grantOperator(address _operator) public virtual onlyOperator {
         authorizedOperators_[_operator] = true;
         authorizedOperatorCount_++;
     }
 
-    function revokeOperator(address _operator) public onlyOperator {
+    function revokeOperator(address _operator) public virtual onlyOperator {
         require(authorizedOperatorCount_ > 1, "Can't remove all operators");
         delete authorizedOperators_[_operator];
         authorizedOperatorCount_--;
