@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: MIT-open-group
 pragma solidity >=0.5.15;
 
 contract Constants {
@@ -15,5 +15,4 @@ contract Constants {
     string constant UTILITY_TOKEN = "utilityToken/v1";
 
     string constant VALIDATORS_CONTRACT = "validators/v1";
-    string constant VALIDATORS_SNAPSHOT_CONTRACT = "validatorsSnapshot/v1";
 }

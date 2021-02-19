@@ -1,18 +1,16 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: MIT-open-group
 pragma solidity >= 0.5.15;
 
 import "ds-stop/stop.sol";
 
+import "./interfaces/Token.sol";
+import "./interfaces/ValidatorsEvents.sol";
+
 import "./Constants.sol";
 import "./Registry.sol";
 import "./SafeMath.sol";
-import "./Token.sol";
 
-interface DepositEvents {
-    event DepositReceived(uint256 depositID, address depositor, uint256 amount);
-}
-
-contract Deposit is Constants, DepositEvents, DSStop, RegistryClient, SimpleAuth {
+contract Deposit is Constants, DSStop, RegistryClient, SimpleAuth, ValidatorsEvents {
 
     using SafeMath for uint256;
 
@@ -27,7 +25,7 @@ contract Deposit is Constants, DepositEvents, DSStop, RegistryClient, SimpleAuth
     uint256 public depositID = 1;                       // Monatomically increasing
     mapping(uint256 => DepositDetails) public deposits; // Key is depositID
 
-    constructor(Registry registry_) public {
+    constructor(Registry registry_) {
         registry = registry_;
     }
 

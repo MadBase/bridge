@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: MIT-open-group
 pragma solidity >=0.5.15;
 
 contract SimpleAuth  {
@@ -8,7 +8,7 @@ contract SimpleAuth  {
 
     address private owner_;
 
-    constructor() public {
+    constructor() {
         owner_ = msg.sender;
         grantOperator(owner_);
     }
