@@ -7,10 +7,6 @@ import "./SnapshotsFacet.sol";
 import "./StakingFacet.sol";
 
 import "../Constants.sol";
-// import "../ETHDKG.sol";
-// import "../ETHDKGCompletion.sol";
-// import "../ETHDKGGroupAccusation.sol";
-// import "../ETHDKGSubmitMPK.sol";
 import "../Registry.sol";
 import "../Token.sol";
 import "../ValidatorsDiamond.sol";
@@ -50,21 +46,10 @@ contract DiamondSetup is Constants {
         update = ValidatorsUpdateFacet(diamond);
 
         stakingToken = BasicERC20(address(new Token("STK", "MadNet Staking")));
-        // stakingToken.approve(diamond, INITIAL_AMOUNT);
-
         utilityToken = BasicERC20(address(new Token("UTL", "MadNet Utility")));
-        // utilityToken.approve(diamond, INITIAL_AMOUNT);
 
         registry = new Registry();
-        // ETHDKG ethdkg = new ETHDKG(registry);
-        // ETHDKGCompletion ethdkgCompletion = new ETHDKGCompletion();
-        // ETHDKGGroupAccusation ethdkgGroupAccusation = new ETHDKGGroupAccusation();
-        // ETHDKGSubmitMPK ethdkgSubmitMPK = new ETHDKGSubmitMPK();
-
-        // registry.register(ETHDKG_CONTRACT, address(ethdkg));
-        // registry.register(ETHDKG_COMPLETION_CONTRACT, address(ethdkgCompletion));
-        // registry.register(ETHDKG_GROUPACCUSATION_CONTRACT, address(ethdkgGroupAccusation));
-        // registry.register(ETHDKG_SUBMITMPK_CONTRACT, address(ethdkgSubmitMPK));
+        
         registry.register(CRYPTO_CONTRACT, address(new Crypto()));
 
         registry.register(STAKING_CONTRACT, diamond);
