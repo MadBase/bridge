@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT-open-group
 pragma solidity >=0.7.4;
 
+import "./ParticipantsLibrary.sol";
+
 library AccessControlLibrary {
 
     bytes32 constant STORAGE_LOCATION = keccak256("access.storage");
@@ -72,6 +74,18 @@ contract AccessControlled {
         AccessControlLibrary.AccessStorage storage ac = AccessControlLibrary.accessStorage();
 
         require(ac.owner == msg.sender || ac.operators[msg.sender], "only owner or operator allowed");
+        _;
+    }
+
+    modifier onlyParticipant {
+        require(ParticipantsLibrary.isValidator(msg.sender), "only fully staked participants allowed");
+        _;
+    }
+
+    modifier participantOrOperator {
+        AccessControlLibrary.AccessStorage storage ac = AccessControlLibrary.accessStorage();
+
+        require(ac.operators[msg.sender] || ParticipantsLibrary.isValidator(msg.sender), "only owner or fully staked participants allowed");
         _;
     }
 }

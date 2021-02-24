@@ -138,10 +138,6 @@ library SnapshotsLibrary {
         bytes memory blockHash = abi.encodePacked(keccak256(_bclaims));
 
         bool ok = ss.crypto.Verify(blockHash, signature, publicKey);
-
-        // bool ok;
-        // bytes memory res;
-        // (ok, res) = ss.cryptoAddress.call(abi.encodeWithSignature("Verify(bytes,uint256[2],uint256[4])", blockHash, signature, publicKey)); // solium-disable-line
         require(ok, "Signature verification failed");
 
         // Extract
