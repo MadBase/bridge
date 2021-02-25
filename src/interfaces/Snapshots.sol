@@ -9,6 +9,14 @@ interface Snapshots is SnapshotsEvents {
 
     function initializeSnapshots(Registry registry) external;
 
+    function setMinEthSnapshotSize(uint256 _minSize) external;
+
+    function minEthSnapshotSize() external view returns (uint256);
+
+    function setMinMadSnapshotSize(uint256 _minSize) external;
+
+    function minMadSnapshotSize() external view returns (uint256);
+
     function setEpoch(uint256 ns) external;
 
     function epoch() external view returns (uint256);
