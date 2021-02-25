@@ -23,6 +23,22 @@ contract SnapshotsFacet is AccessControlled, Constants, SnapshotsEvents, Stoppab
         SnapshotsLibrary.setCrypto(cryptoAddress);
     }
 
+    function setMinEthSnapshotSize(uint256 _minSize) external onlyOperator {
+        SnapshotsLibrary.snapshotsStorage().minEthSnapshotSize = _minSize;
+    }
+
+    function minEthSnapshotSize() external view returns (uint256) {
+        return SnapshotsLibrary.snapshotsStorage().minEthSnapshotSize;
+    }
+
+    function setMinMadSnapshotSize(uint256 _minSize) external onlyOperator {
+        SnapshotsLibrary.snapshotsStorage().minMadSnapshotSize = _minSize;
+    }
+
+    function minMadSnapshotSize() external view returns (uint256) {
+        return SnapshotsLibrary.snapshotsStorage().minMadSnapshotSize;
+    }
+
     function setEpoch(uint256 ns) external onlyOperator {
         SnapshotsLibrary.setEpoch(ns);
     }
@@ -67,7 +83,7 @@ contract SnapshotsFacet is AccessControlled, Constants, SnapshotsEvents, Stoppab
         return SnapshotsLibrary.getMadHeightFromSnapshot(snapshotNumber);
     }
 
-    function snapshot(bytes calldata _signatureGroup, bytes calldata _bclaims) external onlyOperator returns (bool) {
+    function snapshot(bytes calldata _signatureGroup, bytes calldata _bclaims) external participantOrOperator returns (bool) {
         return SnapshotsLibrary.snapshot(_signatureGroup, _bclaims);
     }
 }
