@@ -7,6 +7,7 @@ import "./SnapshotsFacet.sol";
 import "./StakingFacet.sol";
 
 import "../Constants.sol";
+import "../ETHDKG.sol";
 import "../Registry.sol";
 import "../Token.sol";
 import "../ValidatorsDiamond.sol";
@@ -26,6 +27,7 @@ contract DiamondSetup is Constants {
     BasicERC20 stakingToken;
     BasicERC20 utilityToken;
 
+    ETHDKG ethdkg;
     Participants participants;
     Snapshots snapshots;
     Staking staking;
@@ -57,6 +59,9 @@ contract DiamondSetup is Constants {
 
         registry.register(STAKING_TOKEN, address(stakingToken));
         registry.register(UTILITY_TOKEN, address(utilityToken));
+
+        ethdkg = new ETHDKG(registry); // Not sufficient to test ETHDKG, but good enough to test Validators
+        registry.register(ETHDKG_CONTRACT, address(ethdkg));
 
         // SnapshotFacet Wiring
         update.addFacet(Snapshots.initializeSnapshots.selector, snapshotsFacet);

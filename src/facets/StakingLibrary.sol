@@ -45,6 +45,8 @@ library StakingLibrary {
         MintableERC20 utilityToken;
 
         mapping(address => StakeDetails) details;
+
+        address ethdkgAddress;
     }
 
     function stakingStorage() internal pure returns (StakingStorage storage sv) {
@@ -62,7 +64,6 @@ library StakingLibrary {
     event BurntStake(address indexed who, uint256 amount);
     event Fined(address indexed who, uint256 amount);
     event RequestedUnlockStake(address indexed who);
-
 
     // Staking token getter/setter
     function stakingToken() internal view returns (address) {
