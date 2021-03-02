@@ -36,20 +36,35 @@ contract Deposit is Constants, DSStop, RegistryClient, SimpleAuth, ValidatorsEve
     }
 
     function deposit(uint256 amount) external stoppable returns (bool) {
-        return _deposit(msg.sender, amount);
+        bool success = _deposit(depositID, msg.sender, amount);
+
+        depositID++;
+
+        return success;
     }
 
-    function _deposit(address sender, uint256 amount) internal returns (bool) {
+    function deposit(address who, uint256 amount) external onlyOperator stoppable returns (bool) {
+        bool success = _deposit(depositID, who, amount);
+
+        depositID++;
+
+        return success;
+    }
+
+    function deposit(uint256 depositId, address who, uint256 amount) external onlyOperator stoppable returns (bool) {
+        return _deposit(depositID, who, amount);
+    }
+
+    function _deposit(uint256 depositId, address who, uint256 amount) internal returns (bool) {
 
         DepositDetails storage details = deposits[depositID];
         details.amount = amount;
 
         totalDeposited = totalDeposited.add(amount);
 
-        emit DepositReceived(depositID, sender, amount);
-        depositID++;
+        emit DepositReceived(depositID, who, amount);
 
-        require(token.transferFrom(sender, address(this), amount), "Transfer failed");
+        require(token.transferFrom(who, address(this), amount), "Transfer failed");
 
         return true;
     }

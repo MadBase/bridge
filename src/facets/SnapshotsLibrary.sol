@@ -126,6 +126,11 @@ library SnapshotsLibrary {
         return snapshotDetail.madHeight;
     }
 
+    /// @notice Saves next snapshot
+    /// @param _signatureGroup The signature
+    /// @param _bclaims The claims being made about given block
+    /// @return Flag whether we should kick off another round of key generation
+
     function snapshot(bytes calldata _signatureGroup, bytes calldata _bclaims) internal returns (bool) {
 
         SnapshotsStorage storage ss = snapshotsStorage();
@@ -179,7 +184,7 @@ library SnapshotsLibrary {
 
         ss.nextSnapshot++;
 
-        return false;
+        return reinitEthdkg;
     }
 
 }

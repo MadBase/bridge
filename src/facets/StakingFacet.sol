@@ -177,7 +177,7 @@ contract StakingFacet is AccessControlled, Constants, StakingEvents, Stoppable {
         return StakingLibrary.unlockStakeFor(msg.sender, amount);
     }
 
-    function unlockStakeFor(address who, uint256 amount) external stoppable returns (bool) {
+    function unlockStakeFor(address who, uint256 amount) external onlyOperator stoppable returns (bool) {
         return StakingLibrary.unlockStakeFor(who, amount);
     }
 
