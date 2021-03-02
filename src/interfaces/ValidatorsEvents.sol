@@ -6,9 +6,6 @@ import "./StakingEvents.sol";
 /// @notice  Collection of all events that are considered for public use of system
 interface ValidatorsEvents {
 
-    /// @notice Event emitted when a deposit is received
-    event DepositReceived(uint256 depositID, address depositor, uint256 amount);
-
     /// @notice Events used directly by Validators
 
 
