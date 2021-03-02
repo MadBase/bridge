@@ -12,7 +12,7 @@ import "./StopLibrary.sol";
 import "../Constants.sol";
 import "../Registry.sol";
 
-contract StakingFacet is AccessControlled, Constants, StakingEvents, Stoppable {
+contract StakingFacet is AccessControlled, Constants, Stoppable {
 
     function initializeStaking(Registry registry) external onlyOperator {
         require(address(registry) != address(0), "nil registry address");

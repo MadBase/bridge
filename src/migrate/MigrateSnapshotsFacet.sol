@@ -2,10 +2,8 @@
 pragma solidity >=0.6.4;
 pragma experimental ABIEncoderV2;
 
-import "../interfaces/SnapshotsEvents.sol";
-
-import "./AccessControlLibrary.sol";
-import "./SnapshotsLibrary.sol";
+import "../facets/AccessControlLibrary.sol";
+import "../facets/SnapshotsLibrary.sol";
 
 import "../Constants.sol";
 
