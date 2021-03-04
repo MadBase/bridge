@@ -38,19 +38,12 @@ contract MigrateETHDKGTest is Constants, DSTest {
         address[] memory addresses = new address[](sz);
         uint256[4][] memory gpkj = new uint256[4][](sz);
 
-        master_public_key[0] = 1;
-        master_public_key[1] = 1;
-        master_public_key[2] = 1;
-        master_public_key[3] = 1;
+        master_public_key = [uint256(1), 1, 1, 1];
 
         // Build member specific info
-        // -- Member 7's gpkj is 7, 6, 5, 4
         for (uint160 idx; idx < sz; idx++) {
             addresses[idx] = address(9-idx);
-            gpkj[idx][0] = idx;
-            gpkj[idx][1] = idx;
-            gpkj[idx][2] = idx;
-            gpkj[idx][3] = idx;
+            gpkj[idx] = [uint256(idx), idx+1, idx+2, idx+3];
         }
 
         // Encode
@@ -65,6 +58,14 @@ contract MigrateETHDKGTest is Constants, DSTest {
         assertTrue(ok);
 
         // Verify
-        assertEq(ethdkg.master_public_key(0), 1, "");
+        assertEq(ethdkg.master_public_key(0), 1, "wrong mpk");
+        assertEq(ethdkg.master_public_key(1), 1, "wrong mpk");
+        assertEq(ethdkg.master_public_key(2), 1, "wrong mpk");
+        assertEq(ethdkg.master_public_key(3), 1, "wrong mpk");
+
+        assertEq(ethdkg.gpkj_submissions(address(8), 0), 1, "wrong gpkj");
+        assertEq(ethdkg.gpkj_submissions(address(8), 1), 2, "wrong gpkj");
+        assertEq(ethdkg.gpkj_submissions(address(8), 2), 3, "wrong gpkj");
+        assertEq(ethdkg.gpkj_submissions(address(8), 3), 4, "wrong gpkj");
     }
 }

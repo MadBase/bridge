@@ -17,10 +17,7 @@ contract MigrateETHDKG is ETHDKGStorage {
     ) external {
 
         addresses = _addresses;
-        master_public_key[0] = _master_public_key[0];
-        master_public_key[1] = _master_public_key[1];
-        master_public_key[2] = _master_public_key[2];
-        master_public_key[3] = _master_public_key[3];
+        master_public_key = _master_public_key;
 
         emit ValidatorSet(
             uint8(_addresses.length),
@@ -33,10 +30,14 @@ contract MigrateETHDKG is ETHDKGStorage {
             _master_public_key[3]
         );
 
-        for (uint256 idx; idx<addresses.length; idx++) {
+        for (uint256 idx; idx<_addresses.length; idx++) {
+
+            address addr = _addresses[idx];
+
+            gpkj_submissions[addr] = _gpkj[idx];
 
             emit ValidatorMember(
-                _addresses[idx],
+                addr,
                 _epoch,
                 idx+1,
                 _gpkj[idx][0],
