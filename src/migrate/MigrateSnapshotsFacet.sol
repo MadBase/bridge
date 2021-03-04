@@ -17,10 +17,6 @@ contract MigrateSnapshotsFacet is AccessControlled, Constants {
 
         SnapshotsLibrary.SnapshotsStorage storage ss = SnapshotsLibrary.snapshotsStorage();
 
-        uint256[4] memory publicKey;
-        uint256[2] memory signature;
-        (publicKey, signature) = SnapshotsLibrary.parseSignatureGroup(_signatureGroup);
-
         // Extract
         uint32 chainId = SnapshotsLibrary.extractUint32(_bclaims, 8);
         uint32 height = SnapshotsLibrary.extractUint32(_bclaims, 12);

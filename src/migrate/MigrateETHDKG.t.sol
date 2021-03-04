@@ -12,8 +12,6 @@ import "../Registry.sol";
 
 contract MigrateETHDKGTest is Constants, DSTest {
 
-    string constant MIGRATOR_SIG = "migrate(address,uint256,uint32,uint32,uint256[4],address[],uint256[4][])";
-
     ETHDKG private ethdkg;
     MigrateETHDKG private migrator;
     Registry private registry;
@@ -46,16 +44,10 @@ contract MigrateETHDKGTest is Constants, DSTest {
             gpkj[idx] = [uint256(idx), idx+1, idx+2, idx+3];
         }
 
-        // Encode
-        bytes memory cd = abi.encodeWithSignature(
-            MIGRATOR_SIG, 
-            address(migrator), 
-            epoch, ethHeight, madHeight, master_public_key, addresses, gpkj);
-
-        // Call
-        bool ok;
-        (ok,) = address(ethdkg).call(cd); // solium-disable-line
-        assertTrue(ok);
+        // Make the call
+        MigrateETHDKG wrapper = MigrateETHDKG(address(ethdkg));
+        wrapper.migrate(
+            address(migrator), epoch, ethHeight, madHeight, master_public_key, addresses, gpkj);
 
         // Verify
         assertEq(ethdkg.master_public_key(0), 1, "wrong mpk");
