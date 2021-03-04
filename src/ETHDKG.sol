@@ -69,15 +69,7 @@ contract ETHDKG is Constants, ETHDKGStorage, RegistryClient {
     }
 
     fallback() external payable {
-        // require(msg.sender != owner, "ack");
-        // Load storage
-        // ValidatorsStorageLibrary.ValidatorsStorage storage vs = ValidatorsStorageLibrary.validatorsStorage();
-
-        // Lookup facet
-        // address facet = vs.routing[msg.sig];
-        // require(facet != address(0), "no facet for selector");
-
-        // Delegatecall to facet
+        require(msg.sender == owner);
 
         assembly {
             calldatacopy(0, 0, calldatasize())
