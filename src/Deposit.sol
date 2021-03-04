@@ -54,7 +54,7 @@ contract Deposit is Constants, DSStop, RegistryClient, SimpleAuth, ValidatorsEve
         return _deposit(msg.sender, amount);
     }
 
-    function deposit(address who, uint256 amount) external stoppable returns (bool) {
+    function depositFor(address who, uint256 amount) external stoppable returns (bool) {
         return _deposit(msg.sender, amount);
     }
 
