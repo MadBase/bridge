@@ -16,7 +16,6 @@ contract MigrateSnapshotsFacetTest is Constants, DSTest, DiamondSetup {
 
     function testSnapshot() public {
 
-
         // Setup snapshot migrator
         address msf = address(new MigrateSnapshotsFacet());
         update.addFacet(MigrateSnapshotsFacet.snapshot.selector, msf);
