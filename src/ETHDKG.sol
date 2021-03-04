@@ -68,6 +68,34 @@ contract ETHDKG is Constants, ETHDKGStorage, RegistryClient {
         _initializeState();
     }
 
+    fallback() external payable {
+        // require(msg.sender != owner, "ack");
+        // Load storage
+        // ValidatorsStorageLibrary.ValidatorsStorage storage vs = ValidatorsStorageLibrary.validatorsStorage();
+
+        // Lookup facet
+        // address facet = vs.routing[msg.sig];
+        // require(facet != address(0), "no facet for selector");
+
+        // Delegatecall to facet
+
+        assembly {
+            calldatacopy(0, 0, calldatasize())
+
+            let bob := mload(4)
+            let result := delegatecall(gas(), bob, 0, calldatasize(), 0, 0)
+            returndatacopy(0, 0, returndatasize())
+
+            switch result
+                case 0 {
+                    revert(0, returndatasize())
+                }
+                default {
+                    return(0, returndatasize())
+                }
+        }
+    }
+
     function _initializeState() internal {
         uint256 T_CONTRACT_CREATION = block.number;
         T_REGISTRATION_END = T_CONTRACT_CREATION + DELTA_INCLUDE;

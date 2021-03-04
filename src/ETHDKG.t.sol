@@ -7,12 +7,23 @@ import "./Constants.sol";
 import "./ETHDKG.sol";
 import "./ETHDKGCompletion.sol";
 import "./ETHDKGGroupAccusation.sol";
+import "./ETHDKGStorage.sol";
 import "./ETHDKGSubmitMPK.sol";
 import "./Registry.sol";
 
 import "./ValidatorsDiamond.sol";
 import "./facets/ValidatorsUpdateFacet.sol";
 import "./interfaces/Validators.sol";
+
+contract Foo is ETHDKGStorage {
+    function foo(address, uint256 x) external {
+        require(x==3,"parameter broken");
+        master_public_key[0] = x;
+        master_public_key[1] = x;
+        master_public_key[2] = x;
+        master_public_key[3] = x;
+    }
+}
 
 contract ETHDKGTest is Constants, DSTest {
 
@@ -39,6 +50,18 @@ contract ETHDKGTest is Constants, DSTest {
         reg.register(VALIDATORS_CONTRACT, address(validators));
 
         ethdkg.reloadRegistry();
+    }
+
+    function testFoo() public {
+        address fooAddress = address(new Foo());
+
+        assertEq(ethdkg.master_public_key(0), 0);
+
+        bool ok;
+        (ok,) = address(ethdkg).call(abi.encodeWithSignature("foo(address,uint256)", fooAddress, 3)); // solium-disable-line
+        assertTrue(ok);
+
+        assertEq(ethdkg.master_public_key(0), 3);
     }
 
     function sliceUint(bytes memory bs, uint start) internal pure returns (uint256) {
@@ -93,24 +116,6 @@ contract ETHDKGTest is Constants, DSTest {
         for (uint8 idx; idx < quantity; idx++) {
             _inverses[idx] = inverses[idx];
         }
-    }
-
-    function testGroupAccusationGPKj() public {
-        // Group_Accusation_GPKj(uint256[] memory invArray, uint256[] memory honestIndices, uint256[] memory dishonestIndices) public view
-        uint256[] memory inverses = getInverses(3);
-        uint256[] memory invalidHonestIndices = new uint256[](3);
-        invalidHonestIndices[0] = 2;
-        invalidHonestIndices[1] = 3;
-        invalidHonestIndices[2] = 4;
-
-        uint256[] memory dishonestIndices = new uint256[](1);
-        dishonestIndices[0] = 1;
-
-        bool ok;
-        bytes memory results;
-        (ok, results) = wrappedGroup_Accusation(inverses, invalidHonestIndices, dishonestIndices);
-
-        assertTrue(!ok);
     }
 
     function testSubmitMPKNegative() public {

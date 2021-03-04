@@ -49,6 +49,28 @@ contract DepositTest is Constants, DSTest {
         assertEq(deposit.depositID(), 4);
     }
 
+    function testDirectDeposit() public {
+        // Make sure plain deposits are good
+        assertEq(deposit.depositID(), 1);
+        deposit.deposit(5);
+        deposit.deposit(5);
+        deposit.deposit(5);
+        assertEq(deposit.depositID(), 4);
+        assertEq(deposit.totalDeposited(), 15);
+
+        // Reduce deposit 3 from 5 -> 4
+        deposit.directDeposit(3, msg.sender, 4);
+        assertEq(deposit.totalDeposited(), 14);
+
+        // Increase deposit 2 from 5 -> 7
+        deposit.directDeposit(2, msg.sender, 7);
+        assertEq(deposit.totalDeposited(), 16);
+
+        // Create a brand new deposit 911
+        deposit.directDeposit(911, msg.sender, 100);
+        assertEq(deposit.totalDeposited(), 116);
+    }
+
     function testDepositAmount() public {
         deposit.deposit(13);
 
