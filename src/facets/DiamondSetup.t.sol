@@ -21,6 +21,7 @@ import "../interfaces/Validators.sol";
 contract DiamondSetup is Constants {
 
     uint constant INITIAL_AMOUNT = 1_000_000_000_000_000_000_000_000;
+    uint constant MINIMUM_STAKE = 999_999_999;
 
     Registry registry;
 
@@ -115,7 +116,7 @@ contract DiamondSetup is Constants {
 
         snapshots.setEpoch(1);
         participants.setValidatorMaxCount(10);
-        staking.setMinimumStake(999_999_999);
+        staking.setMinimumStake(MINIMUM_STAKE);
     }
 
 }

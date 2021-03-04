@@ -31,7 +31,7 @@ contract MigrateStakingFacetTest is Constants, DSTest, DiamondSetup {
         address msf = address(new MigrateStakingFacet());
         update.addFacet(MigrateStakingFacet.setBalancesFor.selector, msf);
 
-        // Let's do a unverifiable snapshot of sorts
+        // Let's set some balances
         MigrateStakingFacet migrator = MigrateStakingFacet(diamond);
 
         migrator.setBalancesFor(who, 5, 15, 20);
