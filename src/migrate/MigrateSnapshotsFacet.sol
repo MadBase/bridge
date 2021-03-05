@@ -13,7 +13,11 @@ contract MigrateSnapshotsFacet is AccessControlled, Constants {
     /// @param snapshotId The snapshot to save
     /// @param _signatureGroup The signature
     /// @param _bclaims The claims being made about given block
-    function snapshot(uint256 snapshotId, bytes calldata _signatureGroup, bytes calldata _bclaims) external onlyOperator {
+    function snapshot(
+        uint256 snapshotId, 
+        bytes calldata _signatureGroup, 
+        bytes calldata _bclaims
+    ) external onlyOperator {
 
         SnapshotsLibrary.SnapshotsStorage storage ss = SnapshotsLibrary.snapshotsStorage();
 

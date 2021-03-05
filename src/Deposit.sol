@@ -74,7 +74,11 @@ contract Deposit is Constants, DSStop, RegistryClient, SimpleAuth, ValidatorsEve
         return true;
     }
 
-    function directDeposit(uint256 _depositID, address who, uint256 amount) external stoppable onlyOperator returns (bool) {
+    function directDeposit(
+        uint256 _depositID,
+        address who,
+        uint256 amount
+    ) external stoppable onlyOperator returns (bool) {
 
         emit DepositReceived(_depositID, who, amount);
 
