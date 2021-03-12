@@ -3,11 +3,11 @@ pragma solidity >=0.7.4;
 
 import "ds-test/test.sol";
 
-import "./DiamondSetup.t.sol";
+import "./ValidatorsSetup.t.sol";
+import "./DiamondUpdateFacet.sol";
 import "./ParticipantsFacet.sol";
 import "./SnapshotsFacet.sol";
 import "./StakingFacet.sol";
-import "./ValidatorsUpdateFacet.sol";
 
 import "../Crypto.sol";
 import "../ETHDKG.sol";
@@ -24,7 +24,7 @@ import "../interfaces/Staking.sol";
 import "../interfaces/Token.sol";
 import "../interfaces/Validators.sol";
 
-contract StakingFacetTest is Constants, DSTest, DiamondSetup {
+contract StakingFacetTest is Constants, DSTest, ValidatorsSetup {
     
     address me = address(this);
 

@@ -6,10 +6,10 @@ import "ds-test/test.sol";
 
 import "../interfaces/Validators.sol";
 
-import "./DiamondSetup.t.sol";
+import "./ValidatorsSetup.t.sol";
 import "./SnapshotsFacet.sol";
 
-contract SnapshotsFacetTest is Constants, DSTest, DiamondSetup {
+contract SnapshotsFacetTest is Constants, DSTest, ValidatorsSetup {
 
     function testNextSnapshot() public {
         snapshots.setEpoch(13);

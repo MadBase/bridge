@@ -6,7 +6,7 @@ import "ds-test/test.sol";
 
 import "./MigrateParticipantsFacet.sol";
 
-import "../facets/DiamondSetup.t.sol";
+import "../facets/ValidatorsSetup.t.sol";
 
 import "../Constants.sol";
 import "../ETHDKG.sol";
@@ -18,7 +18,7 @@ contract User {
     }
 }
 
-contract MigrateParticipantsFacetTest is Constants, DSTest, DiamondSetup {
+contract MigrateParticipantsFacetTest is Constants, DSTest, ValidatorsSetup {
 
     function testAddRemoveValidatorImmediate() public {
 

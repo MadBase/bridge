@@ -2,8 +2,8 @@
 pragma solidity >=0.6.4;
 
 import "./facets/AccessControlLibrary.sol";
-import "./facets/ValidatorsUpdateFacet.sol";
-import "./facets/ValidatorsStorageLibrary.sol";
+import "./facets/DiamondUpdateFacet.sol";
+import "./facets/DiamondStorageLibrary.sol";
 
 contract ValidatorsDiamond {
 
@@ -12,10 +12,10 @@ contract ValidatorsDiamond {
         ac.owner = msg.sender;
         ac.operators[msg.sender] = true;
 
-        ValidatorsStorageLibrary.ValidatorsStorage storage vs = ValidatorsStorageLibrary.validatorsStorage();
+        DiamondStorageLibrary.DiamondStorage storage vs = DiamondStorageLibrary.diamondStorage();
 
         // Wire in the updatability functions
-        ValidatorsUpdateFacet update = new ValidatorsUpdateFacet();
+        DiamondUpdateFacet update = new DiamondUpdateFacet();
 
         vs.routing[update.addFacet.selector] = address(update);
         vs.routing[update.removeFacet.selector] = address(update);
@@ -24,7 +24,7 @@ contract ValidatorsDiamond {
 
     fallback() external payable {
         // Load storage
-        ValidatorsStorageLibrary.ValidatorsStorage storage vs = ValidatorsStorageLibrary.validatorsStorage();
+        DiamondStorageLibrary.DiamondStorage storage vs = DiamondStorageLibrary.diamondStorage();
 
         // Lookup facet
         address facet = vs.routing[msg.sig];

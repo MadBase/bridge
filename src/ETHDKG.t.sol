@@ -12,7 +12,7 @@ import "./ETHDKGSubmitMPK.sol";
 import "./Registry.sol";
 
 import "./ValidatorsDiamond.sol";
-import "./facets/ValidatorsUpdateFacet.sol";
+import "./facets/DiamondUpdateFacet.sol";
 import "./interfaces/Validators.sol";
 
 contract Foo is ETHDKGStorage {

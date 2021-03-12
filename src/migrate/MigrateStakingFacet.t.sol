@@ -6,13 +6,13 @@ import "ds-test/test.sol";
 
 import "./MigrateStakingFacet.sol";
 
-import "../facets/DiamondSetup.t.sol";
+import "../facets/ValidatorsSetup.t.sol";
 
 import "../Constants.sol";
 import "../ETHDKG.sol";
 import "../Registry.sol";
 
-contract MigrateStakingFacetTest is Constants, DSTest, DiamondSetup {
+contract MigrateStakingFacetTest is Constants, DSTest, ValidatorsSetup {
 
     function testSetBalancesFor() public {
 

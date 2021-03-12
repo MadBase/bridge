@@ -68,7 +68,7 @@ contract ETHDKG is Constants, ETHDKGStorage, RegistryClient {
         _initializeState();
     }
 
-    fallback() external payable {
+    fallback() external {
         require(msg.sender == owner);
 
         assembly {

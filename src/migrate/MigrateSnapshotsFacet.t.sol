@@ -6,13 +6,13 @@ import "ds-test/test.sol";
 
 import "./MigrateSnapshotsFacet.sol";
 
-import "../facets/DiamondSetup.t.sol";
+import "../facets/ValidatorsSetup.t.sol";
 
 import "../Constants.sol";
 import "../ETHDKG.sol";
 import "../Registry.sol";
 
-contract MigrateSnapshotsFacetTest is Constants, DSTest, DiamondSetup {
+contract MigrateSnapshotsFacetTest is Constants, DSTest, ValidatorsSetup {
 
     function testSnapshot() public {
 
