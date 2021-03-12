@@ -6,15 +6,17 @@ import "ds-test/test.sol";
 
 import "./MigrateSnapshotsFacet.sol";
 
-import "../facets/ValidatorsSetup.t.sol";
+import "../facets/Setup.t.sol";
 
 import "../Constants.sol";
-import "../ETHDKG.sol";
 import "../Registry.sol";
 
-contract MigrateSnapshotsFacetTest is Constants, DSTest, ValidatorsSetup {
+contract MigrateSnapshotsFacetTest is Constants, DSTest, Setup {
 
     function testSnapshot() public {
+
+        address diamond = address(validators);
+        DiamondUpdateFacet update = DiamondUpdateFacet(diamond);
 
         // Setup snapshot migrator
         address msf = address(new MigrateSnapshotsFacet());

@@ -24,9 +24,13 @@ interface ETHDKG {
 
     function getPhaseLength() external view returns (uint256);
 
-    function initializeState() external;
+    function gpkj_submissions(address, uint256) external view returns (uint256);
+
+    function master_public_key(uint256) external view returns (uint256);
 
     function numberOfRegistrations() external view returns (uint256);
+
+    function initializeState() external;
 
     function initializeEthDKG(Registry) external;
 

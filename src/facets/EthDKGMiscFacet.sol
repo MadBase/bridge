@@ -9,8 +9,22 @@ import "./EthDKGLibrary.sol";
 
 contract EthDKGMiscFacet is Constants, EthDKGConstants {
 
+    //
+    // Informational
+    //
+    function master_public_key(uint256 idx) external view returns (uint256) {
+        return EthDKGLibrary.ethDKGStorage().master_public_key[idx];
+    }
+
+    function gpkj_submissions(address addr, uint256 idx) external view returns (uint256) {
+        return EthDKGLibrary.ethDKGStorage().gpkj_submissions[addr][idx];
+    }
+
+    //
+    // Functional
+    //
     function register(uint256[2] memory public_key)
-    public
+    external
     {
         EthDKGLibrary.EthDKGStorage storage es = EthDKGLibrary.ethDKGStorage();
 
@@ -43,7 +57,7 @@ contract EthDKGMiscFacet is Constants, EthDKGConstants {
     }
 
     function distribute_shares(uint256[] memory encrypted_shares, uint256[2][] memory commitments)
-    public
+    external
     {
         EthDKGLibrary.EthDKGStorage storage es = EthDKGLibrary.ethDKGStorage();
 
@@ -136,7 +150,7 @@ contract EthDKGMiscFacet is Constants, EthDKGConstants {
         uint256[2] memory key_share_G1_correctness_proof,
         uint256[4] memory key_share_G2
     )
-    public
+    external
     {
         EthDKGLibrary.EthDKGStorage storage es = EthDKGLibrary.ethDKGStorage();
 
@@ -213,7 +227,7 @@ contract EthDKGMiscFacet is Constants, EthDKGConstants {
         uint256[4] memory gpkj,
         uint256[2] memory sig
     )
-    public
+    external
     {
         EthDKGLibrary.EthDKGStorage storage es = EthDKGLibrary.ethDKGStorage();
 

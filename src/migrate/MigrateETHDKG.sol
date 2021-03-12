@@ -2,12 +2,11 @@
 pragma solidity >=0.6.4;
 pragma experimental ABIEncoderV2;
 
-import "../ETHDKGStorage.sol";
+import "../facets/EthDKGLibrary.sol";
 
-contract MigrateETHDKG is ETHDKGStorage {
+contract MigrateETHDKG {
 
     function migrate(
-        address,
         uint256 _epoch,
         uint32 _ethHeight,
         uint32 _madHeight,
@@ -16,10 +15,12 @@ contract MigrateETHDKG is ETHDKGStorage {
         uint256[4][] memory _gpkj
     ) external {
 
-        addresses = _addresses;
-        master_public_key = _master_public_key;
+        EthDKGLibrary.EthDKGStorage storage es = EthDKGLibrary.ethDKGStorage();
 
-        emit ValidatorSet(
+        es.addresses = _addresses;
+        es.master_public_key = _master_public_key;
+
+        emit EthDKGLibrary.ValidatorSet(
             uint8(_addresses.length),
             _epoch,
             _ethHeight,
@@ -34,9 +35,9 @@ contract MigrateETHDKG is ETHDKGStorage {
 
             address addr = _addresses[idx];
 
-            gpkj_submissions[addr] = _gpkj[idx];
+            es.gpkj_submissions[addr] = _gpkj[idx];
 
-            emit ValidatorMember(
+            emit EthDKGLibrary.ValidatorMember(
                 addr,
                 _epoch,
                 idx+1,

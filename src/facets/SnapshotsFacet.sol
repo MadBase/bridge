@@ -9,18 +9,13 @@ import "./SnapshotsLibrary.sol";
 import "./StopLibrary.sol";
 
 import "../Constants.sol";
-import "../Crypto.sol";
+import "../CryptoLibrary.sol";
 import "../Registry.sol";
 
 contract SnapshotsFacet is AccessControlled, Constants, SnapshotsEvents, Stoppable {
 
     function initializeSnapshots(Registry registry) external onlyOperator {
         require(address(registry) != address(0), "nil registry address");
-
-        address cryptoAddress = registry.lookup(CRYPTO_CONTRACT);
-        require(cryptoAddress != address(0), "nil crypto address");
-
-        SnapshotsLibrary.setCrypto(cryptoAddress);
     }
 
     function setMinEthSnapshotSize(uint256 _minSize) external onlyOperator {

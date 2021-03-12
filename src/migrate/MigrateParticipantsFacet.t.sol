@@ -6,10 +6,9 @@ import "ds-test/test.sol";
 
 import "./MigrateParticipantsFacet.sol";
 
-import "../facets/ValidatorsSetup.t.sol";
+import "../facets/Setup.t.sol";
 
 import "../Constants.sol";
-import "../ETHDKG.sol";
 import "../Registry.sol";
 
 contract User {
@@ -18,9 +17,12 @@ contract User {
     }
 }
 
-contract MigrateParticipantsFacetTest is Constants, DSTest, ValidatorsSetup {
+contract MigrateParticipantsFacetTest is Constants, DSTest, Setup {
 
     function testAddRemoveValidatorImmediate() public {
+
+        address diamond = address(validators);
+        DiamondUpdateFacet update = DiamondUpdateFacet(diamond);
 
         // We need a surrogate user with tokens
         User user = new User();

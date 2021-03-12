@@ -556,7 +556,7 @@ library CryptoLibrary {
     // FIELD_MODULUS, legendre(t) == -1 when a square root of t does not exist
     // modulo FIELD_MODULUS, and legendre(t) == 0 when t == 0 mod FIELD_MODULUS.
     function legendre(uint256 t)
-    private view returns (int256 chi) {
+    internal view returns (int256 chi) {
         uint256 s = expmod(t, pMinus1Over2, FIELD_MODULUS);
         if (s != 0) {
             chi = 2*int256(s&1)-1;

@@ -4,7 +4,7 @@ pragma experimental ABIEncoderV2;
 
 import "ds-test/test.sol";
 
-import "./ValidatorsSetup.t.sol";
+import "./Setup.t.sol";
 import "./DiamondUpdateFacet.sol";
 import "./ParticipantsFacet.sol";
 import "./StakingFacet.sol";
@@ -16,9 +16,19 @@ import "../interfaces/Validators.sol";
 import "../Token.sol";
 import "../ValidatorsDiamond.sol";
 
-contract ParticipantsFacetTest is Constants, DSTest, ValidatorsSetup {
+contract ParticipantsFacetTest is Constants, DSTest, Setup {
 
     uint representativeNumber;
+
+    // Participants participants;
+    // Staking staking;
+    // Snapshots snapshots;
+
+    // function setUp() public {
+    //     Registry registry = new Registry();
+
+    //     setUpValidators(registry);
+    // }
 
     function testAddValidator() public {
 

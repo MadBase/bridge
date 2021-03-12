@@ -6,15 +6,17 @@ import "ds-test/test.sol";
 
 import "./MigrateStakingFacet.sol";
 
-import "../facets/ValidatorsSetup.t.sol";
+import "../facets/Setup.t.sol";
 
 import "../Constants.sol";
-import "../ETHDKG.sol";
 import "../Registry.sol";
 
-contract MigrateStakingFacetTest is Constants, DSTest, ValidatorsSetup {
+contract MigrateStakingFacetTest is Constants, DSTest, Setup {
 
     function testSetBalancesFor() public {
+
+        address diamond = address(validators);
+        DiamondUpdateFacet update = DiamondUpdateFacet(diamond);
 
         // Remember my current token balances
         uint256 originalStakingBalance = stakingToken.balanceOf(address(this));

@@ -6,27 +6,23 @@ import "ds-test/test.sol";
 
 import "./MigrateETHDKG.sol";
 
+import "../facets/Setup.t.sol";
+
 import "../Constants.sol";
-import "../ETHDKG.sol";
+import "../interfaces/ETHDKG.sol";
 import "../Registry.sol";
 
-contract MigrateETHDKGTest is Constants, DSTest {
-
-    ETHDKG private ethdkg;
-    MigrateETHDKG private migrator;
-    Registry private registry;
-
-    function setUp() public {
-        registry = new Registry();
-
-        ethdkg = new ETHDKG(registry);
-        migrator = new MigrateETHDKG();
-    }
-
+contract MigrateETHDKGTest is Constants, DSTest, Setup {
 
     function testMigrator() public {
 
         uint256 sz = 7;
+
+        address diamond = address(ethdkg);
+        DiamondUpdateFacet update = DiamondUpdateFacet(diamond);
+        address facet = address(new MigrateETHDKG());
+
+        update.addFacet(MigrateETHDKG.migrate.selector, facet);
 
         // Values
         uint256 epoch = 3;
@@ -47,7 +43,7 @@ contract MigrateETHDKGTest is Constants, DSTest {
         // Make the call
         MigrateETHDKG wrapper = MigrateETHDKG(address(ethdkg));
         wrapper.migrate(
-            address(migrator), epoch, ethHeight, madHeight, master_public_key, addresses, gpkj);
+            epoch, ethHeight, madHeight, master_public_key, addresses, gpkj);
 
         // Verify
         assertEq(ethdkg.master_public_key(0), 1, "wrong mpk");

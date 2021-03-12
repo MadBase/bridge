@@ -6,10 +6,21 @@ import "ds-test/test.sol";
 
 import "../interfaces/Validators.sol";
 
-import "./ValidatorsSetup.t.sol";
+import "./Setup.t.sol";
 import "./SnapshotsFacet.sol";
 
-contract SnapshotsFacetTest is Constants, DSTest, ValidatorsSetup {
+contract SnapshotsFacetTest is Constants, DSTest, Setup {
+
+    // Participants participants;
+    // Registry registry;
+    // Staking staking;
+    // Snapshots snapshots;
+
+    // function setUp() public {
+    //     registry = new Registry();
+
+    //     setUpValidators(registry);
+    // }
 
     function testNextSnapshot() public {
         snapshots.setEpoch(13);
