@@ -2,9 +2,10 @@
 pragma solidity >=0.6.4;
 pragma experimental ABIEncoderV2;
 
+import "../facets/AccessControlLibrary.sol";
 import "../facets/EthDKGLibrary.sol";
 
-contract MigrateETHDKG {
+contract MigrateETHDKG is AccessControlled {
 
     function migrate(
         uint256 _epoch,
@@ -13,7 +14,7 @@ contract MigrateETHDKG {
         uint256[4] memory _master_public_key,
         address[] memory _addresses,
         uint256[4][] memory _gpkj
-    ) external {
+    ) external onlyOperator {
 
         EthDKGLibrary.EthDKGStorage storage es = EthDKGLibrary.ethDKGStorage();
 
