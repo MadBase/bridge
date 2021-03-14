@@ -1,10 +1,6 @@
 // SPDX-License-Identifier: MIT-open-group
 pragma solidity >=0.5.15;
 
-
-import "./interfaces/Staking.sol";
-import "./interfaces/Validators.sol";
-
 /*
     Author: Philipp Schindler
     Source code and documentation available on Github: https://github.com/PhilippSchindler/ethdkg

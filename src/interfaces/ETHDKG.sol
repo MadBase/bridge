@@ -3,6 +3,8 @@ pragma solidity >=0.5.15;
 
 import "../Registry.sol";
 
+import "./ETHDKGEvents.sol";
+
 /*
     Author: Philipp Schindler
     Source code and documentation available on Github: https://github.com/PhilippSchindler/ethdkg
@@ -16,9 +18,7 @@ import "../Registry.sol";
     THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-interface ETHDKG {
-
-    function reloadRegistry() external;
+interface ETHDKG is ETHDKGEvents {
 
     function updatePhaseLength(uint256) external;
 
@@ -33,6 +33,38 @@ interface ETHDKG {
     function initializeState() external;
 
     function initializeEthDKG(Registry) external;
+
+    function addresses(uint256 idx) external view returns (address);
+
+    function publicKeys(address addr, uint256 idx) external view returns (uint256);
+
+    function keyShares(address addr, uint256 idx) external view returns (uint256);
+
+    function initialMessage() external view returns (bytes memory);
+
+    function initialSignatures(address addr, uint256 idx) external view returns (uint256);
+
+    function T_REGISTRATION_END() external view returns (uint256);
+
+    function T_SHARE_DISTRIBUTION_END() external view returns (uint256);
+
+    function T_DISPUTE_END() external view returns (uint256);
+
+    function T_KEY_SHARE_SUBMISSION_END() external view returns (uint256);
+
+    function T_MPK_SUBMISSION_END() external view returns (uint256);
+
+    function T_GPKJ_SUBMISSION_END() external view returns (uint256);
+
+    function T_GPKJDISPUTE_END() external view returns (uint256);
+
+    function T_DKG_COMPLETE() external view returns (uint256);
+
+    function isMalicious(address addr) external view returns (bool);
+
+    function shareDistributionHashes(address addr) external view returns (bytes32);
+
+    function commitments_1st_coefficient(address addr, uint256 idx) external view returns (uint256);
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
     //// MAIN CONTRACT FUNCTIONS

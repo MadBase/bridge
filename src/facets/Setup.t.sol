@@ -4,6 +4,7 @@ pragma experimental ABIEncoderV2;
 
 import "./EthDKGCompletionFacet.sol";
 import "./EthDKGGroupAccusationFacet.sol";
+import "./EthDKGInformationFacet.sol";
 import "./EthDKGInitializeFacet.sol";
 import "./EthDKGMiscFacet.sol";
 import "./EthDKGSubmitMPKFacet.sol";
@@ -133,15 +134,6 @@ contract Setup is Constants {
         update.addFacet(Participants.validatorCount.selector, participantsFacet);
 
         _registry.register(VALIDATORS_CONTRACT, diamond);
-
-        // participants = Participants(diamond);
-        // snapshots = Snapshots(diamond);
-        // staking = Staking(diamond);
-        // validators = Validators(diamond);
-
-
-
-        // // Base scenario setup
     }
 
     function setUpEthDKG(Registry _registry) public {
@@ -156,6 +148,7 @@ contract Setup is Constants {
         address mpkFacet = address(new EthDKGSubmitMPKFacet());
         address disputeFacet = address(new EthDKGSubmitDisputeFacet());
         address miscFacet = address(new EthDKGMiscFacet());
+        address infoFacet = address(new EthDKGInformationFacet());
 
         // Wiring facets
         update.addFacet(ETHDKG.Group_Accusation_GPKj.selector, accusationFacet);
@@ -169,8 +162,8 @@ contract Setup is Constants {
         update.addFacet(ETHDKG.submit_key_share.selector, miscFacet);
         update.addFacet(ETHDKG.Submit_GPKj.selector, miscFacet);
 
-        update.addFacet(ETHDKG.master_public_key.selector, miscFacet);
-        update.addFacet(ETHDKG.gpkj_submissions.selector, miscFacet);
+        update.addFacet(ETHDKG.master_public_key.selector, infoFacet);
+        update.addFacet(ETHDKG.gpkj_submissions.selector, infoFacet);
 
         _registry.register(ETHDKG_CONTRACT, diamond);
     }

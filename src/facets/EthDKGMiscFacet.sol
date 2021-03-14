@@ -9,20 +9,6 @@ import "./EthDKGLibrary.sol";
 
 contract EthDKGMiscFacet is Constants, EthDKGConstants {
 
-    //
-    // Informational
-    //
-    function master_public_key(uint256 idx) external view returns (uint256) {
-        return EthDKGLibrary.ethDKGStorage().master_public_key[idx];
-    }
-
-    function gpkj_submissions(address addr, uint256 idx) external view returns (uint256) {
-        return EthDKGLibrary.ethDKGStorage().gpkj_submissions[addr][idx];
-    }
-
-    //
-    // Functional
-    //
     function register(uint256[2] memory public_key)
     external
     {
