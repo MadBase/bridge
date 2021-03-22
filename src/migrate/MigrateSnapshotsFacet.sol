@@ -14,8 +14,8 @@ contract MigrateSnapshotsFacet is AccessControlled, Constants {
     /// @param _signatureGroup The signature
     /// @param _bclaims The claims being made about given block
     function snapshot(
-        uint256 snapshotId, 
-        bytes calldata _signatureGroup, 
+        uint256 snapshotId,
+        bytes calldata _signatureGroup,
         bytes calldata _bclaims
     ) external onlyOperator {
 
