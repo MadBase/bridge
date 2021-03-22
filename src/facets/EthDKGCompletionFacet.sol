@@ -78,6 +78,8 @@ contract EthDKGCompletionFacet {
             }
         }
 
-        return reinitialize;
+        if (reinitialize) {
+		EthDKGLibrary.initializeState();
+	}
     }
 }
