@@ -12,10 +12,13 @@ import "./StopLibrary.sol";
 import "../Constants.sol";
 import "../Registry.sol";
 
-contract StakingFacet is AccessControlled, Constants, StakingEvents, Stoppable {
+contract StakingFacet is AccessControlled, Constants, Stoppable {
 
     function initializeStaking(Registry registry) external onlyOperator {
         require(address(registry) != address(0), "nil registry address");
+
+        address ethdkgAddress = registry.lookup(ETHDKG_CONTRACT);
+        require(ethdkgAddress != address(0), "nil ethdkg address");
 
         address stakingTokenAddress = registry.lookup(STAKING_TOKEN);
         require(stakingTokenAddress != address(0), "nil staking Token");
@@ -25,6 +28,7 @@ contract StakingFacet is AccessControlled, Constants, StakingEvents, Stoppable {
 
         StakingLibrary.StakingStorage storage ss = StakingLibrary.stakingStorage();
 
+        ss.ethdkgAddress = ethdkgAddress;
         ss.stakingToken = BasicERC20(stakingTokenAddress);
         ss.utilityToken = MintableERC20(utilityTokenAddress);
     }
@@ -36,6 +40,20 @@ contract StakingFacet is AccessControlled, Constants, StakingEvents, Stoppable {
 
     function setMinimumStake(uint256 _minimumStake) external onlyOperator {
         StakingLibrary.stakingStorage().minimumStake = _minimumStake;
+    }
+
+    function majorFine(address who) external {
+        StakingLibrary.StakingStorage storage ss = StakingLibrary.stakingStorage();
+        require(msg.sender == ss.ethdkgAddress, "only allowed from ethdkg");
+
+        StakingLibrary.fine(who, ss.majorStakeFine);
+    }
+
+    function minorFine(address who) external {
+        StakingLibrary.StakingStorage storage ss = StakingLibrary.stakingStorage();
+        require(msg.sender == ss.ethdkgAddress, "only allowed from ethdkg");
+
+        StakingLibrary.fine(who, ss.minorStakeFine);
     }
 
     // Major Stake Fine getter/setter
@@ -159,7 +177,7 @@ contract StakingFacet is AccessControlled, Constants, StakingEvents, Stoppable {
         return StakingLibrary.unlockStakeFor(msg.sender, amount);
     }
 
-    function unlockStakeFor(address who, uint256 amount) external stoppable returns (bool) {
+    function unlockStakeFor(address who, uint256 amount) external onlyOperator stoppable returns (bool) {
         return StakingLibrary.unlockStakeFor(who, amount);
     }
 

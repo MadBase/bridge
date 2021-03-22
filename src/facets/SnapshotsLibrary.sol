@@ -2,7 +2,7 @@
 pragma solidity >=0.7.4;
 pragma experimental ABIEncoderV2;
 
-import "../Crypto.sol";
+import "../CryptoLibrary.sol";
 import "../Registry.sol";
 
 library SnapshotsLibrary {
@@ -25,7 +25,6 @@ library SnapshotsLibrary {
         bool validatorsChanged;     // i.e. when we do nextSnapshot will there be different validators?
         uint256 minEthSnapshotSize;
         uint256 minMadSnapshotSize;
-        Crypto crypto;
     }
 
     function snapshotsStorage() internal pure returns (SnapshotsStorage storage ss) {
@@ -38,15 +37,6 @@ library SnapshotsLibrary {
     //
     //
     //
-
-   // Crypto contract getter/setter
-    function crypto() internal view returns (address) {
-        return address(snapshotsStorage().crypto);
-    }
-
-    function setCrypto(address _crypto) internal {
-        snapshotsStorage().crypto = Crypto(_crypto);
-    }
 
     function setEpoch(uint256 ns) internal {
         snapshotsStorage().nextSnapshot = ns;
@@ -126,10 +116,14 @@ library SnapshotsLibrary {
         return snapshotDetail.madHeight;
     }
 
+    /// @notice Saves next snapshot
+    /// @param _signatureGroup The signature
+    /// @param _bclaims The claims being made about given block
+    /// @return Flag whether we should kick off another round of key generation
+
     function snapshot(bytes calldata _signatureGroup, bytes calldata _bclaims) internal returns (bool) {
 
         SnapshotsStorage storage ss = snapshotsStorage();
-        require(address(ss.crypto) != address(0), "nil crypto address");
 
         uint256[4] memory publicKey;
         uint256[2] memory signature;
@@ -137,7 +131,7 @@ library SnapshotsLibrary {
 
         bytes memory blockHash = abi.encodePacked(keccak256(_bclaims));
 
-        bool ok = ss.crypto.Verify(blockHash, signature, publicKey);
+        bool ok = CryptoLibrary.Verify(blockHash, signature, publicKey);
         require(ok, "Signature verification failed");
 
         // Extract
@@ -179,7 +173,7 @@ library SnapshotsLibrary {
 
         ss.nextSnapshot++;
 
-        return false;
+        return reinitEthdkg;
     }
 
 }

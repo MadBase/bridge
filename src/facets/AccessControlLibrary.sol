@@ -40,6 +40,7 @@ contract AccessControlled {
         AccessControlLibrary.AccessStorage storage ac = AccessControlLibrary.accessStorage();
 
         require(msg.sender == ac.pendingOwner, "ownership not granted");
+        delete ac.pendingOwner;
 
         ac.owner = msg.sender;
     }

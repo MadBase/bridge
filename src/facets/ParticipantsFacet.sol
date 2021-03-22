@@ -2,7 +2,7 @@
 pragma solidity >=0.6.4;
 pragma experimental ABIEncoderV2;
 
-import "../interfaces/ParticipantsEvents.sol";
+import "../interfaces/Participants.sol";
 
 import "./AccessControlLibrary.sol";
 import "./ParticipantsLibrary.sol";
@@ -12,50 +12,50 @@ import "./StopLibrary.sol";
 import "../Constants.sol";
 import "../Registry.sol";
 
-contract ParticipantsFacet is AccessControlled, Constants, ParticipantsEvents, Stoppable {
+contract ParticipantsFacet is AccessControlled, Constants, Participants, Stoppable {
 
-    function initializeParticipants(Registry registry) external onlyOwner {
+    function initializeParticipants(Registry registry) external onlyOwner override {
         require(address(registry) != address(0), "nil registry address");
     }
 
-    function confirmValidators() external returns (bool) {
+    function confirmValidators() external override returns (bool) {
         return ParticipantsLibrary.confirmValidators();
     }
 
-    function isValidator(address validator) external view returns (bool) {
+    function isValidator(address validator) external view override returns (bool) {
         return ParticipantsLibrary.isValidator(validator);
     }
 
-    function addValidator(address _validator, uint256[2] calldata _madID) external returns (uint8) {
+    function addValidator(address _validator, uint256[2] calldata _madID) external override returns (uint8) {
         return ParticipantsLibrary.addValidator(_validator, _madID);
     }
 
-    function validatorCount() external view returns (uint8) {
+    function validatorCount() external view override returns (uint8) {
         return ParticipantsLibrary.participantsStorage().validatorCount;
     }
 
-    function validatorMaxCount() external view returns (uint8) {
+    function validatorMaxCount() external view override returns (uint8) {
         return ParticipantsLibrary.participantsStorage().validatorMaxCount;
     }
 
-    function setValidatorMaxCount(uint8 max) external {
+    function setValidatorMaxCount(uint8 max) external override {
         ParticipantsLibrary.participantsStorage().validatorMaxCount = max;
     }
 
-    function removeValidator(address _validator, uint256[2] calldata _madID) external returns (uint8) {
+    function removeValidator(address _validator, uint256[2] calldata _madID) external override returns (uint8) {
         return ParticipantsLibrary.removeValidator(_validator, _madID);
     }
 
     //
-    function queueValidator(address _validator, uint256[2] calldata _madID) external returns (uint256) {
+    function queueValidator(address _validator, uint256[2] calldata _madID) external override returns (uint256) {
         return ParticipantsLibrary.queueValidator(_validator, _madID);
     }
 
-    function getValidatorPublicKey(address _validator) external view returns (uint256[2] memory) {
+    function getValidatorPublicKey(address _validator) external view override returns (uint256[2] memory) {
         return ParticipantsLibrary.getValidatorPublicKey(_validator);
     }
 
-    function getValidators() external view returns (address[] memory) {
+    function getValidators() external view override returns (address[] memory) {
         return ParticipantsLibrary.participantsStorage().validators;
     }
 }

@@ -3,17 +3,12 @@ pragma solidity >=0.7.4;
 
 import "ds-test/test.sol";
 
-import "./DiamondSetup.t.sol";
+import "./Setup.t.sol";
+import "./DiamondUpdateFacet.sol";
 import "./ParticipantsFacet.sol";
 import "./SnapshotsFacet.sol";
 import "./StakingFacet.sol";
-import "./ValidatorsUpdateFacet.sol";
 
-import "../Crypto.sol";
-import "../ETHDKG.sol";
-import "../ETHDKGCompletion.sol";
-import "../ETHDKGGroupAccusation.sol";
-import "../ETHDKGSubmitMPK.sol";
 import "../QueueLibrary.sol";
 import "../Registry.sol";
 import "../Token.sol";
@@ -24,8 +19,8 @@ import "../interfaces/Staking.sol";
 import "../interfaces/Token.sol";
 import "../interfaces/Validators.sol";
 
-contract StakingFacetTest is Constants, DSTest, DiamondSetup {
-    
+contract StakingFacetTest is Constants, DSTest, Setup {
+
     address me = address(this);
 
     function testSetDelay() public {
@@ -33,7 +28,7 @@ contract StakingFacetTest is Constants, DSTest, DiamondSetup {
     }
 
     function testUtilityBalance() public {
-        uint256 actualBalance = utilityToken.balanceOf(diamond);
+        uint256 actualBalance = utilityToken.balanceOf(address(validators));
         assertEq(actualBalance, 0);
     }
 
