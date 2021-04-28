@@ -42,7 +42,7 @@ library ParticipantsLibrary {
         while(ps.validatorCount < ps.validatorMaxCount && QueueLibrary.size(ps.queue) > 0) { // TODO Design how to be better
             address validator = QueueLibrary.dequeue(ps.queue);
             uint256[2] memory validatorMadID = ps.validatorPublicKey[validator];
-            addValidator(validator, validatorMadID);
+            addValidator(validator, validatorMadID); // TODO Check stake and skip if missing?
 
             // TODO Place hook here to return stake to those we have requested; assuming we've passed the required epoch
         }
@@ -56,6 +56,34 @@ library ParticipantsLibrary {
         ParticipantsStorage storage ps = participantsStorage();
 
         return ps.validatorPresent[validator] && StakingLibrary.balanceStakeFor(validator) >= StakingLibrary.minimumStake();
+    }
+
+    function addOrQueueValidator(address _validator, uint256[2] memory _madID) internal returns (bool) {
+
+        ParticipantsStorage storage ps = participantsStorage();
+        StakingLibrary.StakingStorage storage ss = StakingLibrary.stakingStorage();
+
+        require(!ps.validatorPresent[_validator], "validator already present");
+        require(StakingLibrary.balanceStakeFor(_validator) >= ss.minimumStake, "insufficient stake");
+
+        if(ps.validatorCount < ps.validatorMaxCount) {
+            // Manually adding validator to validator set
+            ps.validators.push(_validator);
+
+            ps.validatorIndex[_validator] = ps.validators.length - 1;
+            ps.validatorPresent[_validator] = true;
+            ps.validatorPublicKey[_validator] = _madID;
+            ps.validatorsChanged = true;
+            ps.validatorCount++;
+
+            emit ValidatorJoined(_validator, _madID);
+        } else {
+            QueueLibrary.enqueue(ps.queue, _validator);
+
+            emit ValidatorQueued(_validator, _madID);
+        }
+
+        return true;
     }
 
     function addValidator(address _validator, uint256[2] memory _madID) internal returns (uint8) {
@@ -116,7 +144,6 @@ library ParticipantsLibrary {
         return --ps.validatorCount;
     }
 
-    //
     function queueValidator(address _validator, uint256[2] calldata _madID) internal returns (uint256) {
         ParticipantsStorage storage ps = participantsStorage();
 

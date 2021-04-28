@@ -25,7 +25,7 @@ interface Participants is ParticipantsEvents {
 
     function removeValidator(address _validator, uint256[2] calldata _madID) external returns (uint8);
 
-    function queueValidator(address _validator, uint256[2] calldata _madID) external returns (uint256);
+    // function queueValidator(address _validator, uint256[2] calldata _madID) external returns (uint256);
 
     function getValidatorPublicKey(address _validator) external view returns (uint256[2] memory);
 

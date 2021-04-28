@@ -79,7 +79,7 @@ contract EthDKGCompletionFacet {
         }
 
         if (reinitialize) {
-		EthDKGLibrary.initializeState();
-	}
+		    EthDKGLibrary.initializeState();
+	    }
     }
 }

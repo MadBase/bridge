@@ -77,13 +77,14 @@ contract Setup is Constants {
         snapshots.setEpoch(1);
         participants.setValidatorMaxCount(10);
         staking.setMinimumStake(MINIMUM_STAKE);
+
+        staking.setRewardAmount(13);
+        staking.setRewardBonus(7);
     }
 
     function setUpMisc(Registry _registry) public {
         _registry.register(STAKING_TOKEN, address(new Token("STK", "MadNet Staking")));
         _registry.register(UTILITY_TOKEN, address(new Token("UTL", "MadNet Utility")));
-        
-
     }
 
     function setUpValidators(Registry _registry) public {
@@ -115,11 +116,16 @@ contract Setup is Constants {
         update.addFacet(Staking.balanceUnlockedFor.selector, stakingFacet);
         update.addFacet(Staking.balanceUnlockedRewardFor.selector, stakingFacet);
         update.addFacet(Staking.lockRewardFor.selector, stakingFacet);
+        update.addFacet(Staking.lockStake.selector, stakingFacet);
         update.addFacet(Staking.lockStakeFor.selector, stakingFacet);
         update.addFacet(Staking.minimumStake.selector, stakingFacet);
         update.addFacet(Staking.unlockRewardFor.selector, stakingFacet);
+        update.addFacet(Staking.unlockStakeFor.selector, stakingFacet);
+        update.addFacet(Staking.requestUnlockStakeFor.selector, stakingFacet);
         update.addFacet(Staking.setEpochDelay.selector, stakingFacet);
         update.addFacet(Staking.setMinimumStake.selector, stakingFacet);
+        update.addFacet(Staking.setRewardAmount.selector, stakingFacet);
+        update.addFacet(Staking.setRewardBonus.selector, stakingFacet);
 
         // ParticipantsFacet Wiring
         update.addFacet(Participants.initializeParticipants.selector, participantsFacet);
@@ -128,7 +134,6 @@ contract Setup is Constants {
         update.addFacet(Participants.getValidators.selector, participantsFacet);
         update.addFacet(Participants.getValidatorPublicKey.selector, participantsFacet);
         update.addFacet(Participants.isValidator.selector, participantsFacet);
-        update.addFacet(Participants.queueValidator.selector, participantsFacet);
         update.addFacet(Participants.removeValidator.selector, participantsFacet);
         update.addFacet(Participants.setValidatorMaxCount.selector, participantsFacet);
         update.addFacet(Participants.validatorCount.selector, participantsFacet);
