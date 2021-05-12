@@ -159,6 +159,7 @@ contract Setup is Constants {
         update.addFacet(ETHDKG.Group_Accusation_GPKj.selector, accusationFacet);
         update.addFacet(ETHDKG.Successful_Completion.selector, completionFacet);
         update.addFacet(ETHDKG.initializeEthDKG.selector, initFacet);
+        update.addFacet(ETHDKG.updatePhaseLength.selector, initFacet);
         update.addFacet(ETHDKG.submit_dispute.selector, disputeFacet);
         update.addFacet(ETHDKG.submit_master_public_key.selector, mpkFacet);
 
@@ -169,6 +170,7 @@ contract Setup is Constants {
 
         update.addFacet(ETHDKG.master_public_key.selector, infoFacet);
         update.addFacet(ETHDKG.gpkj_submissions.selector, infoFacet);
+        update.addFacet(ETHDKG.getPhaseLength.selector, infoFacet);
 
         _registry.register(ETHDKG_CONTRACT, diamond);
     }
