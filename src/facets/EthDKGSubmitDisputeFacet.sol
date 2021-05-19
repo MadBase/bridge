@@ -3,11 +3,10 @@ pragma solidity >=0.7.4;
 
 import "../CryptoLibrary.sol";
 import "../Constants.sol";
-import "../EthDKGConstants.sol";
 import "../Registry.sol";
 import "./EthDKGLibrary.sol";
 
-contract EthDKGSubmitDisputeFacet is Constants, EthDKGConstants {
+contract EthDKGSubmitDisputeFacet is Constants {
 
     function submit_dispute(
         address issuer,
@@ -46,7 +45,7 @@ contract EthDKGSubmitDisputeFacet is Constants, EthDKGConstants {
         );
         require(
             CryptoLibrary.dleq_verify(
-                [G1x, G1y], es.public_keys[msg.sender], es.public_keys[issuer], shared_key, shared_key_correctness_proof
+                [CryptoLibrary.G1x, CryptoLibrary.G1y], es.public_keys[msg.sender], es.public_keys[issuer], shared_key, shared_key_correctness_proof
             ),
             "dispute failed (invalid shared key or proof)"
         );
@@ -72,7 +71,7 @@ contract EthDKGSubmitDisputeFacet is Constants, EthDKGConstants {
         uint256[2] memory tmp = CryptoLibrary.bn128_multiply([commitments[1][0], commitments[1][1], x]);
         result = CryptoLibrary.bn128_add([result[0], result[1], tmp[0], tmp[1]]);
         for (uint256 j = 2; j < commitments.length; j += 1) {
-            x = mulmod(x, disputer_idx, GROUP_ORDER);
+            x = mulmod(x, disputer_idx, CryptoLibrary.GROUP_ORDER);
             tmp = CryptoLibrary.bn128_multiply([commitments[j][0], commitments[j][1], x]);
             result = CryptoLibrary.bn128_add([result[0], result[1], tmp[0], tmp[1]]);
         }
@@ -84,7 +83,7 @@ contract EthDKGSubmitDisputeFacet is Constants, EthDKGConstants {
         // will have his stake burned.
         // We do this by marking the disqualified, we zero the hash and
         // set the participant to malicious.
-        tmp = CryptoLibrary.bn128_multiply([G1x, G1y, share]);
+        tmp = CryptoLibrary.bn128_multiply([CryptoLibrary.G1x, CryptoLibrary.G1y, share]);
         if (result[0] != tmp[0] || result[1] != tmp[1]) {
             delete es.share_distribution_hashes[issuer];
             es.is_malicious[issuer] = true;

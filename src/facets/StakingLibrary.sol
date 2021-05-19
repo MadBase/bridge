@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT-open-group
 pragma solidity >=0.7.4;
-pragma experimental ABIEncoderV2;
+pragma abicoder v2;
 
 import "../interfaces/Token.sol";
 

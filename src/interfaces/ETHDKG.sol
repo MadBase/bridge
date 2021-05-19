@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT-open-group
 pragma solidity >=0.5.15;
+pragma abicoder v2;
 
 import "../Registry.sol";
-
 import "./ETHDKGEvents.sol";
 
 /*
@@ -108,6 +108,14 @@ interface ETHDKG is ETHDKGEvents {
         uint256[] memory invArray,
         uint256[] memory honestIndices,
         uint256[] memory dishonestIndices
+    )
+    external;
+
+    function Group_Accusation_GPKj_Comp(
+        uint256[][] memory encrypted_shares,
+        uint256[2][][] memory commitments,
+        uint256 dishonest_list_idx,
+        address dishonestAddress
     )
     external;
 

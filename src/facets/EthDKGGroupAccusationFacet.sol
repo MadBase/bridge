@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MIT-open-group
 pragma solidity >=0.5.15;
+pragma abicoder v2;
 
 import "../CryptoLibrary.sol";
 import "./EthDKGLibrary.sol";
@@ -82,6 +83,172 @@ contract EthDKGGroupAccusationFacet {
                 delete es.gpkj_submissions[msg.sender];
                 es.is_malicious[msg.sender] = true;
             }
+        }
+    }
+
+    // Perform Group accusation by computing gpkj*
+    //
+    // gpkj has already been submitted and stored in gpkj_submissions.
+    // To confirm this is valid, we need to compute gpkj*, the corresponding
+    // G1 element; we remember gpkj is a public key and an element of G2.
+    // Once, we compute gpkj*, we can confirm
+    //
+    //      e(gpkj*, h2) != e(g1, gpkj)
+    //
+    // via a pairing check.
+    // If we have inequality, then the participant is malicious;
+    // if we have equality, then the accusor is malicious.
+    function Group_Accusation_GPKj_Comp(
+        uint256[][] memory encrypted_shares,
+        uint256[2][][] memory commitments,
+        uint256 dishonest_list_idx,
+        address dishonestAddress
+    )
+    public
+    {
+        EthDKGLibrary.EthDKGStorage storage es = EthDKGLibrary.ethDKGStorage();
+
+        require(
+            (es.T_GPKJ_SUBMISSION_END < block.number) && (block.number <= es.T_GPKJ_DISPUTE_END),
+            "gpkj acc comp failed: contract is not in gpkj accusation phase"
+        );
+
+        // n is total participants;
+        // t is threshold, so that t+1 is BFT majority.
+        uint256 n = es.addresses.length;
+        uint256 k = n / 3;
+        uint256 t = 2*k;
+        if (2 == (n - 3*k)) {
+            t = t + 1;
+        }
+
+        // Begin initial check
+        ////////////////////////////////////////////////////////////////////////
+        // First, check length of things
+        require(
+            (encrypted_shares.length == n) && (commitments.length == n),
+            "gpkj acc comp failed: invalid submission of arguments"
+        );
+
+        // Now, ensure subarrays are the correct length as well
+        for (k = 0; k < n; k++) {
+            require(
+                encrypted_shares[k].length == n - 1,
+                "gpkj acc comp failed: invalid number of encrypted shares provided"
+            );
+            require(
+                commitments[k].length == t + 1,
+                "gpkj acc comp failed: invalid number of commitments provided"
+            );
+        }
+
+        // Ensure submissions are valid
+        for (k = 0; k < n; k++) {
+            address currentAddr = es.addresses[k];
+            require(
+                es.share_distribution_hashes[currentAddr] == keccak256(
+                    abi.encodePacked(encrypted_shares[k], commitments[k])
+                ),
+                "gpkj acc comp failed: invalid shares or commitments"
+            );
+        }
+
+        // Confirm nontrivial submission
+        if ((es.gpkj_submissions[dishonestAddress][0] == 0) &&
+                (es.gpkj_submissions[dishonestAddress][1] == 0) &&
+                (es.gpkj_submissions[dishonestAddress][2] == 0) &&
+                (es.gpkj_submissions[dishonestAddress][3] == 0)) {
+            return;
+        }
+        // ^^^ TODO: this check will need to be changed once we allow for multiple accusations per loop
+
+        // Ensure address submissions are correct; this will be converted to loop later
+        require(
+            es.addresses[dishonest_list_idx] == dishonestAddress,
+            "gpkj acc comp failed: dishonest index does not match dishonest address"
+        );
+        ////////////////////////////////////////////////////////////////////////
+        // End initial check
+
+        // At this point, everything has been validated.
+        uint256 j = dishonest_list_idx + 1;
+
+        // Info for looping computation
+        uint256 pow;
+        uint256[2] memory gpkjStar;
+        uint256[2] memory tmp;
+        uint256 idx;
+
+        // Begin computation loop
+        //
+        // We remember
+        //
+        //      F_i(x) = C_i0 * C_i1^x * C_i2^(x^2) * ... * C_it^(x^t)
+        //             = Prod(C_ik^(x^k), k = 0, 1, ..., t)
+        //
+        // We now compute gpkj*. We have
+        //
+        //      gpkj* = Prod(F_i(j), i)
+        //            = Prod( Prod(C_ik^(j^k), k = 0, 1, ..., t), i)
+        //            = Prod( Prod(C_ik^(j^k), i), k = 0, 1, ..., t)    // Switch order
+        //            = Prod( [Prod(C_ik, i)]^(j^k), k = 0, 1, ..., t)  // Move exponentiation outside
+        //
+        // More explicityly, we have
+        //
+        //      gpkj* =  Prod(C_i0, i)        *
+        //              [Prod(C_i1, i)]^j     *
+        //              [Prod(C_i2, i)]^(j^2) *
+        //                  ...
+        //              [Prod(C_it, i)]^(j^t) *
+        //
+        ////////////////////////////////////////////////////////////////////////
+        // Add constant terms
+        gpkjStar = commitments[0][0]; // Store initial constant term
+        for (idx = 1; idx < n; idx++) {
+            gpkjStar = CryptoLibrary.bn128_add([gpkjStar[0], gpkjStar[1], commitments[idx][0][0], commitments[idx][0][1]]);
+        }
+
+        // Add linear term
+        tmp = commitments[0][1]; // Store initial linear term
+        pow = j;
+        for (idx = 1; idx < n; idx++) {
+            tmp = CryptoLibrary.bn128_add([tmp[0], tmp[1], commitments[idx][1][0], commitments[idx][1][1]]);
+        }
+        tmp = CryptoLibrary.bn128_multiply([tmp[0], tmp[1], pow]);
+        gpkjStar = CryptoLibrary.bn128_add([gpkjStar[0], gpkjStar[1], tmp[0], tmp[1]]);
+
+        // Loop through higher order terms
+        for (k = 2; k <= t; k++) {
+            tmp = commitments[0][k]; // Store initial degree k term
+            // Increase pow by factor
+            pow = mulmod(pow, j, CryptoLibrary.GROUP_ORDER);
+            //x = mulmod(x, disputer_idx, GROUP_ORDER);
+            for (idx = 1; idx < n; idx++) {
+                tmp = CryptoLibrary.bn128_add([tmp[0], tmp[1], commitments[idx][k][0], commitments[idx][k][1]]);
+            }
+            tmp = CryptoLibrary.bn128_multiply([tmp[0], tmp[1], pow]);
+            gpkjStar = CryptoLibrary.bn128_add([gpkjStar[0], gpkjStar[1], tmp[0], tmp[1]]);
+        }
+        ////////////////////////////////////////////////////////////////////////
+        // End computation loop
+
+        // We now have gpkj*; we now verify.
+        uint256[4] memory gpkj = es.gpkj_submissions[dishonestAddress];
+        bool isValid = CryptoLibrary.bn128_check_pairing([
+            gpkjStar[0], gpkjStar[1],
+            CryptoLibrary.H2xi, CryptoLibrary.H2x, CryptoLibrary.H2yi, CryptoLibrary.H2y,
+            CryptoLibrary.G1x, CryptoLibrary.G1y,
+            gpkj[0], gpkj[1], gpkj[2], gpkj[3]
+        ]);
+        if (isValid) {
+            // Valid gpkj submission; burn whomever submitted accusation
+            delete es.gpkj_submissions[msg.sender];
+            es.is_malicious[msg.sender] = true;
+        }
+        else {
+            // Invalid gpkj submission; burn participant
+            delete es.gpkj_submissions[dishonestAddress];
+            es.is_malicious[dishonestAddress] = true;
         }
     }
 }

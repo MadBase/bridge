@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT-open-group
 pragma solidity >=0.6.4;
-pragma experimental ABIEncoderV2;
+pragma abicoder v2;
 
 import "./EthDKGCompletionFacet.sol";
 import "./EthDKGGroupAccusationFacet.sol";
@@ -157,6 +157,16 @@ contract Setup is Constants {
 
         // Wiring facets
         update.addFacet(ETHDKG.Group_Accusation_GPKj.selector, accusationFacet);
+        update.addFacet(ETHDKG.Group_Accusation_GPKj_Comp.selector, accusationFacet);
+
+    
+    // function Group_Accusation_GPKj_Comp(
+    //     uint256[][] memory encrypted_shares,
+    //     uint256[2][][] memory commitments,
+    //     uint256 dishonest_list_idx,
+    //     address dishonestAddress
+    // )
+
         update.addFacet(ETHDKG.Successful_Completion.selector, completionFacet);
         update.addFacet(ETHDKG.initializeEthDKG.selector, initFacet);
         update.addFacet(ETHDKG.updatePhaseLength.selector, initFacet);

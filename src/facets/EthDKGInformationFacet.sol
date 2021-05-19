@@ -3,11 +3,10 @@ pragma solidity >=0.7.4;
 
 import "../Constants.sol";
 import "../CryptoLibrary.sol";
-import "../EthDKGConstants.sol";
 import "../Registry.sol";
 import "./EthDKGLibrary.sol";
 
-contract EthDKGInformationFacet is Constants, EthDKGConstants {
+contract EthDKGInformationFacet is Constants {
 
     //
     // Informational
