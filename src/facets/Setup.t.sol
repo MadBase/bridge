@@ -159,14 +159,6 @@ contract Setup is Constants {
         update.addFacet(ETHDKG.Group_Accusation_GPKj.selector, accusationFacet);
         update.addFacet(ETHDKG.Group_Accusation_GPKj_Comp.selector, accusationFacet);
 
-    
-    // function Group_Accusation_GPKj_Comp(
-    //     uint256[][] memory encrypted_shares,
-    //     uint256[2][][] memory commitments,
-    //     uint256 dishonest_list_idx,
-    //     address dishonestAddress
-    // )
-
         update.addFacet(ETHDKG.Successful_Completion.selector, completionFacet);
         update.addFacet(ETHDKG.initializeEthDKG.selector, initFacet);
         update.addFacet(ETHDKG.updatePhaseLength.selector, initFacet);
