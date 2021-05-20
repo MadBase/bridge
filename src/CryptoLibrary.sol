@@ -14,6 +14,9 @@ pragma solidity >=0.5.15;
     THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
+// TODO: we may want to check some of the functions to ensure that they are valid.
+//       some of them may not be if there are attempts they are called with
+//       invalid points.
 library CryptoLibrary {
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -136,7 +139,7 @@ library CryptoLibrary {
         proof_is_valid = challenge == proof[0];
     }
 
-
+    // TODO: identity (0, 0) should be considered a valid point
     function bn128_is_on_curve(uint256[2] memory point)
     internal pure returns(bool)
     {
@@ -590,6 +593,8 @@ library CryptoLibrary {
     // safeSigningPoint ensures that the HashToG1 point we are returning
     // is safe to sign; in particular, it is not Infinity (the group identity
     // element) or the standard curve generator (curveGen) or its negation.
+    //
+    // TODO: may want to confirm point is valid first as well as reducing mod field prime
     function safeSigningPoint(uint256[2] memory input)
     internal pure returns (bool) {
         if (input[0] == 0 || input[0] == 1) {
