@@ -1,6 +1,9 @@
 // SPDX-License-Identifier: MIT-open-group
 pragma solidity >=0.7.4;
-pragma experimental ABIEncoderV2;
+pragma abicoder v2;
+
+import "./ParticipantsLibrary.sol";
+import "./StakingLibrary.sol";
 
 import "../CryptoLibrary.sol";
 import "../Registry.sol";
@@ -161,6 +164,17 @@ library SnapshotsLibrary {
                 "snapshot heights too close in MadNet"
             );
 
+        }
+
+        ParticipantsLibrary.ParticipantsStorage storage ps = ParticipantsLibrary.participantsStorage();
+        StakingLibrary.StakingStorage storage stakingS = StakingLibrary.stakingStorage();
+
+        for (uint idx=0; idx<ps.validators.length; idx++) {
+            if (msg.sender==ps.validators[idx]) {
+                StakingLibrary.lockRewardFor(ps.validators[idx], stakingS.rewardAmount + stakingS.rewardBonus, ss.nextSnapshot+2);
+            } else {
+                StakingLibrary.lockRewardFor(ps.validators[idx], stakingS.rewardAmount, ss.nextSnapshot+2);
+            }
         }
 
         bool reinitEthdkg;

@@ -2,10 +2,9 @@
 pragma solidity >=0.5.15;
 
 import "../CryptoLibrary.sol";
-import "../EthDKGConstants.sol";
 import "./EthDKGLibrary.sol";
 
-contract EthDKGSubmitMPKFacet is EthDKGConstants {
+contract EthDKGSubmitMPKFacet {
 
     function submit_master_public_key(
         uint256[4] memory _master_public_key
@@ -74,8 +73,8 @@ contract EthDKGSubmitMPKFacet is EthDKGConstants {
         require(
             CryptoLibrary.bn128_check_pairing([
                 mpk_G1[0], mpk_G1[1],
-                H2xi, H2x, H2yi, H2y,
-                H1x, H1y,
+                CryptoLibrary.H2xi, CryptoLibrary.H2x, CryptoLibrary.H2yi, CryptoLibrary.H2y,
+                CryptoLibrary.H1x, CryptoLibrary.H1y,
                 _master_public_key[0], _master_public_key[1],
                 _master_public_key[2], _master_public_key[3]
             ]),

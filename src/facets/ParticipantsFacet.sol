@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT-open-group
 pragma solidity >=0.6.4;
-pragma experimental ABIEncoderV2;
+pragma abicoder v2;
 
 import "../interfaces/Participants.sol";
 
@@ -27,7 +27,9 @@ contract ParticipantsFacet is AccessControlled, Constants, Participants, Stoppab
     }
 
     function addValidator(address _validator, uint256[2] calldata _madID) external override returns (uint8) {
-        return ParticipantsLibrary.addValidator(_validator, _madID);
+        require(ParticipantsLibrary.addOrQueueValidator(_validator, _madID),"failed to add or queue");
+
+        return 0;
     }
 
     function validatorCount() external view override returns (uint8) {
@@ -44,11 +46,6 @@ contract ParticipantsFacet is AccessControlled, Constants, Participants, Stoppab
 
     function removeValidator(address _validator, uint256[2] calldata _madID) external override returns (uint8) {
         return ParticipantsLibrary.removeValidator(_validator, _madID);
-    }
-
-    //
-    function queueValidator(address _validator, uint256[2] calldata _madID) external override returns (uint256) {
-        return ParticipantsLibrary.queueValidator(_validator, _madID);
     }
 
     function getValidatorPublicKey(address _validator) external view override returns (uint256[2] memory) {

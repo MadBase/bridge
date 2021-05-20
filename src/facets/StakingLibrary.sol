@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT-open-group
 pragma solidity >=0.7.4;
-pragma experimental ABIEncoderV2;
+pragma abicoder v2;
 
 import "../interfaces/Token.sol";
 
@@ -36,7 +36,7 @@ library StakingLibrary {
         uint256 minorStakeFine; // 50_000;
         uint256 rewardAmount;   // 1_000;
         uint256 rewardBonus;    // 1_000;
-        uint256 epochDelay;     // TODO set to 2
+        uint256 epochDelay;     // 2
 
         // Actual staking functionality
         uint256 utilityTokenBalance;
@@ -136,14 +136,6 @@ library StakingLibrary {
         return true;
     }
 
-    // function balanceReward() internal view returns (uint256) {
-    //     return _balanceRewardFor(msg.sender);
-    // }
-
-    // function balanceRewardFor(address who) internal view returns (uint256) {
-    //     return _balanceRewardFor(who);
-    // }
-
     function balanceRewardFor(address who) internal view returns (uint256 rewardBalance) {
         StakingStorage storage ss = stakingStorage();
         RewardDetails[] storage rewards = ss.details[who].rewards;
@@ -153,37 +145,13 @@ library StakingLibrary {
         }
     }
 
-    // function balanceStake() internal view returns (uint256) {
-    //     return _balanceStakeFor(msg.sender);
-    // }
-
-    // function balanceStakeFor(address who) internal view returns (uint256) {
-    //     return _balanceStakeFor(who);
-    // }
-
     function balanceStakeFor(address who) internal view returns (uint256) {
         return stakingStorage().details[who].amountStaked;
     }
 
-    // function balanceUnlocked() internal view returns (uint256) {
-    //     return _balanceUnlockedFor(msg.sender);
-    // }
-
-    // function balanceUnlockedFor(address who) internal view returns (uint256) {
-    //     return _balanceUnlockedFor(who);
-    // }
-
     function balanceUnlockedFor(address who) internal view returns (uint256) {
         return stakingStorage().details[who].unlockedStake;
     }
-
-    // function balanceUnlockedReward() internal view returns (uint256) {
-    //     return _balanceUnlockedRewardFor(msg.sender);
-    // }
-
-    // function balanceUnlockedRewardFor(address who) internal view returns (uint256) {
-    //     return _balanceUnlockedRewardFor(who);
-    // }
 
     function balanceUnlockedRewardFor(address who) internal view returns (uint256) {
         return stakingStorage().details[who].unlockedReward;
@@ -234,14 +202,6 @@ library StakingLibrary {
         return true;
     }
 
-    // function unlockReward() internal returns (bool) {
-    //     return _unlockRewardFor(msg.sender);
-    // }
-
-    // function unlockRewardFor(address who) internal returns (bool) {
-    //     return _unlockRewardFor(who);
-    // }
-
     function unlockRewardFor(address who) internal returns (bool) {
 
         StakingStorage storage ss = stakingStorage();
@@ -271,15 +231,6 @@ library StakingLibrary {
         return true;
     }
 
-    //
-    // function requestUnlockStake() internal {
-    //     _requestUnlockStakeFor(msg.sender);
-    // }
-
-    // function requestUnlockStakeFor(address who) internal {
-    //     _requestUnlockStakeFor(who);
-    // }
-
     function requestUnlockStakeFor(address who) internal {
         StakingStorage storage ss = stakingStorage();
         StakeDetails storage detail = ss.details[who];
@@ -292,15 +243,6 @@ library StakingLibrary {
         emit RequestedUnlockStake(who);
     }
 
-    //
-    // function unlockStake(uint256 amount) internal returns (bool) {
-    //     return _unlockStakeFor(msg.sender, amount);
-    // }
-
-    // function unlockStakeFor(address who, uint256 amount) internal returns (bool) {
-    //     return _unlockStakeFor(who, amount);
-    // }
-
     function unlockStakeFor(address who, uint256 amount) internal returns (bool) {
         StakingStorage storage ss = stakingStorage();
         StakeDetails storage detail = ss.details[who];
@@ -311,6 +253,7 @@ library StakingLibrary {
 
         detail.unlockedStake = detail.unlockedStake.add(amount);
         detail.amountStaked = detail.amountStaked.sub(amount);
+        detail.requestedStakeWithdrawal = false; // You get one unlock per request
 
         emit UnlockedStake(who, amount);
 
@@ -329,14 +272,6 @@ library StakingLibrary {
 
         return true;
     }
-
-    // function withdraw(uint256 amount) internal returns (bool) {
-    //     return _withdrawFor(msg.sender, amount);
-    // }
-
-    // function withdrawFor(address who, uint256 amount) internal returns (bool) {
-    //     return _withdrawFor(who, amount);
-    // }
 
     function withdrawFor(address who, uint256 amount) internal returns (bool) {
         StakingStorage storage ss = stakingStorage();

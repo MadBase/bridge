@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT-open-group
 pragma solidity >=0.6.4;
-pragma experimental ABIEncoderV2;
+pragma abicoder v2;
 
 import "./EthDKGCompletionFacet.sol";
 import "./EthDKGGroupAccusationFacet.sol";
@@ -77,13 +77,14 @@ contract Setup is Constants {
         snapshots.setEpoch(1);
         participants.setValidatorMaxCount(10);
         staking.setMinimumStake(MINIMUM_STAKE);
+
+        staking.setRewardAmount(13);
+        staking.setRewardBonus(7);
     }
 
     function setUpMisc(Registry _registry) public {
         _registry.register(STAKING_TOKEN, address(new Token("STK", "MadNet Staking")));
-        _registry.register(UTILITY_TOKEN, address(new Token("UTL", "MadNet Utility")));
-        
-
+        _registry.register(UTILITY_TOKEN, address(new Token("UTL", "MadBytes")));
     }
 
     function setUpValidators(Registry _registry) public {
@@ -115,11 +116,16 @@ contract Setup is Constants {
         update.addFacet(Staking.balanceUnlockedFor.selector, stakingFacet);
         update.addFacet(Staking.balanceUnlockedRewardFor.selector, stakingFacet);
         update.addFacet(Staking.lockRewardFor.selector, stakingFacet);
+        update.addFacet(Staking.lockStake.selector, stakingFacet);
         update.addFacet(Staking.lockStakeFor.selector, stakingFacet);
         update.addFacet(Staking.minimumStake.selector, stakingFacet);
         update.addFacet(Staking.unlockRewardFor.selector, stakingFacet);
+        update.addFacet(Staking.unlockStakeFor.selector, stakingFacet);
+        update.addFacet(Staking.requestUnlockStakeFor.selector, stakingFacet);
         update.addFacet(Staking.setEpochDelay.selector, stakingFacet);
         update.addFacet(Staking.setMinimumStake.selector, stakingFacet);
+        update.addFacet(Staking.setRewardAmount.selector, stakingFacet);
+        update.addFacet(Staking.setRewardBonus.selector, stakingFacet);
 
         // ParticipantsFacet Wiring
         update.addFacet(Participants.initializeParticipants.selector, participantsFacet);
@@ -128,7 +134,6 @@ contract Setup is Constants {
         update.addFacet(Participants.getValidators.selector, participantsFacet);
         update.addFacet(Participants.getValidatorPublicKey.selector, participantsFacet);
         update.addFacet(Participants.isValidator.selector, participantsFacet);
-        update.addFacet(Participants.queueValidator.selector, participantsFacet);
         update.addFacet(Participants.removeValidator.selector, participantsFacet);
         update.addFacet(Participants.setValidatorMaxCount.selector, participantsFacet);
         update.addFacet(Participants.validatorCount.selector, participantsFacet);
@@ -152,8 +157,11 @@ contract Setup is Constants {
 
         // Wiring facets
         update.addFacet(ETHDKG.Group_Accusation_GPKj.selector, accusationFacet);
+        update.addFacet(ETHDKG.Group_Accusation_GPKj_Comp.selector, accusationFacet);
+
         update.addFacet(ETHDKG.Successful_Completion.selector, completionFacet);
         update.addFacet(ETHDKG.initializeEthDKG.selector, initFacet);
+        update.addFacet(ETHDKG.updatePhaseLength.selector, initFacet);
         update.addFacet(ETHDKG.submit_dispute.selector, disputeFacet);
         update.addFacet(ETHDKG.submit_master_public_key.selector, mpkFacet);
 
@@ -164,6 +172,7 @@ contract Setup is Constants {
 
         update.addFacet(ETHDKG.master_public_key.selector, infoFacet);
         update.addFacet(ETHDKG.gpkj_submissions.selector, infoFacet);
+        update.addFacet(ETHDKG.getPhaseLength.selector, infoFacet);
 
         _registry.register(ETHDKG_CONTRACT, diamond);
     }

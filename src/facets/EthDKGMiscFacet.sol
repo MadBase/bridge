@@ -3,11 +3,10 @@ pragma solidity >=0.7.4;
 
 import "../Constants.sol";
 import "../CryptoLibrary.sol";
-import "../EthDKGConstants.sol";
 import "../Registry.sol";
 import "./EthDKGLibrary.sol";
 
-contract EthDKGMiscFacet is Constants, EthDKGConstants {
+contract EthDKGMiscFacet is Constants {
 
     function register(uint256[2] memory public_key)
     external
@@ -187,9 +186,9 @@ contract EthDKGMiscFacet is Constants, EthDKGConstants {
         );
         require(
             CryptoLibrary.dleq_verify(
-                [H1x, H1y],
+                [CryptoLibrary.H1x, CryptoLibrary.H1y],
                 key_share_G1,
-                [G1x, G1y],
+                [CryptoLibrary.G1x, CryptoLibrary.G1y],
                 es.commitments_1st_coefficient[issuer],
                 key_share_G1_correctness_proof
             ),
@@ -198,8 +197,8 @@ contract EthDKGMiscFacet is Constants, EthDKGConstants {
         require(
             CryptoLibrary.bn128_check_pairing([
                 key_share_G1[0], key_share_G1[1],
-                H2xi, H2x, H2yi, H2y,
-                H1x, H1y,
+                CryptoLibrary.H2xi, CryptoLibrary.H2x, CryptoLibrary.H2yi, CryptoLibrary.H2y,
+                CryptoLibrary.H1x, CryptoLibrary.H1y,
                 key_share_G2[0], key_share_G2[1], key_share_G2[2], key_share_G2[3]
             ]),
             "key share submission failed (invalid key share (G2))"

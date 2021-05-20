@@ -3,11 +3,10 @@ pragma solidity >=0.7.4;
 
 import "../Constants.sol";
 import "../CryptoLibrary.sol";
-import "../EthDKGConstants.sol";
 import "../Registry.sol";
 import "./EthDKGLibrary.sol";
 
-contract EthDKGInformationFacet is Constants, EthDKGConstants {
+contract EthDKGInformationFacet is Constants {
 
     //
     // Informational
@@ -86,5 +85,9 @@ contract EthDKGInformationFacet is Constants, EthDKGConstants {
 
     function commitments_1st_coefficient(address addr, uint256 idx) external view returns (uint256) {
         return EthDKGLibrary.ethDKGStorage().commitments_1st_coefficient[addr][idx];
+    }
+
+    function getPhaseLength() external view returns (uint256) {
+        return EthDKGLibrary.ethDKGStorage().DELTA_INCLUDE;
     }
 }

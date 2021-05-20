@@ -26,4 +26,9 @@ contract EthDKGInitializeFacet is AccessControlled, Constants {
         es.DELTA_CONFIRM = 6;
         es.MINIMUM_REGISTRATION = 4;
     }
+
+    function updatePhaseLength(uint256 phaseLength) external onlyOperator {
+        EthDKGLibrary.ethDKGStorage().DELTA_INCLUDE = phaseLength;
+    }
+
 }
