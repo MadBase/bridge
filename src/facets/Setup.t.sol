@@ -84,7 +84,7 @@ contract Setup is Constants {
 
     function setUpMisc(Registry _registry) public {
         _registry.register(STAKING_TOKEN, address(new Token("STK", "MadNet Staking")));
-        _registry.register(UTILITY_TOKEN, address(new Token("UTL", "MadNet Utility")));
+        _registry.register(UTILITY_TOKEN, address(new Token("UTL", "MadBytes")));
     }
 
     function setUpValidators(Registry _registry) public {
