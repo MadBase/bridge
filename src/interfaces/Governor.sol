@@ -7,6 +7,6 @@ import "../Registry.sol";
 
 interface Governor is GovernorEvents {
 
-    function updateValue(uint256 epoch, string memory name, string memory value) external;
+    function updateValue(uint256 epoch, uint256 key, bytes32 value) external;
 
 }

@@ -5,6 +5,6 @@ import "../Registry.sol";
 
 interface GovernorEvents {
 
-    event ValueUpdated(uint256 indexed epoch, string name, string value, address who);
+    event ValueUpdated(uint256 indexed epoch, uint256 indexed key, bytes32 indexed value, address who);
 
 }

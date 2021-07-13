@@ -7,8 +7,8 @@ import "./SimpleAuth.sol";
 
 contract DirectGovernance is Governor, SimpleAuth {
 
-    function updateValue(uint256 epoch, string memory name, string memory value) external override onlyOperator {
-        emit ValueUpdated(epoch, name, value, msg.sender);
+    function updateValue(uint256 epoch, uint256 key, bytes32 value) external override onlyOperator {
+        emit ValueUpdated(epoch, key, value, msg.sender);
     }
 
 }

@@ -11,7 +11,7 @@ contract DirectGovernanceTest is DSTest {
 
         Governor gov = new DirectGovernance();
 
-        gov.updateValue(2, "key", "value");
+        gov.updateValue(2, 4, "value");
     }
 
 }
