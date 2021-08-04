@@ -1,6 +1,6 @@
 FLAGS = --use solc:0.7.6
 	
-all    	:; dapp $(FLAGS) build
+all    	:; DAPP_STANDARD_JSON=dapp.json dapp $(FLAGS) build --legacy
 clean  	:; dapp clean
-test   	:; dapp $(FLAGS) test -v
+test   	:; DAPP_STANDARD_JSON=dapp-test.json dapp $(FLAGS) test -v
 deploy 	:; dapp create Bridge
