@@ -25,6 +25,7 @@
     "src/ValidatorsDiamond.sol": { "urls": ["src/ValidatorsDiamond.sol"] },
     "src/QueueLibrary.t.sol": { "urls": ["src/QueueLibrary.t.sol"] },
     "src/Experiment.t.sol": { "urls": ["src/Experiment.t.sol"] },
+    "src/ParsersLibrary.t.sol": { "urls": ["src/ParsersLibrary.t.sol"] },
     "src/migrate/MigrateSnapshotsFacet.sol": {
       "urls": ["src/migrate/MigrateSnapshotsFacet.sol"]
     },
