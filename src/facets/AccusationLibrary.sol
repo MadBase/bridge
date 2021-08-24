@@ -9,6 +9,7 @@ library AccusationLibrary {
     bytes32 constant STORAGE_LOCATION = keccak256("accusation.storage");
 
     struct AccusationStorage {
+        // Not sure exactly what storage is needed yet
         mapping(address => int) accusations;
     }
 
@@ -28,7 +29,7 @@ library AccusationLibrary {
         bytes calldata _signatureGroup1,
         bytes calldata _rClaims1
     ) internal {
-
+        
     }
 
     //
