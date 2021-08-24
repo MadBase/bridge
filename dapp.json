@@ -18,6 +18,7 @@
     "src/Constants.sol": { "urls": ["src/Constants.sol"] },
     "src/Deposit.sol": { "urls": ["src/Deposit.sol"] },
     "src/ValidatorsDiamond.sol": { "urls": ["src/ValidatorsDiamond.sol"] },
+    "src/ParsersLibrary.sol": { "urls": ["src/ParsersLibrary.sol"] },
     "src/migrate/MigrateSnapshotsFacet.sol": {
       "urls": ["src/migrate/MigrateSnapshotsFacet.sol"]
     },
