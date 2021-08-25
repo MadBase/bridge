@@ -25,7 +25,10 @@
     "src/ValidatorsDiamond.sol": { "urls": ["src/ValidatorsDiamond.sol"] },
     "src/QueueLibrary.t.sol": { "urls": ["src/QueueLibrary.t.sol"] },
     "src/Experiment.t.sol": { "urls": ["src/Experiment.t.sol"] },
-    "src/ParsersLibrary.t.sol": { "urls": ["src/ParsersLibrary.t.sol"] },
+    "src/parsers/BaseParserLibrary.sol": { "urls": ["src/parsers/BaseParserLibrary.sol"] },
+    "src/parsers/BaseParserLibrary.t.sol": { "urls": ["src/parsers/BaseParserLibrary.t.sol"] },
+    "src/parsers/RClaimsParserLibrary.sol": { "urls": ["src/parsers/RClaimsParserLibrary.sol"] },
+    "src/parsers/RClaimsParserLibrary.t.sol": { "urls": ["src/parsers/RClaimsParserLibrary.t.sol"] },
     "src/migrate/MigrateSnapshotsFacet.sol": {
       "urls": ["src/migrate/MigrateSnapshotsFacet.sol"]
     },
