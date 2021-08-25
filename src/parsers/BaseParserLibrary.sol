@@ -3,6 +3,12 @@ pragma solidity >=0.7.4;
 pragma abicoder v2;
 
 library BaseParserLibrary {
+
+    // Size of a word, in bytes.
+    uint internal constant WORD_SIZE = 32;
+    // Size of the header of a 'bytes' array.
+    uint internal constant BYTES_HEADER_SIZE = 32;
+
     function extract_uint32(bytes memory src, uint256 idx)
         internal
         pure
@@ -36,22 +42,49 @@ library BaseParserLibrary {
         }
     }
 
-    // [PASS] test_extract_rclaim_prevBlock() (gas: 14035)
+    // Copy 'len' bytes from memory address 'src', to address 'dest'.
+    // This function does not check the or destination, it only copies
+    // the bytes.
+    function copy(uint src, uint dest, uint len) internal pure {
+        // Copy word-length chunks while possible
+        for (; len >= WORD_SIZE; len -= WORD_SIZE) {
+            assembly {
+                mstore(dest, mload(src))
+            }
+            dest += WORD_SIZE;
+            src += WORD_SIZE;
+        }
+
+        // Copy remaining bytes
+        uint mask = 256 ** (WORD_SIZE - len) - 1;
+        assembly {
+            let srcpart := and(mload(src), not(mask))
+            let destpart := and(mload(dest), mask)
+            mstore(dest, or(destpart, srcpart))
+        }
+    }
+
+    // Returns a memory pointer to the data portion of the provided bytes array.
+    function dataPtr(bytes memory bts) internal pure returns(uint addr) {
+        assembly {
+            addr := add(bts, BYTES_HEADER_SIZE)
+        }
+    }
+
+    // Returns a new bytes array with length `howManyBytes`, extracted from `src`'s `offset` forward.
+    // Extracting the 32-64th bytes out of a 64 bytes array takes ~7828 gas.
     function extract_bytes(
         bytes memory src,
         uint256 offset,
         uint256 howManyBytes
-    ) internal pure returns (bytes memory) {
-        uint256 end = offset + howManyBytes;
-        bytes memory val = new bytes(howManyBytes);
+    ) internal pure returns (bytes memory out) {
+        out = new bytes(howManyBytes);
+        uint256 start;
 
-        uint256 j = 0;
-        // todo: I'm sure there's an assembly OPCODE to do this in a single instruction
-        for (uint256 idx = offset; idx < end; idx++) {
-            val[j] = src[idx];
-            j++;
+        assembly {
+            start := add(add(src, offset), BYTES_HEADER_SIZE)
         }
-
-        return val;
+        
+        copy(start, dataPtr(out), howManyBytes);
     }
 }

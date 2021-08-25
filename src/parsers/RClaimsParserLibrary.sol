@@ -13,31 +13,32 @@ library RClaimsParserLibrary {
         bytes prevBlock;
     }
 
-    function extract_chainId(bytes memory src) internal pure returns(uint32) {
+    // Returns the rclaims.chainID out of a capn proto data frame (~875 gas)
+    function extract_chainID(bytes memory src) internal pure returns(uint32) {
         return BaseParserLibrary.extract_uint32(src, 8);
     }
 
+    // Returns the rclaims.height out of a capn proto data frame (~787 gas)
     function extract_height(bytes memory src) internal pure returns(uint32) {
         return BaseParserLibrary.extract_uint32(src, 12);
     }
 
+    // Returns the rclaims.round out of a capn proto data frame (~809 gas)
     function extract_round(bytes memory src) internal pure returns(uint32) {
         return BaseParserLibrary.extract_uint32(src, 16);
     }
 
+    // Returns the rclaims.prevBlock out of a capn proto data frame (~7754 gas)
     function extract_prevBlock(bytes memory src) internal pure returns(bytes memory) {
-        // todo Maybe we can change this to extract uint256?
         return BaseParserLibrary.extract_bytes(src, 32, 32);
     }
 
+    // Returns the rclaim out of a capn proto data frame (~9852 gas)
     function extract_rclaims(bytes memory src) internal pure returns(RClaims memory rclaims) {
-        // todo measure gas cost of this 4 extract_* abstractions. We can call
-        // the BaseParserLibrary directly
-        rclaims.chainID = extract_chainId(src);
+        rclaims.chainID = extract_chainID(src);
         rclaims.height = extract_height(src);
         rclaims.round = extract_round(src);
         rclaims.prevBlock = extract_prevBlock(src);
-        return rclaims;
     }
 
 }

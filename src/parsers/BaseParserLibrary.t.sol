@@ -14,7 +14,7 @@ contract BaseParserLibraryTest is DSTest {
         uint expected = 262657;
         uint32 actual = BaseParserLibrary.extract_uint32(b, 0);
 
-        assertEq(expected, actual);
+        assertEq(actual, expected);
     }
 
     function test_extract_uint256() public {
@@ -27,7 +27,7 @@ contract BaseParserLibraryTest is DSTest {
         uint256 expected = 0xd8d6b02811ca34cef0bcbc79cc5dfaf2dc6b8133ea46d552ebfc96f1c2b2d710;
         uint256 actual = BaseParserLibrary.extract_uint256(b, 0);
 
-        assertEq(expected, actual);
+        assertEq(actual, expected);
     }
 
     /*function test_reverse() public {
