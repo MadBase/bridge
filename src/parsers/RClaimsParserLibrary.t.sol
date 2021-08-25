@@ -11,10 +11,9 @@ contract RClaimsParserLibraryTest is DSTest {
     function example_rclaim() private returns(bytes memory) {
         bytes memory rclaimCapnProto =
             hex"0000000002000100" // struct definition capn proto https://capnproto.org/encoding.html
-            hex"01000000" // ChainID
-            hex"02000000" // Height
-            hex"01000000" // Round
-
+            hex"01000000" // Data
+            hex"02000000"
+            hex"01000000"
             hex"00000000"
             hex"01000000"
             hex"02010000"
@@ -54,7 +53,7 @@ contract RClaimsParserLibraryTest is DSTest {
     function test_extract_rclaim() public {
         RClaimsParserLibrary.RClaims memory actual = RClaimsParserLibrary.extract_rclaims(example_rclaim());
         RClaimsParserLibrary.RClaims memory expected = RClaimsParserLibrary.RClaims(1, 2, 1, hex"f75f3eb17cd8136aeb15cca22b01ad5b45c795cb78787e74e55e088a7aa5fa16");
-        
+
         assertEqUint32(actual.chainID, expected.chainID);
         assertEqUint32(actual.height, expected.height);
         assertEqUint32(actual.round, expected.round);
