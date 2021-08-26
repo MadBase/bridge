@@ -24,27 +24,27 @@ contract RClaimsParserLibraryTest is DSTest {
 
     function testExtractChainId() public {
         uint32 expected = 1;
-        uint32 actual = RClaimsParserLibrary.extractChainId(exampleRClaim(), 8);
+        uint32 actual = RClaimsParserLibrary.extractChainId(exampleRClaim());
         assertEq(uint256(actual), uint256(expected));
     }
 
     function testExtractHeight() public {
         uint32 expected = 2;
-        uint32 actual = RClaimsParserLibrary.extractHeight(exampleRClaim(), 12);
+        uint32 actual = RClaimsParserLibrary.extractHeight(exampleRClaim());
 
         assertEq(uint256(actual), uint256(expected));
     }
 
     function testExtractRound() public {
         uint32 expected = 1;
-        uint32 actual = RClaimsParserLibrary.extractRound(exampleRClaim(), 16);
+        uint32 actual = RClaimsParserLibrary.extractRound(exampleRClaim());
 
         assertEq(uint256(actual), uint256(expected));
     }
 
     function testExtractPrevBlock() public {
         bytes32 expected = hex"f75f3eb17cd8136aeb15cca22b01ad5b45c795cb78787e74e55e088a7aa5fa16";
-        bytes32 actual = RClaimsParserLibrary.extractPrevBlock(exampleRClaim(), 32);
+        bytes32 actual = RClaimsParserLibrary.extractPrevBlock(exampleRClaim());
 
         assertEq(actual, expected);
     }
