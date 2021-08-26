@@ -16,13 +16,17 @@ contract RCertParserLibraryTest is DSTest {
             hex"02000100"
             hex"1d000000"
             hex"02060000"
+
             hex"01000000"
             hex"02000000"
             hex"01000000"
             hex"00000000"
+
             hex"01000000"
             hex"02010000"
+
             hex"f75f3eb17cd8136aeb15cca22b01ad5b45c795cb78787e74e55e088a7aa5fa16"
+
             hex"258aa89365a642358d92db67a13cb25d73e6eedf0d25100d8d91566882fac54b"
             hex"1ccedfb0425434b54999a88cd7d993e05411955955c0cfec9dd33066605bd4a6"
             hex"0f6bbfbab37349aaa762c23281b5749932c514f3b8723cf9bb05f9841a7f2d0e"
