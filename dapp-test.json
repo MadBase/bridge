@@ -149,23 +149,11 @@
     "src/parsers/RClaimsParserLibrary.t.sol": {
       "urls": ["src/parsers/RClaimsParserLibrary.t.sol"]
     },
-    "src/parsers/BClaimsParserLibrary.sol": {
-      "urls": ["src/parsers/BClaimsParserLibrary.sol"]
-    },
-    "src/parsers/BClaimsParserLibrary.t.sol": {
-      "urls": ["src/parsers/BClaimsParserLibrary.t.sol"]
-    },
     "src/parsers/RCertParserLibrary.sol": {
       "urls": ["src/parsers/RCertParserLibrary.sol"]
     },
     "src/parsers/RCertParserLibrary.t.sol": {
       "urls": ["src/parsers/RCertParserLibrary.t.sol"]
-    },
-    "src/parsers/PClaimsParserLibrary.sol": {
-      "urls": ["src/parsers/PClaimsParserLibrary.sol"]
-    },
-    "src/parsers/PClaimsParserLibrary.t.sol": {
-      "urls": ["src/parsers/PClaimsParserLibrary.t.sol"]
     }
   },
   "settings": {
