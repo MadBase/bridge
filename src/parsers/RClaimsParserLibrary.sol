@@ -10,7 +10,7 @@ library RClaimsParserLibrary {
         uint32 chainID;
         uint32 height;
         uint32 round;
-        bytes prevBlock;
+        bytes32 prevBlock;
     }
 
     // Returns the rclaims.chainID out of a capn proto data frame (~875 gas)
@@ -28,17 +28,16 @@ library RClaimsParserLibrary {
         return BaseParserLibrary.extract_uint32(src, 16);
     }
 
-    // Returns the rclaims.prevBlock out of a capn proto data frame (~7754 gas)
-    function extract_prevBlock(bytes memory src) internal pure returns(bytes memory) {
-        return BaseParserLibrary.extract_bytes(src, 32, 32);
+    // Returns the rclaims.prevBlock out of a capn proto data frame (~482 gas)
+    function extract_prevBlock(bytes memory src) internal pure returns(bytes32) {
+        return BaseParserLibrary.extract_bytes32(src, 32);
     }
 
-    // Returns the rclaim out of a capn proto data frame (~9852 gas)
+    // Returns the rclaim out of a capn proto data frame (~2613 gas)
     function extract_rclaims(bytes memory src) internal pure returns(RClaims memory rclaims) {
         rclaims.chainID = extract_chainID(src);
         rclaims.height = extract_height(src);
         rclaims.round = extract_round(src);
         rclaims.prevBlock = extract_prevBlock(src);
     }
-
 }

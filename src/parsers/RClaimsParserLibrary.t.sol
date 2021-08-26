@@ -43,10 +43,10 @@ contract RClaimsParserLibraryTest is DSTest {
     }
 
     function test_extract_prevBlock() public {
-        bytes memory expected = hex"f75f3eb17cd8136aeb15cca22b01ad5b45c795cb78787e74e55e088a7aa5fa16";
-        bytes memory actual = RClaimsParserLibrary.extract_prevBlock(example_rclaim());
+        bytes32 expected = hex"f75f3eb17cd8136aeb15cca22b01ad5b45c795cb78787e74e55e088a7aa5fa16";
+        bytes32 actual = RClaimsParserLibrary.extract_prevBlock(example_rclaim());
 
-        assertEq0(actual, expected);
+        assertEq(actual, expected);
     }
 
     function test_extract_rclaim() public {
@@ -56,6 +56,6 @@ contract RClaimsParserLibraryTest is DSTest {
         assertEq(uint256(actual.chainID), uint256(expected.chainID));
         assertEq(uint256(actual.height), uint256(expected.height));
         assertEq(uint256(actual.round), uint256(expected.round));
-        assertEq0(actual.prevBlock, expected.prevBlock);
+        assertEq(actual.prevBlock, expected.prevBlock);
     }
 }
