@@ -3,37 +3,49 @@ pragma solidity >=0.7.4;
 pragma abicoder v2;
 
 library BaseParserLibrary {
-
     // Size of a word, in bytes.
-    uint internal constant WORD_SIZE = 32;
+    uint256 internal constant WORD_SIZE = 32;
     // Size of the header of a 'bytes' array.
-    uint internal constant BYTES_HEADER_SIZE = 32;
+    uint256 internal constant BYTES_HEADER_SIZE = 32;
 
-    // Returns a new uint32 extracted from `src`'s `offset`. (~784 gas)
-    function extract_uint32(bytes memory src, uint256 offset)
+    function extractUInt32(bytes memory src, uint256 pos)
         internal
         pure
         returns (uint32 val)
     {
-        val = uint8(src[offset + 3]);
-        val = (val << 8) | uint8(src[offset + 2]);
-        val = (val << 8) | uint8(src[offset + 1]);
-        val = (val << 8) | uint8(src[offset]);
+        require(
+            pos + 3 > pos,
+            "BaseParserLibrary: An overflow happened with the pos parameter!"
+        );
+        require(
+            src.length > pos + 3,
+            "BaseParserLibrary: Trying to read an offset out of boundaries in the src binary!"
+        );
+        val = uint8(src[pos + 3]);
+        val = (val << 8) | uint8(src[pos + 2]);
+        val = (val << 8) | uint8(src[pos + 1]);
+        val = (val << 8) | uint8(src[pos]);
     }
 
-    // Returns a new uint256 extracted from `src`'s `offset`. (~5027 gas)
-    function extract_uint256(bytes memory src, uint256 offset)
+    function extractUInt256(bytes memory src, uint256 offset)
         internal
         pure
         returns (uint256 val)
     {
+        require(
+            offset + 31 > offset,
+            "BaseParserLibrary: An overflow happened with the offset parameter!"
+        );
+        require(
+            src.length > offset + 31,
+            "BaseParserLibrary: Trying to read an offset out of boundaries!"
+        );
         for (uint256 idx = offset + 31; idx > offset; idx--) {
             val = uint8(src[idx]) | (val << 8);
         }
         val = uint8(src[offset]) | (val << 8);
     }
 
-    // Returns a new bytes array reverted from `src`. (~13854 gas for a 32 byte length orig)
     function reverse(bytes memory orig)
         internal
         pure
@@ -48,7 +60,11 @@ library BaseParserLibrary {
     // Copy 'len' bytes from memory address 'src', to address 'dest'.
     // This function does not check the or destination, it only copies
     // the bytes.
-    function copy(uint src, uint dest, uint len) internal pure {
+    function copy(
+        uint256 src,
+        uint256 dest,
+        uint256 len
+    ) internal pure {
         // Copy word-length chunks while possible
         for (; len >= WORD_SIZE; len -= WORD_SIZE) {
             assembly {
@@ -57,9 +73,9 @@ library BaseParserLibrary {
             dest += WORD_SIZE;
             src += WORD_SIZE;
         }
-
+        // todo add a if to return earlier here if len == 0
         // Copy remaining bytes
-        uint mask = 256 ** (WORD_SIZE - len) - 1;
+        uint256 mask = 256**(WORD_SIZE - len) - 1;
         assembly {
             let srcpart := and(mload(src), not(mask))
             let destpart := and(mload(dest), mask)
@@ -68,7 +84,7 @@ library BaseParserLibrary {
     }
 
     // Returns a memory pointer to the data portion of the provided bytes array.
-    function dataPtr(bytes memory bts) internal pure returns(uint addr) {
+    function dataPtr(bytes memory bts) internal pure returns (uint256 addr) {
         assembly {
             addr := add(bts, BYTES_HEADER_SIZE)
         }
@@ -76,12 +92,19 @@ library BaseParserLibrary {
 
     // Returns a new bytes array with length `howManyBytes`, extracted from `src`'s `offset` forward.
     // Extracting the 32-64th bytes out of a 64 bytes array takes ~7828 gas.
-    function extract_bytes(
+    function extractBytes(
         bytes memory src,
         uint256 offset,
         uint256 howManyBytes
     ) internal pure returns (bytes memory out) {
-        require(src.length >= (offset + howManyBytes), "BaseParserLibrary: not enough bytes to extract");
+        require(
+            offset + howManyBytes >= offset,
+            "BaseParserLibrary: An overflow happened with the offset or the howManyBytes parameter!"
+        );
+        require(
+            src.length >= offset + howManyBytes,
+            "BaseParserLibrary: Not enough bytes to extract in the src binary"
+        );
         out = new bytes(howManyBytes);
         uint256 start;
 
@@ -93,12 +116,19 @@ library BaseParserLibrary {
     }
 
     // Returns a new bytes32 extracted from `src`'s `offset` forward. (~439 gas)
-    function extract_bytes32(
-        bytes memory src,
-        uint256 offset
-    ) internal pure returns (bytes32 out) {
-        require(src.length >= (offset + 32), "BaseParserLibrary: not enough bytes to extract");
-
+    function extractBytes32(bytes memory src, uint256 offset)
+        internal
+        pure
+        returns (bytes32 out)
+    {
+        require(
+            offset + 32 > offset,
+            "BaseParserLibrary: An overflow happened with the offset parameter!"
+        );
+        require(
+            src.length >= (offset + 32),
+            "BaseParserLibrary: not enough bytes to extract"
+        );
         assembly {
             out := mload(add(add(src, BYTES_HEADER_SIZE), offset))
         }
