@@ -9,17 +9,19 @@ library BaseParserLibrary {
     // Size of the header of a 'bytes' array.
     uint internal constant BYTES_HEADER_SIZE = 32;
 
-    function extract_uint32(bytes memory src, uint256 idx)
+    // Returns a new uint32 extracted from `src`'s `offset`. (~784 gas)
+    function extract_uint32(bytes memory src, uint256 offset)
         internal
         pure
         returns (uint32 val)
     {
-        val = uint8(src[idx + 3]);
-        val = (val << 8) | uint8(src[idx + 2]);
-        val = (val << 8) | uint8(src[idx + 1]);
-        val = (val << 8) | uint8(src[idx]);
+        val = uint8(src[offset + 3]);
+        val = (val << 8) | uint8(src[offset + 2]);
+        val = (val << 8) | uint8(src[offset + 1]);
+        val = (val << 8) | uint8(src[offset]);
     }
 
+    // Returns a new uint256 extracted from `src`'s `offset`. (~5027 gas)
     function extract_uint256(bytes memory src, uint256 offset)
         internal
         pure
@@ -31,6 +33,7 @@ library BaseParserLibrary {
         val = uint8(src[offset]) | (val << 8);
     }
 
+    // Returns a new bytes array reverted from `src`. (~13854 gas for a 32 byte length orig)
     function reverse(bytes memory orig)
         internal
         pure
@@ -78,6 +81,7 @@ library BaseParserLibrary {
         uint256 offset,
         uint256 howManyBytes
     ) internal pure returns (bytes memory out) {
+        require(src.length >= (offset + howManyBytes), "BaseParserLibrary: not enough bytes to extract");
         out = new bytes(howManyBytes);
         uint256 start;
 
@@ -86,5 +90,17 @@ library BaseParserLibrary {
         }
 
         copy(start, dataPtr(out), howManyBytes);
+    }
+
+    // Returns a new bytes32 extracted from `src`'s `offset` forward. (~439 gas)
+    function extract_bytes32(
+        bytes memory src,
+        uint256 offset
+    ) internal pure returns (bytes32 out) {
+        require(src.length >= (offset + 32), "BaseParserLibrary: not enough bytes to extract");
+
+        assembly {
+            out := mload(add(add(src, BYTES_HEADER_SIZE), offset))
+        }
     }
 }

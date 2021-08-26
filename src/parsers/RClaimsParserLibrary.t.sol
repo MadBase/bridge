@@ -46,22 +46,11 @@ contract RClaimsParserLibraryTest is DSTest {
     }
 
     function test_extract_prevBlock() public {
-        bytes memory rclaimCapnProto = example_rclaim();
-        bytes memory expected = hex"f75f3eb17cd8136aeb15cca22b01ad5b45c795cb78787e74e55e088a7aa5fa16";
-        bytes memory actual = RClaimsParserLibrary.extract_prevBlock(rclaimCapnProto);
+        bytes32 expected = hex"f75f3eb17cd8136aeb15cca22b01ad5b45c795cb78787e74e55e088a7aa5fa16";
+        bytes32 actual = RClaimsParserLibrary.extract_prevBlock(example_rclaim());
 
-        //uint32 howManyBytes = 32;
-        //uint32 howManyBytes2 = 31;
-        /*bytes memory val = new bytes(32);
-        uint256 howManyBytes = 32;
-        uint256 offset = 32;
-
-        assembly {
-            //mstore(add(add(val, offset), 32), add(src, 32))
-            mstore(val, howManyBytes)
-            //mstore(val, add(rclaimCapnProto, offset))
-            mstore(add(val, 32), add(add(rclaimCapnProto, 32), offset))
-        }
+        assertEq(actual, expected);
+    }
 
     function test_extract_rclaim() public {
         RClaimsParserLibrary.RClaims memory actual = RClaimsParserLibrary.extract_rclaims(example_rclaim());
@@ -70,6 +59,6 @@ contract RClaimsParserLibraryTest is DSTest {
         assertEq(uint256(actual.chainID), uint256(expected.chainID));
         assertEq(uint256(actual.height), uint256(expected.height));
         assertEq(uint256(actual.round), uint256(expected.round));
-        assertEq0(actual.prevBlock, expected.prevBlock);
+        assertEq(actual.prevBlock, expected.prevBlock);
     }
 }
