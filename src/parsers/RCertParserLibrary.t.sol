@@ -6,9 +6,8 @@ import "ds-test/test.sol";
 import "./RCertParserLibrary.sol";
 
 contract RCertParserLibraryTest is DSTest {
-    function exampleRCert() private returns (bytes memory) {
-        bytes memory rCertCapnProto =
-        hex"00000000"
+    function exampleRCert() private pure returns (bytes memory) {
+        bytes memory rCertCapnProto = hex"00000000"
         hex"00000200"
         hex"04000000"
         hex"02000100"
@@ -31,9 +30,11 @@ contract RCertParserLibraryTest is DSTest {
     }
 
     function testExtractRCert() public {
-        RCertParserLibrary.RCert memory actual = RCertParserLibrary.parseRCert(
-            exampleRCert()
-        );
+        uint256 startGas = gasleft();
+        RCertParserLibrary.RCert memory actual = RCertParserLibrary
+            .extractRCert(exampleRCert());
+        uint256 endGas = gasleft();
+        emit log_named_uint("Rcert gas", startGas - endGas);
         RClaimsParserLibrary.RClaims
             memory expectedRClaims = RClaimsParserLibrary.RClaims(
                 1,
@@ -78,7 +79,7 @@ contract RCertParserLibraryTest is DSTest {
             uint256(expected.rClaims.round)
         );
         assertEq(actual.rClaims.prevBlock, expected.rClaims.prevBlock);
-        for (uint256 idx=0; idx < 6; idx ++){
+        for (uint256 idx = 0; idx < 6; idx++) {
             assertEq(actual.sigGroup[idx], expected.sigGroup[idx]);
         }
     }

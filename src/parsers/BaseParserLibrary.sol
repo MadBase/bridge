@@ -8,23 +8,33 @@ library BaseParserLibrary {
     // Size of the header of a 'bytes' array.
     uint256 internal constant BYTES_HEADER_SIZE = 32;
 
-    function extractUInt32(bytes memory src, uint256 pos)
+    function extractUInt32(bytes memory src, uint256 offset)
         internal
         pure
         returns (uint32 val)
     {
         require(
-            pos + 3 > pos,
-            "BaseParserLibrary: An overflow happened with the pos parameter!"
+            offset + 4 > offset,
+            "BaseParserLibrary: An overflow happened with the offset parameter!"
         );
         require(
-            src.length > pos + 3,
+            src.length >= offset + 4,
             "BaseParserLibrary: Trying to read an offset out of boundaries in the src binary!"
         );
-        val = uint8(src[pos + 3]);
-        val = (val << 8) | uint8(src[pos + 2]);
-        val = (val << 8) | uint8(src[pos + 1]);
-        val = (val << 8) | uint8(src[pos]);
+
+        assembly {
+            val := shr(sub(256, 32), mload(add(add(src, 0x20), offset)))
+            val := or(
+                or(
+                    or(
+                        shr(24, and(val, 0xff000000)),
+                        shr(8, and(val, 0x00ff0000))
+                    ),
+                    shl(8, and(val, 0x0000ff00))
+                ),
+                shl(24, and(val, 0x000000ff))
+            )
+        }
     }
 
     function extractUInt256(bytes memory src, uint256 offset)

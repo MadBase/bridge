@@ -5,46 +5,59 @@ import "./BaseParserLibrary.sol";
 import "./RClaimsParserLibrary.sol";
 
 library RCertParserLibrary {
+    //size in bytes of a RCLAIMS cap'npro structure without the cap'n proto
+    //header bytes
+    uint256 internal constant RCERT_SIZE = 56;
+    // Number of bytes of a capnproto header, the data starts after the header
+    uint256 internal constant CAPNPROTO_HEADER_SIZE = 8;
+    // Number of Bytes of the sig group array
+    uint256 internal constant SIG_GROUP_SIZE = 192;
+
     struct RCert {
         RClaimsParserLibrary.RClaims rClaims;
         bytes32[6] sigGroup;
     }
 
-    function extractSigGroup(bytes memory src)
+    function extractSigGroup(bytes memory src, uint256 dataOffset)
         internal
         pure
         returns (bytes32[6] memory sigGroup)
     {
-        assembly{
-            src := add(src, 76)
-        }
-        require(src.length >= 192, "RCertParserLibrary: Not enough bytes to extract");
-        // 192 bytes = size in bytes of 6 bytes32 elements (6*32)
-        for(uint256 idx=0; idx < sigGroup.length; idx++) {
-            sigGroup[idx] = BaseParserLibrary.extractBytes32(src, idx*32);
+        require(
+            dataOffset + SIG_GROUP_SIZE > dataOffset,
+            "RClaimsParserLibrary: Overflow on the dataOffset parameter"
+        );
+        require(
+            src.length >= dataOffset + SIG_GROUP_SIZE,
+            "RCertParserLibrary: Not enough bytes to extract"
+        );
+        // SIG_GROUP_SIZE = 192 bytes -> size in bytes of 6 bytes32 elements (6*32)
+        for (uint256 idx = 0; idx < sigGroup.length; idx++) {
+            sigGroup[idx] = BaseParserLibrary.extractBytes32(
+                src,
+                dataOffset + (idx * 32)
+            );
         }
     }
 
-    function extractRClaims(bytes memory src)
+    // Gas cost: 4012
+    function extractRCert(bytes memory src)
         internal
         pure
-        returns (RClaimsParserLibrary.RClaims memory)
+        returns (RCert memory)
     {
-        // adding the offset where the RClaims data begins inside the RCert
-        // capnproto data
-        bytes memory new_src;
-        assembly{
-            new_src := add(src, 24)
-        }
-        return RClaimsParserLibrary.parseRClaims(new_src);
+        return extractRCert(src, CAPNPROTO_HEADER_SIZE);
     }
 
-    function parseRCert(bytes memory src)
+    function extractRCert(bytes memory src, uint256 dataOffset)
         internal
         pure
         returns (RCert memory rCert)
     {
-        rCert.rClaims = extractRClaims(src);
-        rCert.sigGroup = extractSigGroup(src);
+        rCert.rClaims = RClaimsParserLibrary.extractRClaims(
+            src,
+            dataOffset + 16
+        );
+        rCert.sigGroup = extractSigGroup(src, dataOffset + 72);
     }
 }

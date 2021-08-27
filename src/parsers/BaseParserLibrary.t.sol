@@ -8,10 +8,8 @@ import "./BaseParserLibrary.sol";
 contract BaseParserLibraryTest is DSTest {
     function testExtractUInt32() public {
         bytes memory b = hex"01020400";
-
         uint256 expected = 262657;
         uint32 actual = BaseParserLibrary.extractUInt32(b, 0);
-
         assertEq(actual, expected);
     }
 
