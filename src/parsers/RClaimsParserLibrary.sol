@@ -5,6 +5,12 @@ pragma abicoder v2;
 import "./BaseParserLibrary.sol";
 
 library RClaimsParserLibrary {
+    //size in bytes of a RCLAIMS cap'npro structure without the cap'n proto
+    //header bytes
+    uint256 internal constant RCLAIMS_SIZE = 56;
+    // Number of bytes of a capnproto header, the data starts after the header
+    uint256 internal constant CAPNPROTO_HEADER_SIZE = 8;
+
     struct RClaims {
         uint32 chainId;
         uint32 height;
@@ -12,51 +18,35 @@ library RClaimsParserLibrary {
         bytes32 prevBlock;
     }
 
-    // Returns the rClaims.chainId out of a capn proto data frame (~875 gas)
-    function extractChainId(bytes memory src)
-        internal
-        pure
-        returns (uint32)
-    {
-        return BaseParserLibrary.extractUInt32(src, 8);
-    }
-
-    // Returns the rClaims.height out of a capn proto data frame (~787 gas)
-    function extractHeight(bytes memory src)
-        internal
-        pure
-        returns (uint32)
-    {
-        return BaseParserLibrary.extractUInt32(src, 12);
-    }
-
-    // Returns the rClaims.round out of a capn proto data frame (~809 gas)
-    function extractRound(bytes memory src)
-        internal
-        pure
-        returns (uint32)
-    {
-        return BaseParserLibrary.extractUInt32(src, 16);
-    }
-
-    // Returns the rClaims.prevBlock out of a capn proto data frame (~7754 gas)
-    function extractPrevBlock(bytes memory src)
-        internal
-        pure
-        returns (bytes32)
-    {
-        return BaseParserLibrary.extractBytes32(src, 32);
-    }
-
-    // Returns the rClaim out of a capn proto data frame (~9852 gas)
-    function parseRClaims(bytes memory src)
+    // This function is for serializing data directly from capnproto RClaim
+    function extractRClaims(bytes memory src)
         internal
         pure
         returns (RClaims memory rClaims)
     {
-        rClaims.chainId = extractChainId(src);
-        rClaims.height = extractHeight(src);
-        rClaims.round = extractRound(src);
-        rClaims.prevBlock = extractPrevBlock(src);
+        return extractRClaims(src, CAPNPROTO_HEADER_SIZE);
+    }
+
+    // todo: add docs
+    function extractRClaims(bytes memory src, uint256 dataOffset)
+        internal
+        pure
+        returns (RClaims memory rClaims)
+    {
+        require(
+            dataOffset + RCLAIMS_SIZE > dataOffset,
+            "RClaimsParserLibrary: Overflow on the dataOffset parameter"
+        );
+        require(
+            src.length >= dataOffset + RCLAIMS_SIZE,
+            "RClaimsParserLibrary: Not enought bytes to extract RClaims"
+        );
+        rClaims.chainId = BaseParserLibrary.extractUInt32(src, dataOffset);
+        rClaims.height = BaseParserLibrary.extractUInt32(src, dataOffset + 4);
+        rClaims.round = BaseParserLibrary.extractUInt32(src, dataOffset + 8);
+        rClaims.prevBlock = BaseParserLibrary.extractBytes32(
+            src,
+            dataOffset + 24
+        );
     }
 }
