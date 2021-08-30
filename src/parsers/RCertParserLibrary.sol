@@ -4,13 +4,15 @@ pragma abicoder v2;
 import "./BaseParserLibrary.sol";
 import "./RClaimsParserLibrary.sol";
 
+/// @title Library to parse the RCert structure from a blob of capnproto data
 library RCertParserLibrary {
-    //size in bytes of a RCLAIMS cap'npro structure without the cap'n proto
-    //header bytes
-    uint256 internal constant RCERT_SIZE = 56;
-    // Number of bytes of a capnproto header, the data starts after the header
+    /** @dev size in bytes of a RCert cap'npro structure without the cap'n proto
+      header bytes */
+    uint256 internal constant RCERT_SIZE = 264;
+    /** @dev Number of bytes of a capnproto header, the data starts after the
+      header */
     uint256 internal constant CAPNPROTO_HEADER_SIZE = 8;
-    // Number of Bytes of the sig group array
+    /** @dev Number of Bytes of the sig group array */
     uint256 internal constant SIG_GROUP_SIZE = 192;
 
     struct RCert {
@@ -40,7 +42,15 @@ library RCertParserLibrary {
         }
     }
 
-    // Gas cost: 4012
+    /**
+    @notice This function is for serializing data directly from capnproto
+            RCert. It will skip the first 8 bytes (capnproto headers) and
+            deserialize the RCert Data. If RCert is being extracted from
+            inside of other structure (E.g PClaim capnproto) use the
+            `extractRCert(bytes, uint)` instead.
+    */
+    /// @param src Blob of binary data with a capnproto serialization
+    /// @dev Execution cost: 4076 gas
     function extractRCert(bytes memory src)
         internal
         pure
@@ -49,11 +59,28 @@ library RCertParserLibrary {
         return extractRCert(src, CAPNPROTO_HEADER_SIZE);
     }
 
+    /**
+    @notice This function is for serializing the RCert struct from an defined
+            location inside a binary blob. E.G Extract RCert from inside of
+            other structure (E.g RCert capnproto) or skipping the capnproto
+            headers.
+    */
+    /// @param src Blob of binary data with a capnproto serialization
+    /// @param dataOffset offset to start reading the RCert data from inside src
+    /// @dev Execution cost: 3691 gas
     function extractRCert(bytes memory src, uint256 dataOffset)
         internal
         pure
         returns (RCert memory rCert)
     {
+        require(
+            dataOffset + RCERT_SIZE > dataOffset,
+            "RCertParserLibrary: Overflow on the dataOffset parameter"
+        );
+        require(
+            src.length >= dataOffset + RCERT_SIZE,
+            "RCertParserLibrary: Not enough bytes to extract RCert"
+        );
         rCert.rClaims = RClaimsParserLibrary.extractRClaims(
             src,
             dataOffset + 16

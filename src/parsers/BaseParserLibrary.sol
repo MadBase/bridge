@@ -37,6 +37,7 @@ library BaseParserLibrary {
         }
     }
 
+    /// todo: if we need to use this, optimize it and add more tests :)
     function extractUInt256(bytes memory src, uint256 offset)
         internal
         pure
@@ -56,6 +57,7 @@ library BaseParserLibrary {
         val = uint8(src[offset]) | (val << 8);
     }
 
+    /// todo: if we need to use this, optimize it and add more tests :)
     function reverse(bytes memory orig)
         internal
         pure
@@ -83,7 +85,10 @@ library BaseParserLibrary {
             dest += WORD_SIZE;
             src += WORD_SIZE;
         }
-        // todo add a if to return earlier here if len == 0
+        // Returning earlier if there's no leftover bytes to copy
+        if (len == 0) {
+            return;
+        }
         // Copy remaining bytes
         uint256 mask = 256**(WORD_SIZE - len) - 1;
         assembly {
