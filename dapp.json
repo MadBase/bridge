@@ -104,7 +104,18 @@
     "src/interfaces/ParticipantsEvents.sol": {
       "urls": ["src/interfaces/ParticipantsEvents.sol"]
     },
-    "src/interfaces/Snapshots.sol": { "urls": ["src/interfaces/Snapshots.sol"] }
+    "src/interfaces/Snapshots.sol": {
+      "urls": ["src/interfaces/Snapshots.sol"]
+    },
+    "src/parsers/BaseParserLibrary.sol": {
+      "urls": ["src/parsers/BaseParserLibrary.sol"]
+    },
+    "src/parsers/RClaimsParserLibrary.sol": {
+      "urls": ["src/parsers/RClaimsParserLibrary.sol"]
+    },
+    "src/parsers/RCertParserLibrary.sol": {
+      "urls": ["src/parsers/RCertParserLibrary.sol"]
+    }
   },
   "settings": {
     "remappings": [

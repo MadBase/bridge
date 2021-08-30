@@ -143,7 +143,39 @@
     "src/interfaces/ParticipantsEvents.sol": {
       "urls": ["src/interfaces/ParticipantsEvents.sol"]
     },
-    "src/interfaces/Snapshots.sol": { "urls": ["src/interfaces/Snapshots.sol"] }
+    "src/interfaces/Snapshots.sol": {
+      "urls": ["src/interfaces/Snapshots.sol"]
+    },
+    "src/parsers/BaseParserLibrary.sol": {
+      "urls": ["src/parsers/BaseParserLibrary.sol"]
+    },
+    "src/parsers/BaseParserLibrary.t.sol": {
+      "urls": ["src/parsers/BaseParserLibrary.t.sol"]
+    },
+    "src/parsers/RClaimsParserLibrary.sol": {
+      "urls": ["src/parsers/RClaimsParserLibrary.sol"]
+    },
+    "src/parsers/RClaimsParserLibrary.t.sol": {
+      "urls": ["src/parsers/RClaimsParserLibrary.t.sol"]
+    },
+    "src/parsers/RCertParserLibrary.sol": {
+      "urls": ["src/parsers/RCertParserLibrary.sol"]
+    },
+    "src/parsers/RCertParserLibrary.t.sol": {
+      "urls": ["src/parsers/RCertParserLibrary.t.sol"]
+    },
+    "src/parsers/BClaimsParserLibrary.sol": {
+        "urls": ["src/parsers/BClaimsParserLibrary.sol"]
+    },
+    "src/parsers/BClaimsParserLibrary.t.sol": {
+        "urls": ["src/parsers/BClaimsParserLibrary.t.sol"]
+    },
+    "src/parsers/PClaimsParserLibrary.sol": {
+        "urls": ["src/parsers/PClaimsParserLibrary.sol"]
+    },
+    "src/parsers/PClaimsParserLibrary.t.sol": {
+        "urls": ["src/parsers/PClaimsParserLibrary.t.sol"]
+    }
   },
   "settings": {
     "remappings": [
