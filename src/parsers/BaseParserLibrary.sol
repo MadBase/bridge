@@ -8,7 +8,6 @@ library BaseParserLibrary {
     // Size of the header of a 'bytes' array.
     uint256 internal constant BYTES_HEADER_SIZE = 32;
 
-
     /// Returns a uint32 extracted from `src`'s `offset` (~559 gas)
     function extractUInt32(bytes memory src, uint256 offset)
         internal
@@ -39,7 +38,6 @@ library BaseParserLibrary {
         }
     }
 
-    /// todo: if we need to use this, optimize it and add more tests :)
     /// Returns a uint256 extracted from `src`'s `offset` (~5155 gas)
     function extractUInt256(bytes memory src, uint256 offset)
         internal
@@ -60,7 +58,7 @@ library BaseParserLibrary {
         val = uint8(src[offset]) | (val << 8);
     }
 
-    /// todo: if we need to use this, optimize it and add more tests :)
+    /// Returns a bytes array reverted from `orig` (~13832 gas)
     function reverse(bytes memory orig)
         internal
         pure
