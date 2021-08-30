@@ -6,7 +6,7 @@ import "ds-test/test.sol";
 import "./BaseParserLibrary.sol";
 
 /// @dev Aux contract to test unit test that must fail!
-contract TestThatMustFail {
+contract TestsThatMustFail {
     function extractUInt32(bytes memory src, uint256 dataOffset)
         public
         pure
@@ -52,7 +52,7 @@ contract BaseParserLibraryTest is DSTest {
 
     function testExtractUInt32WithIncorrectData() public {
         // Testing unit tests that must fail
-        TestThatMustFail lib = new TestThatMustFail();
+        TestsThatMustFail lib = new TestsThatMustFail();
         bool ok;
         // Trying to read memory outside our data
         (ok, ) = address(lib).delegatecall(
@@ -162,7 +162,7 @@ contract BaseParserLibraryTest is DSTest {
 
     function testExtractBytesWithIncorrectData() public {
         // Testing unit tests that must fail
-        TestThatMustFail lib = new TestThatMustFail();
+        TestsThatMustFail lib = new TestsThatMustFail();
         bool ok;
         // Trying to read memory outside our data
         (ok, ) = address(lib).delegatecall(
@@ -274,7 +274,7 @@ contract BaseParserLibraryTest is DSTest {
 
     function testExtractBytes32WithIncorrectData() public {
         // Testing unit tests that must fail
-        TestThatMustFail lib = new TestThatMustFail();
+        TestsThatMustFail lib = new TestsThatMustFail();
         bool ok;
         // Trying to read memory outside our data
         (ok, ) = address(lib).delegatecall(

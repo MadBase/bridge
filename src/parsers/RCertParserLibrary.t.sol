@@ -6,7 +6,7 @@ import "ds-test/test.sol";
 import "./RCertParserLibrary.sol";
 
 /// @dev Aux contract to test unit test that must fail!
-contract TestThatMustFail {
+contract TestsThatMustFail {
     function extractRCert(bytes memory src, uint256 dataOffset) public pure returns (RCertParserLibrary.RCert memory) {
         return RCertParserLibrary.extractRCert(src, dataOffset);
     }
@@ -196,7 +196,7 @@ contract RCertParserLibraryTest is DSTest {
 
     function testExtractingRCertWithIncorrectData() public {
         // Testing unit tests that must fail
-        TestThatMustFail lib = new TestThatMustFail();
+        TestsThatMustFail lib = new TestsThatMustFail();
         bool ok;
         // Trying to read memory outside our RCert data
         (ok, ) = address(lib).delegatecall(abi.encodeWithSignature("extractRCert(bytes,uint256)", exampleRCertWithRandomData(), 10000000000));
