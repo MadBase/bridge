@@ -8,6 +8,8 @@ library BaseParserLibrary {
     // Size of the header of a 'bytes' array.
     uint256 internal constant BYTES_HEADER_SIZE = 32;
 
+
+    /// Returns a uint32 extracted from `src`'s `offset` (~559 gas)
     function extractUInt32(bytes memory src, uint256 offset)
         internal
         pure
@@ -38,6 +40,7 @@ library BaseParserLibrary {
     }
 
     /// todo: if we need to use this, optimize it and add more tests :)
+    /// Returns a uint256 extracted from `src`'s `offset` (~5155 gas)
     function extractUInt256(bytes memory src, uint256 offset)
         internal
         pure
@@ -98,15 +101,15 @@ library BaseParserLibrary {
         }
     }
 
-    // Returns a memory pointer to the data portion of the provided bytes array.
+    /// Returns a memory pointer to the data portion of the provided bytes array.
     function dataPtr(bytes memory bts) internal pure returns (uint256 addr) {
         assembly {
             addr := add(bts, BYTES_HEADER_SIZE)
         }
     }
 
-    // Returns a new bytes array with length `howManyBytes`, extracted from `src`'s `offset` forward.
-    // Extracting the 32-64th bytes out of a 64 bytes array takes ~7828 gas.
+    /// Returns a new bytes array with length `howManyBytes`, extracted from `src`'s `offset` forward.
+    /// Extracting the 32-64th bytes out of a 64 bytes array takes ~7828 gas.
     function extractBytes(
         bytes memory src,
         uint256 offset,
@@ -130,7 +133,7 @@ library BaseParserLibrary {
         copy(start, dataPtr(out), howManyBytes);
     }
 
-    // Returns a new bytes32 extracted from `src`'s `offset` forward. (~439 gas)
+    /// Returns a new bytes32 extracted from `src`'s `offset` forward. (~439 gas)
     function extractBytes32(bytes memory src, uint256 offset)
         internal
         pure
