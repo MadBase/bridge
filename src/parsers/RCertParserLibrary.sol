@@ -79,7 +79,7 @@ library RCertParserLibrary {
         );
         require(
             src.length >= dataOffset + RCERT_SIZE,
-            "RCertParserLibrary: Not enought bytes to extract RCert"
+            "RCertParserLibrary: Not enough bytes to extract RCert"
         );
         rCert.rClaims = RClaimsParserLibrary.extractRClaims(
             src,

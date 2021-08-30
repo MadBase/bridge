@@ -57,7 +57,7 @@ library RClaimsParserLibrary {
         );
         require(
             src.length >= dataOffset + RCLAIMS_SIZE,
-            "RClaimsParserLibrary: Not enought bytes to extract RClaims"
+            "RClaimsParserLibrary: Not enough bytes to extract RClaims"
         );
         rClaims.chainId = BaseParserLibrary.extractUInt32(src, dataOffset);
         rClaims.height = BaseParserLibrary.extractUInt32(src, dataOffset + 4);

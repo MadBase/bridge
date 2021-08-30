@@ -209,7 +209,7 @@ contract RCertParserLibraryTest is DSTest {
 
         // Trying to decode RCert without having enough Data
         (ok, ) = address(lib).delegatecall(abi.encodeWithSignature("extractRCert(bytes,uint256)", exampleRCertWithMissingData(), RCertParserLibrary.CAPNPROTO_HEADER_SIZE));
-        assertTrue(!ok, "Function call succeed! The function was not supposed to serialize RClaims if the data is incomplete");
+        assertTrue(!ok, "Function call succeed! The function was not supposed to deserialize RClaims if the data is incomplete");
 
     }
 
