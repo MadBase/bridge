@@ -115,6 +115,12 @@
     },
     "src/parsers/RCertParserLibrary.sol": {
       "urls": ["src/parsers/RCertParserLibrary.sol"]
+    },
+    "src/parsers/BClaimsParserLibrary.sol": {
+        "urls": ["src/parsers/BClaimsParserLibrary.sol"]
+    },
+    "src/parsers/PClaimsParserLibrary.sol": {
+        "urls": ["src/parsers/PClaimsParserLibrary.sol"]
     }
   },
   "settings": {
