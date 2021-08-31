@@ -25,9 +25,9 @@ library AccusationLibrary {
     //
     function AccuseMultipleProposal(
         bytes calldata _signatureGroup0,
-        bytes calldata _rClaims0,
+        bytes calldata _pClaims0,
         bytes calldata _signatureGroup1,
-        bytes calldata _rClaims1
+        bytes calldata _pClaims1
     ) internal {
         
     }
