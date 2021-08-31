@@ -1,13 +1,13 @@
 {
   "language": "Solidity",
   "sources": {
+    "src/AccusationDiamond.sol": { "urls": ["src/AccusationDiamond.sol"] },
     "src/EthDKGDiamond.sol": { "urls": ["src/EthDKGDiamond.sol"] },
     "src/CryptoLibrary.sol": { "urls": ["src/CryptoLibrary.sol"] },
     "src/TokenMigrator.t.sol": { "urls": ["src/TokenMigrator.t.sol"] },
     "src/Registry.sol": { "urls": ["src/Registry.sol"] },
     "src/SignatureLibrary.sol": { "urls": ["src/SignatureLibrary.sol"] },
     "src/SimpleAuth.sol": { "urls": ["src/SimpleAuth.sol"] },
-    "src/AccusationManager.sol": { "urls": ["src/AccusationManager.sol"] },
     "src/QueueLibrary.sol": { "urls": ["src/QueueLibrary.sol"] },
     "src/Token.t.sol": { "urls": ["src/Token.t.sol"] },
     "src/Token.sol": { "urls": ["src/Token.sol"] },
@@ -48,6 +48,15 @@
     },
     "src/migrate/MigrateStakingFacet.t.sol": {
       "urls": ["src/migrate/MigrateStakingFacet.t.sol"]
+    },
+    "src/facets/AccusationLibrary.sol": {
+      "urls": ["src/facets/AccusationLibrary.sol"]
+    },
+    "src/facets/AccusationLibrary.t.sol": {
+      "urls": ["src/facets/AccusationLibrary.t.sol"]
+    },
+    "src/facets/AccusationMultipleProposalFacet.sol": {
+      "urls": ["src/facets/AccusationMultipleProposalFacet.sol"]
     },
     "src/facets/EthDKGLibrary.sol": {
       "urls": ["src/facets/EthDKGLibrary.sol"]
