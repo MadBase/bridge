@@ -55,4 +55,12 @@ contract ParticipantsFacet is AccessControlled, Constants, Participants, Stoppab
     function getValidators() external view override returns (address[] memory) {
         return ParticipantsLibrary.participantsStorage().validators;
     }
+
+    function getChainId() external view override returns (uint32) {
+        return ParticipantsLibrary.participantsStorage().chainId;
+    }
+
+    function setChainId(uint32 _chainId) external override onlyOperator {
+        ParticipantsLibrary.participantsStorage().chainId = _chainId;
+    }
 }

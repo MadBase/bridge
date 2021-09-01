@@ -3,8 +3,11 @@ pragma solidity >=0.5.15;
 pragma abicoder v2;
 
 import "./AccusationEvents.sol";
+import "../Registry.sol";
 
 interface Accusation is AccusationEvents {
+
+    function initializeAccusation(Registry registry) external;
 
     function AccuseMultipleProposal(
         bytes calldata _signatureGroup0,

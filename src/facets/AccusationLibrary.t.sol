@@ -9,7 +9,12 @@ import "./SnapshotsLibrary.sol";
 import "./AccusationMultipleProposalFacet.sol";
 import "./AccusationLibrary.sol";
 
+
 contract TestAccusationLibrary is Constants, DSTest, Setup {
+
+    function setUp() public override {
+        setUp(address(new StakingTokenMock("STK", "MadNet Staking")));
+    }
 
     function generateSigAndPClaims0() private pure returns(bytes memory, bytes memory) {
         bytes memory pClaimsCapnProto =
@@ -252,34 +257,33 @@ contract TestAccusationLibrary is Constants, DSTest, Setup {
         return (sig, pClaimsCapnProto);
     }
 
-    // // Helper functions to create validators
-    // function generateMadID(uint256 id) internal pure returns (uint256[2] memory madID) {
-    //     madID[0] = id;
-    //     madID[1] = id;
-    // }
+    // Helper functions to create validators
+    function generateMadID(uint256 id) internal pure returns (uint256[2] memory madID) {
+        madID[0] = id;
+        madID[1] = id;
+    }
 
-    // // Successful case
-    // function testAccuseMultipleProposal() public {
-    //     address signer = 0x38e959391dD8598aE80d5d6D114a7822A09d313A;
-    //     uint256[2] memory madID = generateMadID(987654321);
+    // Successful case
+    function testAccuseMultipleProposal() public {
+        StakingTokenMock mock = StakingTokenMock(registry.lookup(STAKING_TOKEN));
+        address signer = 0x38e959391dD8598aE80d5d6D114a7822A09d313A;
+        uint256[2] memory madID = generateMadID(987654321);
 
-    //     stakingToken.transfer(signer, MINIMUM_STAKE);
-    //     uint256 b = stakingToken.balanceOf(signer);
-    //     assertEq(b, MINIMUM_STAKE);
+        stakingToken.transfer(signer, MINIMUM_STAKE);
+        uint256 b = stakingToken.balanceOf(signer);
+        assertEq(b, MINIMUM_STAKE);
 
-    //     stakingToken.approve(address(staking), MINIMUM_STAKE);
-    //     staking.lockStakeFor(signer, MINIMUM_STAKE);
-    //     uint256 bal = staking.balanceStakeFor(signer);
-    //     emit log_named_uint("bal: ", bal);
-    //     participants.addValidator(signer, madID);
+        mock.approveFor(signer, address(staking), MINIMUM_STAKE);
+        staking.lockStakeFor(signer, MINIMUM_STAKE);
+        participants.addValidator(signer, madID);
+        require(participants.isValidator(signer), "Not a validator");
 
-    //     AccusationMultipleProposalFacet f = new AccusationMultipleProposalFacet();
+        participants.setChainId(1);
 
-    //     (bytes memory sig0, bytes memory pClaims0) = generateSigAndPClaims0();
-    //     (bytes memory sig1, bytes memory pClaims1) = generateSigAndPClaims1();
-    //     //f.AccuseMultipleProposal(sig0, pClaims0, sig1, pClaims1);
-
-    // }
+        (bytes memory sig0, bytes memory pClaims0) = generateSigAndPClaims0();
+        (bytes memory sig1, bytes memory pClaims1) = generateSigAndPClaims1();
+        accusation.AccuseMultipleProposal(sig0, pClaims0, sig1, pClaims1);
+    }
 
     function testInvalidAccuseMultipleProposal() public {
         AccusationMultipleProposalFacet f = new AccusationMultipleProposalFacet();
@@ -335,4 +339,33 @@ contract TestAccusationLibrary is Constants, DSTest, Setup {
         emit log_named_address("who1: ", who1);
     }
 
+}
+
+/*contract StakingMock is Staking {
+    constructor() public Staking() {}
+
+    function approve(address guy, uint wad) public returns (bool) {
+        allowance[msg.sender][guy] = wad;
+
+        emit Approval(msg.sender, guy, wad);
+
+        return true;
+    }
+}*/
+
+contract StakingTokenMock is Token, DSTest {
+    //DSToken private tkn;
+
+    constructor(bytes32 symbol, bytes32 name) Token(symbol, name) {
+        //tkn = DSToken(addr);
+    }
+
+    function approveFor(address owner, address who, uint wad) external returns (bool) {
+        allowance[owner][who] = wad;
+
+        emit Approval(owner, who, wad);
+
+        return true;
+    }
+    
 }

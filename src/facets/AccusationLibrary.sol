@@ -32,7 +32,7 @@ library AccusationLibrary {
         bytes calldata _pClaims0,
         bytes calldata _signature1,
         bytes calldata _pClaims1
-    ) internal {
+    ) internal returns(address) {
         // ecrecover sig0/1 and ensure both are valid and accounts are equal
         // ensure the hashes of blob0/1 are different
         // ensure the height of blob0/1 are equal using RCert sub object of PClaims
@@ -53,9 +53,11 @@ library AccusationLibrary {
         require(pClaims0.rCert.rClaims.round == pClaims1.rCert.rClaims.round, "Invalid multiple proposal accusation, the round between the proposals are different!");
         require(pClaims0.rCert.rClaims.chainId == pClaims1.rCert.rClaims.chainId, "Invalid multiple proposal accusation, the chainId between the proposals are different!");
 
-        uint32 chainId = SnapshotsLibrary.getChainIdFromSnapshot(SnapshotsLibrary.epoch());
+        uint32 chainId = ParticipantsLibrary.participantsStorage().chainId;
         require(pClaims0.rCert.rClaims.chainId == chainId, "Invalid multiple proposal accusation, the chainId is invalid for this chain!");
         require(ParticipantsLibrary.isValidator(signerAccount0), "Invalid multiple proposal accusation, the signer of these proposals is not a valid validator!");
+
+        return signerAccount0;
     }
 
     function recoverEthereumSigner(bytes memory signature, bytes memory message) internal pure returns (address) {
