@@ -3,74 +3,31 @@ pragma solidity >= 0.5.15;
 
 import "ds-test/test.sol";
 
-// import "./AccusationLibrary.sol";
+import "./AccusationLibrary.sol";
 import "./AccusationMultipleProposalFacet.sol";
-
-contract Foo {
-    function bomb(bool b) public {
-        require(b == false);
-    }
-}
 
 contract TestAccusationLibrary is DSTest {
 
-
-
-    function testFoo() public {
-        Foo b = new Foo();
-
-        bool ok;
-
-        // this invocation of bomb() is successful
-        (ok, ) = address(b).delegatecall(abi.encodeWithSignature("bomb(bool)", false));
-        assertTrue(ok, "function successful");
-
-        // this invocation of bomb() reverts
-        (ok, ) = address(b).delegatecall(abi.encodeWithSignature("bomb(bool)", true));
-
-        assertTrue(!ok, "function reverted");
-    }
-
-    function testAccuseMultipleProposal() public {
+    function testSignNoPrefix() public {
         AccusationMultipleProposalFacet f = new AccusationMultipleProposalFacet();
 
-        // bytes memory sig0 = hex"e9be13c2658fcc1769b5e85e6e238a906fbf0d37c52a4ad5f4c69ff18156f3cb093a78ec7e848ab0649cfd1de13cfa4f2b215e42596f9c415541ec813b4626b401";
-        bytes memory sig0 = hex"cba766e2ba024aad86db556635cec9f104e76644b235f77759ff80bfefc990c5774d2d5ff3069a5099e4f9fadc9b08ab20472e2ef432fba94498d93c10cc584b00";
+        bytes memory sig = hex"cba766e2ba024aad86db556635cec9f104e76644b235f77759ff80bfefc990c5774d2d5ff3069a5099e4f9fadc9b08ab20472e2ef432fba94498d93c10cc584b00";
+        bytes memory prefix = "";
+        bytes memory message = hex"54686520717569636b2062726f776e20666f782064696420736f6d657468696e67";
 
-        bytes memory message0 = hex"54686520717569636b2062726f776e20666f782064696420736f6d657468696e67";
-
-        address who = recoverSigner(sig0, message0);
+        address who = AccusationLibrary.recoverSigner(sig, prefix, message);
 
         assertEq(who, 0x38e959391dD8598aE80d5d6D114a7822A09d313A);
     }
 
+    function testSignedPClaims() public {
+        bytes memory message = hex"000000000000020004000000020004005800000000000200010000000200000001000000000000000d00000002010000190000000201000025000000020100003100000002010000f75f3eb17cd8136aeb15cca22b01ad5b45c795cb78787e74e55e088a7aa5fa16de8b68a6643fa528a513f99a1ea30379927197a097ca86d9108e4c29d684b1ecc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470c5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a47004000000020001001d00000002060000010000000200000001000000000000000100000002010000f75f3eb17cd8136aeb15cca22b01ad5b45c795cb78787e74e55e088a7aa5fa16258aa89365a642358d92db67a13cb25d73e6eedf0d25100d8d91566882fac54b1ccedfb0425434b54999a88cd7d993e05411955955c0cfec9dd33066605bd4a60f6bbfbab37349aaa762c23281b5749932c514f3b8723cf9bb05f9841a7f2d0e0f75e42fd6c8e9f0edadac3dcfb7416c2d4b2470f4210f2afa93138615b1deb11ff56a9538b079e16dd77a8ef81318497b195ad81b8cd1c5ea5d48b0c160f59912387b5ab69538ef4cda0f7a879982f9b4943291b1e6d998abefe7bb4ebb6993";
+        bytes memory prefix = "Proposal";
+        bytes memory sig = hex"05d08b3bfd0fcb21e00a1468a9013fb023aa5eb86d714600dd69675ef9acce8c3247fe575e3d16a3e32d1e0ea10a30474744e7aab3166daea7c591776c1e942500";
 
+        address who = AccusationLibrary.recoverSigner(sig, prefix, message);
 
-    function recoverSigner(bytes memory signature, bytes memory message) internal pure returns (address) {
-
-        // bytes32 prefixedMessage = keccak256(
-        //     abi.encodePacked("\x19Ethereum Signed Message:\n32", keccak256(message))
-        // );
-        bytes32 hashedMessage = keccak256(message);
-
-        require(signature.length==65, "Signature should be 65 bytes");
-
-        bytes32 r;
-        bytes32 s;
-        uint8 v;
-
-        assembly { // solium-disable-line
-            r := mload(add(signature, 32))
-            s := mload(add(signature, 64))
-            v := byte(0, mload(add(signature, 96)))
-        }
-
-        v = (v < 27) ? (v + 27) : v;
-
-        require(v == 27 || v == 28, "Signature uses invalid version");
-
-        // return ecrecover(prefixedMessage, v, r, s);
-        return ecrecover(hashedMessage, v, r, s);
+        assertEq(who, 0x38e959391dD8598aE80d5d6D114a7822A09d313A);
     }
 
 }
