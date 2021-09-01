@@ -11,6 +11,7 @@ import "./EthDKGSubmitMPKFacet.sol";
 import "./EthDKGSubmitDisputeFacet.sol";
 
 import "./ParticipantsFacet.sol";
+import "./AccusationMultipleProposalFacet.sol";
 import "./SnapshotsFacet.sol";
 import "./StakingFacet.sol";
 
@@ -20,6 +21,8 @@ import "../Registry.sol";
 import "../Token.sol";
 import "../ValidatorsDiamond.sol";
 
+
+import "../interfaces/Accusation.sol";
 import "../interfaces/ETHDKG.sol";
 import "../interfaces/Participants.sol";
 import "../interfaces/Snapshots.sol";
@@ -39,9 +42,11 @@ contract Setup is Constants {
 
     ETHDKG ethdkg;
     Participants participants;
+    Accusation accusation;
     Snapshots snapshots;
     Staking staking;
     Validators validators;
+
 
     function setUp() public {
         registry = new Registry();
@@ -58,6 +63,7 @@ contract Setup is Constants {
 
         address validatorsDiamond = registry.lookup(VALIDATORS_CONTRACT);
         participants = Participants(validatorsDiamond);
+        accusation = Accusation(validatorsDiamond);
         snapshots = Snapshots(validatorsDiamond);
         staking = Staking(validatorsDiamond);
         validators = Validators(validatorsDiamond);
@@ -94,6 +100,7 @@ contract Setup is Constants {
 
         // Create facets
         address participantsFacet = address(new ParticipantsFacet());
+        address accusationsFacet = address(new AccusationMultipleProposalFacet());
         address snapshotsFacet = address(new SnapshotsFacet());
         address stakingFacet = address(new StakingFacet());
 
@@ -108,6 +115,10 @@ contract Setup is Constants {
         update.addFacet(Snapshots.getMadHeightFromSnapshot.selector, snapshotsFacet);
         update.addFacet(Snapshots.getHeightFromSnapshot.selector, snapshotsFacet);
         update.addFacet(Snapshots.getChainIdFromSnapshot.selector, snapshotsFacet);
+
+
+        // Accusation Wiring
+        update.addFacet(Accusation.AccuseMultipleProposal.selector, accusationsFacet);
 
         // StakingFacet Wiring
         update.addFacet(Staking.initializeStaking.selector, stakingFacet);

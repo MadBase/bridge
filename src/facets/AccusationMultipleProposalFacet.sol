@@ -2,8 +2,9 @@
 pragma solidity >=0.5.15;
 
 import "./AccusationLibrary.sol";
+import "../interfaces/Accusation.sol";
 
-contract AccusationMultipleProposalFacet {
+contract AccusationMultipleProposalFacet is Accusation {
 
     //
     function AccuseMultipleProposal(
@@ -11,9 +12,10 @@ contract AccusationMultipleProposalFacet {
         bytes calldata _pClaims0,
         bytes calldata _signature1,
         bytes calldata _pClaims1
-    ) external {
+    ) external override{
         AccusationLibrary.AccusationStorage storage s = AccusationLibrary.accusationStorage();
-        AccusationLibrary.AccuseMultipleProposal(_signature0, _pClaims0, _signature1, _pClaims1);
-        s.accusations[msg.sender]++;
+        address badValidatorSigner = AccusationLibrary.AccuseMultipleProposal(_signature0, _pClaims0, _signature1, _pClaims1);
+        s.accusations[badValidatorSigner]++;
+        // todo backslash its staking tokens
     }
 }

@@ -7,10 +7,10 @@ import "./AccusationEvents.sol";
 interface Accusation is AccusationEvents {
 
     function AccuseMultipleProposal(
-        bytes calldata _signatureGroup0,
-        bytes calldata _rClaims0,
-        bytes calldata _signatureGroup1,
-        bytes calldata _rClaims1
+        bytes calldata _signature0,
+        bytes calldata _pClaims0,
+        bytes calldata _signature1,
+        bytes calldata _pClaims1
     ) external;
 
 }

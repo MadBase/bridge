@@ -252,34 +252,26 @@ contract TestAccusationLibrary is Constants, DSTest, Setup {
         return (sig, pClaimsCapnProto);
     }
 
-    // // Helper functions to create validators
-    // function generateMadID(uint256 id) internal pure returns (uint256[2] memory madID) {
-    //     madID[0] = id;
-    //     madID[1] = id;
-    // }
 
-    // // Successful case
-    // function testAccuseMultipleProposal() public {
-    //     address signer = 0x38e959391dD8598aE80d5d6D114a7822A09d313A;
-    //     uint256[2] memory madID = generateMadID(987654321);
-
-    //     stakingToken.transfer(signer, MINIMUM_STAKE);
-    //     uint256 b = stakingToken.balanceOf(signer);
-    //     assertEq(b, MINIMUM_STAKE);
-
-    //     stakingToken.approve(address(staking), MINIMUM_STAKE);
-    //     staking.lockStakeFor(signer, MINIMUM_STAKE);
-    //     uint256 bal = staking.balanceStakeFor(signer);
-    //     emit log_named_uint("bal: ", bal);
-    //     participants.addValidator(signer, madID);
-
-    //     AccusationMultipleProposalFacet f = new AccusationMultipleProposalFacet();
-
-    //     (bytes memory sig0, bytes memory pClaims0) = generateSigAndPClaims0();
-    //     (bytes memory sig1, bytes memory pClaims1) = generateSigAndPClaims1();
-    //     //f.AccuseMultipleProposal(sig0, pClaims0, sig1, pClaims1);
-
-    // }
+    function testAccuseMultipleProposal() public {
+        AccusationMultipleProposalFacet f = new AccusationMultipleProposalFacet();
+        address signer = 0x38e959391dD8598aE80d5d6D114a7822A09d313A;
+        ParticipantsLibrary.ParticipantsStorage storage ps = ParticipantsLibrary.participantsStorage();
+        StakingLibrary.StakingStorage storage sv = StakingLibrary.stakingStorage();
+        ps.validatorPresent[signer] = true;
+        sv.details[signer].amountStaked = StakingLibrary.minimumStake();
+        SnapshotsLibrary.SnapshotsStorage storage ss = SnapshotsLibrary.snapshotsStorage();
+        ss.snapshots[ss.nextSnapshot].chainId = 1;
+        (bytes memory sig0, bytes memory pClaims0) = generateSigAndPClaims0();
+        (bytes memory sig1, bytes memory pClaims1) = generateSigAndPClaims1();
+        bool ok;
+        AccusationLibrary.AccusationStorage storage s = AccusationLibrary.accusationStorage();
+        assertTrue(s.accusations[signer] == 0, "Signer shouldn't have any accusation!");
+        (ok, ) = address(f).delegatecall(abi.encodeWithSignature("AccuseMultipleProposal(bytes,bytes,bytes,bytes)", sig0, pClaims0, sig1, pClaims1));
+        accusation.AccuseMultipleProposal(sig0, pClaims0, sig1, pClaims1);
+        assertTrue(ok, "Function call didn't succeed!");
+        assertEq(s.accusations[signer], 0);
+    }
 
     function testInvalidAccuseMultipleProposal() public {
         AccusationMultipleProposalFacet f = new AccusationMultipleProposalFacet();
