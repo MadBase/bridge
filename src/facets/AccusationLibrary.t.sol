@@ -9,14 +9,6 @@ import "./SnapshotsLibrary.sol";
 import "./AccusationMultipleProposalFacet.sol";
 import "./AccusationLibrary.sol";
 
-// /// @dev Aux contract to test unit test that must fail!
-// contract TestsThatMustFail {
-//     function getAccusationCount() public pure returns (uint256) {
-//         AccusationLibrary.AccusationStorage storage s = AccusationLibrary.accusationStorage();
-//         return s.accusations[signer];
-//     }
-// }
-
 contract TestAccusationLibrary is Constants, DSTest, Setup {
 
     function setUp() public override {
@@ -287,54 +279,58 @@ contract TestAccusationLibrary is Constants, DSTest, Setup {
         (bytes memory sig0, bytes memory pClaims0) = generateSigAndPClaims0();
         (bytes memory sig1, bytes memory pClaims1) = generateSigAndPClaims1();
 
-        AccusationLibrary.AccusationStorage storage s = AccusationLibrary.accusationStorage();
-        assertEq(s.accusations[signer], 0, "The signer shouldn't have any accusation before accusation");
-
+        uint256 startGas = gasleft();
         accusation.AccuseMultipleProposal(sig0, pClaims0, sig1, pClaims1);
-
-        // assertEq(s.accusations[signer], 1, "The signer shouldn't have any accusation before accusation");
+        uint256 endGas = gasleft();
+        emit log_named_uint("AccuseMultipleProposal gas", startGas - endGas);
     }
 
-    function testInvalidAccuseMultipleProposal() public {
-        AccusationMultipleProposalFacet f = new AccusationMultipleProposalFacet();
+    function testFail_AccuseMultipleProposalWithANotValidatorSigner() public {
         (bytes memory sig0, bytes memory pClaims0) = generateSigAndPClaims0();
         (bytes memory sig1, bytes memory pClaims1) = generateSigAndPClaims1();
+        participants.setChainId(1);
+        accusation.AccuseMultipleProposal(sig0, pClaims0, sig1, pClaims1);
+    }
+
+    function testFail_AccuseMultipleProposalWithTheSameSignatureAndPClaims() public {
+        (bytes memory sig0, bytes memory pClaims0) = generateSigAndPClaims0();
+        participants.setChainId(1);
+        accusation.AccuseMultipleProposal(sig0, pClaims0, sig0, pClaims0);
+    }
+
+    function testFail_AccuseMultipleProposalWithDifferentSignatures() public {
+        (bytes memory sig0, bytes memory pClaims0) = generateSigAndPClaims0();
+        (bytes memory sig1, ) = generateSigAndPClaims1();
+        participants.setChainId(1);
+        accusation.AccuseMultipleProposal(sig0, pClaims0, sig1, pClaims0);
+    }
+
+    function testFail_AccuseMultipleProposalWithDifferentBlockHeight() public {
+        (bytes memory sig0, bytes memory pClaims0) = generateSigAndPClaims0();
         (bytes memory sigWrongHeight, bytes memory pClaimsWrongHeight) = generateSigAndPClaimsDifferentHeight();
+        participants.setChainId(1);
+        accusation.AccuseMultipleProposal(sig0, pClaims0, sigWrongHeight, pClaimsWrongHeight);
+    }
+
+    function testFail_AccuseMultipleProposalWithDifferentRound() public {
+        (bytes memory sig0, bytes memory pClaims0) = generateSigAndPClaims0();
         (bytes memory sigWrongRound, bytes memory pClaimsWrongRound) = generateSigAndPClaimsDifferentRound();
+        participants.setChainId(1);
+        accusation.AccuseMultipleProposal(sig0, pClaims0, sigWrongRound, pClaimsWrongRound);
+    }
+
+    function testFail_AccuseMultipleProposalWithDifferentChainId() public {
+        (bytes memory sig0, bytes memory pClaims0) = generateSigAndPClaims0();
         (bytes memory sigWrongChainId, bytes memory pClaimsWrongChainId) = generateSigAndPClaimsDifferentChainId();
-        SnapshotsLibrary.SnapshotsStorage storage ss = SnapshotsLibrary.snapshotsStorage();
-        ss.snapshots[ss.nextSnapshot].chainId = 1;
-        bool ok;
+        participants.setChainId(1);
+        accusation.AccuseMultipleProposal(sig0, pClaims0, sigWrongChainId, pClaimsWrongChainId);
+    }
 
-        //Trying to accuse and signer that it's not a validator
-        (ok, ) = address(f).delegatecall(abi.encodeWithSignature("AccuseMultipleProposal(bytes,bytes,bytes,bytes)", sig0, pClaims0, sig1, pClaims1));
-        assertTrue(!ok, "Function call succeed! The function was supposed to fail when trying to call it for a signer that is not a validator!");
-
-        // Trying to send the same sig and pclaims
-        (ok, ) = address(f).delegatecall(abi.encodeWithSignature("AccuseMultipleProposal(bytes,bytes,bytes,bytes)", sig0, pClaims0, sig0, pClaims0));
-        assertTrue(!ok, "Function call succeed! The function was supposed to fail when trying to call it with the signatures and PClaims that are equal!");
-
-        // Trying to send same pclaims but different sigs
-        (ok, ) = address(f).delegatecall(abi.encodeWithSignature("AccuseMultipleProposal(bytes,bytes,bytes,bytes)", sig0, pClaims0, sig1, pClaims0));
-        assertTrue(!ok, "Function call succeed! The function was supposed to fail when trying to call it with the different signatures!");
-
-        // Trying pclaims with different block heights
-        (ok, ) = address(f).delegatecall(abi.encodeWithSignature("AccuseMultipleProposal(bytes,bytes,bytes,bytes)", sig0, pClaims0, sigWrongHeight, pClaimsWrongHeight));
-        assertTrue(!ok, "Function call succeed! The function was supposed to fail when trying to call it with PClaims that have different heights!");
-
-        // Trying pclaims with different round
-        (ok, ) = address(f).delegatecall(abi.encodeWithSignature("AccuseMultipleProposal(bytes,bytes,bytes,bytes)", sig0, pClaims0, sigWrongRound, pClaimsWrongRound));
-        assertTrue(!ok, "Function call succeed! The function was supposed to fail when trying to call it with PClaims that have different round numbers!");
-
-        // Trying pclaims with different chainID
-        (ok, ) = address(f).delegatecall(abi.encodeWithSignature("AccuseMultipleProposal(bytes,bytes,bytes,bytes)", sig0, pClaims0, sigWrongChainId, pClaimsWrongChainId));
-        assertTrue(!ok, "Function call succeed! The function was supposed to fail when trying to call it with PClaims that have different ChainId!");
-
-        // Trying pClaims that belongs to different ChainId
-        ss.snapshots[ss.nextSnapshot].chainId = 0;
-        (ok, ) = address(f).delegatecall(abi.encodeWithSignature("AccuseMultipleProposal(bytes,bytes,bytes,bytes)", sig0, pClaims0, sig1, pClaims1));
-        assertTrue(!ok, "Function call succeed! The function was supposed to fail when trying to call it with PClaims that have a ChainId different from the snapshots!");
-        emit log_named_uint("ChainId: ", SnapshotsLibrary.getChainIdFromSnapshot(SnapshotsLibrary.epoch()));
+    function testFail_AccuseMultipleProposalFromADifferentChain() public {
+        (bytes memory sig0, bytes memory pClaims0) = generateSigAndPClaims0();
+        (bytes memory sig1, bytes memory pClaims1) = generateSigAndPClaims1();
+        participants.setChainId(0);
+        accusation.AccuseMultipleProposal(sig0, pClaims0, sig1, pClaims1);
     }
 
     function testRecoverMadNetSigner() public {
@@ -368,8 +364,7 @@ contract TestAccusationLibrary is Constants, DSTest, Setup {
 
 }
 
-contract StakingTokenMock is Token, DSTest {
-    //DSToken private tkn;
+contract StakingTokenMock is Token {
 
     constructor(bytes32 symbol, bytes32 name) Token(symbol, name) {}
 
