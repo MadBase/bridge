@@ -60,13 +60,19 @@ library AccusationLibrary {
         return signerAccount0;
     }
 
-    function recoverEthereumSigner(bytes memory signature, bytes memory message) internal pure returns (address) {
+    // function recoverEthereumSigner(bytes memory signature, bytes memory message) internal pure returns (address) {
 
-        bytes32 prefixedMessage = keccak256(
-            abi.encodePacked("\x19Ethereum Signed Message:\n32", keccak256(message))
-        );
+    //     bytes32 prefixedMessage = keccak256(
+    //         abi.encodePacked("\x19Ethereum Signed Message:\n32", keccak256(message))
+    //     );
+    //
+    //
+    //
+    function recoverSigner(bytes memory signature, bytes memory prefix, bytes memory message) internal pure returns (address) {
 
         require(signature.length==65, "Signature should be 65 bytes");
+
+        bytes32 hashedMessage = keccak256(abi.encodePacked(prefix, message));
 
         bytes32 r;
         bytes32 s;
@@ -82,7 +88,7 @@ library AccusationLibrary {
 
         require(v == 27 || v == 28, "Signature uses invalid version");
 
-        return ecrecover(prefixedMessage, v, r, s);
+        return ecrecover(hashedMessage, v, r, s);
     }
 
     function recoverMadNetSigner(bytes memory signature, bytes memory message) internal pure returns (address) {

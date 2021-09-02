@@ -279,6 +279,16 @@ contract TestAccusationLibrary is Constants, DSTest, Setup {
         require(participants.isValidator(signer), "Not a validator");
 
         participants.setChainId(1);
+    }
+
+    function testSignNoPrefix() public {
+        AccusationMultipleProposalFacet f = new AccusationMultipleProposalFacet();
+
+        bytes memory sig = hex"cba766e2ba024aad86db556635cec9f104e76644b235f77759ff80bfefc990c5774d2d5ff3069a5099e4f9fadc9b08ab20472e2ef432fba94498d93c10cc584b00";
+        bytes memory prefix = "";
+        bytes memory message = hex"54686520717569636b2062726f776e20666f782064696420736f6d657468696e67";
+
+        address who = AccusationLibrary.recoverSigner(sig, prefix, message);
 
         (bytes memory sig0, bytes memory pClaims0) = generateSigAndPClaims0();
         (bytes memory sig1, bytes memory pClaims1) = generateSigAndPClaims1();
@@ -338,20 +348,14 @@ contract TestAccusationLibrary is Constants, DSTest, Setup {
         emit log_named_address("who0: ", who0);
         emit log_named_address("who1: ", who1);
     }
+    function testSignedPClaims() public {
+        (bytes memory sig, bytes memory message) = generateSigAndPClaims0();
+        bytes memory prefix = "Proposal";
+        address who = AccusationLibrary.recoverSigner(sig, prefix, message);
+        assertEq(who, 0x38e959391dD8598aE80d5d6D114a7822A09d313A);
+    }
 
 }
-
-/*contract StakingMock is Staking {
-    constructor() public Staking() {}
-
-    function approve(address guy, uint wad) public returns (bool) {
-        allowance[msg.sender][guy] = wad;
-
-        emit Approval(msg.sender, guy, wad);
-
-        return true;
-    }
-}*/
 
 contract StakingTokenMock is Token, DSTest {
     //DSToken private tkn;
@@ -367,5 +371,5 @@ contract StakingTokenMock is Token, DSTest {
 
         return true;
     }
-    
+
 }
