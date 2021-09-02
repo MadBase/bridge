@@ -21,8 +21,8 @@ contract AccusationMultipleProposalFacet is AccessControlled, AccusationEvents {
     ) external {
         AccusationLibrary.AccusationStorage storage s = AccusationLibrary.accusationStorage();
         address signer = AccusationLibrary.AccuseMultipleProposal(_signature0, _pClaims0, _signature1, _pClaims1);
+        // todo use safe math here
         s.accusations[signer]++;
-
         emit MultipleProposals(signer);
     }
 }

@@ -14,7 +14,7 @@ library AccusationLibrary {
 
     struct AccusationStorage {
         // Not sure exactly what storage is needed yet
-        mapping(address => int) accusations;
+        mapping(address => uint256) accusations;
     }
 
     function accusationStorage() internal pure returns (AccusationStorage storage s) {
@@ -24,9 +24,9 @@ library AccusationLibrary {
         }
     }
 
-    //
-    //
-    //
+    ///
+    ///
+    ///
     function AccuseMultipleProposal(
         bytes calldata _signature0,
         bytes calldata _pClaims0,
@@ -60,14 +60,9 @@ library AccusationLibrary {
         return signerAccount0;
     }
 
-    // function recoverEthereumSigner(bytes memory signature, bytes memory message) internal pure returns (address) {
-
-    //     bytes32 prefixedMessage = keccak256(
-    //         abi.encodePacked("\x19Ethereum Signed Message:\n32", keccak256(message))
-    //     );
-    //
-    //
-    //
+    ///
+    ///
+    ///
     function recoverSigner(bytes memory signature, bytes memory prefix, bytes memory message) internal pure returns (address) {
 
         require(signature.length==65, "Signature should be 65 bytes");
@@ -91,29 +86,12 @@ library AccusationLibrary {
         return ecrecover(hashedMessage, v, r, s);
     }
 
+
+    ///
+    ///
+    ///
     function recoverMadNetSigner(bytes memory signature, bytes memory message) internal pure returns (address) {
-
-        require(signature.length==65, "Signature should be 65 bytes");
-
-        bytes32 prefixedMessage = keccak256(
-            abi.encodePacked("Proposal", message)
-        );
-
-        bytes32 r;
-        bytes32 s;
-        uint8 v;
-
-        assembly { // solium-disable-line
-            r := mload(add(signature, 32))
-            s := mload(add(signature, 64))
-            v := byte(0, mload(add(signature, 96)))
-        }
-
-        v = (v < 27) ? (v + 27) : v;
-
-        require(v == 27 || v == 28, "Signature uses invalid version");
-
-        return ecrecover(prefixedMessage, v, r, s);
+        return recoverSigner(signature, "Proposal" , message);
     }
 
 }
