@@ -4,5 +4,6 @@ pragma solidity >=0.5.15;
 interface AccusationEvents {
 
     event MultipleProposals(address indexed validator);
-    
+    event NonExistingUTXOConsumption(address indexed validator);
+
 }

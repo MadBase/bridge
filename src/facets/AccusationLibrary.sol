@@ -1,9 +1,12 @@
 // SPDX-License-Identifier: MIT-open-group
 pragma solidity >= 0.5.15;
 
-import "../parsers/PClaimsParserLibrary.sol";
+import "./MerkleTreeLibrary.sol";
 import "./ParticipantsLibrary.sol";
 import "./SnapshotsLibrary.sol";
+import "../parsers/PClaimsParserLibrary.sol";
+import "../parsers/RCertParserLibrary.sol";
+import "../CryptoLibrary.sol";
 
 library AccusationLibrary {
 
@@ -22,6 +25,36 @@ library AccusationLibrary {
             s.slot := position
         }
     }
+
+
+    ///
+    ///
+    ///
+    function AccuseNonExistingUTXOConsumption(
+        bytes calldata _pClaims,
+        bytes calldata _pClaimsSig,
+        bytes calldata _bClaims,
+        bytes calldata _bClaimsSigGroup
+        // bytes calldata ProofNonInclusionUTXOStateRoot,
+        // bytes calldata ProofInclusionTxRoot,
+        // bytes calldata ProofOfInclusionTxHash
+    ) external {
+        // Require that the previous block is signed by correct group key for validator set.
+        // Require that height delta is 1.
+        // Require that chainID is equal.
+        // Require that Proposal was signed by active validator.
+        // Validate ProofNonInclusionUTXOStateRoot against BClaims.StateRoot.
+        // Validate ProofInclusionTxRoot against PClaims.BClaims.TxRoot.
+        // Validate ProofOfInclusionTxHash against the target hash from ProofInclusionTxRoot.
+
+        bytes32[6] memory sigGroup = RCertParserLibrary.extractSigGroup(_bClaimsSigGroup, 0);
+
+        // PClaims with the non existing UTXO
+        PClaimsParserLibrary.PClaims memory pClaims = PClaimsParserLibrary.extractPClaims(_pClaims, PClaimsParserLibrary.CAPNPROTO_HEADER_SIZE);
+
+
+    }
+
 
     /// @notice This function validates an accusation of multiple proposals.
     /// @param _signature0 The signature of pclaims0

@@ -1,21 +1,13 @@
 // SPDX-License-Identifier: MIT-open-group
 pragma solidity >=0.5.15;
-pragma abicoder v2;
 
-import "./AccusationEvents.sol";
-import "../Registry.sol";
+import "./AccusationLibrary.sol";
 
-interface Accusation is AccusationEvents {
+contract AccusationNonExistentUTXOConsumptionFacet {
 
-    function initializeAccusation(Registry registry) external;
-
-    function AccuseMultipleProposal(
-        bytes calldata _signature0,
-        bytes calldata _pClaims0,
-        bytes calldata _signature1,
-        bytes calldata _pClaims1
-    ) external;
-
+    ///
+    ///
+    ///
     function AccuseNonExistingUTXOConsumption(
         bytes calldata _pClaims,
         bytes calldata _pClaimsSig,
@@ -24,5 +16,7 @@ interface Accusation is AccusationEvents {
         bytes calldata ProofNonInclusionUTXOStateRoot,
         bytes calldata ProofInclusionTxRoot,
         bytes calldata ProofOfInclusionTxHash
-    ) external;
+    ) external {
+        AccusationLibrary.AccuseNonExistingUTXOConsumption(_pClaims, _pClaimsSig, _bClaims, _bClaimsGroupSig);
+    }
 }
