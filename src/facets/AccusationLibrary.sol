@@ -27,7 +27,7 @@ library AccusationLibrary {
     }
 
 
-    ///
+    /// @notice This handles the accusation for a non existing UTXO
     ///
     ///
     function AccuseNonExistingUTXOConsumption(
