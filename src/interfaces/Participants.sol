@@ -31,4 +31,7 @@ interface Participants is ParticipantsEvents {
 
     function getValidators() external view returns (address[] memory);
 
+    function getChainId() external view returns (uint32);
+
+    function setChainId(uint32 _chainId) external;
 }

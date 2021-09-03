@@ -13,6 +13,7 @@ import "./EthDKGSubmitDisputeFacet.sol";
 import "./ParticipantsFacet.sol";
 import "./SnapshotsFacet.sol";
 import "./StakingFacet.sol";
+import "./AccusationMultipleProposalFacet.sol";
 
 import "../Constants.sol";
 import "../EthDKGDiamond.sol";
@@ -26,6 +27,7 @@ import "../interfaces/Snapshots.sol";
 import "../interfaces/Staking.sol";
 import "../interfaces/Token.sol";
 import "../interfaces/Validators.sol";
+import "../interfaces/Accusation.sol";
 
 contract Setup is Constants {
 
@@ -38,16 +40,21 @@ contract Setup is Constants {
     BasicERC20 utilityToken;
 
     ETHDKG ethdkg;
+    Accusation accusation;
     Participants participants;
     Snapshots snapshots;
     Staking staking;
     Validators validators;
 
-    function setUp() public {
+    function setUp() public virtual {
+        setUp(address(new Token("STK", "MadNet Staking")));
+    }
+
+    function setUp(address stakeToken) public virtual {
         registry = new Registry();
 
         setUpEthDKG(registry);
-        setUpMisc(registry);
+        setUpMisc(registry, stakeToken);
         setUpValidators(registry);
 
         address stakingTokenAddress = registry.lookup(STAKING_TOKEN);
@@ -61,6 +68,7 @@ contract Setup is Constants {
         snapshots = Snapshots(validatorsDiamond);
         staking = Staking(validatorsDiamond);
         validators = Validators(validatorsDiamond);
+        accusation = Accusation(validatorsDiamond);
 
         address ethDKGDiamond = registry.lookup(ETHDKG_CONTRACT);
         ethdkg = ETHDKG(ethDKGDiamond);
@@ -69,6 +77,7 @@ contract Setup is Constants {
         participants.initializeParticipants(registry);
         snapshots.initializeSnapshots(registry);
         staking.initializeStaking(registry);
+        accusation.initializeAccusation(registry);
 
         // Base scenario setup
         stakingToken.approve(address(staking), INITIAL_AMOUNT);
@@ -82,8 +91,8 @@ contract Setup is Constants {
         staking.setRewardBonus(7);
     }
 
-    function setUpMisc(Registry _registry) public {
-        _registry.register(STAKING_TOKEN, address(new Token("STK", "MadNet Staking")));
+    function setUpMisc(Registry _registry, address _stakeToken) public {
+        _registry.register(STAKING_TOKEN, _stakeToken);
         _registry.register(UTILITY_TOKEN, address(new Token("UTL", "MadBytes")));
     }
 
@@ -96,6 +105,7 @@ contract Setup is Constants {
         address participantsFacet = address(new ParticipantsFacet());
         address snapshotsFacet = address(new SnapshotsFacet());
         address stakingFacet = address(new StakingFacet());
+        address accusationFacet = address(new AccusationMultipleProposalFacet());
 
         // SnapshotFacet Wiring
         update.addFacet(Snapshots.initializeSnapshots.selector, snapshotsFacet);
@@ -127,6 +137,10 @@ contract Setup is Constants {
         update.addFacet(Staking.setRewardAmount.selector, stakingFacet);
         update.addFacet(Staking.setRewardBonus.selector, stakingFacet);
 
+        // Accusation Wiring
+        update.addFacet(Accusation.initializeAccusation.selector, accusationFacet);
+        update.addFacet(Accusation.AccuseMultipleProposal.selector, accusationFacet);
+
         // ParticipantsFacet Wiring
         update.addFacet(Participants.initializeParticipants.selector, participantsFacet);
         update.addFacet(Participants.addValidator.selector, participantsFacet);
@@ -137,6 +151,8 @@ contract Setup is Constants {
         update.addFacet(Participants.removeValidator.selector, participantsFacet);
         update.addFacet(Participants.setValidatorMaxCount.selector, participantsFacet);
         update.addFacet(Participants.validatorCount.selector, participantsFacet);
+        update.addFacet(Participants.getChainId.selector, participantsFacet);
+        update.addFacet(Participants.setChainId.selector, participantsFacet);
 
         _registry.register(VALIDATORS_CONTRACT, diamond);
     }
