@@ -35,23 +35,50 @@ library AccusationLibrary {
         bytes calldata _pClaimsSig,
         bytes calldata _bClaims,
         bytes calldata _bClaimsSigGroup
-        // bytes calldata ProofNonInclusionUTXOStateRoot,
+        bytes calldata ProofNonInclusionUTXOStateRoot
         // bytes calldata ProofInclusionTxRoot,
         // bytes calldata ProofOfInclusionTxHash
     ) external {
+
+        //bytes32[6] memory sigGroup = RCertParserLibrary.extractSigGroup(_bClaimsSigGroup, 0);
+
         // Require that the previous block is signed by correct group key for validator set.
+        uint256[4] memory publicKey;
+        uint256[2] memory signature;
+        bytes memory blockHash = abi.encodePacked(keccak256(_bClaims));
+        (publicKey, signature) = SnapshotsLibrary.parseSignatureGroup(_bClaimsSigGroup);
+        bool ok = CryptoLibrary.Verify(blockHash, signature, publicKey);
+        require(ok, "Signature verification failed");
+
         // Require that height delta is 1.
-        // Require that chainID is equal.
-        // Require that Proposal was signed by active validator.
-        // Validate ProofNonInclusionUTXOStateRoot against BClaims.StateRoot.
-        // Validate ProofInclusionTxRoot against PClaims.BClaims.TxRoot.
-        // Validate ProofOfInclusionTxHash against the target hash from ProofInclusionTxRoot.
-
-        bytes32[6] memory sigGroup = RCertParserLibrary.extractSigGroup(_bClaimsSigGroup, 0);
-
-        // PClaims with the non existing UTXO
+        BClaimsParserLibrary.BClaims memory bClaims = BClaimsParserLibrary.extractBClaims(_bClaims, BClaimsParserLibrary.CAPNPROTO_HEADER_SIZE);
         PClaimsParserLibrary.PClaims memory pClaims = PClaimsParserLibrary.extractPClaims(_pClaims, PClaimsParserLibrary.CAPNPROTO_HEADER_SIZE);
 
+        require(bClaims.height == pClaims.bClaims.height+1, "Height delta should be 1");
+
+        // Require that chainID is equal.
+        require(bClaims.chainId == pClaims.bClaims.chainId, "ChainId should be the same");
+
+        // Require that Proposal was signed by active validator.
+        address signerAccount = recoverMadNetSigner(_pClaimsSig, _pClaims);
+        require(ParticipantsLibrary.isValidator(signerAccount), "Invalid non-existing UTXO accusation, the signer of these proposal is not a valid validator!");
+
+        // Validate ProofNonInclusionUTXOStateRoot against BClaims.StateRoot.
+        /*
+        ok = MerkleTreeLibrary.checkProof(
+            bytes memory proof: ? | ProofNonInclusionUTXOStateRoot,
+            bytes32 root: bClaims.stateRoot,
+            bytes32 hash: bClaims.prevBlock,
+            uint256 key: ?,
+            uint256 bitSet: ?,
+            uint256 height: bClaims.height,
+            bool included: false,
+            uint256 proofKey: ?
+            );
+        */
+
+        // Validate ProofInclusionTxRoot against PClaims.BClaims.TxRoot.
+        // Validate ProofOfInclusionTxHash against the target hash from ProofInclusionTxRoot.
 
     }
 
