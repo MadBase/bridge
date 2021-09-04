@@ -216,7 +216,7 @@ library StakingLibrary {
         for (uint256 idx; idx<rewards.length; idx++) {
             RewardDetails storage reward = rewards[idx];
 
-            if (reward.unlockEpoch <= SnapshotsLibrary.epoch()) {
+            if (reward.unlockEpoch <= ChainStatusLibrary.epoch()) {
                 rewardUnlocked = rewardUnlocked.add(reward.amountReward);
 
                 // copy last reward in array into this spot; toss old reward; don't move on yet
@@ -249,7 +249,7 @@ library StakingLibrary {
 
         require(detail.requestedStakeWithdrawal, "Stake unlock not requested");
         require(detail.amountStaked >= amount, "Stake unlock requested greater than stake");
-        require(detail.stakeWithdrawalEpoch <= SnapshotsLibrary.epoch(), "Not ready");
+        require(detail.stakeWithdrawalEpoch <= ChainStatusLibrary.epoch(), "Not ready");
 
         detail.unlockedStake = detail.unlockedStake.add(amount);
         detail.amountStaked = detail.amountStaked.sub(amount);

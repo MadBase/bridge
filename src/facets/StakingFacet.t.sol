@@ -90,4 +90,13 @@ contract StakingFacetTest is Constants, DSTest, Setup {
         assertEq(staking.balanceRewardFor(me), 0); // no reward is still locked
     }
 
+    function testFine() public {
+        
+    }
+
+    function testBurn() public {
+
+    }
+
+
 }

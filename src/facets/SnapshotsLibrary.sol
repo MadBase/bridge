@@ -42,14 +42,6 @@ library SnapshotsLibrary {
     //
     //
 
-    function setEpoch(uint256 ns) internal {
-        ChainStatusLibrary.chainStatusStorage().epoch = ns;
-    }
-
-    function epoch() internal view returns (uint256) {
-        return ChainStatusLibrary.chainStatusStorage().epoch;
-    }
-
     function extractUint32(bytes memory src, uint idx) internal pure returns (uint32 val) {
         val = uint8(src[idx+3]);
         val = (val << 8) | uint8(src[idx+2]);
