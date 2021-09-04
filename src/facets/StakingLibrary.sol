@@ -238,7 +238,7 @@ library StakingLibrary {
         require(detail.amountStaked > 0, "No stake");
 
         detail.requestedStakeWithdrawal = true;
-        detail.stakeWithdrawalEpoch = SnapshotsLibrary.epoch().add(ss.epochDelay);
+        detail.stakeWithdrawalEpoch = ChainStatusLibrary.epoch() + ss.epochDelay;
 
         emit RequestedUnlockStake(who);
     }

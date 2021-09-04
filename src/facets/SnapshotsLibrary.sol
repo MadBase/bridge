@@ -2,6 +2,7 @@
 pragma solidity >=0.7.4;
 pragma abicoder v2;
 
+import "./ChainStatusLibrary.sol";
 import "./ParticipantsLibrary.sol";
 import "./StakingLibrary.sol";
 
@@ -24,7 +25,7 @@ library SnapshotsLibrary {
 
     struct SnapshotsStorage {
         mapping(uint256 => Snapshot) snapshots;
-        uint256 nextSnapshot;
+        // uint256 nextSnapshot;
         bool validatorsChanged;     // i.e. when we do nextSnapshot will there be different validators?
         uint256 minEthSnapshotSize;
         uint256 minMadSnapshotSize;
@@ -42,11 +43,11 @@ library SnapshotsLibrary {
     //
 
     function setEpoch(uint256 ns) internal {
-        snapshotsStorage().nextSnapshot = ns;
+        ChainStatusLibrary.chainStatusStorage().epoch = ns;
     }
 
     function epoch() internal view returns (uint256) {
-        return snapshotsStorage().nextSnapshot;
+        return ChainStatusLibrary.chainStatusStorage().epoch;
     }
 
     function extractUint32(bytes memory src, uint idx) internal pure returns (uint32 val) {
@@ -126,6 +127,7 @@ library SnapshotsLibrary {
 
     function snapshot(bytes calldata _signatureGroup, bytes calldata _bclaims) internal returns (bool) {
 
+        ChainStatusLibrary.ChainStatusStorage storage cs = ChainStatusLibrary.chainStatusStorage();
         SnapshotsStorage storage ss = snapshotsStorage();
 
         uint256[4] memory publicKey;
@@ -142,7 +144,7 @@ library SnapshotsLibrary {
         uint32 height = extractUint32(_bclaims, 12);
 
         // Store snapshot
-        Snapshot storage currentSnapshot = ss.snapshots[ss.nextSnapshot];
+        Snapshot storage currentSnapshot = ss.snapshots[cs.epoch];
 
         currentSnapshot.saved = true;
         currentSnapshot.rawBlockClaims = _bclaims;
@@ -151,8 +153,8 @@ library SnapshotsLibrary {
         currentSnapshot.madHeight = height;
         currentSnapshot.chainId = chainId;
 
-        if (ss.nextSnapshot > 1) {
-            Snapshot memory previousSnapshot = ss.snapshots[ss.nextSnapshot-1];
+        if (cs.epoch > 1) {
+            Snapshot memory previousSnapshot = ss.snapshots[cs.epoch-1];
 
             require(
                 !previousSnapshot.saved || block.number >= previousSnapshot.ethHeight + ss.minEthSnapshotSize,
@@ -171,9 +173,9 @@ library SnapshotsLibrary {
 
         for (uint idx=0; idx<ps.validators.length; idx++) {
             if (msg.sender==ps.validators[idx]) {
-                StakingLibrary.lockRewardFor(ps.validators[idx], stakingS.rewardAmount + stakingS.rewardBonus, ss.nextSnapshot+2);
+                StakingLibrary.lockRewardFor(ps.validators[idx], stakingS.rewardAmount + stakingS.rewardBonus, cs.epoch+2);
             } else {
-                StakingLibrary.lockRewardFor(ps.validators[idx], stakingS.rewardAmount, ss.nextSnapshot+2);
+                StakingLibrary.lockRewardFor(ps.validators[idx], stakingS.rewardAmount, cs.epoch+2);
             }
         }
 
@@ -183,9 +185,9 @@ library SnapshotsLibrary {
         }
         ss.validatorsChanged = false;
 
-        emit SnapshotTaken(chainId, ss.nextSnapshot, height, msg.sender, ss.validatorsChanged);
+        emit SnapshotTaken(chainId, cs.epoch, height, msg.sender, ss.validatorsChanged);
 
-        ss.nextSnapshot++;
+        cs.epoch++;
 
         return reinitEthdkg;
     }
