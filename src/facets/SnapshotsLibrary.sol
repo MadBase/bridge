@@ -25,7 +25,6 @@ library SnapshotsLibrary {
 
     struct SnapshotsStorage {
         mapping(uint256 => Snapshot) snapshots;
-        // uint256 nextSnapshot;
         bool validatorsChanged;     // i.e. when we do nextSnapshot will there be different validators?
         uint256 minEthSnapshotSize;
         uint256 minMadSnapshotSize;
