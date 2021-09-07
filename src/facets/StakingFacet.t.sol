@@ -95,7 +95,12 @@ contract StakingFacetTest is Constants, DSTest, Setup {
     }
 
     function testBurn() public {
+        staking.lockStakeFor(me, 1_000_000);
 
+        assertEq(staking.balanceStakeFor(me), 1_000_000);
+
+        staking.burn(me);
+        assertEq(staking.balanceStakeFor(me), 0);
     }
 
 

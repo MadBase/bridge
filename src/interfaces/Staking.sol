@@ -63,9 +63,6 @@ interface Staking is StakingEvents {
 
     function lockRewardFor(address who, uint256 amountReward, uint256 unlockEpoch) external returns (bool);
 
-    // Called by ETHDKG + Validation contracts to burn all stake of a malicious validator
-    function burnStake(address who, uint256 amount) external returns (bool);
-
     function fine(address who, uint256 amount) external returns (bool);
 
     function unlockReward() external returns (bool);
