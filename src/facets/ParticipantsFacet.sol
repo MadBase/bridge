@@ -5,6 +5,7 @@ pragma abicoder v2;
 import "../interfaces/Participants.sol";
 
 import "./AccessControlLibrary.sol";
+import "./ChainStatusLibrary.sol";
 import "./ParticipantsLibrary.sol";
 import "./StakingLibrary.sol";
 import "./StopLibrary.sol";
@@ -57,10 +58,10 @@ contract ParticipantsFacet is AccessControlled, Constants, Participants, Stoppab
     }
 
     function getChainId() external view override returns (uint32) {
-        return ParticipantsLibrary.participantsStorage().chainId;
+        return ChainStatusLibrary.chainId();
     }
 
     function setChainId(uint32 _chainId) external override onlyOperator {
-        ParticipantsLibrary.participantsStorage().chainId = _chainId;
+        ChainStatusLibrary.setChainId(_chainId);
     }
 }

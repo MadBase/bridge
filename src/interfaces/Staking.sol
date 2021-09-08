@@ -11,8 +11,6 @@ interface Staking is StakingEvents {
 
     function burn(address who) external;
 
-    function currentEpoch() external view returns (uint256);
-
     function majorFine(address who) external;
 
     function minorFine(address who) external;
@@ -41,7 +39,6 @@ interface Staking is StakingEvents {
 
     function setRewardBonus(uint256 _rewardBonus) external;
 
-
     function lockStake(uint256 amount) external returns (bool);
 
     // Called by Validators contract on behalf of validator
@@ -66,9 +63,6 @@ interface Staking is StakingEvents {
 
     function lockRewardFor(address who, uint256 amountReward, uint256 unlockEpoch) external returns (bool);
 
-    // Called by ETHDKG + Validation contracts to burn all stake of a malicious validator
-    function burnStake(address who, uint256 amount) external returns (bool);
-
     function fine(address who, uint256 amount) external returns (bool);
 
     function unlockReward() external returns (bool);
@@ -90,8 +84,6 @@ interface Staking is StakingEvents {
     function withdraw(uint256 amount) external returns (bool);
 
     function withdrawFor(address who, uint256 amount) external returns (bool);
-
-    function setCurrentEpoch(uint256 _epoch) external;
 
     function setEpochDelay(uint256 _epochDelay) external;
 }

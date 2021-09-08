@@ -2,12 +2,8 @@
   "language": "Solidity",
   "sources": {
     "src/EthDKGDiamond.sol": { "urls": ["src/EthDKGDiamond.sol"] },
-    "src/CryptoLibrary.sol": { "urls": ["src/CryptoLibrary.sol"] },
     "src/Registry.sol": { "urls": ["src/Registry.sol"] },
-    "src/SignatureLibrary.sol": { "urls": ["src/SignatureLibrary.sol"] },
     "src/SimpleAuth.sol": { "urls": ["src/SimpleAuth.sol"] },
-    "src/AccusationManager.sol": { "urls": ["src/AccusationManager.sol"] },
-    "src/QueueLibrary.sol": { "urls": ["src/QueueLibrary.sol"] },
     "src/Token.sol": { "urls": ["src/Token.sol"] },
     "src/MerkleProof.sol": { "urls": ["src/MerkleProof.sol"] },
     "src/TokenMigrator.sol": { "urls": ["src/TokenMigrator.sol"] },
@@ -30,27 +26,12 @@
     "src/migrate/MigrateETHDKG.sol": {
       "urls": ["src/migrate/MigrateETHDKG.sol"]
     },
-    "src/facets/EthDKGLibrary.sol": {
-      "urls": ["src/facets/EthDKGLibrary.sol"]
-    },
-    "src/facets/StakingLibrary.sol": {
-      "urls": ["src/facets/StakingLibrary.sol"]
-    },
-    "src/facets/DiamondStorageLibrary.sol": {
-      "urls": ["src/facets/DiamondStorageLibrary.sol"]
-    },
-    "src/facets/ParticipantsLibrary.sol": {
-      "urls": ["src/facets/ParticipantsLibrary.sol"]
-    },
     "src/facets/SnapshotsFacet.sol": {
       "urls": ["src/facets/SnapshotsFacet.sol"]
     },
     "src/facets/StakingFacet.sol": { "urls": ["src/facets/StakingFacet.sol"] },
     "src/facets/EthDKGInformationFacet.sol": {
       "urls": ["src/facets/EthDKGInformationFacet.sol"]
-    },
-    "src/facets/AccessControlLibrary.sol": {
-      "urls": ["src/facets/AccessControlLibrary.sol"]
     },
     "src/facets/EthDKGInitializeFacet.sol": {
       "urls": ["src/facets/EthDKGInitializeFacet.sol"]
@@ -73,13 +54,9 @@
     "src/facets/EthDKGSubmitMPKFacet.sol": {
       "urls": ["src/facets/EthDKGSubmitMPKFacet.sol"]
     },
-    "src/facets/SnapshotsLibrary.sol": {
-      "urls": ["src/facets/SnapshotsLibrary.sol"]
-    },
     "src/facets/EthDKGGroupAccusationFacet.sol": {
       "urls": ["src/facets/EthDKGGroupAccusationFacet.sol"]
     },
-    "src/facets/StopLibrary.sol": { "urls": ["src/facets/StopLibrary.sol"] },
     "src/interfaces/StakingEvents.sol": {
       "urls": ["src/interfaces/StakingEvents.sol"]
     },
@@ -106,21 +83,6 @@
     },
     "src/interfaces/Snapshots.sol": {
       "urls": ["src/interfaces/Snapshots.sol"]
-    },
-    "src/parsers/BaseParserLibrary.sol": {
-      "urls": ["src/parsers/BaseParserLibrary.sol"]
-    },
-    "src/parsers/RClaimsParserLibrary.sol": {
-      "urls": ["src/parsers/RClaimsParserLibrary.sol"]
-    },
-    "src/parsers/RCertParserLibrary.sol": {
-      "urls": ["src/parsers/RCertParserLibrary.sol"]
-    },
-    "src/parsers/BClaimsParserLibrary.sol": {
-        "urls": ["src/parsers/BClaimsParserLibrary.sol"]
-    },
-    "src/parsers/PClaimsParserLibrary.sol": {
-        "urls": ["src/parsers/PClaimsParserLibrary.sol"]
     }
   },
   "settings": {
