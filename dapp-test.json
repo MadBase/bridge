@@ -175,6 +175,9 @@
     },
     "src/parsers/PClaimsParserLibrary.t.sol": {
         "urls": ["src/parsers/PClaimsParserLibrary.t.sol"]
+    },
+    "src/facets/MerkleTreeLibrary.t.sol": {
+        "urls": ["src/facets/MerkleTreeLibrary.t.sol"]
     }
   },
   "settings": {
