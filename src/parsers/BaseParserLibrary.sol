@@ -38,6 +38,52 @@ library BaseParserLibrary {
         }
     }
 
+    /// Returns a uint16 extracted from `src`'s `offset` (~204 gas)
+    function extractUInt16(bytes memory src, uint256 offset)
+        internal
+        pure
+        returns (uint16 val)
+    {
+        require(
+            offset + 2 > offset,
+            "BaseParserLibrary: Error extracting uin16! An overflow happened with the offset parameter!"
+        );
+        require(
+            src.length >= offset + 2,
+            "BaseParserLibrary: Error extracting uin16! Trying to read an offset out of boundaries in the src binary!"
+        );
+
+        assembly {
+            val := shr(sub(256, 16), mload(add(add(src, 0x20), offset)))
+            val := or(
+                        shr(8, and(val, 0xff00)),
+                        shl(8, and(val, 0x00ff))
+            )
+        }
+    }
+
+    /// Returns a boolean extracted from `src`'s `offset` (~204 gas)
+    function extractBool(bytes memory src, uint256 offset)
+        internal
+        pure
+        returns (bool)
+    {
+        require(
+            offset + 1 > offset,
+            "BaseParserLibrary: Error extracting bool! An overflow happened with the offset parameter!"
+        );
+        require(
+            src.length >= offset + 1,
+            "BaseParserLibrary: Error extracting bool! Trying to read an offset out of boundaries in the src binary!"
+        );
+        uint256 val;
+        assembly {
+            val := shr(sub(256, 8), mload(add(add(src, 0x20), offset)))
+            val := and(val, 0x01)
+        }
+        return val == 1;
+    }
+
     /// Returns a uint256 extracted from `src`'s `offset` (~5155 gas)
     function extractUInt256(bytes memory src, uint256 offset)
         internal

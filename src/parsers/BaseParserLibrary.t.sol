@@ -50,62 +50,107 @@ contract BaseParserLibraryTest is DSTest {
         assertEq(actual, expected);
     }
 
-    function testExtractUInt32WithIncorrectData() public {
-        // Testing unit tests that must fail
-        TestsThatMustFail lib = new TestsThatMustFail();
-        bool ok;
-        // Trying to read memory outside our data
-        (ok, ) = address(lib).delegatecall(
-            abi.encodeWithSignature(
-                "extractUInt32(bytes,uint256)",
-                hex"beefdead01020400deadbeef",
-                10000000000
-            )
-        );
-        assertTrue(
-            !ok,
-            "Function call succeed! The function was supposed to fail when trying to read data outside its bounds!"
-        );
+    function testFail_ExtractUInt32OutSideData() public {
+        bytes memory b = hex"beefdead01020400deadbeef";
+        uint32 actual = BaseParserLibrary.extractUInt32(b, 10000000000);
+    }
 
-        // Trying to force and overflow to manipulate data
+    function testFail_ExtractUInt32WithOverflow() public {
+        bytes memory b = hex"beefdead01020400deadbeef";
         uint256 bigValue = 0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff;
-        (ok, ) = address(lib).delegatecall(
-            abi.encodeWithSignature(
-                "extractUInt32(bytes,uint256)",
-                hex"beefdead01020400deadbeef",
-                bigValue
-            )
-        );
-        assertTrue(
-            !ok,
-            "Function call succeed! The function was supposed to be fail safe against offset overflow"
-        );
+        uint32 actual = BaseParserLibrary.extractUInt32(b, bigValue);
+    }
 
-        // Trying to decode uint32 without having enough Data
-        (ok, ) = address(lib).delegatecall(
-            abi.encodeWithSignature(
-                "extractUInt32(bytes,uint256)",
-                hex"010204",
-                0
-            )
-        );
-        assertTrue(
-            !ok,
-            "Function call succeed! The function was not supposed to serialize uint32 if the data is incomplete"
-        );
+    function testFail_ExtractUInt32WithoutEnoughData() public {
+        bytes memory b = hex"010204";
+        uint32 actual = BaseParserLibrary.extractUInt32(b, 0);
+    }
 
-        // Trying to decode uint32 from the middle of the data where the conversion will pass the data size
-        (ok, ) = address(lib).delegatecall(
-            abi.encodeWithSignature(
-                "extractUInt32(bytes,uint256)",
-                hex"01020400",
-                4
-            )
-        );
-        assertTrue(
-            !ok,
-            "Function call succeed! The function was not supposed to serialize uint32 if the data is incomplete"
-        );
+    function testFail_ExtractUInt32FromMiddleWithoutEnoughData() public {
+        bytes memory b = hex"01020400";
+        uint32 actual = BaseParserLibrary.extractUInt32(b, 4);
+    }
+
+    function testExtractUInt16() public {
+        bytes memory b = hex"0102";
+        uint256 expected = 0x0201;
+        uint16 actual = BaseParserLibrary.extractUInt16(b, 0);
+        assertEq(actual, expected);
+    }
+
+    function testExtractUInt16WithTrashData() public {
+        bytes memory b = hex"0102deadbeef";
+        uint256 expected = 0x0201;
+        uint16 actual = BaseParserLibrary.extractUInt16(b, 0);
+        assertEq(actual, expected);
+    }
+
+    function testExtractUInt16InArbitraryPosition() public {
+        bytes memory b = hex"beefdead01020400deadbeef";
+        uint256 expected = 513; //hex 0x0201
+        uint16 actual = BaseParserLibrary.extractUInt16(b, 4);
+        assertEq(actual, expected);
+    }
+
+    function testFail_ExtractUInt16OutSideData() public {
+        bytes memory b = hex"beefdead01020400deadbeef";
+        uint16 actual = BaseParserLibrary.extractUInt16(b, 10000000000);
+    }
+
+    function testFail_ExtractUInt16WithOverflow() public {
+        bytes memory b = hex"beefdead01020400deadbeef";
+        uint256 bigValue = 0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff;
+        uint16 actual = BaseParserLibrary.extractUInt16(b, bigValue);
+    }
+
+    function testFail_ExtractUInt16WithoutEnoughData() public {
+        bytes memory b = hex"01";
+        uint16 actual = BaseParserLibrary.extractUInt16(b, 0);
+    }
+
+    function testFail_ExtractUInt16FromMiddleWithoutEnoughData() public {
+        bytes memory b = hex"beef0102";
+        uint16 actual = BaseParserLibrary.extractUInt16(b, 3);
+    }
+
+    function testExtractBool() public {
+        bytes memory b = hex"01";
+        bool actual = BaseParserLibrary.extractBool(b, 0);
+        assertTrue(actual);
+    }
+
+    function testExtractUBoolWithTrashData() public {
+        bytes memory b = hex"0002deadbeef";
+        bool actual = BaseParserLibrary.extractBool(b, 0);
+        assertTrue(!actual);
+    }
+
+    function testExtractBoolInArbitraryPosition() public {
+        bytes memory b = hex"beefdead01020400deadbeef";
+        bool expected = true;
+        bool actual = BaseParserLibrary.extractBool(b, 4);
+        assertTrue(actual);
+    }
+
+    function testFail_ExtractBoolOutSideData() public {
+        bytes memory b = hex"beefdead01020400deadbeef";
+        bool actual = BaseParserLibrary.extractBool(b, 10000000000);
+    }
+
+    function testFail_ExtractBoolWithOverflow() public {
+        bytes memory b = hex"beefdead01020400deadbeef";
+        uint256 bigValue = 0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff;
+        bool actual = BaseParserLibrary.extractBool(b, bigValue);
+    }
+
+    function testFail_ExtractBoolWithoutEnoughData() public {
+        bytes memory b = hex"";
+        bool actual = BaseParserLibrary.extractBool(b, 0);
+    }
+
+    function testFail_ExtractBoolFromMiddleWithoutEnoughData() public {
+        bytes memory b = hex"beef0102";
+        bool actual = BaseParserLibrary.extractBool(b, 4);
     }
 
     function testExtractUInt256() public {
