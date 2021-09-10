@@ -11,7 +11,7 @@ library MerkleTreeLibrary {
     }
 
     function checkProof(
-        bytes memory proof,
+        bytes memory auditPath,
         bytes32 root,
         bytes32 hash,
         uint256 key,
@@ -33,7 +33,7 @@ library MerkleTreeLibrary {
             if (bitSet(bitset, 255 - uint16(i))) {
                 proofIdx += 32;
                 assembly {
-                    el := mload(add(proof, proofIdx))
+                    el := mload(add(auditPath, proofIdx))
                 }
             } else {
                 el = defaultLeaf;
@@ -69,7 +69,7 @@ library MerkleTreeLibrary {
     }
 
     function checkProof2(
-        bytes memory proofValue,
+        bytes memory auditPath,
         bytes32 root,
         bytes32 keyHash,
         bytes memory key,
@@ -91,7 +91,7 @@ library MerkleTreeLibrary {
             if (bitSet2(bitset, uint16(i))) {
                 proofIdx += 32;
                 assembly {
-                    el := mload(add(proofValue, proofIdx))
+                    el := mload(add(auditPath, proofIdx))
                 }
             } else {
                 el = defaultLeaf;
@@ -135,7 +135,7 @@ library MerkleTreeLibrary {
     }
 
     function checkProof3(
-        bytes memory proofValue,
+        bytes memory auditPath,
         bytes32 root,
         bytes32 keyHash,
         bytes32 key,
@@ -157,7 +157,7 @@ library MerkleTreeLibrary {
             if (bitSet3(bitset, uint16(i))) {
                 proofIdx += 32;
                 assembly {
-                    el := mload(add(proofValue, proofIdx))
+                    el := mload(add(auditPath, proofIdx))
                 }
             } else {
                 el = defaultLeaf;
