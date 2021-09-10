@@ -17,6 +17,6 @@ contract AccusationNonExistentUTXOConsumptionFacet {
         bytes calldata ProofInclusionTxRoot,
         bytes calldata ProofOfInclusionTxHash
     ) external {
-        AccusationLibrary.AccuseNonExistingUTXOConsumption(_pClaims, _pClaimsSig, _bClaims, _bClaimsGroupSig);
+        AccusationLibrary.AccuseNonExistingUTXOConsumption(_pClaims, _pClaimsSig, _bClaims, _bClaimsGroupSig, ProofNonInclusionUTXOStateRoot, ProofInclusionTxRoot, ProofOfInclusionTxHash);
     }
 }

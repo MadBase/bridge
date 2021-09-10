@@ -376,6 +376,10 @@ contract TestAccusationLibrary is Constants, DSTest, Setup {
         assertEq(who, 0x38e959391dD8598aE80d5d6D114a7822A09d313A);
     }
 
+    // Non Existent UTXO tests
 
+    function testNonExistentUTXO() public {
+        
+    }
 
 }
