@@ -24,31 +24,33 @@ library MerkleProofLibrary {
     }
 
     function computeLeafHash(bytes32 _key, bytes32 value, uint16 proofHeight) internal pure returns (bytes32){
-        require(proofHeight <= 256 && proofHeight > 0, "Invalid proofHeight, the values should be greater 0 and less than 256")
+        require(proofHeight <= 256 && proofHeight > 0, "Invalid proofHeight, the values should be greater 0 and less than 256");
         return keccak256(abi.encodePacked(_key, value, uint8(256 - proofHeight)));
-        //question is possible to have a proof Lenght of 0. E.g when there's only one value in the trie
     }
 
-    function checkProofAbs(MerkleProofParserLibrary.MerkleProof memory _proof, bytes32 root) internal pure {
+    function verifyInclusion(MerkleProofParserLibrary.MerkleProof memory _proof, bytes32 root) internal pure {
+        require(_proof.proofValue != 0, "Invalid Inclusion Merkle proof!");
+        bytes32 _keyHash = computeLeafHash(_proof.key, _proof.proofValue, _proof.keyHeight);
+        bool result = checkProof(_proof.auditPath, root, _keyHash,  _proof.key, _proof.bitmap, _proof.keyHeight);
+        require(result, "Failed to verify proof of Inclusion: The reconstructed proof doesn't match the root of the trie!");
+    }
+
+    function verifyNonInclusion(MerkleProofParserLibrary.MerkleProof memory _proof, bytes32 root) internal pure {
         if (_proof.proofKey == 0 && _proof.proofValue == 0) {
             // Non-inclusion default value
             bytes32 _keyHash = bytes32(
                 hex"bc36789e7a1e281436464229828f817d6612f7b477d66591ff96a9e064bcc98a"
             );
             bool result = checkProof(_proof.auditPath, root, _keyHash,  _proof.key, _proof.bitmap, _proof.keyHeight);
-            require(result, "Proof is not valid 1");
-            // if result == true our key is not in there
+            require(result, "Failed to verify proof of Non Inclusion: Default leaf not found in the key's path!");
         } else if (_proof.proofKey != 0 && _proof.proofValue != 0) {
             // Non-inclusion leaf node
             bytes32 _keyHash = computeLeafHash(_proof.proofKey, _proof.proofValue, _proof.keyHeight);
             bool result = checkProof(_proof.auditPath, root, _keyHash,  _proof.key, _proof.bitmap, _proof.keyHeight);
-            require(result, "Proof is not valid 2");
-        } else if (_proof.proofKey == 0 && _proof.proofValue != 0) {
-            bytes32 _keyHash = computeLeafHash(_proof.key, _proof.proofValue, _proof.keyHeight);
-            bool result = checkProof(_proof.auditPath, root, _keyHash,  _proof.key, _proof.bitmap, _proof.keyHeight);
-            require(result, "Proof is not valid 3");
+            require(result, "Failed to verify proof of Non Inclusion: The Leaf node provided was not found in the key's path!");
+        } else { // _proof.proofKey != 0 && _proof.proofValue == 0 or _proof.proofKey == 0 && _proof.proofValue != 0
+            revert("Invalid Non Inclusion Merkle proof!");
         }
-        require(_proof.proofKey != 0 && _proof.proofValue == 0, "Proof is not valid 4");
     }
 
     function checkProof(
@@ -67,8 +69,7 @@ library MerkleProofLibrary {
         );
 
         uint16 proofIdx = 0;
-
-        require(proofHeight > 0 && proofHeight <= 256, "");
+        require(proofHeight > 0 && proofHeight <= 256, "Invalid proofHeight, the values should be greater 0 and less than 256");
         for (uint256 i = 0; i < proofHeight; i++) {
             if (bitSet(bitset, uint16(i))) {
                 proofIdx += 32;
@@ -86,7 +87,5 @@ library MerkleProofLibrary {
             }
         }
         return h == root;
-        //require(h == root, "Proof is not valid");
-        // We can send a valid hash and key and say that it's invalid by sending a invalid proofKey and say that included is false!
     }
 }

@@ -1,11 +1,12 @@
 // SPDX-License-Identifier: MIT-open-group
 pragma solidity >= 0.5.15;
 
-import "./MerkleTreeLibrary.sol";
+import "./MerkleProofLibrary.sol";
 import "./ParticipantsLibrary.sol";
 import "./SnapshotsLibrary.sol";
 import "../parsers/PClaimsParserLibrary.sol";
 import "../parsers/RCertParserLibrary.sol";
+import "../parsers/MerkleProofParserLibrary.sol";
 import "../CryptoLibrary.sol";
 
 library AccusationLibrary {
@@ -35,18 +36,21 @@ library AccusationLibrary {
         bytes calldata _pClaimsSig,
         bytes calldata _bClaims,
         bytes calldata _bClaimsSigGroup,
-        bytes calldata ProofNonInclusionUTXOStateRoot,
-        bytes calldata ProofInclusionTxRoot,
-        bytes calldata ProofOfInclusionTxHash
+        bytes calldata _proofAgainstStateRoot, //we don't know yet if it's a non
+        bytes calldata _proofInclusionTxRoot,
+        bytes calldata _proofOfInclusionTxHash,
+        bytes calldata _txInPreImage
+        //?TxOut or Transaction binary
+        //Txout preImage
+        // The thing that we are consuming is not a deposit
+        // 1st Struct capnproto Ids -> identify that the deposit is a Value store
+        // 2nd if is a ValueStore ->
     ) internal view {
-
-        //bytes32[6] memory sigGroup = RCertParserLibrary.extractSigGroup(_bClaimsSigGroup, 0);
-
         // Require that the previous block is signed by correct group key for validator set.
         uint256[4] memory publicKey;
         uint256[2] memory signature;
         bytes memory blockHash = abi.encodePacked(keccak256(_bClaims));
-        (publicKey, signature) = SnapshotsLibrary.parseSignatureGroup(_bClaimsSigGroup);
+        (publicKey, signature) = SnapshotsLibrary.parseSignatureGroup(_bClaimsSigGroup); //todo optimize this
         bool ok = CryptoLibrary.Verify(blockHash, signature, publicKey);
         require(ok, "Signature verification failed");
 
@@ -63,23 +67,31 @@ library AccusationLibrary {
         address signerAccount = recoverMadNetSigner(_pClaimsSig, _pClaims);
         require(ParticipantsLibrary.isValidator(signerAccount), "Invalid non-existing UTXO accusation, the signer of these proposal is not a valid validator!");
 
-        // Validate ProofNonInclusionUTXOStateRoot against BClaims.StateRoot.
-        /*
-        ok = MerkleTreeLibrary.checkProof(
-            bytes memory proof: ? | ProofNonInclusionUTXOStateRoot,
-            bytes32 root: bClaims.stateRoot,
-            bytes32 hash: bClaims.prevBlock,
-            uint256 key: ?,
-            uint256 bitSet: ?,
-            uint256 height: bClaims.height,
-            bool included: false,
-            uint256 proofKey: ?
-            );
-        */
+        MerkleProofParserLibrary.MerkleProof memory proofAgainstStateRoot = MerkleProofParserLibrary.extractMerkleProof(_proofAgainstStateRoot);
+        TxInPreImageParserLibrary.TxInPreImage memory txInPreImage = TxInPreImageParserLibrary.extract(_txInPreImage, TxInPreImageParserLibrary.CAPNPROTO_HEADER_SIZE);
+        require(txInPreImage.consumedTxHash == proofAgainstStateRoot.key, "The key of Merkle Proof should be equal to the UTXOID being spent!");
+        // checking if we are consuming a deposit or an UTXO
+        if (txInPreImage.consumedTxIdx == 0xFFFFFFFF){
+            // Double spending problem, i.e, consuming a deposit that was already consumed
+            MerkleProofLibrary.verifyInclusion(proofAgainstStateRoot, bClaims.stateRoot);
+        } else {
+            //Consuming a non existing UTXO
+            MerkleProofLibrary.verifyNonInclusion(proofAgainstStateRoot, bClaims.stateRoot);
+        }
 
         // Validate ProofInclusionTxRoot against PClaims.BClaims.TxRoot.
-        // Validate ProofOfInclusionTxHash against the target hash from ProofInclusionTxRoot.
+        MerkleProofParserLibrary.MerkleProof memory proofInclusionTxRoot = MerkleProofParserLibrary.extractMerkleProof(_proofInclusionTxRoot);
+        MerkleProofLibrary.verifyInclusion(proofInclusionTxRoot, pClaims.bClaims.txRoot);
 
+        // Validate ProofOfInclusionTxHash against the target hash from ProofInclusionTxRoot.
+        MerkleProofParserLibrary.MerkleProof memory proofOfInclusionTxHash = MerkleProofParserLibrary.extractMerkleProof(_proofOfInclusionTxHash);
+        MerkleProofLibrary.verifyInclusion(proofOfInclusionTxHash, proofInclusionTxRoot.key);
+
+        require(proofAgainstStateRoot.key == proofOfInclusionTxHash.key, "The UTXO should match!");
+
+        //todo: deposit that doesn't exist in the chain
+        //todo: check if bclaim values shift depending on value txCount. Check if they are 0 if they are still present
+        //todo burn the validators token
     }
 
 

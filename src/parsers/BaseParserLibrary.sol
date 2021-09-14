@@ -62,6 +62,26 @@ library BaseParserLibrary {
         }
     }
 
+    /// Returns a uint16 (which was encoded as BigEndian) from `src`'s `offset` (~204 gas)
+    function extractUInt16FromBigEndian(bytes memory src, uint256 offset)
+        internal
+        pure
+        returns (uint16 val)
+    {
+        require(
+            offset + 2 > offset,
+            "BaseParserLibrary: Error extracting uin16! An overflow happened with the offset parameter!"
+        );
+        require(
+            src.length >= offset + 2,
+            "BaseParserLibrary: Error extracting uin16! Trying to read an offset out of boundaries in the src binary!"
+        );
+
+        assembly {
+            val := and(shr(sub(256, 16), mload(add(add(src, 0x20), offset))), 0xffff)
+        }
+    }
+
     /// Returns a boolean extracted from `src`'s `offset` (~204 gas)
     function extractBool(bytes memory src, uint256 offset)
         internal
