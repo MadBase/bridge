@@ -14,6 +14,7 @@ import "./ParticipantsFacet.sol";
 import "./SnapshotsFacet.sol";
 import "./StakingFacet.sol";
 import "./AccusationMultipleProposalFacet.sol";
+import "./AccusationNonExistentUTXOConsumptionFacet.sol";
 
 import "../Constants.sol";
 import "../EthDKGDiamond.sol";
@@ -105,7 +106,8 @@ contract Setup is Constants {
         address participantsFacet = address(new ParticipantsFacet());
         address snapshotsFacet = address(new SnapshotsFacet());
         address stakingFacet = address(new StakingFacet());
-        address accusationFacet = address(new AccusationMultipleProposalFacet());
+        address accusationMultipleProposalFacet = address(new AccusationMultipleProposalFacet());
+        address accusationNonExistentUTXOConsumptionFacet = address(new AccusationNonExistentUTXOConsumptionFacet());
 
         // SnapshotFacet Wiring
         update.addFacet(Snapshots.initializeSnapshots.selector, snapshotsFacet);
@@ -138,8 +140,9 @@ contract Setup is Constants {
         update.addFacet(Staking.setRewardBonus.selector, stakingFacet);
 
         // Accusation Wiring
-        update.addFacet(Accusation.initializeAccusation.selector, accusationFacet);
-        update.addFacet(Accusation.AccuseMultipleProposal.selector, accusationFacet);
+        update.addFacet(Accusation.initializeAccusation.selector, accusationMultipleProposalFacet);
+        update.addFacet(Accusation.AccuseMultipleProposal.selector, accusationMultipleProposalFacet);
+        update.addFacet(Accusation.AccuseNonExistingUTXOConsumption.selector, accusationNonExistentUTXOConsumptionFacet);
 
         // ParticipantsFacet Wiring
         update.addFacet(Participants.initializeParticipants.selector, participantsFacet);

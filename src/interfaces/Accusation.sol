@@ -20,9 +20,10 @@ interface Accusation is AccusationEvents {
         bytes calldata _pClaims,
         bytes calldata _pClaimsSig,
         bytes calldata _bClaims,
-        bytes calldata _bClaimsGroupSig,
-        bytes calldata ProofNonInclusionUTXOStateRoot,
-        bytes calldata ProofInclusionTxRoot,
-        bytes calldata ProofOfInclusionTxHash
+        bytes calldata _bClaimsSigGroup,
+        bytes calldata _proofAgainstStateRoot,
+        bytes calldata _proofInclusionTxRoot,
+        bytes calldata _proofOfInclusionTxHash,
+        bytes calldata _txInPreImage
     ) external;
 }

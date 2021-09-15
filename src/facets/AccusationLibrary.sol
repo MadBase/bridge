@@ -46,7 +46,7 @@ library AccusationLibrary {
         // The thing that we are consuming is not a deposit
         // 1st Struct capnproto Ids -> identify that the deposit is a Value store
         // 2nd if is a ValueStore ->
-    ) internal view {
+    ) internal {
         // Require that the previous block is signed by correct group key for validator set.
         uint256[4] memory publicKey;
         uint256[2] memory signature;

@@ -23,7 +23,7 @@ contract StakingTokenMock is Token {
 
 }
 
-contract TestAccusationLibrary is Constants, DSTest, Setup {
+contract AccusationMultipleProposalFacetTest is Constants, DSTest, Setup {
 
     function setUp() public override {
         setUp(address(new StakingTokenMock("STK", "MadNet Staking")));
