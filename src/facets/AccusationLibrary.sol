@@ -93,7 +93,7 @@ library AccusationLibrary {
 
         //todo: deposit that doesn't exist in the chain
         //todo: check if bclaim values shift depending on value txCount. Check if they are 0 if they are still present
-        //todo burn the validators token
+        //todo burn the validator's tokens
     }
 
 
