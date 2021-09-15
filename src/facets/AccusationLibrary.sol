@@ -33,19 +33,15 @@ library AccusationLibrary {
     ///
     ///
     function AccuseNonExistingUTXOConsumption(
-        bytes calldata _pClaims,
-        bytes calldata _pClaimsSig,
-        bytes calldata _bClaims,
-        bytes calldata _bClaimsSigGroup,
-        bytes calldata _proofAgainstStateRoot, //we don't know yet if it's a non
-        bytes calldata _proofInclusionTxRoot,
-        bytes calldata _proofOfInclusionTxHash,
-        bytes calldata _txInPreImage
-        //?TxOut or Transaction binary
-        //Txout preImage
-        // The thing that we are consuming is not a deposit
-        // 1st Struct capnproto Ids -> identify that the deposit is a Value store
-        // 2nd if is a ValueStore ->
+        bytes memory _pClaims,
+        bytes memory _pClaimsSig,
+        bytes memory _bClaims,
+        bytes memory _bClaimsSigGroup,
+        bytes memory _proofAgainstStateRoot, //we don't know yet if it's a non
+        bytes memory _proofInclusionTxRoot,
+        bytes memory _proofOfInclusionTxHash,
+        bytes memory _txInPreImage
+        // todo: change this back to callback
     ) internal {
         // Require that the previous block is signed by correct group key for validator set.
         uint256[4] memory publicKey;
@@ -56,26 +52,28 @@ library AccusationLibrary {
         require(ok, "Signature verification failed");
 
         // Require that height delta is 1.
-        BClaimsParserLibrary.BClaims memory bClaims = BClaimsParserLibrary.extractBClaims(_bClaims, BClaimsParserLibrary.CAPNPROTO_HEADER_SIZE);
-        PClaimsParserLibrary.PClaims memory pClaims = PClaimsParserLibrary.extractPClaims(_pClaims, PClaimsParserLibrary.CAPNPROTO_HEADER_SIZE);
+        BClaimsParserLibrary.BClaims memory bClaims = BClaimsParserLibrary.extractBClaims(_bClaims);
+        PClaimsParserLibrary.PClaims memory pClaims = PClaimsParserLibrary.extractPClaims(_pClaims);
 
-        require(bClaims.height == pClaims.bClaims.height+1, "Height delta should be 1");
+        require(bClaims.height+1 == pClaims.bClaims.height, "Height delta should be 1");
 
         // Require that chainID is equal.
         require(bClaims.chainId == pClaims.bClaims.chainId, "ChainId should be the same");
 
         // Require that Proposal was signed by active validator.
-        address signerAccount = recoverMadNetSigner(_pClaimsSig, _pClaims);
-        require(ParticipantsLibrary.isValidator(signerAccount), "Invalid non-existing UTXO accusation, the signer of these proposal is not a valid validator!");
+        // address signerAccount = recoverMadNetSigner(_pClaimsSig, _pClaims);
+        // require(ParticipantsLibrary.isValidator(signerAccount), "Invalid non-existing UTXO accusation, the signer of these proposal is not a valid validator!");
 
         MerkleProofParserLibrary.MerkleProof memory proofAgainstStateRoot = MerkleProofParserLibrary.extractMerkleProof(_proofAgainstStateRoot);
         TXInPreImageParserLibrary.TXInPreImage memory txInPreImage = TXInPreImageParserLibrary.extractTXInPreImage(_txInPreImage, TXInPreImageParserLibrary.CAPNPROTO_HEADER_SIZE);
-        require(txInPreImage.consumedTxHash == proofAgainstStateRoot.key, "The key of Merkle Proof should be equal to the UTXOID being spent!");
-        
+        require(computeUTXOID(txInPreImage.consumedTxHash, txInPreImage.consumedTxIdx) == proofAgainstStateRoot.key, "The key of Merkle Proof should be equal to the UTXOID being spent!");
+
         // checking if we are consuming a deposit or an UTXO
         if (txInPreImage.consumedTxIdx == 0xFFFFFFFF){
             // Double spending problem, i.e, consuming a deposit that was already consumed
             MerkleProofLibrary.verifyInclusion(proofAgainstStateRoot, bClaims.stateRoot);
+            // todo: deposit that doesn't exist in the chain
+            // Maybe split this in separate functions?
         } else {
             //Consuming a non existing UTXO
             MerkleProofLibrary.verifyNonInclusion(proofAgainstStateRoot, bClaims.stateRoot);
@@ -175,6 +173,10 @@ library AccusationLibrary {
     /// @return the address of the signer
     function recoverMadNetSigner(bytes memory signature, bytes memory message) internal pure returns (address) {
         return recoverSigner(signature, "Proposal" , message);
+    }
+
+    function computeUTXOID(bytes32 txHash, uint32 txIdx) internal pure returns (bytes32) {
+        return keccak256(abi.encodePacked(txHash, txIdx));
     }
 
 }

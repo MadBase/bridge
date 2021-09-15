@@ -43,7 +43,7 @@ library MerkleProofParserLibrary {
         );
         mProof.included = BaseParserLibrary.extractBool(src, 0);
         mProof.keyHeight = BaseParserLibrary.extractUInt16FromBigEndian(src, 1);
-        require(mProof.keyHeight > 0 && mProof.keyHeight <= 256, "Invalid keyHeight, the values should be greater 0 and less than 256");
+        require(mProof.keyHeight >= 0 && mProof.keyHeight <= 256, "Invalid keyHeight, the values should be greater or equal to 0 and less than 256");
         mProof.key = BaseParserLibrary.extractBytes32(src, 3);
         mProof.proofKey = BaseParserLibrary.extractBytes32(src, 35);
         mProof.proofValue = BaseParserLibrary.extractBytes32(src, 67);

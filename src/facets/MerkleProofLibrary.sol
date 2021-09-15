@@ -24,7 +24,7 @@ library MerkleProofLibrary {
     }
 
     function computeLeafHash(bytes32 _key, bytes32 value, uint16 proofHeight) internal pure returns (bytes32){
-        require(proofHeight <= 256 && proofHeight > 0, "Invalid proofHeight, the values should be greater 0 and less than 256");
+        require(proofHeight <= 256 && proofHeight >= 0, "Invalid proofHeight, the values should be greater or equal to 0 and less than 256");
         return keccak256(abi.encodePacked(_key, value, uint8(256 - proofHeight)));
     }
 
@@ -69,7 +69,7 @@ library MerkleProofLibrary {
         );
 
         uint16 proofIdx = 0;
-        require(proofHeight > 0 && proofHeight <= 256, "Invalid proofHeight, the values should be greater 0 and less than 256");
+        require(proofHeight >= 0 && proofHeight <= 256, "Invalid proofHeight, the values should be greater or equal to 0 and less than 256");
         for (uint256 i = 0; i < proofHeight; i++) {
             if (bitSet(bitset, uint16(i))) {
                 proofIdx += 32;
