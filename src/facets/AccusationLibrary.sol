@@ -7,6 +7,7 @@ import "./SnapshotsLibrary.sol";
 import "../parsers/PClaimsParserLibrary.sol";
 import "../parsers/RCertParserLibrary.sol";
 import "../parsers/MerkleProofParserLibrary.sol";
+import "../parsers/TXInPreImageParserLibrary.sol";
 import "../CryptoLibrary.sol";
 
 library AccusationLibrary {
@@ -68,8 +69,9 @@ library AccusationLibrary {
         require(ParticipantsLibrary.isValidator(signerAccount), "Invalid non-existing UTXO accusation, the signer of these proposal is not a valid validator!");
 
         MerkleProofParserLibrary.MerkleProof memory proofAgainstStateRoot = MerkleProofParserLibrary.extractMerkleProof(_proofAgainstStateRoot);
-        TxInPreImageParserLibrary.TxInPreImage memory txInPreImage = TxInPreImageParserLibrary.extract(_txInPreImage, TxInPreImageParserLibrary.CAPNPROTO_HEADER_SIZE);
+        TXInPreImageParserLibrary.TXInPreImage memory txInPreImage = TXInPreImageParserLibrary.extractTXInPreImage(_txInPreImage, TXInPreImageParserLibrary.CAPNPROTO_HEADER_SIZE);
         require(txInPreImage.consumedTxHash == proofAgainstStateRoot.key, "The key of Merkle Proof should be equal to the UTXOID being spent!");
+        
         // checking if we are consuming a deposit or an UTXO
         if (txInPreImage.consumedTxIdx == 0xFFFFFFFF){
             // Double spending problem, i.e, consuming a deposit that was already consumed
