@@ -77,7 +77,6 @@ library AccusationLibrary {
         require(proofAgainstStateRoot.key == proofOfInclusionTxHash.key, "The UTXO should match!");
 
         TXInPreImageParserLibrary.TXInPreImage memory txInPreImage = TXInPreImageParserLibrary.extractTXInPreImage(_txInPreImage, TXInPreImageParserLibrary.CAPNPROTO_HEADER_SIZE);
-        require(computeUTXOID(txInPreImage.consumedTxHash, txInPreImage.consumedTxIdx) == proofAgainstStateRoot.key, "The key of Merkle Proof should be equal to the UTXOID being spent!");
 
         // checking if we are consuming a deposit or an UTXO
         if (txInPreImage.consumedTxIdx == 0xFFFFFFFF){
@@ -88,6 +87,7 @@ library AccusationLibrary {
         } else {
             //Consuming a non existing UTXO
             MerkleProofLibrary.verifyNonInclusion(proofAgainstStateRoot, bClaims.stateRoot);
+            require(computeUTXOID(txInPreImage.consumedTxHash, txInPreImage.consumedTxIdx) == proofAgainstStateRoot.key, "The key of Merkle Proof should be equal to the UTXOID being spent!");
         }
 
        
