@@ -124,6 +124,49 @@ library BaseParserLibrary {
         val = uint8(src[offset]) | (val << 8);
     }
 
+    function extractUInt256FromBigEndian(bytes memory src, uint256 offset)
+        internal
+        pure
+        returns (uint256 val)
+    {
+        require(
+            offset + 31 > offset,
+            "BaseParserLibrary: An overflow happened with the offset parameter!"
+        );
+        require(
+            src.length > offset + 31,
+            "BaseParserLibrary: Trying to read an offset out of boundaries!"
+        );
+        assembly {
+            val := mload(add(add(src, 0x20), offset))
+            val0 := and(val, 0xffffffff)
+            val1 := and(shr(32, val), 0xffffffff)
+            val2 := and(shr(64, val), 0xffffffff)
+            val3 := and(shr(96, val), 0xffffffff)
+            val4 := and(shr(128, val), 0xffffffff)
+            val5 := and(shr(160, val), 0xffffffff)
+            val6 := and(shr(192, val), 0xffffffff)
+            val7 := and(shr(224, val), 0xffffffff)
+            val0 := or(
+                or(
+                    or(
+                        shr(24, and(val0, 0xff000000)),
+                        shr(8, and(val0, 0x00ff0000))
+                    ),
+                    shl(8, and(val0, 0x0000ff00))
+                ),
+                shl(24, and(val0, 0x000000ff))
+            )
+            val := 
+            or(
+                or(
+                    or(shl(224, val0), shl(192, val1)), shl(160, val2)
+                ), shl(128, val3)
+            )
+
+        }
+    }
+
     /// Returns a bytes array reverted from `orig` (~13832 gas)
     function reverse(bytes memory orig)
         internal
