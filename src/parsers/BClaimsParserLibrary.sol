@@ -36,7 +36,19 @@ library BClaimsParserLibrary {
         pure
         returns (BClaims memory bClaims)
     {
-        return extractBClaims(src, CAPNPROTO_HEADER_SIZE);
+        // Size in capnproto words (16 bytes) of the data section
+        uint16 dataSectionSize = BaseParserLibrary.extractUInt16(src, 4);
+        require(dataSectionSize > 0 && dataSectionSize <= 2, "BClaimsParserLibrary: The size of the data section should be 1 or 2 words!");
+        uint16 pointerOffsetAdjustment;
+        // In case the txCount is 0, the value is not included in the binary
+        // blob by capnproto. Therefore, we need to deduce 8 bytes from the
+        // pointer's offset.
+        if (dataSectionSize == 1){
+            pointerOffsetAdjustment = 8;
+        } else {
+            pointerOffsetAdjustment = 0;
+        }
+        return extractBClaims(src, CAPNPROTO_HEADER_SIZE, pointerOffsetAdjustment);
     }
 
     /**
@@ -48,34 +60,35 @@ library BClaimsParserLibrary {
     /// @param src Blob of binary data with a capnproto serialization
     /// @param dataOffset offset to start reading the BClaims data from inside src
     /// @dev Execution cost: 1930 gas
-    function extractBClaims(bytes memory src, uint256 dataOffset)
+    function extractBClaims(bytes memory src, uint256 dataOffset, uint16 pointerOffsetAdjustment)
         internal
         pure
         returns (BClaims memory bClaims)
     {
         require(
-            dataOffset + BCLAIMS_SIZE > dataOffset,
-            "BClaimsParserLibrary: Overflow on the dataOffset parameter"
+            dataOffset + BCLAIMS_SIZE - pointerOffsetAdjustment > dataOffset,
+            "BClaimsParserLibrary: Invalid deserialization. Overflow on the dataOffset parameter"
         );
         require(
-            src.length >= dataOffset + BCLAIMS_SIZE,
-            "BClaimsParserLibrary: Not enough bytes to extract BClaims"
+            src.length >= dataOffset + BCLAIMS_SIZE - pointerOffsetAdjustment,
+            "BClaimsParserLibrary: Invalid deserialization. Not enough bytes to extract BClaims"
         );
+
+        // In case the txCount is 0, the value is not included in the binary
+        // blob by capnproto.
+        if (pointerOffsetAdjustment == 0){
+            bClaims.txCount = BaseParserLibrary.extractUInt32(src, dataOffset + 8);
+        } else {
+            bClaims.txCount = 0;
+        }
+
         bClaims.chainId = BaseParserLibrary.extractUInt32(src, dataOffset);
+        require(bClaims.chainId > 0, "BClaimsParserLibrary: Invalid deserialization. The chainId should be greater than 0!");
         bClaims.height = BaseParserLibrary.extractUInt32(src, dataOffset + 4);
-        bClaims.prevBlock = BaseParserLibrary.extractBytes32(
-            src,
-            dataOffset + 48
-        );
-        bClaims.txCount = BaseParserLibrary.extractUInt32(src, dataOffset + 8);
-        bClaims.txRoot = BaseParserLibrary.extractBytes32(src, dataOffset + 80);
-        bClaims.stateRoot = BaseParserLibrary.extractBytes32(
-            src,
-            dataOffset + 112
-        );
-        bClaims.headerRoot = BaseParserLibrary.extractBytes32(
-            src,
-            dataOffset + 144
-        );
+        require(bClaims.height > 0, "BClaimsParserLibrary: Invalid deserialization. The height should be greater than 0!");
+        bClaims.prevBlock = BaseParserLibrary.extractBytes32(src, dataOffset + 48 - pointerOffsetAdjustment);
+        bClaims.txRoot = BaseParserLibrary.extractBytes32(src, dataOffset + 80 - pointerOffsetAdjustment);
+        bClaims.stateRoot = BaseParserLibrary.extractBytes32(src, dataOffset + 112 - pointerOffsetAdjustment);
+        bClaims.headerRoot = BaseParserLibrary.extractBytes32(src, dataOffset + 144 - pointerOffsetAdjustment);
     }
 }
