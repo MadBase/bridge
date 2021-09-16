@@ -107,7 +107,7 @@ contract Setup is Constants {
         address snapshotsFacet = address(new SnapshotsFacet());
         address stakingFacet = address(new StakingFacet());
         address accusationMultipleProposalFacet = address(new AccusationMultipleProposalFacet());
-       // address accusationNonExistentUTXOConsumptionFacet = address(new AccusationNonExistentUTXOConsumptionFacet());
+        address accusationNonExistentUTXOConsumptionFacet = address(new AccusationNonExistentUTXOConsumptionFacet());
 
         // SnapshotFacet Wiring
         update.addFacet(Snapshots.initializeSnapshots.selector, snapshotsFacet);
@@ -142,7 +142,7 @@ contract Setup is Constants {
         // Accusation Wiring
         update.addFacet(Accusation.initializeAccusation.selector, accusationMultipleProposalFacet);
         update.addFacet(Accusation.AccuseMultipleProposal.selector, accusationMultipleProposalFacet);
-        //update.addFacet(Accusation.AccuseNonExistingUTXOConsumption.selector, accusationNonExistentUTXOConsumptionFacet);
+        update.addFacet(Accusation.AccuseNonExistingUTXOConsumption.selector, accusationNonExistentUTXOConsumptionFacet);
 
         // ParticipantsFacet Wiring
         update.addFacet(Participants.initializeParticipants.selector, participantsFacet);

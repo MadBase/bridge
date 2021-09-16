@@ -1,12 +1,37 @@
 // SPDX-License-Identifier: MIT-open-group
 pragma solidity >= 0.5.15;
+pragma abicoder v2;
 
 import "ds-test/test.sol";
 import "./Setup.t.sol";
 import "../Constants.sol";
-import "./AccusationLibrary.sol";
 
-contract AccusationNonExistentUTXOConsumptionFacetTest is Constants, DSTest {
+
+contract StakingTokenMock is Token {
+
+    constructor(bytes32 symbol, bytes32 name) Token(symbol, name) {}
+
+    function approveFor(address owner, address who, uint wad) external returns (bool) {
+        allowance[owner][who] = wad;
+
+        emit Approval(owner, who, wad);
+
+        return true;
+    }
+
+}
+
+contract AccusationNonExistentUTXOConsumptionFacetTest is Constants, DSTest, Setup {
+
+    function setUp() public override {
+        setUp(address(new StakingTokenMock("STK", "MadNet Staking")));
+    }
+
+    // Helper functions to create validators
+    function generateMadID(uint256 id) internal pure returns (uint256[2] memory madID) {
+        madID[0] = id;
+        madID[1] = id;
+    }
 
     function getTestData() internal pure returns(
         bytes memory pClaimsCapnProto,
@@ -37,6 +62,19 @@ contract AccusationNonExistentUTXOConsumptionFacetTest is Constants, DSTest {
     }
 
     function testConsumptionOfNonExistentUTXO() public {
+        // add validator
+        StakingTokenMock mock = StakingTokenMock(registry.lookup(STAKING_TOKEN));
+        address signer = 0x38e959391dD8598aE80d5d6D114a7822A09d313A;
+        uint256[2] memory madID = generateMadID(987654321);
+        stakingToken.transfer(signer, MINIMUM_STAKE);
+        uint256 b = stakingToken.balanceOf(signer);
+        assertEq(b, MINIMUM_STAKE);
+        mock.approveFor(signer, address(staking), MINIMUM_STAKE);
+        staking.lockStakeFor(signer, MINIMUM_STAKE);
+        participants.addValidator(signer, madID);
+        assertTrue(participants.isValidator(signer), "Not a validator");
+
+        // test Consumption Of Non Existent UTXO
         bytes memory pClaims;
         bytes memory pClaimsSig;
         bytes memory bClaims;
@@ -57,15 +95,19 @@ contract AccusationNonExistentUTXOConsumptionFacetTest is Constants, DSTest {
             txInPreImage
         ) = getTestData();
 
-        AccusationLibrary.AccuseNonExistingUTXOConsumption(
+        bytes[3] memory _proofs = [
+                proofAgainstStateRoot,
+                proofInclusionTXRoot,
+                proofInclusionTXHash
+            ];
+
+        accusation.AccuseNonExistingUTXOConsumption(
             pClaims,
             pClaimsSig,
             bClaims,
             bClaimsSigGroup,
-            proofAgainstStateRoot,
-            proofInclusionTXRoot,
-            proofInclusionTXHash,
-            txInPreImage
+            txInPreImage,
+            _proofs
         );
 
     }

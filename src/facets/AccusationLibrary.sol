@@ -28,6 +28,15 @@ library AccusationLibrary {
         }
     }
 
+    function verifyGroupSignature(bytes memory _bClaims, bytes memory _bClaimsGroupSig) internal view {
+        uint256[4] memory publicKey;
+        uint256[2] memory signature;
+        (publicKey, signature) = SnapshotsLibrary.parseSignatureGroup(_bClaimsGroupSig); //todo optimize this
+        require(
+            CryptoLibrary.Verify(abi.encodePacked(keccak256(_bClaims)), signature, publicKey), 
+            "Signature verification failed"
+        );
+    }
 
     /// @notice This handles the accusation for a non existing UTXO
     ///
@@ -36,20 +45,12 @@ library AccusationLibrary {
         bytes memory _pClaims,
         bytes memory _pClaimsSig,
         bytes memory _bClaims,
-        bytes memory _bClaimsSigGroup,
-        bytes memory _proofAgainstStateRoot, //we don't know yet if it's a non
-        bytes memory _proofInclusionTxRoot,
-        bytes memory _proofOfInclusionTxHash,
-        bytes memory _txInPreImage
-        // todo: change this back to callback
+        bytes memory _bClaimsGroupSig,
+        bytes memory _txInPreImage,
+        bytes[3] memory _proofs
     ) internal {
         // Require that the previous block is signed by correct group key for validator set.
-        uint256[4] memory publicKey;
-        uint256[2] memory signature;
-        bytes memory blockHash = abi.encodePacked(keccak256(_bClaims));
-        (publicKey, signature) = SnapshotsLibrary.parseSignatureGroup(_bClaimsSigGroup); //todo optimize this
-        bool ok = CryptoLibrary.Verify(blockHash, signature, publicKey);
-        require(ok, "Signature verification failed");
+        verifyGroupSignature(_bClaims, _bClaimsGroupSig);
 
         // Require that height delta is 1.
         BClaimsParserLibrary.BClaims memory bClaims = BClaimsParserLibrary.extractBClaims(_bClaims);
@@ -61,10 +62,20 @@ library AccusationLibrary {
         require(bClaims.chainId == pClaims.bClaims.chainId, "ChainId should be the same");
 
         // Require that Proposal was signed by active validator.
-        // address signerAccount = recoverMadNetSigner(_pClaimsSig, _pClaims);
-        // require(ParticipantsLibrary.isValidator(signerAccount), "Invalid non-existing UTXO accusation, the signer of these proposal is not a valid validator!");
+        address signerAccount = recoverMadNetSigner(_pClaimsSig, _pClaims);
+        require(ParticipantsLibrary.isValidator(signerAccount), "Invalid non-existing UTXO accusation, the signer of these proposal is not a valid validator!");
 
-        MerkleProofParserLibrary.MerkleProof memory proofAgainstStateRoot = MerkleProofParserLibrary.extractMerkleProof(_proofAgainstStateRoot);
+         // Validate ProofInclusionTxRoot against PClaims.BClaims.TxRoot.
+        MerkleProofParserLibrary.MerkleProof memory proofInclusionTxRoot = MerkleProofParserLibrary.extractMerkleProof(_proofs[1]);
+        MerkleProofLibrary.verifyInclusion(proofInclusionTxRoot, pClaims.bClaims.txRoot);
+
+        // Validate ProofOfInclusionTxHash against the target hash from ProofInclusionTxRoot.
+        MerkleProofParserLibrary.MerkleProof memory proofOfInclusionTxHash = MerkleProofParserLibrary.extractMerkleProof(_proofs[2]);
+        MerkleProofLibrary.verifyInclusion(proofOfInclusionTxHash, proofInclusionTxRoot.key);
+
+        MerkleProofParserLibrary.MerkleProof memory proofAgainstStateRoot = MerkleProofParserLibrary.extractMerkleProof(_proofs[0]);
+        require(proofAgainstStateRoot.key == proofOfInclusionTxHash.key, "The UTXO should match!");
+
         TXInPreImageParserLibrary.TXInPreImage memory txInPreImage = TXInPreImageParserLibrary.extractTXInPreImage(_txInPreImage, TXInPreImageParserLibrary.CAPNPROTO_HEADER_SIZE);
         require(computeUTXOID(txInPreImage.consumedTxHash, txInPreImage.consumedTxIdx) == proofAgainstStateRoot.key, "The key of Merkle Proof should be equal to the UTXOID being spent!");
 
@@ -79,16 +90,7 @@ library AccusationLibrary {
             MerkleProofLibrary.verifyNonInclusion(proofAgainstStateRoot, bClaims.stateRoot);
         }
 
-        // Validate ProofInclusionTxRoot against PClaims.BClaims.TxRoot.
-        MerkleProofParserLibrary.MerkleProof memory proofInclusionTxRoot = MerkleProofParserLibrary.extractMerkleProof(_proofInclusionTxRoot);
-        MerkleProofLibrary.verifyInclusion(proofInclusionTxRoot, pClaims.bClaims.txRoot);
-
-        // Validate ProofOfInclusionTxHash against the target hash from ProofInclusionTxRoot.
-        MerkleProofParserLibrary.MerkleProof memory proofOfInclusionTxHash = MerkleProofParserLibrary.extractMerkleProof(_proofOfInclusionTxHash);
-        MerkleProofLibrary.verifyInclusion(proofOfInclusionTxHash, proofInclusionTxRoot.key);
-
-        require(proofAgainstStateRoot.key == proofOfInclusionTxHash.key, "The UTXO should match!");
-
+       
         //todo: deposit that doesn't exist in the chain
         //todo: check if bclaim values shift depending on value txCount. Check if they are 0 if they are still present
         //todo burn the validator's tokens
