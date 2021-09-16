@@ -36,18 +36,15 @@ contract TestMerkleProofLibrary is DSTest {
         MerkleProofLibrary.checkProof(auditPath, root, keyHash, key, bitset, height);
     }
 
-    function testFail_KeyIsValidInsideMerkleTreeHeight0() public {
-        bytes memory auditPath =
-            hex"066c7a6ef776fbae26f10eabcc5f0eb72b0f527c4cad8c4037940a28c2fe3159"
-            hex"6974f1d60877fdff3125a5c1adb630afe3aa899820a0531cea8ee6a85eb11509"
-            hex"25fc463686d6201f9c3973a9ebeabe4375d5a76d935bbec6cbb9d18bffe67216";
-        bytes32 root = hex"51f16d008cec2409af8104a0bca9facec585e02c12d2fa5221707672410dc692";
-        bytes32 keyHash = hex"a53ec428ed37200bcb4944a99107b738c1a58ef76287b130583095c58b0f45e4";
-        bytes32 key = hex"80ab269d23d84721a53f9f3accb024a1947bcf5e4910a152f38d55d7d644c995"; // utxoID
-        bytes memory bitset = hex"b0";
+    function testKeyIsValidInsideMerkleTreeHeight0() public {
+        bytes memory auditPath = hex"";
+        bytes32 root = hex"a368ad44a1ae7ea22d0857c32da7e679fb29c4357e4de838394faf0bd57e1493";
+        bytes32 keyHash = hex"a368ad44a1ae7ea22d0857c32da7e679fb29c4357e4de838394faf0bd57e1493";
+        bytes32 key = hex"6e286c26d8715685894787919c58c9aeee7dff73f88bf476dab1d282d535e5f2"; // utxoID
+        bytes memory bitset = hex"00";
         uint16 height = 0;
 
-        MerkleProofLibrary.checkProof(auditPath, root, keyHash, key, bitset, height);
+        assertTrue(MerkleProofLibrary.checkProof(auditPath, root, keyHash, key, bitset, height));
     }
 
     function testKeyIsNotValidInsideMerkleTree() public {
@@ -92,7 +89,7 @@ contract TestMerkleProofLibrary is DSTest {
         MerkleProofLibrary.computeLeafHash(key, proofValue, height);
     }
 
-    function testFail_ComputeLeafHashHeight0() public {
+    function testComputeLeafHashHeight0() public {
         bytes32 key = hex"80ab269d23d84721a53f9f3accb024a1947bcf5e4910a152f38d55d7d644c995";
         bytes32 proofValue = hex"0391f56ce9575815216c9c0fcffa1d50767adb008c1491b7da2dbc323b8c1fb5";
         uint16 height = 0x00;

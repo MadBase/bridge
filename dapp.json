@@ -121,6 +121,18 @@
     },
     "src/parsers/PClaimsParserLibrary.sol": {
         "urls": ["src/parsers/PClaimsParserLibrary.sol"]
+    },
+    "src/facets/MerkleProofLibrary.sol": {
+      "urls": ["src/facets/MerkleProofLibrary.sol"]
+    },
+    "src/parsers/MerkleProofParserLibrary.sol": {
+      "urls": ["src/parsers/MerkleProofParserLibrary.sol"]
+    },
+    "src/parsers/TXInPreImageParserLibrary.sol": {
+      "urls": ["src/parsers/TXInPreImageParserLibrary.sol"]
+    },
+    "src/facets/AccusationNonExistentUTXOConsumptionFacet.sol": {
+      "urls": ["src/facets/AccusationNonExistentUTXOConsumptionFacet.sol"]
     }
   },
   "settings": {
