@@ -35,12 +35,12 @@ library RCertParserLibrary {
             "RCertParserLibrary: Not enough bytes to extract"
         );
         // SIG_GROUP_SIZE = 192 bytes -> size in bytes of 6 uint256/bytes32 elements (6*32)
-        publicKey[0] = BaseParserLibrary.extractUInt256(src, 0);
-        publicKey[1] = BaseParserLibrary.extractUInt256(src, 32);
-        publicKey[2] = BaseParserLibrary.extractUInt256(src, 64);
-        publicKey[3] = BaseParserLibrary.extractUInt256(src, 96);
-        signature[0] = BaseParserLibrary.extractUInt256(src, 128);
-        signature[1] = BaseParserLibrary.extractUInt256(src, 160);
+        publicKey[0] = BaseParserLibrary.extractUInt256(src, dataOffset + 0);
+        publicKey[1] = BaseParserLibrary.extractUInt256(src, dataOffset + 32);
+        publicKey[2] = BaseParserLibrary.extractUInt256(src, dataOffset + 64);
+        publicKey[3] = BaseParserLibrary.extractUInt256(src, dataOffset + 96);
+        signature[0] = BaseParserLibrary.extractUInt256(src, dataOffset + 128);
+        signature[1] = BaseParserLibrary.extractUInt256(src, dataOffset + 160);
     }
 
     /**
