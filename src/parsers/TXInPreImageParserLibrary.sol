@@ -27,13 +27,13 @@ library TXInPreImageParserLibrary {
             `extractTXInPreImage(bytes, uint)` instead.
     */
     /// @param src Blob of binary data with a capnproto serialization
-    /// @dev Execution cost: 1506 gas
+    /// @dev Execution cost: 1120 gas
     function extractTXInPreImage(bytes memory src)
         internal
         pure
         returns (TXInPreImage memory)
     {
-        return extractTXInPreImage(src, CAPNPROTO_HEADER_SIZE);
+        return extractInnerTXInPreImage(src, CAPNPROTO_HEADER_SIZE);
     }
 
     /**
@@ -44,8 +44,8 @@ library TXInPreImageParserLibrary {
     */
     /// @param src Blob of binary data with a capnproto serialization
     /// @param dataOffset offset to start reading the TXInPreImage data from inside src
-    /// @dev Execution cost: 1332 gas
-    function extractTXInPreImage(bytes memory src, uint256 dataOffset)
+    /// @dev Execution cost: 1084 gas
+    function extractInnerTXInPreImage(bytes memory src, uint256 dataOffset)
         internal
         pure
         returns (TXInPreImage memory txInPreImage)
@@ -59,6 +59,7 @@ library TXInPreImageParserLibrary {
             "TXInPreImageParserLibrary: Not enough bytes to extract TXInPreImage"
         );
         txInPreImage.chainId = BaseParserLibrary.extractUInt32(src, dataOffset);
+        require(txInPreImage.chainId > 0, "TXInPreImageParserLibrary: Invalid parsing. The chainId should be greater than 0!");
         txInPreImage.consumedTxIdx = BaseParserLibrary.extractUInt32(src, dataOffset + 4);
         txInPreImage.consumedTxHash = BaseParserLibrary.extractBytes32(src, dataOffset + 16);
     }

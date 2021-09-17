@@ -7,13 +7,6 @@ import "./PClaimsParserLibrary.sol";
 import "./BClaimsParserLibrary.sol";
 import "./RCertParserLibrary.sol";
 
-/// @dev Aux contract to test unit test that must fail!
-contract TestsThatMustFail {
-    function extractPClaims(bytes memory src, uint256 dataOffset) public pure returns (PClaimsParserLibrary.PClaims memory) {
-        return PClaimsParserLibrary.extractPClaims(src, dataOffset);
-    }
-}
-
 contract PClaimsParserLibraryTest is DSTest {
 
     function examplePClaims() private pure returns(bytes memory) {
@@ -65,65 +58,44 @@ contract PClaimsParserLibraryTest is DSTest {
         return pClaimsCapnProto;
     }
 
-    function examplePClaimsWithRandomData() private pure returns(bytes memory) {
+    function examplePClaimsWithTxCount0() private pure returns(bytes memory) {
         bytes memory pClaimsCapnProto =
-            hex"0000000002000400" // struct definition capn proto https://capnproto.org/encoding.html
-
-            hex"deadbeef"
-            hex"beefbeef"
-            hex"ffffbeef"
-            hex"04000000"
-            hex"02000400"
-            hex"58000000"
-            hex"00000200"
-            hex"deadbe"
-
-            hex"01000000"//BClaim
-            hex"02000000"
-            hex"01000000"
-            hex"00000000"
-            hex"0d000000"
-            hex"02010000"
-            hex"19000000"
-            hex"02010000"
-            hex"25000000"
-            hex"02010000"
-            hex"31000000"
-            hex"02010000"
-            hex"f75f3eb17cd8136aeb15cca22b01ad5b45c795cb78787e74e55e088a7aa5fa16"
-            hex"de8b68a6643fa528a513f99a1ea30379927197a097ca86d9108e4c29d684b1ec"
-            hex"c5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470"
-            hex"c5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470"
-
-
-            hex"04000000"//Rcert
-            hex"02000100"
-            hex"1d000000"
-            hex"02060000"
-
-            hex"01000000" //RClaim
-            hex"02000000"
-            hex"01000000"
-            hex"00000000"
-            hex"01000000"
-            hex"02010000"
-            hex"f75f3eb17cd8136aeb15cca22b01ad5b45c795cb78787e74e55e088a7aa5fa16"
-
-            hex"258aa89365a642358d92db67a13cb25d73e6eedf0d25100d8d91566882fac54b" //SigGroup
+            hex"0000000000000200" // struct definition capn proto https://capnproto.org/encoding.html
+            hex"0400000001000400" // BClaims struct definition
+            hex"5400000000000200" // RCert struct definition
+            hex"01000000" // chainId NOTE: BClaim starts here
+            hex"01000000" // height
+            hex"0d00000002010000" //list(uint8) definition for prevBlock
+            hex"1900000002010000" //list(uint8) definition for txRoot
+            hex"2500000002010000" //list(uint8) definition for stateRoot
+            hex"3100000002010000" //list(uint8) definition for headerRoot
+            hex"41b1a0649752af1b28b3dc29a1556eee781e4a4c3a1f7f53f90fa834de098c4d" //prevBlock
+            hex"c5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470" //txRoot
+            hex"b58904fe94d4dca4102566c56402dfa153037d18263b3f6d5574fd9e622e5627" //stateRoot
+            hex"3e9768bd0513722b012b99bccc3f9ccbff35302f7ec7d75439178e5a80b45800" //headerRoot
+            hex"0400000002000100" //RClaims struct definition NOTE:RCert starts here
+            hex"1d00000002060000" //list(uint8) definition for sigGroup
+            hex"01000000" // chainID
+            hex"01000000" // Height
+            hex"01000000" // round
+            hex"00000000" // zeros pads for the round (capnproto operates using 8 bytes word)
+            hex"0100000002010000" //list(uint8) definition for prevBlock
+            hex"41b1a0649752af1b28b3dc29a1556eee781e4a4c3a1f7f53f90fa834de098c4d" //prevBlock
+            hex"258aa89365a642358d92db67a13cb25d73e6eedf0d25100d8d91566882fac54b"
             hex"1ccedfb0425434b54999a88cd7d993e05411955955c0cfec9dd33066605bd4a6"
             hex"0f6bbfbab37349aaa762c23281b5749932c514f3b8723cf9bb05f9841a7f2d0e"
             hex"0f75e42fd6c8e9f0edadac3dcfb7416c2d4b2470f4210f2afa93138615b1deb1"
-            hex"1ff56a9538b079e16dd77a8ef81318497b195ad81b8cd1c5ea5d48b0c160f599"
-            hex"12387b5ab69538ef4cda0f7a879982f9b4943291b1e6d998abefe7bb4ebb6993"
-            hex"deadbeefbeefbeefafdeafdeffff0000deadbeefbeefaaaabbbbccccddddeeef"
-            hex"deadbeefbeefbeefafdeafdeffff0000deadbeefbeefaaaabbbbccccddddeeef"
-            hex"deadbeefbeefbeefafdeafdeffff0000deadbeefbeefaaaabbbbccccddddeeef"
-            hex"deadbeefbeefbeefafdeafdeffff0000deadbeefbeefaaaabbbbccccddddeeef";
+            hex"06f5308b02f59062b735d0021ba93b1b9c09f3e168384b96b1eccfed65935714"
+            hex"2a7bd3532dc054cb5be81e9d559128229d61a00474b983a3569f538eb03d07ce";
         return pClaimsCapnProto;
     }
 
     function examplePClaimsWithAdditionalData() private pure returns(bytes memory) {
         bytes memory pClaimsCapnProto =
+            hex"deadbeef"
+            hex"beefbeef"
+            hex"ffffbeef"
+            hex"deadbe"
             hex"0000000002000400" // struct definition capn proto https://capnproto.org/encoding.html
             hex"04000000"
             hex"02000400"
@@ -311,7 +283,7 @@ contract PClaimsParserLibraryTest is DSTest {
         );
     }
 
-    function testDecodingPClaims() public {
+    function testExtractingPClaims() public {
         uint256 startGas = gasleft();
         PClaimsParserLibrary.PClaims memory actual = PClaimsParserLibrary.extractPClaims(examplePClaims());
         uint256 endGas = gasleft();
@@ -320,39 +292,26 @@ contract PClaimsParserLibraryTest is DSTest {
         assertEqPClaims(actual, expected);
     }
 
-    function testDecodingPClaimsWithAdditionalRandomData() public {
-        PClaimsParserLibrary.PClaims memory actual = PClaimsParserLibrary.extractPClaims(examplePClaimsWithAdditionalData());
-        PClaimsParserLibrary.PClaims memory expected = createExpectedPClaims();
-        assertEqPClaims(actual, expected);
-    }
-
-    function testDecodingPClaimsFromArbitraryLocation() public {
+    function testExtractingPClaimsFromArbitraryLocation() public {
         uint256 startGas = gasleft();
-        PClaimsParserLibrary.PClaims memory actual = PClaimsParserLibrary.extractPClaims(examplePClaimsWithRandomData(), 39);
+        (PClaimsParserLibrary.PClaims memory actual, uint256 _) = PClaimsParserLibrary.extractInnerPClaims(examplePClaimsWithAdditionalData(), 23);
         uint256 endGas = gasleft();
         emit log_named_uint("PClaims gas", startGas - endGas);
         PClaimsParserLibrary.PClaims memory expected = createExpectedPClaims();
         assertEqPClaims(actual, expected);
     }
 
-    function testExtractingPClaimsWithIncorrectData() public {
-        // Testing unit tests that must fail
-        TestsThatMustFail lib = new TestsThatMustFail();
-        bool ok;
-        // Trying to read memory outside our PClaims data
-        (ok, ) = address(lib).delegatecall(abi.encodeWithSignature("extractPClaims(bytes,uint256)", examplePClaimsWithRandomData(), 10000000000));
-        assertTrue(!ok, "Function call succeed! The function was supposed to fail when trying to read data outside its bounds!");
-
-        // Trying to force and overflow to manipulate data
-        uint256 bigValue = 0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff;
-        (ok, ) = address(lib).delegatecall(abi.encodeWithSignature("extractPClaims(bytes,uint256)", examplePClaimsWithRandomData(), bigValue));
-        assertTrue(!ok, "Function call succeed! The function was supposed to be fail safe against offset overflow");
-
-        // Trying to decode PClaims without having enough Data
-        (ok, ) = address(lib).delegatecall(abi.encodeWithSignature("extractPClaims(bytes,uint256)", examplePClaimsWithMissingData(), PClaimsParserLibrary.CAPNPROTO_HEADER_SIZE));
-        assertTrue(!ok, "Function call succeed! The function was not supposed to deserialize PClaims if the data is incomplete");
-
+    function testFail_ExtractingPClaimsWithOutSideData() public {
+        PClaimsParserLibrary.extractInnerPClaims(examplePClaimsWithAdditionalData(), 10000000000);
     }
 
+    function testFail_ExtractingPClaimsWithOverflow() public {
+        uint256 bigValue = 0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff;
+        PClaimsParserLibrary.extractInnerPClaims(examplePClaimsWithAdditionalData(), bigValue);
+    }
+
+    function testFail_ExtractingPClaimsWithoutHavingEnoughData() public {
+        PClaimsParserLibrary.extractPClaims(examplePClaimsWithMissingData());
+    }
 
 }

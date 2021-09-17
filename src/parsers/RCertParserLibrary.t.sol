@@ -5,13 +5,6 @@ pragma abicoder v2;
 import "ds-test/test.sol";
 import "./RCertParserLibrary.sol";
 
-/// @dev Aux contract to test unit test that must fail!
-contract TestsThatMustFail {
-    function extractRCert(bytes memory src, uint256 dataOffset) public pure returns (RCertParserLibrary.RCert memory) {
-        return RCertParserLibrary.extractRCert(src, dataOffset);
-    }
-}
-
 contract RCertParserLibraryTest is DSTest {
     function exampleRCert() private pure returns (bytes memory) {
         bytes memory rCertCapnProto = hex"00000000"
@@ -63,11 +56,11 @@ contract RCertParserLibraryTest is DSTest {
     }
 
     function exampleRCertWithRandomData() private pure returns (bytes memory) {
-        bytes memory rCertCapnProto = hex"00000000"
-        hex"00000200"
+        bytes memory rCertCapnProto =
         hex"deadbeef"
         hex"beefdead"
         hex"abcdef"
+        hex"0000000000000200"
         hex"04000000"
         hex"02000100"
         hex"1d000000"
@@ -169,8 +162,7 @@ contract RCertParserLibraryTest is DSTest {
 
     function testExtractRCert() public {
         uint256 startGas = gasleft();
-        RCertParserLibrary.RCert memory actual = RCertParserLibrary
-            .extractRCert(exampleRCert());
+        RCertParserLibrary.RCert memory actual = RCertParserLibrary.extractRCert(exampleRCert());
         uint256 endGas = gasleft();
         emit log_named_uint("Rcert gas", startGas - endGas);
         RCertParserLibrary.RCert memory expected = createExpectedRCert();
@@ -178,40 +170,30 @@ contract RCertParserLibraryTest is DSTest {
     }
 
     function testExtractRCertWithAdditionalData() public {
-        RCertParserLibrary.RCert memory actual = RCertParserLibrary
-            .extractRCert(exampleRCertWithAdditionalData());
+        RCertParserLibrary.RCert memory actual = RCertParserLibrary.extractRCert(exampleRCertWithAdditionalData());
         RCertParserLibrary.RCert memory expected = createExpectedRCert();
         assertEqRCert(actual, expected);
     }
 
     function testExtractRCertFromArbitraryLocation() public {
         uint256 startGas = gasleft();
-        RCertParserLibrary.RCert memory actual = RCertParserLibrary
-            .extractRCert(exampleRCertWithRandomData(), 19);
+        RCertParserLibrary.RCert memory actual = RCertParserLibrary.extractInnerRCert(exampleRCertWithRandomData(), 19);
         uint256 endGas = gasleft();
         emit log_named_uint("Rcert gas", startGas - endGas);
         RCertParserLibrary.RCert memory expected = createExpectedRCert();
         assertEqRCert(actual, expected);
     }
 
-    function testExtractingRCertWithIncorrectData() public {
-        // Testing unit tests that must fail
-        TestsThatMustFail lib = new TestsThatMustFail();
-        bool ok;
-        // Trying to read memory outside our RCert data
-        (ok, ) = address(lib).delegatecall(abi.encodeWithSignature("extractRCert(bytes,uint256)", exampleRCertWithRandomData(), 10000000000));
-        assertTrue(!ok, "Function call succeed! The function was supposed to fail when trying to read data outside its bounds!");
-
-        // Trying to force and overflow to manipulate data
-        uint256 bigValue = 0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff;
-        (ok, ) = address(lib).delegatecall(abi.encodeWithSignature("extractRCert(bytes,uint256)", exampleRCertWithRandomData(), bigValue));
-        assertTrue(!ok, "Function call succeed! The function was supposed to be fail safe against offset overflow");
-
-        // Trying to decode RCert without having enough Data
-        (ok, ) = address(lib).delegatecall(abi.encodeWithSignature("extractRCert(bytes,uint256)", exampleRCertWithMissingData(), RCertParserLibrary.CAPNPROTO_HEADER_SIZE));
-        assertTrue(!ok, "Function call succeed! The function was not supposed to deserialize RClaims if the data is incomplete");
-
+    function testFail_ExtractingRCertWithOutSideData() public {
+        RCertParserLibrary.extractInnerRCert(exampleRCertWithAdditionalData(), 10000000000);
     }
 
+    function testFail_ExtractingRCertWithOverflow() public {
+        uint256 bigValue = 0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff;
+        RCertParserLibrary.extractInnerRCert(exampleRCertWithAdditionalData(), bigValue);
+    }
 
+    function testFail_ExtractingRCertWithoutHavingEnoughData() public {
+        RCertParserLibrary.extractInnerRCert(exampleRCertWithMissingData(), RCertParserLibrary.CAPNPROTO_HEADER_SIZE);
+    }
 }

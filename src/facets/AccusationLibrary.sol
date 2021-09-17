@@ -57,7 +57,7 @@ library AccusationLibrary {
         (publicKey, signature) = extractSigGroup(_bClaimsGroupSig, 0);
 
         require(
-            CryptoLibrary.Verify(abi.encodePacked(keccak256(_bClaims)), signature, publicKey), 
+            CryptoLibrary.Verify(abi.encodePacked(keccak256(_bClaims)), signature, publicKey),
             "Signature verification failed"
         );
     }
@@ -100,7 +100,7 @@ library AccusationLibrary {
         MerkleProofParserLibrary.MerkleProof memory proofAgainstStateRoot = MerkleProofParserLibrary.extractMerkleProof(_proofs[0]);
         require(proofAgainstStateRoot.key == proofOfInclusionTxHash.key, "The UTXO should match!");
 
-        TXInPreImageParserLibrary.TXInPreImage memory txInPreImage = TXInPreImageParserLibrary.extractTXInPreImage(_txInPreImage, TXInPreImageParserLibrary.CAPNPROTO_HEADER_SIZE);
+        TXInPreImageParserLibrary.TXInPreImage memory txInPreImage = TXInPreImageParserLibrary.extractTXInPreImage(_txInPreImage);
 
         // checking if we are consuming a deposit or an UTXO
         if (txInPreImage.consumedTxIdx == 0xFFFFFFFF){
@@ -114,7 +114,7 @@ library AccusationLibrary {
             require(computeUTXOID(txInPreImage.consumedTxHash, txInPreImage.consumedTxIdx) == proofAgainstStateRoot.key, "The key of Merkle Proof should be equal to the UTXOID being spent!");
         }
 
-       
+
         //todo: deposit that doesn't exist in the chain
         //todo: check if bclaim values shift depending on value txCount. Check if they are 0 if they are still present
         //todo burn the validator's tokens
@@ -142,8 +142,8 @@ library AccusationLibrary {
         // ensure the hashes of blob0/1 are different
         require(keccak256(_pClaims0) != keccak256(_pClaims1), "Invalid multiple proposal accusation, the PClaims are equal!");
 
-        PClaimsParserLibrary.PClaims memory pClaims0 = PClaimsParserLibrary.extractPClaims(_pClaims0, PClaimsParserLibrary.CAPNPROTO_HEADER_SIZE);
-        PClaimsParserLibrary.PClaims memory pClaims1 = PClaimsParserLibrary.extractPClaims(_pClaims1, PClaimsParserLibrary.CAPNPROTO_HEADER_SIZE);
+        PClaimsParserLibrary.PClaims memory pClaims0 = PClaimsParserLibrary.extractPClaims(_pClaims0);
+        PClaimsParserLibrary.PClaims memory pClaims1 = PClaimsParserLibrary.extractPClaims(_pClaims1);
 
         // ensure the height of blob0/1 are equal using RCert sub object of PClaims
         require(pClaims0.rCert.rClaims.height == pClaims1.rCert.rClaims.height, "Invalid multiple proposal accusation, the block heights between the proposals are different!");

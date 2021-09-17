@@ -5,13 +5,6 @@ pragma abicoder v2;
 import "ds-test/test.sol";
 import "./RClaimsParserLibrary.sol";
 
-/// @dev Aux contract to test unit test that must fail!
-contract TestsThatMustFail {
-    function extractRClaims(bytes memory src, uint256 dataOffset) public pure returns (RClaimsParserLibrary.RClaims memory) {
-        return RClaimsParserLibrary.extractRClaims(src, dataOffset);
-    }
-}
-
 contract RClaimsParserLibraryTest is DSTest {
 
     function exampleRClaims() private pure returns(bytes memory) {
@@ -28,11 +21,53 @@ contract RClaimsParserLibraryTest is DSTest {
         return rClaimsCapnProto;
     }
 
-    function exampleRClaimsWithRandomData() private pure returns(bytes memory) {
+    function exampleRClaimsChainID0() private pure returns(bytes memory) {
         bytes memory rClaimsCapnProto =
             hex"0000000002000100" // struct definition capn proto https://capnproto.org/encoding.html
+            hex"00000000" //chainId
+            hex"02000000" //height
+            hex"01000000" //round
+            hex"00000000"
+            hex"01000000"
+            hex"02010000"
+            hex"f75f3eb17cd8136aeb15cca22b01ad5b45c795cb78787e74e55e088a7aa5fa16"; // PrevBlock
+
+        return rClaimsCapnProto;
+    }
+
+    function exampleRClaimsHeight0() private pure returns(bytes memory) {
+        bytes memory rClaimsCapnProto =
+            hex"0000000002000100" // struct definition capn proto https://capnproto.org/encoding.html
+            hex"01000000" //chainId
+            hex"00000000" //height
+            hex"01000000" //round
+            hex"00000000"
+            hex"01000000"
+            hex"02010000"
+            hex"f75f3eb17cd8136aeb15cca22b01ad5b45c795cb78787e74e55e088a7aa5fa16"; // PrevBlock
+
+        return rClaimsCapnProto;
+    }
+
+    function exampleRClaimsRound0() private pure returns(bytes memory) {
+        bytes memory rClaimsCapnProto =
+            hex"0000000002000100" // struct definition capn proto https://capnproto.org/encoding.html
+            hex"01000000" //chainId
+            hex"02000000" //height
+            hex"00000000" //round
+            hex"00000000"
+            hex"01000000"
+            hex"02010000"
+            hex"f75f3eb17cd8136aeb15cca22b01ad5b45c795cb78787e74e55e088a7aa5fa16"; // PrevBlock
+
+        return rClaimsCapnProto;
+    }
+
+    function exampleRClaimsWithRandomData() private pure returns(bytes memory) {
+        bytes memory rClaimsCapnProto =
             hex"deadbeef"
             hex"beefde"
+            hex"0000000002000100" // struct definition capn proto https://capnproto.org/encoding.html
             hex"01000000" //chainId
             hex"02000000" //height
             hex"01000000" //round
@@ -97,30 +132,35 @@ contract RClaimsParserLibraryTest is DSTest {
 
     function testDecodingRClaimsFromArbitraryLocation() public {
         uint256 startGas = gasleft();
-        RClaimsParserLibrary.RClaims memory actual = RClaimsParserLibrary.extractRClaims(exampleRClaimsWithRandomData(), 15);
+        RClaimsParserLibrary.RClaims memory actual = RClaimsParserLibrary.extractInnerRClaims(exampleRClaimsWithRandomData(), 15);
         uint256 endGas = gasleft();
         emit log_named_uint("RClaims gas", startGas - endGas);
         RClaimsParserLibrary.RClaims memory expected = RClaimsParserLibrary.RClaims(1, 2, 1, hex"f75f3eb17cd8136aeb15cca22b01ad5b45c795cb78787e74e55e088a7aa5fa16");
         assertEqRClaims(actual, expected);
     }
 
-    function testExtractingRClaimsWithIncorrectData() public {
-        // Testing unit tests that must fail
-        TestsThatMustFail lib = new TestsThatMustFail();
-        bool ok;
-        // Trying to read memory outside our RClaims data
-        (ok, ) = address(lib).delegatecall(abi.encodeWithSignature("extractRClaims(bytes,uint256)", exampleRClaimsWithRandomData(), 10000000000));
-        assertTrue(!ok, "Function call succeed! The function was supposed to fail when trying to read data outside its bounds!");
-
-        // Trying to force and overflow to manipulate data
-        uint256 bigValue = 0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff;
-        (ok, ) = address(lib).delegatecall(abi.encodeWithSignature("extractRClaims(bytes,uint256)", exampleRClaimsWithRandomData(), bigValue));
-        assertTrue(!ok, "Function call succeed! The function was supposed to be fail safe against offset overflow");
-
-        // Trying to decode RClaims without having enough Data
-        (ok, ) = address(lib).delegatecall(abi.encodeWithSignature("extractRClaims(bytes,uint256)", exampleRClaimsWithMissingData(), RClaimsParserLibrary.CAPNPROTO_HEADER_SIZE));
-        assertTrue(!ok, "Function call succeed! The function was not supposed to deserialize RClaims if the data is incomplete");
-
+    function testFail_ExtractingRClaimsHeight0() public {
+        RClaimsParserLibrary.extractRClaims(exampleRClaimsHeight0());
     }
 
+    function testFail_ExtractingRClaimsChainID0() public {
+        RClaimsParserLibrary.extractRClaims(exampleRClaimsChainID0());
+    }
+
+    function testFail_ExtractingRClaimsRound0() public {
+        RClaimsParserLibrary.extractRClaims(exampleRClaimsRound0());
+    }
+
+    function testFail_ExtractingRClaimsWithOutSideData() public {
+        RClaimsParserLibrary.extractInnerRClaims(exampleRClaimsWithAdditionalData(), 10000000000);
+    }
+
+    function testFail_ExtractingRClaimsWithOverflow() public {
+        uint256 bigValue = 0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff;
+        RClaimsParserLibrary.extractInnerRClaims(exampleRClaimsWithAdditionalData(), bigValue);
+    }
+
+    function testFail_ExtractingRClaimsWithoutHavingEnoughData() public {
+        RClaimsParserLibrary.extractInnerRClaims(exampleRClaimsWithMissingData(), RClaimsParserLibrary.CAPNPROTO_HEADER_SIZE);
+    }
 }

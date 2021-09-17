@@ -47,7 +47,7 @@ library RCertParserLibrary {
             RCert. It will skip the first 8 bytes (capnproto headers) and
             deserialize the RCert Data. If RCert is being extracted from
             inside of other structure (E.g PClaim capnproto) use the
-            `extractRCert(bytes, uint)` instead.
+            `extractInnerRCert(bytes, uint)` instead.
     */
     /// @param src Blob of binary data with a capnproto serialization
     /// @dev Execution cost: 4076 gas
@@ -56,7 +56,7 @@ library RCertParserLibrary {
         pure
         returns (RCert memory)
     {
-        return extractRCert(src, CAPNPROTO_HEADER_SIZE);
+        return extractInnerRCert(src, CAPNPROTO_HEADER_SIZE);
     }
 
     /**
@@ -68,7 +68,7 @@ library RCertParserLibrary {
     /// @param src Blob of binary data with a capnproto serialization
     /// @param dataOffset offset to start reading the RCert data from inside src
     /// @dev Execution cost: 3691 gas
-    function extractRCert(bytes memory src, uint256 dataOffset)
+    function extractInnerRCert(bytes memory src, uint256 dataOffset)
         internal
         pure
         returns (RCert memory rCert)
@@ -81,10 +81,7 @@ library RCertParserLibrary {
             src.length >= dataOffset + RCERT_SIZE,
             "RCertParserLibrary: Not enough bytes to extract RCert"
         );
-        rCert.rClaims = RClaimsParserLibrary.extractRClaims(
-            src,
-            dataOffset + 16
-        );
+        rCert.rClaims = RClaimsParserLibrary.extractInnerRClaims(src, dataOffset + 16);
         rCert.sigGroup = extractSigGroup(src, dataOffset + 72);
     }
 }

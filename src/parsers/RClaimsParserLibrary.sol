@@ -25,7 +25,7 @@ library RClaimsParserLibrary {
             RClaims. It will skip the first 8 bytes (capnproto headers) and
             deserialize the RClaims Data. If RClaims is being extracted from
             inside of other structure (E.g RCert capnproto) use the
-            `extractRClaims(bytes, uint)` instead.
+            `extractInnerRClaims(bytes, uint)` instead.
     */
     /// @param src Blob of binary data with a capnproto serialization
     /// @dev Execution cost: 1506 gas
@@ -34,7 +34,7 @@ library RClaimsParserLibrary {
         pure
         returns (RClaims memory rClaims)
     {
-        return extractRClaims(src, CAPNPROTO_HEADER_SIZE);
+        return extractInnerRClaims(src, CAPNPROTO_HEADER_SIZE);
     }
 
     /**
@@ -46,7 +46,7 @@ library RClaimsParserLibrary {
     /// @param src Blob of binary data with a capnproto serialization
     /// @param dataOffset offset to start reading the RClaims data from inside src
     /// @dev Execution cost: 1332 gas
-    function extractRClaims(bytes memory src, uint256 dataOffset)
+    function extractInnerRClaims(bytes memory src, uint256 dataOffset)
         internal
         pure
         returns (RClaims memory rClaims)
@@ -60,8 +60,11 @@ library RClaimsParserLibrary {
             "RClaimsParserLibrary: Not enough bytes to extract RClaims"
         );
         rClaims.chainId = BaseParserLibrary.extractUInt32(src, dataOffset);
+        require(rClaims.chainId > 0, "RClaimsParserLibrary: Invalid parsing. The chainId should be greater than 0!");
         rClaims.height = BaseParserLibrary.extractUInt32(src, dataOffset + 4);
+        require(rClaims.height > 0, "RClaimsParserLibrary: Invalid parsing. The height should be greater than 0!");
         rClaims.round = BaseParserLibrary.extractUInt32(src, dataOffset + 8);
+        require(rClaims.round > 0, "RClaimsParserLibrary: Invalid parsing. The round should be greater than 0!");
         rClaims.prevBlock = BaseParserLibrary.extractBytes32(
             src,
             dataOffset + 24

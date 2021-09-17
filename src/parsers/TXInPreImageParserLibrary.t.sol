@@ -8,8 +8,8 @@ import "./TXInPreImageParserLibrary.sol";
 
 
 contract TXInPreImageParserLibraryTest is DSTest {
-    
-    function createTXInPreImageExample() public returns(bytes memory, TXInPreImageParserLibrary.TXInPreImage memory) {
+
+    function exampleTXInPreImage() public returns(bytes memory) {
         // 000000000100010001000000ffffffff01000000020100000000000000000000000000000000000000000000000000000000000000000030
         bytes memory txBinary = hex"00000000"
             hex"01000100"
@@ -18,14 +18,59 @@ contract TXInPreImageParserLibraryTest is DSTest {
             hex"01000000"
             hex"02010000"
             hex"0000000000000000000000000000000000000000000000000000000000000030"; // ConsumedTxHash
-        
-        TXInPreImageParserLibrary.TXInPreImage memory txInPreImage = TXInPreImageParserLibrary.TXInPreImage(
+
+        return txBinary;
+    }
+
+    function exampleTXInPreImageWithAdditionalData() public returns(bytes memory) {
+        // 000000000100010001000000ffffffff01000000020100000000000000000000000000000000000000000000000000000000000000000030
+        bytes memory txBinary =
+            hex"deadbeef"
+            hex"beefde"
+            hex"0000000001000100"
+            hex"01000000" // ChainID
+            hex"ffffffff" // ConsumedTxIdx
+            hex"01000000"
+            hex"02010000"
+            hex"0000000000000000000000000000000000000000000000000000000000000030" // ConsumedTxHash
+            hex"deadbeefffffff0000000beefdeadbeefdeadbeefdeadbeefdeadbeefdead000"
+            hex"deadbeefffffff0000000beefdeadbeefdeadbeefdeadbeefdeadbeefdead000";
+
+        return txBinary;
+    }
+
+    function exampleTXInPreImageChainID0() public returns(bytes memory) {
+        // 000000000100010001000000ffffffff01000000020100000000000000000000000000000000000000000000000000000000000000000030
+        bytes memory txBinary = hex"00000000"
+            hex"01000100"
+            hex"00000000" // ChainID
+            hex"ffffffff" // ConsumedTxIdx
+            hex"01000000"
+            hex"02010000"
+            hex"0000000000000000000000000000000000000000000000000000000000000030"; // ConsumedTxHash
+
+        return txBinary;
+    }
+
+    function exampleTXInPreImageWithMissingData() public returns(bytes memory) {
+        // 000000000100010001000000ffffffff01000000020100000000000000000000000000000000000000000000000000000000000000000030
+        bytes memory txBinary = hex"00000000"
+            hex"01000100"
+            hex"01000000" // ChainID
+            hex"ffffffff" // ConsumedTxIdx
+            hex"01000000"
+            hex"02010000"
+            hex"000000000000000000000000000000000000000000000000000000000030"; // ConsumedTxHash
+
+        return txBinary;
+    }
+
+    function createExpectedTXInPreImage() public returns(TXInPreImageParserLibrary.TXInPreImage memory txInPreImage) {
+        txInPreImage = TXInPreImageParserLibrary.TXInPreImage(
             1,
             0xffffffff,
             hex"0000000000000000000000000000000000000000000000000000000000000030"
         );
-
-        return (txBinary, txInPreImage);
     }
 
     function assertEqTXInPreImage(TXInPreImageParserLibrary.TXInPreImage memory expected, TXInPreImageParserLibrary.TXInPreImage memory actual) public {
@@ -34,13 +79,33 @@ contract TXInPreImageParserLibraryTest is DSTest {
         assertEq(expected.consumedTxHash, actual.consumedTxHash);
     }
 
-    function testParser() public {
-        bytes memory preImageCapnProto;
-        TXInPreImageParserLibrary.TXInPreImage memory expected;
-        (preImageCapnProto, expected) = createTXInPreImageExample();
-
+    function testExtractingTXInPreImage() public {
+        bytes memory preImageCapnProto = exampleTXInPreImage();
+        TXInPreImageParserLibrary.TXInPreImage memory expected = createExpectedTXInPreImage();
         TXInPreImageParserLibrary.TXInPreImage memory actual = TXInPreImageParserLibrary.extractTXInPreImage(preImageCapnProto);
-
         assertEqTXInPreImage(expected, actual);
+    }
+
+    function testExtractingTXInPreImageFromArbitraryLocation() public {
+        TXInPreImageParserLibrary.TXInPreImage memory actual = TXInPreImageParserLibrary.extractInnerTXInPreImage(exampleTXInPreImageWithAdditionalData(), 15);
+        TXInPreImageParserLibrary.TXInPreImage memory expected = createExpectedTXInPreImage();
+        assertEqTXInPreImage(actual, expected);
+    }
+
+    function testFail_ExtractingTXInPreImageChainID0() public {
+        TXInPreImageParserLibrary.extractTXInPreImage(exampleTXInPreImageChainID0());
+    }
+
+    function testFail_ExtractingTXInPreImageWithOutSideData() public {
+        TXInPreImageParserLibrary.extractInnerTXInPreImage(exampleTXInPreImageWithAdditionalData(), 10000000000);
+    }
+
+    function testFail_ExtractingTXInPreImageWithOverflow() public {
+        uint256 bigValue = 0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff;
+        TXInPreImageParserLibrary.extractInnerTXInPreImage(exampleTXInPreImageWithAdditionalData(), bigValue);
+    }
+
+    function testFail_ExtractingTXInPreImageWithoutHavingEnoughData() public {
+        TXInPreImageParserLibrary.extractInnerTXInPreImage(exampleTXInPreImageWithMissingData(), TXInPreImageParserLibrary.CAPNPROTO_HEADER_SIZE);
     }
 }
