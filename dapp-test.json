@@ -49,15 +49,6 @@
     "src/migrate/MigrateStakingFacet.t.sol": {
       "urls": ["src/migrate/MigrateStakingFacet.t.sol"]
     },
-    "src/facets/AccusationLibrary.sol": {
-      "urls": ["src/facets/AccusationLibrary.sol"]
-    },
-    "src/facets/AccusationLibrary.t.sol": {
-      "urls": ["src/facets/AccusationLibrary.t.sol"]
-    },
-    "src/facets/AccusationMultipleProposalFacet.sol": {
-      "urls": ["src/facets/AccusationMultipleProposalFacet.sol"]
-    },
     "src/facets/EthDKGLibrary.sol": {
       "urls": ["src/facets/EthDKGLibrary.sol"]
     },
@@ -146,32 +137,17 @@
     "src/interfaces/Snapshots.sol": {
       "urls": ["src/interfaces/Snapshots.sol"]
     },
-    "src/parsers/BaseParserLibrary.sol": {
-      "urls": ["src/parsers/BaseParserLibrary.sol"]
-    },
     "src/parsers/BaseParserLibrary.t.sol": {
       "urls": ["src/parsers/BaseParserLibrary.t.sol"]
-    },
-    "src/parsers/RClaimsParserLibrary.sol": {
-      "urls": ["src/parsers/RClaimsParserLibrary.sol"]
     },
     "src/parsers/RClaimsParserLibrary.t.sol": {
       "urls": ["src/parsers/RClaimsParserLibrary.t.sol"]
     },
-    "src/parsers/RCertParserLibrary.sol": {
-      "urls": ["src/parsers/RCertParserLibrary.sol"]
-    },
     "src/parsers/RCertParserLibrary.t.sol": {
       "urls": ["src/parsers/RCertParserLibrary.t.sol"]
     },
-    "src/parsers/BClaimsParserLibrary.sol": {
-        "urls": ["src/parsers/BClaimsParserLibrary.sol"]
-    },
     "src/parsers/BClaimsParserLibrary.t.sol": {
         "urls": ["src/parsers/BClaimsParserLibrary.t.sol"]
-    },
-    "src/parsers/PClaimsParserLibrary.sol": {
-        "urls": ["src/parsers/PClaimsParserLibrary.sol"]
     },
     "src/parsers/PClaimsParserLibrary.t.sol": {
         "urls": ["src/parsers/PClaimsParserLibrary.t.sol"]
@@ -184,6 +160,9 @@
     },
     "src/parsers/TXInPreImageParserLibrary.t.sol": {
       "urls": ["src/parsers/TXInPreImageParserLibrary.t.sol"]
+    },
+    "src/facets/AccusationMultipleProposalFacet.t.sol": {
+        "urls": ["src/facets/AccusationMultipleProposalFacet.t.sol"]
     },
     "src/facets/AccusationNonExistentUTXOConsumptionFacet.t.sol": {
       "urls": ["src/facets/AccusationNonExistentUTXOConsumptionFacet.t.sol"]
