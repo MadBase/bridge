@@ -5,6 +5,7 @@ pragma abicoder v2;
 import "../interfaces/StakingEvents.sol";
 
 import "./AccessControlLibrary.sol";
+import "./ChainStatusLibrary.sol";
 import "./SnapshotsLibrary.sol";
 import "./StakingLibrary.sol";
 import "./StopLibrary.sol";
@@ -43,17 +44,20 @@ contract StakingFacet is AccessControlled, Constants, Stoppable {
     }
 
     function majorFine(address who) external {
+            
         StakingLibrary.StakingStorage storage ss = StakingLibrary.stakingStorage();
         require(msg.sender == ss.ethdkgAddress, "only allowed from ethdkg");
 
-        StakingLibrary.fine(who, ss.majorStakeFine);
+        // TODO update signature and usage to identify why there's a fine
+        StakingLibrary.fine(who, bytes32("major"), ss.majorStakeFine);
     }
 
     function minorFine(address who) external {
         StakingLibrary.StakingStorage storage ss = StakingLibrary.stakingStorage();
         require(msg.sender == ss.ethdkgAddress, "only allowed from ethdkg");
 
-        StakingLibrary.fine(who, ss.minorStakeFine);
+        // TODO update signature and usage to identify why there's a fine
+        StakingLibrary.fine(who, bytes32("minor"), ss.minorStakeFine);
     }
 
     // Major Stake Fine getter/setter
@@ -89,15 +93,6 @@ contract StakingFacet is AccessControlled, Constants, Stoppable {
     }
     function setRewardBonus(uint256 _rewardBonus) external onlyOperator {
         StakingLibrary.stakingStorage().rewardBonus = _rewardBonus;
-    }
-
-    // Setting and retrieving epoch / Snapshots "epoch()" is preferred method
-    function currentEpoch() external view returns (uint256) {
-        return SnapshotsLibrary.epoch();
-    }
-
-    function setCurrentEpoch(uint256 _epoch) external onlyOperator {
-        SnapshotsLibrary.setEpoch(_epoch);
     }
 
     function lockStake(uint256 amount) external stoppable returns (bool) {
@@ -146,13 +141,12 @@ contract StakingFacet is AccessControlled, Constants, Stoppable {
         return StakingLibrary.lockRewardFor(who, amountReward, unlockEpoch);
     }
 
-    // Called by ETHDKG + Validation contracts to burn all stake of a malicious validator
-    function burnStake(address who, uint256 amount) external onlyOperator stoppable returns (bool) {
-        return StakingLibrary.burnStake(who, amount);
+    function fine(address who, bytes32 why, uint256 amount) external onlyOperator stoppable returns (bool) {
+        return StakingLibrary.fine(who, why, amount);
     }
 
-    function fine(address who, uint256 amount) external onlyOperator stoppable returns (bool) {
-        return StakingLibrary.fine(who, amount);
+    function burn(address who) external onlyOperator stoppable returns (bool) {
+        return StakingLibrary.burn(who);
     }
 
     function unlockReward() external stoppable returns (bool) {

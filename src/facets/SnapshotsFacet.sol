@@ -5,6 +5,7 @@ pragma abicoder v2;
 import "../interfaces/SnapshotsEvents.sol";
 
 import "./AccessControlLibrary.sol";
+import "./ChainStatusLibrary.sol";
 import "./SnapshotsLibrary.sol";
 import "./StopLibrary.sol";
 
@@ -35,11 +36,11 @@ contract SnapshotsFacet is AccessControlled, Constants, SnapshotsEvents, Stoppab
     }
 
     function setEpoch(uint256 ns) external onlyOperator {
-        SnapshotsLibrary.setEpoch(ns);
+        ChainStatusLibrary.setEpoch(ns);
     }
 
     function epoch() external view returns (uint256) {
-        return SnapshotsLibrary.epoch();
+        return ChainStatusLibrary.epoch();
     }
 
     function extractUint32(bytes calldata src, uint idx) external pure returns (uint32 val) {

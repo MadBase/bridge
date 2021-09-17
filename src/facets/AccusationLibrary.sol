@@ -2,6 +2,7 @@
 pragma solidity >= 0.5.15;
 
 import "./MerkleProofLibrary.sol";
+import "./ChainStatusLibrary.sol";
 import "./ParticipantsLibrary.sol";
 import "./SnapshotsLibrary.sol";
 import "../parsers/PClaimsParserLibrary.sol";
@@ -130,7 +131,7 @@ library AccusationLibrary {
         require(pClaims0.rCert.rClaims.chainId == pClaims1.rCert.rClaims.chainId, "Invalid multiple proposal accusation, the chainId between the proposals are different!");
 
         // ensure the chainid of blob0 is correct for this chain using RCert sub object of PClaims
-        uint32 chainId = ParticipantsLibrary.participantsStorage().chainId;
+        uint32 chainId = ChainStatusLibrary.chainId();
         require(pClaims0.rCert.rClaims.chainId == chainId, "Invalid multiple proposal accusation, the chainId is invalid for this chain!");
 
         // ensure both accounts are applicable to a currently locked validator - Note<may be done in different layer?>

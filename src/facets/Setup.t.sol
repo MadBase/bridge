@@ -138,6 +138,7 @@ contract Setup is Constants {
         update.addFacet(Staking.setMinimumStake.selector, stakingFacet);
         update.addFacet(Staking.setRewardAmount.selector, stakingFacet);
         update.addFacet(Staking.setRewardBonus.selector, stakingFacet);
+        update.addFacet(Staking.burn.selector, stakingFacet);
 
         // Accusation Wiring
         update.addFacet(Accusation.initializeAccusation.selector, accusationMultipleProposalFacet);

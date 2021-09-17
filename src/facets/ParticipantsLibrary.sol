@@ -23,7 +23,6 @@ library ParticipantsLibrary {
         uint8 validatorCount;
         uint8 validatorMaxCount;
         bool validatorsChanged;
-        uint32 chainId;
         uint256 minimumStake;
         QueueLibrary.Queue queue;
     }

@@ -11,7 +11,7 @@ interface StakingEvents {
     event UnlockedStake(address indexed who, uint256 amount);
     event UnlockedReward(address indexed who, uint256 amount);
     event BurntStake(address indexed who, uint256 amount);
-    event Fined(address indexed who, uint256 amount);
+    event Fined(address indexed who, bytes32 why, uint256 amount);
     event RequestedUnlockStake(address indexed who);
 
 }

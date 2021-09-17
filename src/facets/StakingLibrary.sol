@@ -61,8 +61,8 @@ library StakingLibrary {
     event LockedReward(address indexed who, uint256 amount);
     event UnlockedStake(address indexed who, uint256 amount);
     event UnlockedReward(address indexed who, uint256 amount);
-    event BurntStake(address indexed who, uint256 amount);
-    event Fined(address indexed who, uint256 amount);
+    event Burnt(address indexed who, uint256 amount);
+    event Fined(address indexed who, bytes32 why, uint256 amount);
     event RequestedUnlockStake(address indexed who);
 
     // Staking token getter/setter
@@ -181,24 +181,30 @@ library StakingLibrary {
         return detail.requestedStakeWithdrawal;
     }
 
-    // Called by ETHDKG + Validation contracts to burn all stake of a malicious validator
-    function burnStake(address who, uint256 amount) internal returns (bool) {
+    // Burns all tokens staked
+    function burn(address who) internal returns (bool) {
         StakingStorage storage ss = stakingStorage();
         StakeDetails storage detail = ss.details[who];
+        uint256 amount = detail.amountStaked;
 
-        detail.amountStaked = detail.amountStaked.sub(amount);
+        // TODO Don't burn, we want to send it somewhere
+        detail.amountStaked = 0;
 
-        emit BurntStake(who, amount);
+        emit Burnt(who, amount);
+
         return true;
     }
 
-    function fine(address who, uint256 amount) internal returns (bool) {
+    // TODO We need to record the _why_ and make sure it isn't used again in either this or the 2 previous
+    //      epochs.
+    function fine(address who, bytes32 why, uint256 amount) internal returns (bool) {
         StakingStorage storage ss = stakingStorage();
         StakeDetails storage detail = ss.details[who];
 
         detail.amountStaked = detail.amountStaked.sub(amount);
 
-        emit Fined(who, amount);
+        emit Fined(who, why, amount);
+
         return true;
     }
 
@@ -216,7 +222,7 @@ library StakingLibrary {
         for (uint256 idx; idx<rewards.length; idx++) {
             RewardDetails storage reward = rewards[idx];
 
-            if (reward.unlockEpoch <= SnapshotsLibrary.epoch()) {
+            if (reward.unlockEpoch <= ChainStatusLibrary.epoch()) {
                 rewardUnlocked = rewardUnlocked.add(reward.amountReward);
 
                 // copy last reward in array into this spot; toss old reward; don't move on yet
@@ -238,7 +244,7 @@ library StakingLibrary {
         require(detail.amountStaked > 0, "No stake");
 
         detail.requestedStakeWithdrawal = true;
-        detail.stakeWithdrawalEpoch = SnapshotsLibrary.epoch().add(ss.epochDelay);
+        detail.stakeWithdrawalEpoch = ChainStatusLibrary.epoch() + ss.epochDelay;
 
         emit RequestedUnlockStake(who);
     }
@@ -249,7 +255,7 @@ library StakingLibrary {
 
         require(detail.requestedStakeWithdrawal, "Stake unlock not requested");
         require(detail.amountStaked >= amount, "Stake unlock requested greater than stake");
-        require(detail.stakeWithdrawalEpoch <= SnapshotsLibrary.epoch(), "Not ready");
+        require(detail.stakeWithdrawalEpoch <= ChainStatusLibrary.epoch(), "Not ready");
 
         detail.unlockedStake = detail.unlockedStake.add(amount);
         detail.amountStaked = detail.amountStaked.sub(amount);
