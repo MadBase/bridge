@@ -343,7 +343,7 @@ contract AccusationNonExistentUTXOConsumptionFacetTest is Constants, DSTest, Set
             proofs
         );
     }
-    
+
     function testFail_InvalidBClaimsGroupSig2() public {
         addValidator();
 
@@ -375,6 +375,64 @@ contract AccusationNonExistentUTXOConsumptionFacetTest is Constants, DSTest, Set
             proofs
         );
     }
+
+     function testFail_InvalidBClaimsWithoutTransactions() public {
+        bytes memory pClaims;
+        bytes memory pClaimsSig;
+        bytes memory bClaims;
+        bytes memory bClaimsSigGroup;
+        bytes memory txInPreImage;
+        bytes[3] memory proofs;
+
+        (
+            pClaims,
+            pClaimsSig,
+            bClaims,
+            bClaimsSigGroup,
+            txInPreImage,
+            proofs
+        ) = getValidAccusationData_NonExistentUTXO();
+
+        // inject an invalid pClaims that doesn't have transactions
+        pClaims =
+            hex"0000000000000200" // struct definition capn proto https://capnproto.org/encoding.html
+            hex"0400000001000400" // BClaims struct definition
+            hex"5400000000000200" // RCert struct definition
+            hex"01000000" // chainId NOTE: BClaim starts here
+            hex"02000000" // height
+            hex"0d00000002010000" //list(uint8) definition for prevBlock
+            hex"1900000002010000" //list(uint8) definition for txRoot
+            hex"2500000002010000" //list(uint8) definition for stateRoot
+            hex"3100000002010000" //list(uint8) definition for headerRoot
+            hex"41b1a0649752af1b28b3dc29a1556eee781e4a4c3a1f7f53f90fa834de098c4d" //prevBlock
+            hex"c5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470" //txRoot
+            hex"b58904fe94d4dca4102566c56402dfa153037d18263b3f6d5574fd9e622e5627" //stateRoot
+            hex"3e9768bd0513722b012b99bccc3f9ccbff35302f7ec7d75439178e5a80b45800" //headerRoot
+            hex"0400000002000100" //RClaims struct definition NOTE:RCert starts here
+            hex"1d00000002060000" //list(uint8) definition for sigGroup
+            hex"01000000" // chainID
+            hex"02000000" // Height
+            hex"01000000" // round
+            hex"00000000" // zeros pads for the round (capnproto operates using 8 bytes word)
+            hex"0100000002010000" //list(uint8) definition for prevBlock
+            hex"41b1a0649752af1b28b3dc29a1556eee781e4a4c3a1f7f53f90fa834de098c4d" //prevBlock
+            hex"258aa89365a642358d92db67a13cb25d73e6eedf0d25100d8d91566882fac54b"
+            hex"1ccedfb0425434b54999a88cd7d993e05411955955c0cfec9dd33066605bd4a6"
+            hex"0f6bbfbab37349aaa762c23281b5749932c514f3b8723cf9bb05f9841a7f2d0e"
+            hex"0f75e42fd6c8e9f0edadac3dcfb7416c2d4b2470f4210f2afa93138615b1deb1"
+            hex"06f5308b02f59062b735d0021ba93b1b9c09f3e168384b96b1eccfed65935714"
+            hex"2a7bd3532dc054cb5be81e9d559128229d61a00474b983a3569f538eb03d07ce";
+
+        accusation.AccuseNonExistingUTXOConsumption(
+            pClaims,
+            pClaimsSig,
+            bClaims,
+            bClaimsSigGroup,
+            txInPreImage,
+            proofs
+        );
+
+     }
 
     function test_ComputeUTXOID() public {
         bytes32 txHash = hex"f172873c63909462ac4de545471fd3ad3e9eeadeec4608b92d16ce6b500704cc";

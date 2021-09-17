@@ -57,16 +57,17 @@ library AccusationLibrary {
         BClaimsParserLibrary.BClaims memory bClaims = BClaimsParserLibrary.extractBClaims(_bClaims);
         PClaimsParserLibrary.PClaims memory pClaims = PClaimsParserLibrary.extractPClaims(_pClaims);
 
-        require(bClaims.height+1 == pClaims.bClaims.height, "Height delta should be 1");
+        require(pClaims.bClaims.txCount > 0, "Invalid accusation: The accused proposal doesn't have any transaction!");
+        require(bClaims.height+1 == pClaims.bClaims.height, "Invalid accusation: Height delta should be 1");
 
         // Require that chainID is equal.
-        require(bClaims.chainId == pClaims.bClaims.chainId, "ChainId should be the same");
+        require(bClaims.chainId == pClaims.bClaims.chainId, "Invalid accusation: ChainId should be the same");
 
         // Require that Proposal was signed by active validator.
         address signerAccount = recoverMadNetSigner(_pClaimsSig, _pClaims);
-        require(ParticipantsLibrary.isValidator(signerAccount), "Invalid non-existing UTXO accusation, the signer of these proposal is not a valid validator!");
+        require(ParticipantsLibrary.isValidator(signerAccount), "Invalid accusation: the signer of these proposal is not a valid validator!");
 
-         // Validate ProofInclusionTxRoot against PClaims.BClaims.TxRoot.
+        // Validate ProofInclusionTxRoot against PClaims.BClaims.TxRoot.
         MerkleProofParserLibrary.MerkleProof memory proofInclusionTxRoot = MerkleProofParserLibrary.extractMerkleProof(_proofs[1]);
         MerkleProofLibrary.verifyInclusion(proofInclusionTxRoot, pClaims.bClaims.txRoot);
 
@@ -82,12 +83,13 @@ library AccusationLibrary {
         // checking if we are consuming a deposit or an UTXO
         if (txInPreImage.consumedTxIdx == 0xFFFFFFFF){
             // Double spending problem, i.e, consuming a deposit that was already consumed
+            require(txInPreImage.consumedTxHash == proofAgainstStateRoot.key, "The key of Merkle Proof should be equal to the consumed deposit key!");
             MerkleProofLibrary.verifyInclusion(proofAgainstStateRoot, bClaims.stateRoot);
             // todo: deposit that doesn't exist in the chain. Maybe split this in separate functions?
         } else {
             //Consuming a non existing UTXO
-            MerkleProofLibrary.verifyNonInclusion(proofAgainstStateRoot, bClaims.stateRoot);
             require(computeUTXOID(txInPreImage.consumedTxHash, txInPreImage.consumedTxIdx) == proofAgainstStateRoot.key, "The key of Merkle Proof should be equal to the UTXOID being spent!");
+            MerkleProofLibrary.verifyNonInclusion(proofAgainstStateRoot, bClaims.stateRoot);
         }
 
         //todo burn the validator's tokens
