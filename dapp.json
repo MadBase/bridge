@@ -83,36 +83,6 @@
     },
     "src/interfaces/Snapshots.sol": {
       "urls": ["src/interfaces/Snapshots.sol"]
-<<<<<<< HEAD
-    },
-    "src/parsers/BaseParserLibrary.sol": {
-      "urls": ["src/parsers/BaseParserLibrary.sol"]
-    },
-    "src/parsers/RClaimsParserLibrary.sol": {
-      "urls": ["src/parsers/RClaimsParserLibrary.sol"]
-    },
-    "src/parsers/RCertParserLibrary.sol": {
-      "urls": ["src/parsers/RCertParserLibrary.sol"]
-    },
-    "src/parsers/BClaimsParserLibrary.sol": {
-        "urls": ["src/parsers/BClaimsParserLibrary.sol"]
-    },
-    "src/parsers/PClaimsParserLibrary.sol": {
-        "urls": ["src/parsers/PClaimsParserLibrary.sol"]
-    },
-    "src/facets/MerkleProofLibrary.sol": {
-      "urls": ["src/facets/MerkleProofLibrary.sol"]
-    },
-    "src/parsers/MerkleProofParserLibrary.sol": {
-      "urls": ["src/parsers/MerkleProofParserLibrary.sol"]
-    },
-    "src/parsers/TXInPreImageParserLibrary.sol": {
-      "urls": ["src/parsers/TXInPreImageParserLibrary.sol"]
-    },
-    "src/facets/AccusationNonExistentUTXOConsumptionFacet.sol": {
-      "urls": ["src/facets/AccusationNonExistentUTXOConsumptionFacet.sol"]
-=======
->>>>>>> upstream/main
     }
   },
   "settings": {
