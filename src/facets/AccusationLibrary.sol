@@ -26,7 +26,7 @@ library AccusationLibrary {
         assembly { // solium-disable-line
             s.slot := position
         }
-    }    
+    }
 
     function verifyGroupSignature(bytes memory _bClaims, bytes memory _bClaimsGroupSig) internal view {
         uint256[4] memory publicKey;
@@ -83,17 +83,13 @@ library AccusationLibrary {
         if (txInPreImage.consumedTxIdx == 0xFFFFFFFF){
             // Double spending problem, i.e, consuming a deposit that was already consumed
             MerkleProofLibrary.verifyInclusion(proofAgainstStateRoot, bClaims.stateRoot);
-            // todo: deposit that doesn't exist in the chain
-            // Maybe split this in separate functions?
+            // todo: deposit that doesn't exist in the chain. Maybe split this in separate functions?
         } else {
             //Consuming a non existing UTXO
             MerkleProofLibrary.verifyNonInclusion(proofAgainstStateRoot, bClaims.stateRoot);
             require(computeUTXOID(txInPreImage.consumedTxHash, txInPreImage.consumedTxIdx) == proofAgainstStateRoot.key, "The key of Merkle Proof should be equal to the UTXOID being spent!");
         }
 
-
-        //todo: deposit that doesn't exist in the chain
-        //todo: check if bclaim values shift depending on value txCount. Check if they are 0 if they are still present
         //todo burn the validator's tokens
     }
 
