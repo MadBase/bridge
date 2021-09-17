@@ -63,7 +63,6 @@ library SnapshotsLibrary {
         }
     }
 
-    /// @dev consumes 68299 gas
     function parseSignatureGroup(bytes memory _signatureGroup) internal pure returns (uint256[4] memory publicKey, uint256[2] memory signature) {
 
         // Go big.Ints are big endian but Solidity is little endian

@@ -27,7 +27,7 @@ contract SnapshotsFacetTest is Constants, DSTest, Setup {
     }
 
     function testExtractUint256() public {
-        bytes memory b = 
+        bytes memory b =
             hex"10d7b2c2f196fceb52d546ea33816bdcf2fa5dcc79bcbcf0ce34ca1128b0d6d8"
             hex"2d8652a0c5193001a55c0c43b5e0450297d3824a039d924b08d46520b354251f"
             hex"105a55d55c282005a5813480b48ee1efd61046d06b6084bafcf3c10dac57584b"
@@ -40,15 +40,15 @@ contract SnapshotsFacetTest is Constants, DSTest, Setup {
     }
 
     function testFailSnapshot() public {
-        bytes memory bclaims = 
+        bytes memory bclaims =
             hex"00000000010004002b0000000a0000000d000000020100001900000002010000"
             hex"250000000201000031000000020100007565a2d7195f43727e1141f00228fd60"
             hex"da3ca7ada3fc0a5a34ea537e0cb82e8dc5d2460186f7233c927e7db2dcc703c0"
             hex"e500b653ca82273b7bfad8045d85a47000000000000000000000000000000000"
             hex"00000000000000000000000000000000ede353f57b9e2599f9165fde4ec80b60"
             hex"0e9c20418aa3f4d3d6aabee6981abff6";
-            
-        bytes memory signatureGroup = 
+
+        bytes memory signatureGroup =
             hex"2ee01ec6218252b7e263cb1d86e6082f7e05e0c86b17607c5490cd2a73ac14f6"
             hex"2cc0679acd5fb16c0c983806d13127354423e908fec273db1fc62c38fcee59d5"
             hex"2570a1763029316ee5cb6e44a74039f15935f110898ad495ffe837335ced059d"
@@ -60,18 +60,18 @@ contract SnapshotsFacetTest is Constants, DSTest, Setup {
 
         snapshots.snapshot(signatureGroup, bclaims);
     }
-    
+
     function testSnapshot() public {
-            
-        bytes memory bclaims = 
+
+        bytes memory bclaims =
             hex"00000000010004002a000000050000000d000000020100001900000002010000"
             hex"250000000201000031000000020100007565a2d7195f43727e1141f00228fd60"
             hex"da3ca7ada3fc0a5a34ea537e0cb82e8dc5d2460186f7233c927e7db2dcc703c0"
             hex"e500b653ca82273b7bfad8045d85a47000000000000000000000000000000000"
             hex"00000000000000000000000000000000ede353f57b9e2599f9165fde4ec80b60"
             hex"0e9c20418aa3f4d3d6aabee6981abff6";
-            
-        bytes memory signatureGroup = 
+
+        bytes memory signatureGroup =
             hex"2ee01ec6218252b7e263cb1d86e6082f7e05e0c86b17607c5490cd2a73ac14f6"
             hex"2cc0679acd5fb16c0c983806d13127354423e908fec273db1fc62c38fcee59d5"
             hex"2570a1763029316ee5cb6e44a74039f15935f110898ad495ffe837335ced059d"
@@ -101,17 +101,17 @@ contract SnapshotsFacetTest is Constants, DSTest, Setup {
         uint32 chainId = snapshots.getChainIdFromSnapshot(epoch);
         assertEq(uint256(chainId), 42);
     }
-    
+
     function testSnapshot2() public {
-        bytes memory bclaims = 
+        bytes memory bclaims =
             hex"00000000010004002a000000050000000d000000020100001900000002010000"
             hex"250000000201000031000000020100007565a2d7195f43727e1141f00228fd60"
             hex"da3ca7ada3fc0a5a34ea537e0cb82e8dc5d2460186f7233c927e7db2dcc703c0"
             hex"e500b653ca82273b7bfad8045d85a47000000000000000000000000000000000"
             hex"00000000000000000000000000000000ede353f57b9e2599f9165fde4ec80b60"
             hex"0e9c20418aa3f4d3d6aabee6981abff6";
-            
-        bytes memory signatureGroup = 
+
+        bytes memory signatureGroup =
             hex"2ee01ec6218252b7e263cb1d86e6082f7e05e0c86b17607c5490cd2a73ac14f6"
             hex"2cc0679acd5fb16c0c983806d13127354423e908fec273db1fc62c38fcee59d5"
             hex"2570a1763029316ee5cb6e44a74039f15935f110898ad495ffe837335ced059d"
@@ -180,15 +180,15 @@ contract SnapshotsFacetTest is Constants, DSTest, Setup {
     }
 
     function goodSnapshot() internal {
-        bytes memory bclaims = 
+        bytes memory bclaims =
             hex"00000000010004002a000000050000000d000000020100001900000002010000"
             hex"250000000201000031000000020100007565a2d7195f43727e1141f00228fd60"
             hex"da3ca7ada3fc0a5a34ea537e0cb82e8dc5d2460186f7233c927e7db2dcc703c0"
             hex"e500b653ca82273b7bfad8045d85a47000000000000000000000000000000000"
             hex"00000000000000000000000000000000ede353f57b9e2599f9165fde4ec80b60"
             hex"0e9c20418aa3f4d3d6aabee6981abff6";
-            
-        bytes memory signatureGroup = 
+
+        bytes memory signatureGroup =
             hex"2ee01ec6218252b7e263cb1d86e6082f7e05e0c86b17607c5490cd2a73ac14f6"
             hex"2cc0679acd5fb16c0c983806d13127354423e908fec273db1fc62c38fcee59d5"
             hex"2570a1763029316ee5cb6e44a74039f15935f110898ad495ffe837335ced059d"
@@ -218,25 +218,4 @@ contract SnapshotsFacetTest is Constants, DSTest, Setup {
         return rep;
     }
 
-    function testParseSignatureGroup() public {
-            
-        bytes memory signatureGroup = 
-            hex"2ee01ec6218252b7e263cb1d86e6082f7e05e0c86b17607c5490cd2a73ac14f6"
-            hex"2cc0679acd5fb16c0c983806d13127354423e908fec273db1fc62c38fcee59d5"
-            hex"2570a1763029316ee5cb6e44a74039f15935f110898ad495ffe837335ced059d"
-            hex"0d426710c8a650cf96de6462406c3b707d4d1ae2231f3206c57b6551e12f593c"
-            hex"1b3c547d051cc268a996a7494df22da5afc31650ba0963e1ee39a2404c4f6cd1"
-            hex"22d313f80eb31f8cac30cd98686f815d38b8ea2d46748e9f8971db83f5311a24";
-
-        uint256[4] memory publicKey;
-        uint256[2] memory signature;
-        (publicKey, signature) = SnapshotsLibrary.parseSignatureGroup(signatureGroup);
-
-        assertEq(publicKey[0], 21202377171329373214095507752427316107254569702636878000458116942394255217910);
-        assertEq(publicKey[1], 20241715027435062680535132320234916494648620529421127748682113553866876148181);
-        assertEq(publicKey[2], 16934576636343511277154791375142682338711821809616034766146752472540255159709);
-        assertEq(publicKey[3], 5997390270221579148029211778390032262670350881040704207693968671176376932668);
-        assertEq(signature[0], 12319040852859751740244367805611467465295442953772776678485237085083777592529);
-        assertEq(signature[1], 15751579403294717882701369261331300906229127273009030640552230977041259895332);
-    }
 }
