@@ -21,6 +21,7 @@ library RCertParserLibrary {
         uint256[2] sigGroupSignature;
     }
 
+    /// @dev Execution cost: 1645 gas.
     function extractSigGroup(bytes memory src, uint256 dataOffset)
         internal
         pure

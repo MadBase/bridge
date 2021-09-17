@@ -4,6 +4,7 @@ pragma abicoder v2;
 
 import "ds-test/test.sol";
 import "./RCertParserLibrary.sol";
+import "../facets/SnapshotsLibrary.sol";
 
 contract RCertParserLibraryTest is DSTest {
     function exampleRCert() private pure returns (bytes memory) {
@@ -129,15 +130,8 @@ contract RCertParserLibraryTest is DSTest {
         }
     }
 
-    function createExpectedRCert() internal pure returns(RCertParserLibrary.RCert memory){
-        RClaimsParserLibrary.RClaims
-            memory expectedRClaims = RClaimsParserLibrary.RClaims(
-                1,
-                2,
-                1,
-                hex"f75f3eb17cd8136aeb15cca22b01ad5b45c795cb78787e74e55e088a7aa5fa16"
-            );
-        uint256[4] memory expectedSigGroupPublicKey = [
+    function createExpectedSigGroup() internal pure returns(uint256[4] memory expectedSigGroupPublicKey, uint256[2] memory expectedSigGroupSignature){
+        expectedSigGroupPublicKey = [
             uint256(
                 0x258aa89365a642358d92db67a13cb25d73e6eedf0d25100d8d91566882fac54b
             ),
@@ -151,7 +145,7 @@ contract RCertParserLibraryTest is DSTest {
                 0x0f75e42fd6c8e9f0edadac3dcfb7416c2d4b2470f4210f2afa93138615b1deb1
             )
         ];
-        uint256[2] memory expectedSigGroupSignature = [
+        expectedSigGroupSignature = [
             uint256(
                 0x1ff56a9538b079e16dd77a8ef81318497b195ad81b8cd1c5ea5d48b0c160f599
             ),
@@ -159,6 +153,17 @@ contract RCertParserLibraryTest is DSTest {
                 0x12387b5ab69538ef4cda0f7a879982f9b4943291b1e6d998abefe7bb4ebb6993
             )
         ];
+    }
+
+    function createExpectedRCert() internal pure returns(RCertParserLibrary.RCert memory){
+        RClaimsParserLibrary.RClaims
+            memory expectedRClaims = RClaimsParserLibrary.RClaims(
+                1,
+                2,
+                1,
+                hex"f75f3eb17cd8136aeb15cca22b01ad5b45c795cb78787e74e55e088a7aa5fa16"
+            );
+        (uint256[4] memory expectedSigGroupPublicKey, uint256[2] memory expectedSigGroupSignature) = createExpectedSigGroup();
         return RCertParserLibrary.RCert(
             expectedRClaims,
             expectedSigGroupPublicKey,
@@ -173,6 +178,17 @@ contract RCertParserLibraryTest is DSTest {
         emit log_named_uint("Rcert gas", startGas - endGas);
         RCertParserLibrary.RCert memory expected = createExpectedRCert();
         assertEqRCert(actual, expected);
+    }
+
+    function testExtractSigGroup() public {
+        (uint256[4] memory actualSigGroupPublicKey, uint256[2] memory actualSigGroupSignature) = RCertParserLibrary.extractSigGroup(exampleRCert(), 80);
+        (uint256[4] memory expectedSigGroupPublicKey, uint256[2] memory expectedSigGroupSignature) = createExpectedSigGroup();
+        for (uint256 idx = 0; idx < 4; idx++) {
+            assertEq(actualSigGroupPublicKey[idx], expectedSigGroupPublicKey[idx]);
+        }
+        for (uint256 idx = 0; idx < 2; idx++) {
+            assertEq(actualSigGroupSignature[idx], expectedSigGroupSignature[idx]);
+        }
     }
 
     function testExtractRCertWithAdditionalData() public {
