@@ -28,10 +28,34 @@ library AccusationLibrary {
         }
     }
 
+    // todo: move this function to RCertParserLibrary
+    function extractSigGroup(bytes memory src, uint256 dataOffset)
+        internal
+        pure
+        returns (uint256[4] memory publicKey, uint256[2] memory signature)
+    {
+        require(
+            dataOffset + RCertParserLibrary.SIG_GROUP_SIZE > dataOffset,
+            "RClaimsParserLibrary: Overflow on the dataOffset parameter"
+        );
+        require(
+            src.length >= dataOffset + RCertParserLibrary.SIG_GROUP_SIZE,
+            "RCertParserLibrary: Not enough bytes to extract"
+        );
+        // SIG_GROUP_SIZE = 192 bytes -> size in bytes of 6 uint256/bytes32 elements (6*32)
+        publicKey[0] = BaseParserLibrary.extractUInt256FromBigEndian(src, 0);
+        publicKey[1] = BaseParserLibrary.extractUInt256FromBigEndian(src, 32);
+        publicKey[2] = BaseParserLibrary.extractUInt256FromBigEndian(src, 64);
+        publicKey[3] = BaseParserLibrary.extractUInt256FromBigEndian(src, 96);
+        signature[0] = BaseParserLibrary.extractUInt256FromBigEndian(src, 128);
+        signature[1] = BaseParserLibrary.extractUInt256FromBigEndian(src, 160);
+    }
+
     function verifyGroupSignature(bytes memory _bClaims, bytes memory _bClaimsGroupSig) internal view {
         uint256[4] memory publicKey;
         uint256[2] memory signature;
-        (publicKey, signature) = SnapshotsLibrary.parseSignatureGroup(_bClaimsGroupSig); //todo optimize this
+        (publicKey, signature) = extractSigGroup(_bClaimsGroupSig, 0);
+
         require(
             CryptoLibrary.Verify(abi.encodePacked(keccak256(_bClaims)), signature, publicKey), 
             "Signature verification failed"

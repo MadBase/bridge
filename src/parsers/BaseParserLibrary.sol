@@ -118,10 +118,10 @@ library BaseParserLibrary {
             src.length > offset + 31,
             "BaseParserLibrary: Trying to read an offset out of boundaries!"
         );
-        for (uint256 idx = offset + 31; idx > offset; idx--) {
-            val = uint8(src[idx]) | (val << 8);
+
+        assembly {
+            val := mload(add(add(src, 0x20), offset))
         }
-        val = uint8(src[offset]) | (val << 8);
     }
 
     function extractUInt256FromBigEndian(bytes memory src, uint256 offset)
@@ -137,16 +137,28 @@ library BaseParserLibrary {
             src.length > offset + 31,
             "BaseParserLibrary: Trying to read an offset out of boundaries!"
         );
+
+        uint256 srcDataPointer;
+        uint32 val0 = 0;
+        uint32 val1 = 0;
+        uint32 val2 = 0;
+        uint32 val3 = 0;
+        uint32 val4 = 0;
+        uint32 val5 = 0;
+        uint32 val6 = 0;
+        uint32 val7 = 0;
+
         assembly {
-            val := mload(add(add(src, 0x20), offset))
-            val0 := and(val, 0xffffffff)
-            val1 := and(shr(32, val), 0xffffffff)
-            val2 := and(shr(64, val), 0xffffffff)
-            val3 := and(shr(96, val), 0xffffffff)
-            val4 := and(shr(128, val), 0xffffffff)
-            val5 := and(shr(160, val), 0xffffffff)
-            val6 := and(shr(192, val), 0xffffffff)
-            val7 := and(shr(224, val), 0xffffffff)
+            srcDataPointer := mload(add(add(src, 0x20), offset))
+            val0 := and(srcDataPointer, 0xffffffff)
+            val1 := and(shr(32, srcDataPointer), 0xffffffff)
+            val2 := and(shr(64, srcDataPointer), 0xffffffff)
+            val3 := and(shr(96, srcDataPointer), 0xffffffff)
+            val4 := and(shr(128, srcDataPointer), 0xffffffff)
+            val5 := and(shr(160, srcDataPointer), 0xffffffff)
+            val6 := and(shr(192, srcDataPointer), 0xffffffff)
+            val7 := and(shr(224, srcDataPointer), 0xffffffff)
+
             val0 := or(
                 or(
                     or(
@@ -157,13 +169,100 @@ library BaseParserLibrary {
                 ),
                 shl(24, and(val0, 0x000000ff))
             )
+            val1 := or(
+                or(
+                    or(
+                        shr(24, and(val1, 0xff000000)),
+                        shr(8, and(val1, 0x00ff0000))
+                    ),
+                    shl(8, and(val1, 0x0000ff00))
+                ),
+                shl(24, and(val1, 0x000000ff))
+            )
+            val2 := or(
+                or(
+                    or(
+                        shr(24, and(val2, 0xff000000)),
+                        shr(8, and(val2, 0x00ff0000))
+                    ),
+                    shl(8, and(val2, 0x0000ff00))
+                ),
+                shl(24, and(val2, 0x000000ff))
+            )
+            val3 := or(
+                or(
+                    or(
+                        shr(24, and(val3, 0xff000000)),
+                        shr(8, and(val3, 0x00ff0000))
+                    ),
+                    shl(8, and(val3, 0x0000ff00))
+                ),
+                shl(24, and(val3, 0x000000ff))
+            )
+            val4 := or(
+                or(
+                    or(
+                        shr(24, and(val4, 0xff000000)),
+                        shr(8, and(val4, 0x00ff0000))
+                    ),
+                    shl(8, and(val4, 0x0000ff00))
+                ),
+                shl(24, and(val4, 0x000000ff))
+            )
+            val5 := or(
+                or(
+                    or(
+                        shr(24, and(val5, 0xff000000)),
+                        shr(8, and(val5, 0x00ff0000))
+                    ),
+                    shl(8, and(val5, 0x0000ff00))
+                ),
+                shl(24, and(val5, 0x000000ff))
+            )
+            val6 := or(
+                or(
+                    or(
+                        shr(24, and(val6, 0xff000000)),
+                        shr(8, and(val6, 0x00ff0000))
+                    ),
+                    shl(8, and(val6, 0x0000ff00))
+                ),
+                shl(24, and(val6, 0x000000ff))
+            )
+            val7 := or(
+                or(
+                    or(
+                        shr(24, and(val7, 0xff000000)),
+                        shr(8, and(val7, 0x00ff0000))
+                    ),
+                    shl(8, and(val7, 0x0000ff00))
+                ),
+                shl(24, and(val7, 0x000000ff))
+            )
+
             val := 
             or(
                 or(
-                    or(shl(224, val0), shl(192, val1)), shl(160, val2)
-                ), shl(128, val3)
+                    or(
+                        or(
+                            or(
+                                or(
+                                    or(
+                                        shl(224, val0),
+                                        shl(192, val1)
+                                    ),
+                                    shl(160, val2)
+                                ),
+                                shl(128, val3)
+                            ),
+                            shl(96, val4)
+                        ),
+                        shl(64, val5)
+                    ),
+                    shl(32, val6)
+                ),
+                val7
             )
-
         }
     }
 

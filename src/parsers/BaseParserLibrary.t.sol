@@ -160,10 +160,26 @@ contract BaseParserLibraryTest is DSTest {
             hex"105a55d55c282005a5813480b48ee1efd61046d06b6084bafcf3c10dac57584b"
             hex"0f0bb886f1f1e04bcfa575020e3f47cceb3c11cd5cba496e5aedddc3a04d5b5c";
 
-        uint256 expected = 0xd8d6b02811ca34cef0bcbc79cc5dfaf2dc6b8133ea46d552ebfc96f1c2b2d710;
+        uint256 expected = 0x10d7b2c2f196fceb52d546ea33816bdcf2fa5dcc79bcbcf0ce34ca1128b0d6d8;
         uint256 actual = BaseParserLibrary.extractUInt256(b, 0);
 
         assertEq(expected, actual);
+    }
+    
+    function testExtractUInt256FromBigEndian() public {
+        bytes memory b = hex"1000000000000000000000000000000000000000000000000000000000000001";
+        uint256 expected = 0x0100000000000000000000000000000000000000000000000000000000000010;
+        uint256 actual = BaseParserLibrary.extractUInt256FromBigEndian(b, 0);
+
+        assertEq(actual, expected);
+    }
+
+    function testExtractUInt256FromBigEndian2() public {
+        bytes memory b = hex"000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f";
+        uint256 expected = 0x1f1e1d1c1b1a191817161514131211100f0e0d0c0b0a09080706050403020100;
+        uint256 actual = BaseParserLibrary.extractUInt256FromBigEndian(b, 0);
+
+        assertEq(actual, expected);
     }
 
     function testReverse() public {
