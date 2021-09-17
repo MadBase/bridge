@@ -167,7 +167,8 @@ contract BaseParserLibraryTest is DSTest {
     }
     
     function testExtractUInt256FromBigEndian() public {
-        bytes memory b = hex"1000000000000000000000000000000000000000000000000000000000000001";
+        bytes memory b = hex"1000000000000000000000000000000000000000000000000000000000000001"
+            hex"0000";
         uint256 expected = 0x0100000000000000000000000000000000000000000000000000000000000010;
         uint256 actual = BaseParserLibrary.extractUInt256FromBigEndian(b, 0);
 
@@ -175,7 +176,8 @@ contract BaseParserLibraryTest is DSTest {
     }
 
     function testExtractUInt256FromBigEndian2() public {
-        bytes memory b = hex"000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f";
+        bytes memory b = hex"000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f"
+            hex"0000";
         uint256 expected = 0x1f1e1d1c1b1a191817161514131211100f0e0d0c0b0a09080706050403020100;
         uint256 actual = BaseParserLibrary.extractUInt256FromBigEndian(b, 0);
 

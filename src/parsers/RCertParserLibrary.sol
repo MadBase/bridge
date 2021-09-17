@@ -17,29 +17,30 @@ library RCertParserLibrary {
 
     struct RCert {
         RClaimsParserLibrary.RClaims rClaims;
-        bytes32[6] sigGroup;
+        uint256[4] sigGroupPublicKey;
+        uint256[2] sigGroupSignature;
     }
 
     function extractSigGroup(bytes memory src, uint256 dataOffset)
         internal
         pure
-        returns (bytes32[6] memory sigGroup)
+        returns (uint256[4] memory publicKey, uint256[2] memory signature)
     {
         require(
-            dataOffset + SIG_GROUP_SIZE > dataOffset,
+            dataOffset + RCertParserLibrary.SIG_GROUP_SIZE > dataOffset,
             "RClaimsParserLibrary: Overflow on the dataOffset parameter"
         );
         require(
-            src.length >= dataOffset + SIG_GROUP_SIZE,
+            src.length >= dataOffset + RCertParserLibrary.SIG_GROUP_SIZE,
             "RCertParserLibrary: Not enough bytes to extract"
         );
-        // SIG_GROUP_SIZE = 192 bytes -> size in bytes of 6 bytes32 elements (6*32)
-        for (uint256 idx = 0; idx < sigGroup.length; idx++) {
-            sigGroup[idx] = BaseParserLibrary.extractBytes32(
-                src,
-                dataOffset + (idx * 32)
-            );
-        }
+        // SIG_GROUP_SIZE = 192 bytes -> size in bytes of 6 uint256/bytes32 elements (6*32)
+        publicKey[0] = BaseParserLibrary.extractUInt256(src, 0);
+        publicKey[1] = BaseParserLibrary.extractUInt256(src, 32);
+        publicKey[2] = BaseParserLibrary.extractUInt256(src, 64);
+        publicKey[3] = BaseParserLibrary.extractUInt256(src, 96);
+        signature[0] = BaseParserLibrary.extractUInt256(src, 128);
+        signature[1] = BaseParserLibrary.extractUInt256(src, 160);
     }
 
     /**
@@ -82,6 +83,6 @@ library RCertParserLibrary {
             "RCertParserLibrary: Not enough bytes to extract RCert"
         );
         rCert.rClaims = RClaimsParserLibrary.extractInnerRClaims(src, dataOffset + 16);
-        rCert.sigGroup = extractSigGroup(src, dataOffset + 72);
+        (rCert.sigGroupPublicKey, rCert.sigGroupSignature) = extractSigGroup(src, dataOffset + 72);
     }
 }
