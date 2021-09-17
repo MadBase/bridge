@@ -25,7 +25,7 @@ library PClaimsParserLibrary {
             from other capnproto structure (e.g Proposal).
     */
     /// @param src Blob of binary data with a capnproto serialization
-    /// @dev Execution cost: X gas
+    /// @dev Execution cost: 7725 gas
     function extractPClaims(bytes memory src)
         internal
         pure
@@ -48,7 +48,7 @@ library PClaimsParserLibrary {
     */
     /// @param src Blob of binary data with a capnproto serialization
     /// @param dataOffset offset to start reading the PClaims data from inside src
-    /// @dev Execution cost: X gas
+    /// @dev Execution cost: 7026 gas
     function extractInnerPClaims(bytes memory src, uint256 dataOffset)
         internal
         pure

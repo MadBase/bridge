@@ -64,7 +64,7 @@ contract PClaimsParserLibraryTest is DSTest {
             hex"0400000001000400" // BClaims struct definition
             hex"5400000000000200" // RCert struct definition
             hex"01000000" // chainId NOTE: BClaim starts here
-            hex"01000000" // height
+            hex"02000000" // height
             hex"0d00000002010000" //list(uint8) definition for prevBlock
             hex"1900000002010000" //list(uint8) definition for txRoot
             hex"2500000002010000" //list(uint8) definition for stateRoot
@@ -76,7 +76,7 @@ contract PClaimsParserLibraryTest is DSTest {
             hex"0400000002000100" //RClaims struct definition NOTE:RCert starts here
             hex"1d00000002060000" //list(uint8) definition for sigGroup
             hex"01000000" // chainID
-            hex"01000000" // Height
+            hex"02000000" // Height
             hex"01000000" // round
             hex"00000000" // zeros pads for the round (capnproto operates using 8 bytes word)
             hex"0100000002010000" //list(uint8) definition for prevBlock
@@ -225,7 +225,6 @@ contract PClaimsParserLibraryTest is DSTest {
     }
 
     function assertEqPClaims(PClaimsParserLibrary.PClaims memory actual, PClaimsParserLibrary.PClaims memory expected) internal {
-
         assertEqBClaims(actual.bClaims, expected.bClaims);
         assertEqRCert(actual.rCert, expected.rCert);
     }
@@ -283,22 +282,83 @@ contract PClaimsParserLibraryTest is DSTest {
         );
     }
 
+    function createExpectedBClaimsTxCount0() internal pure returns(BClaimsParserLibrary.BClaims memory){
+        return BClaimsParserLibrary.BClaims(
+                1,
+                2,
+                hex"41b1a0649752af1b28b3dc29a1556eee781e4a4c3a1f7f53f90fa834de098c4d",
+                0,
+                hex"c5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470",
+                hex"b58904fe94d4dca4102566c56402dfa153037d18263b3f6d5574fd9e622e5627",
+                hex"3e9768bd0513722b012b99bccc3f9ccbff35302f7ec7d75439178e5a80b45800"
+        );
+    }
+
+    function createExpectedRCertTxCount0() internal pure returns(RCertParserLibrary.RCert memory){
+        RClaimsParserLibrary.RClaims
+            memory expectedRClaims = RClaimsParserLibrary.RClaims(
+                1,
+                2,
+                1,
+                hex"41b1a0649752af1b28b3dc29a1556eee781e4a4c3a1f7f53f90fa834de098c4d"
+            );
+        bytes32[6] memory expectedSigGroup = [
+            bytes32(
+                hex"258aa89365a642358d92db67a13cb25d73e6eedf0d25100d8d91566882fac54b"
+            ),
+            bytes32(
+                hex"1ccedfb0425434b54999a88cd7d993e05411955955c0cfec9dd33066605bd4a6"
+            ),
+            bytes32(
+                hex"0f6bbfbab37349aaa762c23281b5749932c514f3b8723cf9bb05f9841a7f2d0e"
+            ),
+            bytes32(
+                hex"0f75e42fd6c8e9f0edadac3dcfb7416c2d4b2470f4210f2afa93138615b1deb1"
+            ),
+            bytes32(
+                hex"06f5308b02f59062b735d0021ba93b1b9c09f3e168384b96b1eccfed65935714"
+            ),
+            bytes32(
+                hex"2a7bd3532dc054cb5be81e9d559128229d61a00474b983a3569f538eb03d07ce"
+            )
+        ];
+        return RCertParserLibrary.RCert(
+            expectedRClaims,
+            expectedSigGroup
+        );
+    }
+
+    function createExpectedPClaimsTxCount0() internal pure returns(PClaimsParserLibrary.PClaims memory pClaims){
+        pClaims = PClaimsParserLibrary.PClaims(
+                createExpectedBClaimsTxCount0(),
+                createExpectedRCertTxCount0()
+        );
+    }
+
     function testExtractingPClaims() public {
-        uint256 startGas = gasleft();
         PClaimsParserLibrary.PClaims memory actual = PClaimsParserLibrary.extractPClaims(examplePClaims());
-        uint256 endGas = gasleft();
-        emit log_named_uint("PClaims gas", startGas - endGas);
         PClaimsParserLibrary.PClaims memory expected = createExpectedPClaims();
         assertEqPClaims(actual, expected);
     }
 
     function testExtractingPClaimsFromArbitraryLocation() public {
-        uint256 startGas = gasleft();
-        (PClaimsParserLibrary.PClaims memory actual, uint256 _) = PClaimsParserLibrary.extractInnerPClaims(examplePClaimsWithAdditionalData(), 23);
-        uint256 endGas = gasleft();
-        emit log_named_uint("PClaims gas", startGas - endGas);
+        (PClaimsParserLibrary.PClaims memory actual, uint256 pclaimSize) = PClaimsParserLibrary.extractInnerPClaims(examplePClaimsWithAdditionalData(), 23);
         PClaimsParserLibrary.PClaims memory expected = createExpectedPClaims();
         assertEqPClaims(actual, expected);
+        assertEq(pclaimSize, PClaimsParserLibrary.PCLAIMS_SIZE);
+    }
+
+    function testExtractingPClaimsTxCount0() public {
+        PClaimsParserLibrary.PClaims memory actual = PClaimsParserLibrary.extractPClaims(examplePClaimsWithTxCount0());
+        PClaimsParserLibrary.PClaims memory expected = createExpectedPClaimsTxCount0();
+        assertEqPClaims(actual, expected);
+    }
+
+    function testExtractingPClaimsFromArbitraryLocationWithTxCount0() public {
+        (PClaimsParserLibrary.PClaims memory actual, uint256 pclaimSize) = PClaimsParserLibrary.extractInnerPClaims(examplePClaimsWithTxCount0(), PClaimsParserLibrary.CAPNPROTO_HEADER_SIZE);
+        PClaimsParserLibrary.PClaims memory expected = createExpectedPClaimsTxCount0();
+        assertEqPClaims(actual, expected);
+        assertEq(pclaimSize, PClaimsParserLibrary.PCLAIMS_SIZE - 8);
     }
 
     function testFail_ExtractingPClaimsWithOutSideData() public {
