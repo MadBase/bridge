@@ -5,29 +5,6 @@ pragma abicoder v2;
 import "ds-test/test.sol";
 import "./BaseParserLibrary.sol";
 
-/// @dev Aux contract to test unit test that must fail!
-contract TestsThatMustFail {
-    function extractUInt32(bytes memory src, uint256 dataOffset)
-        public
-        pure
-        returns (uint32)
-    {
-        return BaseParserLibrary.extractUInt32(src, dataOffset);
-    }
-
-    function extractBytes(
-        bytes memory src,
-        uint256 offset,
-        uint256 howManyBytes
-    ) public pure returns (bytes memory) {
-        return BaseParserLibrary.extractBytes(src, offset, howManyBytes);
-    }
-
-    function extractBytes32(bytes memory src, uint256 offset) public pure returns (bytes32) {
-        return BaseParserLibrary.extractBytes32(src, offset);
-    }
-}
-
 contract BaseParserLibraryTest is DSTest {
     function testExtractUInt32() public {
         bytes memory b = hex"01020400";
@@ -223,108 +200,37 @@ contract BaseParserLibraryTest is DSTest {
         assertEq0(expected, actual);
     }
 
-    function testExtractBytesWithIncorrectData() public {
-        // Testing unit tests that must fail
-        TestsThatMustFail lib = new TestsThatMustFail();
-        bool ok;
-        // Trying to read memory outside our data
-        (ok, ) = address(lib).delegatecall(
-            abi.encodeWithSignature(
-                "extractBytes(bytes,uint256,uint256)",
-                exampleBytesArray(),
-                10000000000,
-                32
-            )
-        );
-        assertTrue(
-            !ok,
-            "Function call succeed! The function was supposed to fail when trying to read data outside its bounds!"
-        );
+    function testFail_ExtractBytesOutSideData() public {
+        BaseParserLibrary.extractBytes(exampleBytesArray(), 10000000000, 32);
+    }
 
-        // Trying to read bytes outside our data
-        (ok, ) = address(lib).delegatecall(
-            abi.encodeWithSignature(
-                "extractBytes(bytes,uint256,uint256)",
-                exampleBytesArray(),
-                32,
-                100000000000
-            )
-        );
-        assertTrue(
-            !ok,
-            "Function call succeed! The function was supposed to fail when trying to read bytes outside its bounds!"
-        );
+    function testFail_ExtractBytesOutSideData2() public {
+        BaseParserLibrary.extractBytes(exampleBytesArray(), 32, 10000000000);
+    }
 
-        // Trying to force and overflow to manipulate data
+    function testFail_ExtractBytesWithOverflow() public {
         uint256 bigValue = 0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff;
-        (ok, ) = address(lib).delegatecall(
-            abi.encodeWithSignature(
-                "extractBytes(bytes,uint256,uint256)",
-                exampleBytesArray(),
-                bigValue,
-                bigValue
-            )
-        );
-        assertTrue(
-            !ok,
-            "Function call succeed! The function was supposed to be fail safe against offset overflow"
-        );
+        BaseParserLibrary.extractBytes(exampleBytesArray(), bigValue, 20);
+    }
 
-        // Trying to force and overflow to manipulate data
-        (ok, ) = address(lib).delegatecall(
-            abi.encodeWithSignature(
-                "extractBytes(bytes,uint256,uint256)",
-                exampleBytesArray(),
-                16,
-                bigValue
-            )
-        );
-        assertTrue(
-            !ok,
-            "Function call succeed! The function was supposed to be fail safe against offset overflow"
-        );
+    function testFail_ExtractBytesWithOverflow2() public {
+        uint256 bigValue = 0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff;
+        BaseParserLibrary.extractBytes(exampleBytesArray(), 20, bigValue);
+    }
 
-        // Trying to force and overflow to manipulate data
-        (ok, ) = address(lib).delegatecall(
-            abi.encodeWithSignature(
-                "extractBytes(bytes,uint256,uint256)",
-                exampleBytesArray(),
-                bigValue,
-                16
-            )
-        );
-        assertTrue(
-            !ok,
-            "Function call succeed! The function was supposed to be fail safe against offset overflow"
-        );
+    function testFail_ExtractBytesWithOverflow3() public {
+        uint256 bigValue = 0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff;
+        BaseParserLibrary.extractBytes(exampleBytesArray(), bigValue, bigValue);
+    }
 
-        // Trying to decode bytes without having enough Data
-        (ok, ) = address(lib).delegatecall(
-            abi.encodeWithSignature(
-                "extractBytes(bytes,uint256,uint256)",
-                hex"deadbeefff00ff00deadbeef",
-                4,
-                10
-            )
-        );
-        assertTrue(
-            !ok,
-            "Function call succeed! The function was not supposed to serialize bytes if the data is incomplete"
-        );
+    function testFail_ExtractBytesWithoutEnoughData() public {
+        bytes memory b = hex"deadbeefff00ff00deadbeefdeadbeefff00ff00deadbeef";
+        BaseParserLibrary.extractBytes(hex"deadbeefff00ff00deadbeef", 4, 10);
+    }
 
-        // Trying to extract bytes from the middle of the data where the conversion will pass the data size
-        (ok, ) = address(lib).delegatecall(
-            abi.encodeWithSignature(
-                "extractBytes(bytes,uint256,uint256)",
-                hex"deadbeefff00ff00deadbeef",
-                6,
-                8
-            )
-        );
-        assertTrue(
-            !ok,
-            "Function call succeed! The function was not supposed to serialize bytes if the data is incomplete"
-        );
+    function test_ExtractBytesFromMiddleWithoutEnoughData() public {
+        bytes memory b = hex"deadbeefff00ff00deadbeef";
+        BaseParserLibrary.extractBytes(exampleBytesArray(), 6, 8);
     }
 
     function testExtractBytes32() public {
@@ -335,62 +241,24 @@ contract BaseParserLibraryTest is DSTest {
         assertEq(expected, actual);
     }
 
-    function testExtractBytes32WithIncorrectData() public {
-        // Testing unit tests that must fail
-        TestsThatMustFail lib = new TestsThatMustFail();
-        bool ok;
-        // Trying to read memory outside our data
-        (ok, ) = address(lib).delegatecall(
-            abi.encodeWithSignature(
-                "extractBytes32(bytes,uint256)",
-                exampleBytesArray(),
-                10000000000
-            )
-        );
-        assertTrue(
-            !ok,
-            "Function call succeed! The function was supposed to fail when trying to read data outside its bounds!"
-        );
-
-        // Trying to force and overflow to manipulate data
-        uint256 bigValue = 0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff;
-        (ok, ) = address(lib).delegatecall(
-            abi.encodeWithSignature(
-                "extractBytes32(bytes,uint256)",
-                exampleBytesArray(),
-                bigValue
-            )
-        );
-        assertTrue(
-            !ok,
-            "Function call succeed! The function was supposed to be fail safe against offset overflow"
-        );
-
-        // Trying to decode bytes32 without having enough Data
-        (ok, ) = address(lib).delegatecall(
-            abi.encodeWithSignature(
-                "extractBytes32(bytes,uint256)",
-                hex"deadbeefff00ff00deadbeefdeadbeefff00ff00deadbeef",
-                4
-            )
-        );
-        assertTrue(
-            !ok,
-            "Function call succeed! The function was not supposed to serialize bytes if the data is incomplete"
-        );
-
-        // Trying to extract bytes32 from the middle of the data where the conversion will pass the data size
-        (ok, ) = address(lib).delegatecall(
-            abi.encodeWithSignature(
-                "extractBytes32(bytes,uint256)",
-                hex"2d8652a0c5193001a55c0c43b5e0450297d3824a039d924b08d46520b354251f",
-                6
-            )
-        );
-        assertTrue(
-            !ok,
-            "Function call succeed! The function was not supposed to serialize bytes if the data is incomplete"
-        );
+    function testFail_ExtractBytes32OutSideData() public {
+        BaseParserLibrary.extractBytes32(exampleBytesArray(), 10000000000);
     }
-    //todo: refactor bytes32 and bytes fail case scenarios. Add more fail tests convert uint256
+
+    function testFail_ExtractBytes32WithOverflow() public {
+        uint256 bigValue = 0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff;
+        BaseParserLibrary.extractBytes32(exampleBytesArray(), bigValue);
+    }
+
+    function test_ExtractBytes32WithoutEnoughData() public {
+        bytes memory b = hex"deadbeefff00ff00deadbeefdeadbeefff00ff00deadbeef";
+        BaseParserLibrary.extractBytes32(exampleBytesArray(), 4);
+    }
+
+    function test_ExtractBytes32FromMiddleWithoutEnoughData() public {
+        bytes memory b = hex"2d8652a0c5193001a55c0c43b5e0450297d3824a039d924b08d46520b354251f";
+        BaseParserLibrary.extractBytes32(exampleBytesArray(), 6);
+    }
+
+    //todo: Add more fail tests convert uint256
 }

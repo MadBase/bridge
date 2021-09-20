@@ -8,7 +8,7 @@ import "./BaseParserLibrary.sol";
 library TXInPreImageParserLibrary {
     /** @dev size in bytes of a TXInPreImage cap'npro structure without the cap'n
       proto header bytes*/
-    uint256 internal constant TX_IN_PRE_IMAGE_SIZE = 48; //todo: what is the size, does it change?
+    uint256 internal constant TX_IN_PRE_IMAGE_SIZE = 48;
     /** @dev Number of bytes of a capnproto header, the data starts after the
       header */
     uint256 internal constant CAPNPROTO_HEADER_SIZE = 8;
