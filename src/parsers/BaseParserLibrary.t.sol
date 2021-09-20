@@ -165,7 +165,7 @@ contract BaseParserLibraryTest is DSTest {
 
         assertEq(expected, actual);
     }
-    
+
     function testExtractUInt256FromBigEndian() public {
         bytes memory b = hex"1000000000000000000000000000000000000000000000000000000000000001"
             hex"0000";
@@ -392,4 +392,5 @@ contract BaseParserLibraryTest is DSTest {
             "Function call succeed! The function was not supposed to serialize bytes if the data is incomplete"
         );
     }
+    //todo: refactor bytes32 and bytes fail case scenarios. Add more fail tests convert uint256
 }

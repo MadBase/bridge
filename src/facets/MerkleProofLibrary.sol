@@ -70,7 +70,7 @@ library MerkleProofLibrary {
         );
 
         uint16 proofIdx = 0;
-        require(proofHeight >= 0 && proofHeight <= 256, "Invalid proofHeight, the values should be greater or equal to 0 and less than 256");
+        require(proofHeight >= 0 && proofHeight <= 256, "MerkleProof Library: Invalid proofHeight, the values should be between 0 and 256!");
         for (uint256 i = 0; i < proofHeight; i++) {
             if (bitSet(bitset, uint16(i))) {
                 proofIdx += 32;

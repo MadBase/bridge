@@ -47,6 +47,22 @@ contract TestMerkleProofLibrary is DSTest {
         assertTrue(MerkleProofLibrary.checkProof(auditPath, root, keyHash, key, bitset, height));
     }
 
+    function testKeyIsValidInsideMerkleTreeHeight256() public {
+        bytes memory auditPath =
+            hex"166eacf747876e3a8eb60fdd36cfac41e9ae27098cf605d90a019a895e98af17"
+            hex"1ddb3652b5ecb0881027ca462000d3614fd7735855db004c598622855e9190c4"
+            hex"9bd43690efe794fff0a9790fc9c3f694e251cd15dbf06a5217005cffc23943c2"
+            hex"54ec9d782b8991251f91af85390450ad21fc2befaf8f473367a30d579c36e221"
+            hex"480543d6cc63a90d7c121e5219495ebc0091dd7355763da9d97931997f52260b"
+            hex"1c925246c3b9255ebd67fc7daf4769f556b5eaefbd62d31daf7f6c43da4ffe2c";
+        bytes32 root = hex"0d66a8a0babec3d38b67b5239c1683f15a57e087f3825fac3d70fd6a243ed30b";
+        bytes32 key = hex"0000000000000000000000000000000000000000000000000000000000000030";
+        bytes32 keyHash = hex"5179fc581e28dfb3f4f7202cc76cf896b86c982c2a70e7b607009ce1a9e86395";
+        bytes memory bitset = hex"e00000000000000000000000000000000000000000000000000000000000002300";
+        uint16 height = 256;
+        assertTrue(MerkleProofLibrary.checkProof(auditPath, root, keyHash, key, bitset, height));
+    }
+
     function testKeyIsNotValidInsideMerkleTree() public {
         bytes memory auditPath =
             hex"066c7a6ef776fbae26f10eabcc5f0eb72b0f527c4cad8c4037940a28c2fe3159"
