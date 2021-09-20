@@ -21,11 +21,12 @@ library PClaimsParserLibrary {
     }
 
     /**
-    @notice This function is for serializing data directly from capnproto
+    @notice This function is for deserializing data directly from capnproto
             PClaims. Use `extractInnerPClaims()` if you are extracting PClaims
             from other capnproto structure (e.g Proposal).
     */
-    /// @param src Blob of binary data with a capnproto serialization
+    /// @param src Binary data containing a RCert serialized struct with Capn Proto headers
+    /// @return pClaims the PClaims struct
     /// @dev Execution cost: 7725 gas
     function extractPClaims(bytes memory src)
         internal
@@ -37,7 +38,7 @@ library PClaimsParserLibrary {
     }
 
     /**
-    @notice This function is for serializing the PClaims struct from an defined
+    @notice This function is for deserializing the PClaims struct from an defined
             location inside a binary blob. E.G Extract PClaims from inside of
             other structure (E.g Proposal capnproto) or skipping the capnproto
             headers. Since PClaims is composed of a BClaims struct which has not
@@ -47,8 +48,10 @@ library PClaimsParserLibrary {
             is being deserialized after PClaims in case PClaims is being
             deserialized from inside another struct.
     */
-    /// @param src Blob of binary data with a capnproto serialization
+    /// @param src Binary data containing a PClaims serialized struct without Capn Proto headers
     /// @param dataOffset offset to start reading the PClaims data from inside src
+    /// @return pClaims the PClaims struct
+    /// @return pClaimsBinarySize the size of this PClaims
     /// @dev Execution cost: 7026 gas
     function extractInnerPClaims(bytes memory src, uint256 dataOffset)
         internal

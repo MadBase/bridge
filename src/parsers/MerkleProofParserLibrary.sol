@@ -6,8 +6,8 @@ import "./BaseParserLibrary.sol";
 
 /// @title Library to parse the MerkleProof structure from a blob of binary data
 library MerkleProofParserLibrary {
-    /** @dev minimum size in bytes of a MERKLE_PROOF binary structure
-      (considering no proofs and not bitset array) */
+    /** @dev minimum size in bytes of a MerkleProof binary structure
+      (without proofs and bitmap) */
     uint256 internal constant MERKLE_PROOF_SIZE = 103;
 
     struct MerkleProof {
@@ -21,11 +21,12 @@ library MerkleProofParserLibrary {
     }
 
     /**
-    @notice This function is for serializing the MerkleProof struct from a
+    @notice This function is for deserializing the MerkleProof struct from a
             binary blob.
     */
-    /// @param src Blob of binary data with a MerkleProof serialization
-    /// @dev Execution cost: X gas
+    /// @param src Binary data containing a MerkleProof serialized struct
+    /// @return mProof a MerkleProof struct
+    /// @dev Execution cost: ~4000-51000 gas for a 10-256 height proof respectively
     function extractMerkleProof(bytes memory src)
         internal
         pure
@@ -33,17 +34,17 @@ library MerkleProofParserLibrary {
     {
         require(
             src.length >= MERKLE_PROOF_SIZE,
-            "MerkleProofLibrary: Not enough bytes to extract a minimum MerkleProof"
+            "MerkleProofParserLibrary: Not enough bytes to extract a minimum MerkleProof"
         );
         uint16 bitmapLength = BaseParserLibrary.extractUInt16FromBigEndian(src, 99);
         uint16 auditPathLength = BaseParserLibrary.extractUInt16FromBigEndian(src, 101);
         require(
             src.length >= MERKLE_PROOF_SIZE + bitmapLength + auditPathLength * 32,
-            "MerkleProofLibrary: Not enough bytes to extract MerkleProof"
+            "MerkleProofParserLibrary: Not enough bytes to extract MerkleProof"
         );
         mProof.included = BaseParserLibrary.extractBool(src, 0);
         mProof.keyHeight = BaseParserLibrary.extractUInt16FromBigEndian(src, 1);
-        require(mProof.keyHeight >= 0 && mProof.keyHeight <= 256, "Invalid keyHeight, the values should be greater or equal to 0 and less than 256");
+        require(mProof.keyHeight >= 0 && mProof.keyHeight <= 256, "MerkleProofParserLibrary: keyHeight should be in the range [0, 256]");
         mProof.key = BaseParserLibrary.extractBytes32(src, 3);
         mProof.proofKey = BaseParserLibrary.extractBytes32(src, 35);
         mProof.proofValue = BaseParserLibrary.extractBytes32(src, 67);

@@ -22,6 +22,11 @@ library RCertParserLibrary {
         uint256[2] sigGroupSignature;
     }
 
+    /// @notice Extracts the signature group out of a Capn Proto blob.
+    /// @param src Binary data containing signature group data
+    /// @param dataOffset offset of the signature group data inside src
+    /// @return publicKey the public keys
+    /// @return signature the signature
     /// @dev Execution cost: 1645 gas.
     function extractSigGroup(bytes memory src, uint256 dataOffset)
         internal
@@ -46,13 +51,14 @@ library RCertParserLibrary {
     }
 
     /**
-    @notice This function is for serializing data directly from capnproto
+    @notice This function is for deserializing data directly from capnproto
             RCert. It will skip the first 8 bytes (capnproto headers) and
             deserialize the RCert Data. If RCert is being extracted from
             inside of other structure (E.g PClaim capnproto) use the
             `extractInnerRCert(bytes, uint)` instead.
     */
-    /// @param src Blob of binary data with a capnproto serialization
+    /// @param src Binary data containing a RCert serialized struct with Capn Proto headers
+    /// @return the RCert struct
     /// @dev Execution cost: 4076 gas
     function extractRCert(bytes memory src)
         internal
@@ -63,13 +69,14 @@ library RCertParserLibrary {
     }
 
     /**
-    @notice This function is for serializing the RCert struct from an defined
+    @notice This function is for deserializing the RCert struct from an defined
             location inside a binary blob. E.G Extract RCert from inside of
             other structure (E.g RCert capnproto) or skipping the capnproto
             headers.
     */
-    /// @param src Blob of binary data with a capnproto serialization
+    /// @param src Binary data containing a RCert serialized struct without Capn Proto headers
     /// @param dataOffset offset to start reading the RCert data from inside src
+    /// @return rCert the RCert struct
     /// @dev Execution cost: 3691 gas
     function extractInnerRCert(bytes memory src, uint256 dataOffset)
         internal

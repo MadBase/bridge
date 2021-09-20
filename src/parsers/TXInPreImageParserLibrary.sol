@@ -20,14 +20,15 @@ library TXInPreImageParserLibrary {
     }
 
     /**
-    @notice This function is for serializing data directly from capnproto
+    @notice This function is for deserializing data directly from capnproto
             TXInPreImage. It will skip the first 8 bytes (capnproto headers) and
             deserialize the TXInPreImage Data. If TXInPreImage is being extracted from
             inside of other structure use the
             `extractTXInPreImage(bytes, uint)` instead.
     */
-    /// @param src Blob of binary data with a capnproto serialization
+    /// @param src Binary data containing a TXInPreImage serialized struct with Capn Proto headers
     /// @dev Execution cost: 1120 gas
+    /// @return a TXInPreImage struct
     function extractTXInPreImage(bytes memory src)
         internal
         pure
@@ -37,14 +38,15 @@ library TXInPreImageParserLibrary {
     }
 
     /**
-    @notice This function is for serializing the TXInPreImage struct from an defined
+    @notice This function is for deserializing the TXInPreImage struct from an defined
             location inside a binary blob. E.G Extract TXInPreImage from inside of
             other structure (E.g RCert capnproto) or skipping the capnproto
             headers.
     */
-    /// @param src Blob of binary data with a capnproto serialization
+    /// @param src Binary data containing a TXInPreImage serialized struct without CapnProto headers
     /// @param dataOffset offset to start reading the TXInPreImage data from inside src
     /// @dev Execution cost: 1084 gas
+    /// @return txInPreImage a TXInPreImage struct
     function extractInnerTXInPreImage(bytes memory src, uint256 dataOffset)
         internal
         pure

@@ -30,7 +30,9 @@ library BClaimsParserLibrary {
     included in the binary blob by capnproto. Therefore, we need to deduce 8
     bytes from the pointer's offset.
     */
-    /// @param src Blob of binary data with a capnproto serialization
+    /// @param src Binary data containing a BClaims serialized struct
+    /// @param dataOffset Blob of binary data with a capnproto serialization
+    /// @return pointerOffsetAdjustment the pointer offset adjustment in the blob data
     /// @dev Execution cost: 499 gas
     function getPointerOffsetAdjustment(bytes memory src, uint256 dataOffset) internal pure returns (uint16 pointerOffsetAdjustment) {
         // Size in capnproto words (16 bytes) of the data section
@@ -47,7 +49,7 @@ library BClaimsParserLibrary {
     }
 
     /**
-    @notice This function is for serializing data directly from capnproto
+    @notice This function is for deserializing data directly from capnproto
             BClaims. It will skip the first 8 bytes (capnproto headers) and
             deserialize the BClaims Data. This function also computes the right
             PointerOffset adjustment (see the documentation on
@@ -56,7 +58,8 @@ library BClaimsParserLibrary {
             PClaims capnproto) use the `extractInnerBClaims(bytes, uint,
             uint16)` instead.
     */
-    /// @param src Blob of binary data with a capnproto serialization
+    /// @param src Binary data containing a BClaims serialized struct with Capn Proto headers
+    /// @return bClaims the BClaims struct
     /// @dev Execution cost: 2484 gas
     function extractBClaims(bytes memory src)
         internal
@@ -67,15 +70,15 @@ library BClaimsParserLibrary {
     }
 
     /**
-    @notice This function is for serializing the BClaims struct from an defined
+    @notice This function is for deserializing the BClaims struct from an defined
             location inside a binary blob. E.G Extract BClaims from inside of
             other structure (E.g PClaims capnproto) or skipping the capnproto
             headers.
     */
-    /// @param src Blob of binary data with a capnproto serialization
+    /// @param src Binary data containing a BClaims serialized struct without Capn proto headers
     /// @param dataOffset offset to start reading the BClaims data from inside src
-    /// @param pointerOffsetAdjustment Pointer's offset that will be deduced from the pointers location
-    /// in case txCount is missing in the binary
+    /// @param pointerOffsetAdjustment Pointer's offset that will be deduced from the pointers location, in case txCount is missing in the binary
+    /// @return bClaims the BClaims struct
     /// @dev Execution cost: 2126 gas
     function extractInnerBClaims(bytes memory src, uint256 dataOffset, uint16 pointerOffsetAdjustment)
         internal

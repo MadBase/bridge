@@ -90,6 +90,48 @@ contract BaseParserLibraryTest is DSTest {
         uint16 actual = BaseParserLibrary.extractUInt16(b, 3);
     }
 
+    function testExtractUInt16FromBigEndian() public {
+        bytes memory b = hex"0102";
+        uint256 expected = 0x0102;
+        uint16 actual = BaseParserLibrary.extractUInt16FromBigEndian(b, 0);
+        assertEq(actual, expected);
+    }
+
+    function testExtractUInt16FromBigEndianWithTrashData() public {
+        bytes memory b = hex"0102deadbeef";
+        uint256 expected = 0x0102;
+        uint16 actual = BaseParserLibrary.extractUInt16FromBigEndian(b, 0);
+        assertEq(actual, expected);
+    }
+
+    function testExtractUInt16FromBigEndianInArbitraryPosition() public {
+        bytes memory b = hex"beefdead01020400deadbeef";
+        uint256 expected = 0x0102;
+        uint16 actual = BaseParserLibrary.extractUInt16FromBigEndian(b, 4);
+        assertEq(actual, expected);
+    }
+
+    function testFail_ExtractUInt16FromBigEndianOutSideData() public {
+        bytes memory b = hex"beefdead01020400deadbeef";
+        uint16 actual = BaseParserLibrary.extractUInt16FromBigEndian(b, 10000000000);
+    }
+
+    function testFail_ExtractUInt16FromBigEndianWithOverflow() public {
+        bytes memory b = hex"beefdead01020400deadbeef";
+        uint256 bigValue = 0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff;
+        uint16 actual = BaseParserLibrary.extractUInt16FromBigEndian(b, bigValue);
+    }
+
+    function testFail_ExtractUInt16FromBigEndianWithoutEnoughData() public {
+        bytes memory b = hex"01";
+        uint16 actual = BaseParserLibrary.extractUInt16FromBigEndian(b, 0);
+    }
+
+    function testFail_ExtractUInt16FromBigEndianFromMiddleWithoutEnoughData() public {
+        bytes memory b = hex"beef0102";
+        uint16 actual = BaseParserLibrary.extractUInt16FromBigEndian(b, 3);
+    }
+
     function testExtractBool() public {
         bytes memory b = hex"01";
         bool actual = BaseParserLibrary.extractBool(b, 0);
@@ -139,8 +181,34 @@ contract BaseParserLibraryTest is DSTest {
 
         uint256 expected = 0x10d7b2c2f196fceb52d546ea33816bdcf2fa5dcc79bcbcf0ce34ca1128b0d6d8;
         uint256 actual = BaseParserLibrary.extractUInt256(b, 0);
-
         assertEq(expected, actual);
+        uint256 expected2 = 0x2d8652a0c5193001a55c0c43b5e0450297d3824a039d924b08d46520b354251f;
+        uint256 actual2 = BaseParserLibrary.extractUInt256(b, 32);
+        assertEq(expected2, actual2);
+        uint256 expected3 = 0x8652a0c5193001a55c0c43b5e0450297d3824a039d924b08d46520b354251f10;
+        uint256 actual3 = BaseParserLibrary.extractUInt256(b, 33);
+        assertEq(expected3, actual3);
+    }
+
+    function testFail_ExtractUInt256OutSideData() public {
+        bytes memory b = hex"10d7b2c2f196fceb52d546ea33816bdcf2fa5dcc79bcbcf0ce34ca1128b0d6d8";
+        uint256 actual = BaseParserLibrary.extractUInt256(b, 10000000000);
+    }
+
+    function testFail_ExtractUInt256WithOverflow() public {
+        bytes memory b = hex"10d7b2c2f196fceb52d546ea33816bdcf2fa5dcc79bcbcf0ce34ca1128b0d6d8";
+        uint256 bigValue = 0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff;
+        uint256 actual = BaseParserLibrary.extractUInt256(b, bigValue);
+    }
+
+    function testFail_ExtractUInt256WithoutEnoughData() public {
+        bytes memory b = hex"beefdead01020400deadbeef";
+        uint256 actual = BaseParserLibrary.extractUInt256(b, 0);
+    }
+
+    function testFail_ExtractUInt256FromMiddleWithoutEnoughData() public {
+        bytes memory b = hex"10d7b2c2f196fceb52d546ea33816bdcf2fa5dcc79bcbcf0ce34ca1128b0d6d8";
+        uint256 actual = BaseParserLibrary.extractUInt256(b, 2);
     }
 
     function testExtractUInt256FromBigEndian() public {
@@ -159,6 +227,27 @@ contract BaseParserLibraryTest is DSTest {
         uint256 actual = BaseParserLibrary.extractUInt256FromBigEndian(b, 0);
 
         assertEq(actual, expected);
+    }
+
+    function testFail_ExtractUInt256FromBigEndianOutSideData() public {
+        bytes memory b = hex"10d7b2c2f196fceb52d546ea33816bdcf2fa5dcc79bcbcf0ce34ca1128b0d6d8";
+        uint256 actual = BaseParserLibrary.extractUInt256FromBigEndian(b, 10000000000);
+    }
+
+    function testFail_ExtractUInt256FromBigEndianWithOverflow() public {
+        bytes memory b = hex"10d7b2c2f196fceb52d546ea33816bdcf2fa5dcc79bcbcf0ce34ca1128b0d6d8";
+        uint256 bigValue = 0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff;
+        uint256 actual = BaseParserLibrary.extractUInt256FromBigEndian(b, bigValue);
+    }
+
+    function testFail_ExtractUInt256FromBigEndianWithoutEnoughData() public {
+        bytes memory b = hex"beefdead01020400deadbeef";
+        uint256 actual = BaseParserLibrary.extractUInt256FromBigEndian(b, 0);
+    }
+
+    function testFail_ExtractUInt256FromBigEndianFromMiddleWithoutEnoughData() public {
+        bytes memory b = hex"10d7b2c2f196fceb52d546ea33816bdcf2fa5dcc79bcbcf0ce34ca1128b0d6d8";
+        uint256 actual = BaseParserLibrary.extractUInt256FromBigEndian(b, 2);
     }
 
     function testReverse() public {

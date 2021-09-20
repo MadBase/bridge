@@ -21,13 +21,13 @@ library RClaimsParserLibrary {
     }
 
     /**
-    @notice This function is for serializing data directly from capnproto
+    @notice This function is for deserializing data directly from capnproto
             RClaims. It will skip the first 8 bytes (capnproto headers) and
             deserialize the RClaims Data. If RClaims is being extracted from
             inside of other structure (E.g RCert capnproto) use the
             `extractInnerRClaims(bytes, uint)` instead.
     */
-    /// @param src Blob of binary data with a capnproto serialization
+    /// @param src Binary data containing a RClaims serialized struct with Capn Proto headers
     /// @dev Execution cost: 1506 gas
     function extractRClaims(bytes memory src)
         internal
@@ -43,7 +43,7 @@ library RClaimsParserLibrary {
             other structure (E.g RCert capnproto) or skipping the capnproto
             headers.
     */
-    /// @param src Blob of binary data with a capnproto serialization
+    /// @param src Binary data containing a RClaims serialized struct without Capn Proto headers
     /// @param dataOffset offset to start reading the RClaims data from inside src
     /// @dev Execution cost: 1332 gas
     function extractInnerRClaims(bytes memory src, uint256 dataOffset)
