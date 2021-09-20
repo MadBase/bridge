@@ -3,13 +3,17 @@ pragma solidity >=0.5.15;
 pragma abicoder v2;
 
 import "./AccusationLibrary.sol";
+import "../interfaces/AccusationEvents.sol";
+import "../SafeMath.sol";
 
-contract AccusationNonExistentUTXOConsumptionFacet {
+contract AccusationInvalidTransactionConsumptionFacet is AccusationEvents {
+
+    using SafeMath for uint256;
 
     ///
     ///
     ///
-    function AccuseNonExistingUTXOConsumption(
+    function AccuseInvalidTransactionConsumption(
         bytes memory _pClaims,
         bytes memory _pClaimsSig,
         bytes memory _bClaims,
@@ -17,7 +21,8 @@ contract AccusationNonExistentUTXOConsumptionFacet {
         bytes memory _txInPreImage,
         bytes[3] memory _proofs
     ) external {
-        AccusationLibrary.AccuseNonExistingUTXOConsumption(
+        AccusationLibrary.AccusationStorage storage s = AccusationLibrary.accusationStorage();
+        address signer = AccusationLibrary.AccuseInvalidTransactionConsumption(
             _pClaims,
             _pClaimsSig,
             _bClaims,
@@ -25,5 +30,7 @@ contract AccusationNonExistentUTXOConsumptionFacet {
             _txInPreImage,
             _proofs
         );
+        s.accusations[signer] = s.accusations[signer].add(1);
+        emit InvalidTransactionConsumption(signer);
     }
 }

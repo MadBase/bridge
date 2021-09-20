@@ -21,7 +21,7 @@ contract StakingTokenMock is Token {
 
 }
 
-contract AccusationNonExistentUTXOConsumptionFacetTest is Constants, DSTest, Setup {
+contract AccusationInvalidTransactionConsumptionFacetTest is Constants, DSTest, Setup {
 
     function setUp() public override {
         setUp(address(new StakingTokenMock("STK", "MadNet Staking")));
@@ -151,7 +151,7 @@ contract AccusationNonExistentUTXOConsumptionFacetTest is Constants, DSTest, Set
             proofs
         ) = getValidAccusationData_NonExistentUTXO();
 
-        accusation.AccuseNonExistingUTXOConsumption(
+        accusation.AccuseInvalidTransactionConsumption(
             pClaims,
             pClaimsSig,
             bClaims,
@@ -180,7 +180,7 @@ contract AccusationNonExistentUTXOConsumptionFacetTest is Constants, DSTest, Set
             proofs
         ) = getValidAccusationData_DoubleSpentDeposit();
 
-        accusation.AccuseNonExistingUTXOConsumption(
+        accusation.AccuseInvalidTransactionConsumption(
             pClaims,
             pClaimsSig,
             bClaims,
@@ -209,7 +209,7 @@ contract AccusationNonExistentUTXOConsumptionFacetTest is Constants, DSTest, Set
             proofs
         ) = getInvalidAccusationData_SpendingValidDeposit();
 
-        accusation.AccuseNonExistingUTXOConsumption(
+        accusation.AccuseInvalidTransactionConsumption(
             pClaims,
             pClaimsSig,
             bClaims,
@@ -238,7 +238,7 @@ contract AccusationNonExistentUTXOConsumptionFacetTest is Constants, DSTest, Set
             proofs
         ) = getValidAccusationData_NonExistentUTXO();
 
-        accusation.AccuseNonExistingUTXOConsumption(
+        accusation.AccuseInvalidTransactionConsumption(
             pClaims,
             pClaimsSig,
             bClaims,
@@ -270,7 +270,7 @@ contract AccusationNonExistentUTXOConsumptionFacetTest is Constants, DSTest, Set
         // inject another chainId on BClaims capn proto binary
         bClaims[9] = bytes1(uint8(0x2));
 
-        accusation.AccuseNonExistingUTXOConsumption(
+        accusation.AccuseInvalidTransactionConsumption(
             pClaims,
             pClaimsSig,
             bClaims,
@@ -302,7 +302,7 @@ contract AccusationNonExistentUTXOConsumptionFacetTest is Constants, DSTest, Set
         // inject another height on BClaims capn proto binary
         bClaims[13] = bytes1(uint8(0x4));
 
-        accusation.AccuseNonExistingUTXOConsumption(
+        accusation.AccuseInvalidTransactionConsumption(
             pClaims,
             pClaimsSig,
             bClaims,
@@ -334,7 +334,7 @@ contract AccusationNonExistentUTXOConsumptionFacetTest is Constants, DSTest, Set
         // inject another bClaimsSigGroup
         bClaimsSigGroup[0] = bytes1(uint8(0x0));
 
-        accusation.AccuseNonExistingUTXOConsumption(
+        accusation.AccuseInvalidTransactionConsumption(
             pClaims,
             pClaimsSig,
             bClaims,
@@ -366,7 +366,7 @@ contract AccusationNonExistentUTXOConsumptionFacetTest is Constants, DSTest, Set
         // inject an invalid bClaimsSigGroup
         bClaimsSigGroup = hex"258aa89365a642358d92db67a13cb25d73e6eedf0d25100d8d91566882fac54b1ccedfb0425434b54999a88cd7d993e05411955955c0cfec9dd33066605bd4a60f6bbfbab37349aaa762c23281b5749932c514f3b8723cf9bb05f9841a7f2d0e0f75e42fd6c8e9f0edadac3dcfb7416c2d4b2470f4210f2afa93138615b1deb10cdc89f164e81cc49e06c4a7e1dcdcf7c0108e8cc9bb1032f9df6d4e834f1bb318accba7ae3f4b28bd9ba81695ba475f70d40a14b12ca3ef9764f2a6d9bfc53a";
 
-        accusation.AccuseNonExistingUTXOConsumption(
+        accusation.AccuseInvalidTransactionConsumption(
             pClaims,
             pClaimsSig,
             bClaims,
@@ -423,7 +423,7 @@ contract AccusationNonExistentUTXOConsumptionFacetTest is Constants, DSTest, Set
             hex"06f5308b02f59062b735d0021ba93b1b9c09f3e168384b96b1eccfed65935714"
             hex"2a7bd3532dc054cb5be81e9d559128229d61a00474b983a3569f538eb03d07ce";
 
-        accusation.AccuseNonExistingUTXOConsumption(
+        accusation.AccuseInvalidTransactionConsumption(
             pClaims,
             pClaimsSig,
             bClaims,

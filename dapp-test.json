@@ -164,8 +164,8 @@
     "src/facets/AccusationMultipleProposalFacet.t.sol": {
         "urls": ["src/facets/AccusationMultipleProposalFacet.t.sol"]
     },
-    "src/facets/AccusationNonExistentUTXOConsumptionFacet.t.sol": {
-      "urls": ["src/facets/AccusationNonExistentUTXOConsumptionFacet.t.sol"]
+    "src/facets/AccusationInvalidTransactionConsumptionFacet.t.sol": {
+      "urls": ["src/facets/AccusationInvalidTransactionConsumptionFacet.t.sol"]
     }
   },
   "settings": {

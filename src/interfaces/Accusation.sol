@@ -7,8 +7,6 @@ import "../Registry.sol";
 
 interface Accusation is AccusationEvents {
 
-    function initializeAccusation(Registry registry) external;
-
     function AccuseMultipleProposal(
         bytes calldata _signature0,
         bytes calldata _pClaims0,
@@ -16,7 +14,7 @@ interface Accusation is AccusationEvents {
         bytes calldata _pClaims1
     ) external;
 
-    function AccuseNonExistingUTXOConsumption(
+    function AccuseInvalidTransactionConsumption(
         bytes calldata _pClaims,
         bytes calldata _pClaimsSig,
         bytes calldata _bClaims,

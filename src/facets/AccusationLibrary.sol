@@ -43,14 +43,14 @@ library AccusationLibrary {
     /// @notice This handles the accusation for a non existing UTXO
     ///
     ///
-    function AccuseNonExistingUTXOConsumption(
+    function AccuseInvalidTransactionConsumption(
         bytes memory _pClaims,
         bytes memory _pClaimsSig,
         bytes memory _bClaims,
         bytes memory _bClaimsGroupSig,
         bytes memory _txInPreImage,
         bytes[3] memory _proofs
-    ) internal {
+    ) internal returns (address){
         // Require that the previous block is signed by correct group key for validator set.
         verifyGroupSignature(_bClaims, _bClaimsGroupSig);
 
@@ -94,6 +94,7 @@ library AccusationLibrary {
         }
 
         //todo burn the validator's tokens
+        return signerAccount;
     }
 
 
