@@ -2,18 +2,13 @@
 pragma solidity >=0.5.15;
 
 import "./AccusationLibrary.sol";
-import "./AccessControlLibrary.sol";
 import "../interfaces/AccusationEvents.sol";
 import "../SafeMath.sol";
 
 
-contract AccusationMultipleProposalFacet is AccessControlled, AccusationEvents {
+contract AccusationMultipleProposalFacet is AccusationEvents {
 
     using SafeMath for uint256;
-
-    function initializeAccusation(Registry registry) external view onlyOperator {
-        require(address(registry) != address(0), "nil registry address");
-    }
 
     /// @notice This function validates an accusation of multiple proposals.
     /// @param _signature0 The signature of pclaims0

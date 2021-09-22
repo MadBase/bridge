@@ -14,6 +14,7 @@ import "./ParticipantsFacet.sol";
 import "./SnapshotsFacet.sol";
 import "./StakingFacet.sol";
 import "./AccusationMultipleProposalFacet.sol";
+import "./AccusationInvalidTransactionConsumptionFacet.sol";
 
 import "../Constants.sol";
 import "../EthDKGDiamond.sol";
@@ -77,7 +78,7 @@ contract Setup is Constants {
         participants.initializeParticipants(registry);
         snapshots.initializeSnapshots(registry);
         staking.initializeStaking(registry);
-        accusation.initializeAccusation(registry);
+
 
         // Base scenario setup
         stakingToken.approve(address(staking), INITIAL_AMOUNT);
@@ -105,7 +106,8 @@ contract Setup is Constants {
         address participantsFacet = address(new ParticipantsFacet());
         address snapshotsFacet = address(new SnapshotsFacet());
         address stakingFacet = address(new StakingFacet());
-        address accusationFacet = address(new AccusationMultipleProposalFacet());
+        address accusationMultipleProposalFacet = address(new AccusationMultipleProposalFacet());
+        address accusationInvalidTransactionConsumptionFacet = address(new AccusationInvalidTransactionConsumptionFacet());
 
         // SnapshotFacet Wiring
         update.addFacet(Snapshots.initializeSnapshots.selector, snapshotsFacet);
@@ -139,8 +141,8 @@ contract Setup is Constants {
         update.addFacet(Staking.burn.selector, stakingFacet);
 
         // Accusation Wiring
-        update.addFacet(Accusation.initializeAccusation.selector, accusationFacet);
-        update.addFacet(Accusation.AccuseMultipleProposal.selector, accusationFacet);
+        update.addFacet(Accusation.AccuseMultipleProposal.selector, accusationMultipleProposalFacet);
+        update.addFacet(Accusation.AccuseInvalidTransactionConsumption.selector, accusationInvalidTransactionConsumptionFacet);
 
         // ParticipantsFacet Wiring
         update.addFacet(Participants.initializeParticipants.selector, participantsFacet);

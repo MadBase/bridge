@@ -9,7 +9,21 @@ import "./SnapshotsLibrary.sol";
 import "./AccusationMultipleProposalFacet.sol";
 import "./AccusationLibrary.sol";
 
-contract TestAccusationLibrary is Constants, DSTest, Setup {
+contract StakingTokenMock is Token {
+
+    constructor(bytes32 symbol, bytes32 name) Token(symbol, name) {}
+
+    function approveFor(address owner, address who, uint wad) external returns (bool) {
+        allowance[owner][who] = wad;
+
+        emit Approval(owner, who, wad);
+
+        return true;
+    }
+
+}
+
+contract AccusationMultipleProposalFacetTest is Constants, DSTest, Setup {
 
     function setUp() public override {
         setUp(address(new StakingTokenMock("STK", "MadNet Staking")));
@@ -360,20 +374,6 @@ contract TestAccusationLibrary is Constants, DSTest, Setup {
 
         address who = AccusationLibrary.recoverSigner(sig, prefix, message);
         assertEq(who, 0x38e959391dD8598aE80d5d6D114a7822A09d313A);
-    }
-
-}
-
-contract StakingTokenMock is Token {
-
-    constructor(bytes32 symbol, bytes32 name) Token(symbol, name) {}
-
-    function approveFor(address owner, address who, uint wad) external returns (bool) {
-        allowance[owner][who] = wad;
-
-        emit Approval(owner, who, wad);
-
-        return true;
     }
 
 }

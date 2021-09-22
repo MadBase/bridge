@@ -5,7 +5,6 @@
     "src/Registry.sol": { "urls": ["src/Registry.sol"] },
     "src/SimpleAuth.sol": { "urls": ["src/SimpleAuth.sol"] },
     "src/Token.sol": { "urls": ["src/Token.sol"] },
-    "src/MerkleProof.sol": { "urls": ["src/MerkleProof.sol"] },
     "src/TokenMigrator.sol": { "urls": ["src/TokenMigrator.sol"] },
     "src/Diamond.sol": { "urls": ["src/Diamond.sol"] },
     "src/ERC165.sol": { "urls": ["src/ERC165.sol"] },

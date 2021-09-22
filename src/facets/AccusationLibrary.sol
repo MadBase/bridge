@@ -1,10 +1,15 @@
 // SPDX-License-Identifier: MIT-open-group
 pragma solidity >= 0.5.15;
 
-import "../parsers/PClaimsParserLibrary.sol";
+import "./MerkleProofLibrary.sol";
 import "./ChainStatusLibrary.sol";
 import "./ParticipantsLibrary.sol";
 import "./SnapshotsLibrary.sol";
+import "../parsers/PClaimsParserLibrary.sol";
+import "../parsers/RCertParserLibrary.sol";
+import "../parsers/MerkleProofParserLibrary.sol";
+import "../parsers/TXInPreImageParserLibrary.sol";
+import "../CryptoLibrary.sol";
 
 library AccusationLibrary {
 
@@ -24,6 +29,86 @@ library AccusationLibrary {
         }
     }
 
+    /// @notice This function verifies the signature group of a BClaims.
+    /// @param _bClaims the BClaims of the accusation
+    /// @param _bClaimsSigGroup the signature group of Pclaims
+    function verifySignatureGroup(bytes memory _bClaims, bytes memory _bClaimsSigGroup) internal view {
+        uint256[4] memory publicKey;
+        uint256[2] memory signature;
+        (publicKey, signature) = RCertParserLibrary.extractSigGroup(_bClaimsSigGroup, 0);
+
+        require(
+            CryptoLibrary.Verify(abi.encodePacked(keccak256(_bClaims)), signature, publicKey),
+            "AccusationLibrary: Signature verification failed"
+        );
+    }
+
+    /// @notice This function validates an accusation of non-existent utxo consumption, as well as invalid deposit consumption.
+    /// @param _pClaims the PClaims of the accusation
+    /// @param _pClaimsSig the signature of PClaims
+    /// @param _bClaims the BClaims of the accusation
+    /// @param _bClaimsSigGroup the signature group of PClaims
+    /// @param _txInPreImage the TXInPreImage consuming the invalid transaction
+    /// @param _proofs an array of merkle proof structs in the following order:
+    /// proof against StateRoot: Proof of inclusion or exclusion of the deposit or UTXO in the stateTrie
+    /// proof of inclusion in TXRoot: Proof of inclusion of the transaction that included the invalid input in the txRoot trie.
+    /// proof of inclusion in TXHash: Proof of inclusion of the invalid input (txIn) in the txHash trie (transaction tested against the TxRoot).
+    /// @return the address of the signer
+    function AccuseInvalidTransactionConsumption(
+        bytes memory _pClaims,
+        bytes memory _pClaimsSig,
+        bytes memory _bClaims,
+        bytes memory _bClaimsSigGroup,
+        bytes memory _txInPreImage,
+        bytes[3] memory _proofs
+    ) internal view returns (address){
+        // Require that the previous block is signed by correct group key for validator set.
+        verifySignatureGroup(_bClaims, _bClaimsSigGroup);
+
+        // Require that height delta is 1.
+        BClaimsParserLibrary.BClaims memory bClaims = BClaimsParserLibrary.extractBClaims(_bClaims);
+        PClaimsParserLibrary.PClaims memory pClaims = PClaimsParserLibrary.extractPClaims(_pClaims);
+
+        require(pClaims.bClaims.txCount > 0, "AccusationLibrary: The accused proposal doesn't have any transaction!");
+        require(bClaims.height+1 == pClaims.bClaims.height, "AccusationLibrary: Height delta should be 1");
+
+        // Require that chainID is equal.
+        require(bClaims.chainId == pClaims.bClaims.chainId, "AccusationLibrary: ChainId should be the same");
+
+        // Require that Proposal was signed by active validator.
+        address signerAccount = recoverMadNetSigner(_pClaimsSig, _pClaims);
+        require(ParticipantsLibrary.isValidator(signerAccount), "AccusationLibrary: the signer of these proposal is not a valid validator!");
+
+        // Validate ProofInclusionTxRoot against PClaims.BClaims.TxRoot.
+        MerkleProofParserLibrary.MerkleProof memory proofInclusionTxRoot = MerkleProofParserLibrary.extractMerkleProof(_proofs[1]);
+        MerkleProofLibrary.verifyInclusion(proofInclusionTxRoot, pClaims.bClaims.txRoot);
+
+        // Validate ProofOfInclusionTxHash against the target hash from ProofInclusionTxRoot.
+        MerkleProofParserLibrary.MerkleProof memory proofOfInclusionTxHash = MerkleProofParserLibrary.extractMerkleProof(_proofs[2]);
+        MerkleProofLibrary.verifyInclusion(proofOfInclusionTxHash, proofInclusionTxRoot.key);
+
+        MerkleProofParserLibrary.MerkleProof memory proofAgainstStateRoot = MerkleProofParserLibrary.extractMerkleProof(_proofs[0]);
+        require(proofAgainstStateRoot.key == proofOfInclusionTxHash.key, "AccusationLibrary: The UTXO should match!");
+
+        TXInPreImageParserLibrary.TXInPreImage memory txInPreImage = TXInPreImageParserLibrary.extractTXInPreImage(_txInPreImage);
+
+        // checking if we are consuming a deposit or an UTXO
+        if (txInPreImage.consumedTxIdx == 0xFFFFFFFF){
+            // Double spending problem, i.e, consuming a deposit that was already consumed
+            require(txInPreImage.consumedTxHash == proofAgainstStateRoot.key, "AccusationLibrary: The key of Merkle Proof should be equal to the consumed deposit key!");
+            MerkleProofLibrary.verifyInclusion(proofAgainstStateRoot, bClaims.stateRoot);
+            // todo: deposit that doesn't exist in the chain. Maybe split this in separate functions?
+        } else {
+            //Consuming a non existing UTXO
+            require(computeUTXOID(txInPreImage.consumedTxHash, txInPreImage.consumedTxIdx) == proofAgainstStateRoot.key, "AccusationLibrary: The key of Merkle Proof should be equal to the UTXOID being spent!");
+            MerkleProofLibrary.verifyNonInclusion(proofAgainstStateRoot, bClaims.stateRoot);
+        }
+
+        //todo burn the validator's tokens
+        return signerAccount;
+    }
+
+
     /// @notice This function validates an accusation of multiple proposals.
     /// @param _signature0 The signature of pclaims0
     /// @param _pClaims0 The PClaims of the accusation
@@ -40,29 +125,29 @@ library AccusationLibrary {
         address signerAccount0 = recoverMadNetSigner(_signature0, _pClaims0);
         address signerAccount1 = recoverMadNetSigner(_signature1, _pClaims1);
 
-        require(signerAccount0 == signerAccount1, "Invalid multiple proposal accusation, the signers of the proposals are different!");
+        require(signerAccount0 == signerAccount1, "AccusationLibrary: the signers of the proposals should be the same");
 
         // ensure the hashes of blob0/1 are different
-        require(keccak256(_pClaims0) != keccak256(_pClaims1), "Invalid multiple proposal accusation, the PClaims are equal!");
+        require(keccak256(_pClaims0) != keccak256(_pClaims1), "AccusationLibrary: the PClaims are equal!");
 
-        PClaimsParserLibrary.PClaims memory pClaims0 = PClaimsParserLibrary.extractPClaims(_pClaims0, PClaimsParserLibrary.CAPNPROTO_HEADER_SIZE);
-        PClaimsParserLibrary.PClaims memory pClaims1 = PClaimsParserLibrary.extractPClaims(_pClaims1, PClaimsParserLibrary.CAPNPROTO_HEADER_SIZE);
+        PClaimsParserLibrary.PClaims memory pClaims0 = PClaimsParserLibrary.extractPClaims(_pClaims0);
+        PClaimsParserLibrary.PClaims memory pClaims1 = PClaimsParserLibrary.extractPClaims(_pClaims1);
 
         // ensure the height of blob0/1 are equal using RCert sub object of PClaims
-        require(pClaims0.rCert.rClaims.height == pClaims1.rCert.rClaims.height, "Invalid multiple proposal accusation, the block heights between the proposals are different!");
+        require(pClaims0.rCert.rClaims.height == pClaims1.rCert.rClaims.height, "AccusationLibrary: the block heights between the proposals are different!");
 
         // ensure the round of blob0/1 are equal using RCert sub object of PClaims
-        require(pClaims0.rCert.rClaims.round == pClaims1.rCert.rClaims.round, "Invalid multiple proposal accusation, the round between the proposals are different!");
+        require(pClaims0.rCert.rClaims.round == pClaims1.rCert.rClaims.round, "AccusationLibrary: the round between the proposals are different!");
 
         // ensure the chainid of blob0/1 are equal using RCert sub object of PClaims
-        require(pClaims0.rCert.rClaims.chainId == pClaims1.rCert.rClaims.chainId, "Invalid multiple proposal accusation, the chainId between the proposals are different!");
+        require(pClaims0.rCert.rClaims.chainId == pClaims1.rCert.rClaims.chainId, "AccusationLibrary: the chainId between the proposals are different!");
 
         // ensure the chainid of blob0 is correct for this chain using RCert sub object of PClaims
         uint32 chainId = ChainStatusLibrary.chainId();
-        require(pClaims0.rCert.rClaims.chainId == chainId, "Invalid multiple proposal accusation, the chainId is invalid for this chain!");
+        require(pClaims0.rCert.rClaims.chainId == chainId, "AccusationLibrary: the chainId is invalid for this chain!");
 
         // ensure both accounts are applicable to a currently locked validator - Note<may be done in different layer?>
-        require(ParticipantsLibrary.isValidator(signerAccount0), "Invalid multiple proposal accusation, the signer of these proposals is not a valid validator!");
+        require(ParticipantsLibrary.isValidator(signerAccount0), "AccusationLibrary: the signer of these proposals is not a valid validator!");
 
         return signerAccount0;
     }
@@ -74,7 +159,7 @@ library AccusationLibrary {
     /// @return the address of the signer
     function recoverSigner(bytes memory signature, bytes memory prefix, bytes memory message) internal pure returns (address) {
 
-        require(signature.length==65, "Signature should be 65 bytes");
+        require(signature.length==65, "AccusationLibrary: Signature should be 65 bytes");
 
         bytes32 hashedMessage = keccak256(abi.encodePacked(prefix, message));
 
@@ -90,7 +175,7 @@ library AccusationLibrary {
 
         v = (v < 27) ? (v + 27) : v;
 
-        require(v == 27 || v == 28, "Signature uses invalid version");
+        require(v == 27 || v == 28, "AccusationLibrary: Signature uses invalid version");
 
         return ecrecover(hashedMessage, v, r, s);
     }
@@ -102,6 +187,14 @@ library AccusationLibrary {
     /// @return the address of the signer
     function recoverMadNetSigner(bytes memory signature, bytes memory message) internal pure returns (address) {
         return recoverSigner(signature, "Proposal" , message);
+    }
+
+    /// @notice Computes the UTXOID
+    /// @param txHash the transaction hash
+    /// @param txIdx the transaction index
+    /// @return the UTXOID
+    function computeUTXOID(bytes32 txHash, uint32 txIdx) internal pure returns (bytes32) {
+        return keccak256(abi.encodePacked(txHash, txIdx));
     }
 
 }
