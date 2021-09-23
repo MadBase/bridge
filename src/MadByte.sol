@@ -2,7 +2,12 @@
 pragma solidity ^0.7.6;
 
 //import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "openzeppelin-contracts/token/ERC20/ERC20.sol";
+import "./Admin.sol";
+import "./Mutex.sol";
+import "./MagicEthTransfer.sol";
+import "./EthSafeTransfer.sol";
+import "./Sigmoid.sol";
 
 
 contract MadByte is ERC20, Admin, Mutex, MagicEthTransfer, EthSafeTransfer, Sigmoid {
@@ -97,11 +102,11 @@ contract MadByte is ERC20, Admin, Mutex, MagicEthTransfer, EthSafeTransfer, Sigm
     }
     
     function _mint(address to_, uint256 numEth_, uint256 minMB_) internal returns(uint256 nuMB) {
-        require(numEth_ >= 3);
+        require(numEth_ >= 3, "MadByte: requires at least 3 WEI");
         numEth_ = numEth_/marketSpread;
         uint256 poolBalance = _poolBalance;
         nuMB = _EthtoMB(_poolBalance, numEth_);
-        require(nuMB >= minMB_);
+        require(nuMB >= minMB_, "MadByte: could not mint minimum MadBytes");
         poolBalance += numEth_;
         _poolBalance = poolBalance;
         ERC20._mint(to_, nuMB);

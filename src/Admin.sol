@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT-open-group
-pragma solidity ^0.8.0;
+pragma solidity ^0.7.6;
 
 
 abstract contract Admin {
@@ -13,7 +13,7 @@ abstract contract Admin {
 
     // onlyAdmin enforces msg.sender is _admin
     modifier onlyAdmin() {
-        require(msg.sender == _admin);
+        require(msg.sender == _admin, "Must be admin");
         _;
     }
     

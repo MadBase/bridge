@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT-open-group
-pragma solidity ^0.8.0;
+pragma solidity ^0.7.6;
 
 import "./MagicValue.sol";
 import "./interfaces/IERC20Transfer.sol";

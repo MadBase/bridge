@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT-open-group
-pragma solidity ^0.8.0;
+pragma solidity ^0.7.6;
 
 
 abstract contract Sigmoid {
@@ -7,9 +7,9 @@ abstract contract Sigmoid {
     uint256 constant a = 500;
     uint256 constant b = 3*10**21;
     uint256 constant c = 10**42;
-    uint256 constant C1 = 1581138830084189665999000; // a*(sqrt(b**2 + c));
-    uint256 constant C2 = 40569415042094832999500000; // a*C1 - a**2*b;
-    uint256 constant C3 = 3162277660168379331998; // (sqrt(b**2 + c);
+    uint256 constant C1 =  1_581_138_830_084_189_665_999_000; // a*(sqrt(b**2 + c));
+    uint256 constant C2 = 40_569_415_042_094_832_999_500_000; // a*C1 - a**2*b;
+    uint256 constant C3 =      3_162_277_660_168_379_331_998; // (sqrt(b**2 + c);
     
     // _fx is the integral of the sigmoidal price function
     // this function calculates the amount of eth that should
