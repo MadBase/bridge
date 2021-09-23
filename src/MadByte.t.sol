@@ -172,13 +172,13 @@ contract MadByteTest is DSTest, Sigmoid {
         assertEq(madBytes, 0);
         */
 
-        for (uint256 i=1 ether; i<500000 ether; i += 1 ether) {
+        /*for (uint256 i=1 ether; i<100000 ether; i += 1 ether) {
             emit log_named_uint("i", _fx(i));
-        }
+        }*/
 
         
 
-        fail();
+        //fail();
 
         //to_.depositEth{value: amount_}(_getMagic());
     }
