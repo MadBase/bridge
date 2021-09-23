@@ -219,20 +219,23 @@ library StakingLibrary {
 
         // TODO Optimize?
         // Filty filthy code. Loop over the rewards and unlock what is scheduled.
-        for (uint256 idx; idx<rewards.length; idx++) {
+        uint256 idx=0;
+        while (idx<rewards.length) {
             RewardDetails storage reward = rewards[idx];
 
             if (reward.unlockEpoch <= ChainStatusLibrary.epoch()) {
-                rewardUnlocked = rewardUnlocked.add(reward.amountReward);
+                rewardUnlocked = rewardUnlocked + reward.amountReward;
 
                 // copy last reward in array into this spot; toss old reward; don't move on yet
                 rewards[idx] = rewards[rewards.length-1];
                 rewards.pop();
-                idx--;
+                continue;
             }
+
+            idx++;
         }
 
-        detail.unlockedReward = detail.unlockedReward.add(rewardUnlocked);
+        detail.unlockedReward = detail.unlockedReward + rewardUnlocked;
 
         return true;
     }

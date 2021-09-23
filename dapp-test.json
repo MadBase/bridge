@@ -185,7 +185,7 @@
       "ds-token=lib/ds-token/src/index.sol",
       "ds-note/=lib/ds-stop/lib/ds-note/src/",
       "ds-note=lib/ds-stop/lib/ds-note/src/index.sol",
-      "openzeppelin-contracts/=lib/openzeppelin-contracts/src/"
+      "openzeppelin-contracts/=lib/openzeppelin-contracts/contracts/"
     ],
     "outputSelection": {
       "*": {
