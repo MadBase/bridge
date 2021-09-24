@@ -15,16 +15,12 @@ contract TokenTest is DSTest {
     }
 
     function testInitialization() public {
-        string memory symbol = "UTL";
-        string memory name = "MadNet Utility";
-        assertTrue(uToken.symbol() == symbol);
-        assertTrue(uToken.name() == name);
+        assertTrue(uToken.symbol() == "UTL");
+        assertTrue(uToken.name() == "MadNet Utility");
         assertTrue(uToken.decimals() == 18);
 
-        symbol = "STK";
-        name = "MadNet Staking";
-        assertTrue(sToken.symbol() == symbol);
-        assertTrue(sToken.name() == name);
+        assertTrue(sToken.symbol() == "STK");
+        assertTrue(sToken.name() == "MadNet Staking");
         assertTrue(sToken.decimals() == 18);
     }
 }

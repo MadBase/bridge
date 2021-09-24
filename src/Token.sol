@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT-open-group
 pragma solidity >=0.5.15;
 
-import "./lib/ds-token/token.sol";
+import "ds-token/token.sol";
 
 import "./SimpleAuth.sol";
 
@@ -17,7 +17,7 @@ contract Token is DSToken, SimpleAuth {
     uint constant initialSupply = 1_000_000_000_000_000_000_000_000_000_000;
     TokenAuthority authority_ = new TokenAuthority();
 
-    constructor(string memory symbol_, string memory name_) DSToken(symbol_) {
+    constructor(bytes32 symbol_, bytes32 name_) DSToken(symbol_) {
         setAuthority(authority_);
         name = name_;
 

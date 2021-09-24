@@ -6,5 +6,4 @@
 # dapp debug folders
 ./hevm/*
 **.DS_Store
-./out/*
 hevm.libs.*
