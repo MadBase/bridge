@@ -164,9 +164,6 @@
     },
     "src/facets/AccusationInvalidTransactionConsumptionFacet.t.sol": {
       "urls": ["src/facets/AccusationInvalidTransactionConsumptionFacet.t.sol"]
-    },
-    "src/MadByte.t.sol": {
-      "urls": ["src/MadByte.t.sol"]
     }
   },
   "settings": {
