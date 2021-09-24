@@ -1,3 +1,37 @@
+Skip to content
+Search or jump to…
+Pull requests
+Issues
+Marketplace
+Explore
+ 
+@vtleonardo 
+dapphub
+/
+ds-token
+Public
+16
+136
+56
+Code
+Issues
+3
+Pull requests
+1
+Actions
+Projects
+Wiki
+Security
+Insights
+ds-token/src/token.sol
+@gbalabasquer
+gbalabasquer Simplify usage of variables + local implementation start/stop
+Latest commit 51cf0a1 on Jul 20, 2020
+ History
+ 6 contributors
+@rainbreak@nmushegian@dbrock@nanexcool@gbalabasquer@apmilen
+136 lines (104 sloc)  4.31 KB
+   
 /// token.sol -- ERC20 implementation with minting and burning
 
 // Copyright (C) 2015, 2016, 2017  DappHub, LLC
@@ -26,12 +60,11 @@ contract DSToken is DSMath, DSAuth {
     uint256                                           public  totalSupply;
     mapping (address => uint256)                      public  balanceOf;
     mapping (address => mapping (address => uint256)) public  allowance;
-    string                                            public  symbol;
-    uint8                                             public  decimals = 18; // standard token precision. override to customize
-    string                                            public  name = "";     // Optional token name
+    bytes32                                           public  symbol;
+    uint256                                           public  decimals = 18; // standard token precision. override to customize
+    bytes32                                           public  name = "";     // Optional token name
 
-
-    constructor(string memory symbol_) public {
+    constructor(bytes32 symbol_) public {
         symbol = symbol_;
     }
 
@@ -131,8 +164,20 @@ contract DSToken is DSMath, DSAuth {
         emit Start();
     }
 
-
-    function setName(string memory name_) public auth {
+    function setName(bytes32 name_) external auth {
         name = name_;
     }
 }
+© 2021 GitHub, Inc.
+Terms
+Privacy
+Security
+Status
+Docs
+Contact GitHub
+Pricing
+API
+Training
+Blog
+About
+Loading complete
