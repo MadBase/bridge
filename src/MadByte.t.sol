@@ -35,16 +35,28 @@ contract AdminAccount is BaseMock {
     }
 }
 
-contract MadStakingAccount is BaseMock {
+contract MadStakingAccount is BaseMock, IMagicEthTransfer, MagicValue {
     constructor() {}
+
+    function depositEth(uint8 magic_) override external payable checkMagic(magic_) {
+        
+    }
 }
 
-contract MinerStakingAccount is BaseMock {
+contract MinerStakingAccount is BaseMock, IMagicEthTransfer, MagicValue {
     constructor() {}
+
+    function depositEth(uint8 magic_) override external payable checkMagic(magic_) {
+        
+    }
 }
 
-contract FoundationAccount is BaseMock {
+contract FoundationAccount is BaseMock, IMagicEthTransfer, MagicValue {
     constructor() {}
+
+    function depositEth(uint8 magic_) override external payable checkMagic(magic_) {
+        
+    }
 }
 
 contract UserAccount is BaseMock {
@@ -61,7 +73,7 @@ contract UserAccount is BaseMock {
 
 contract MadByteTest is DSTest, Sigmoid {
 
-    uint256 ONE_MB = 1*10**18;
+    uint256 constant ONE_MB = 1*10**18;
 
     // helper functions
 
@@ -220,5 +232,66 @@ contract MadByteTest is DSTest, Sigmoid {
         assertEq(finalBalance1, ONE_MB);
         assertEq(finalBalance2, ONE_MB);
     }
+
+    function testDistribute() public {
+        (
+            MadByte token,
+            ,
+            MadStakingAccount madStaking,
+            MinerStakingAccount minerStaking,
+            FoundationAccount foundation
+        ) = getFixtureData();
+
+        // assert balances
+        assertEq(address(madStaking).balance, 0);
+        assertEq(address(minerStaking).balance, 0);
+        assertEq(address(foundation).balance, 0);
+        
+        // mint and transfer some tokens to the accounts
+        uint256 madBytes = token.mint{value: 3 ether}(0);
+        assertEq(madBytes, 25_666259041293710500);
+
+        (uint256 foundationAmount, uint256 minerAmount, uint256 stakingAmount) = token.distribute();
+
+        // assert balances
+        assertEq(stakingAmount, 997000000000000000);
+        assertEq(minerAmount, 997000000000000000);
+        assertEq(foundationAmount, 6000000000000000);
+
+        assertEq(address(madStaking).balance, 997000000000000000);
+        assertEq(address(minerStaking).balance, 997000000000000000);
+        assertEq(address(foundation).balance, 6000000000000000);
+    }
+
+    function testDistribute2() public {
+        (
+            MadByte token,
+            ,
+            MadStakingAccount madStaking,
+            MinerStakingAccount minerStaking,
+            FoundationAccount foundation
+        ) = getFixtureData();
+
+        // assert balances
+        assertEq(address(madStaking).balance, 0);
+        assertEq(address(minerStaking).balance, 0);
+        assertEq(address(foundation).balance, 0);
+        
+        // mint and transfer some tokens to the accounts
+        uint256 madBytes = token.mint{value: 300 ether}(0);
+        assertEq(madBytes, 2647_334933607070027500);
+
+        (uint256 foundationAmount, uint256 minerAmount, uint256 stakingAmount) = token.distribute();
+
+        // assert balances
+        assertEq(stakingAmount, 99700000000000000000);
+        assertEq(minerAmount, 99700000000000000000);
+        assertEq(foundationAmount, 600000000000000000);
+
+        assertEq(address(madStaking).balance, 99700000000000000000);
+        assertEq(address(minerStaking).balance, 99700000000000000000);
+        assertEq(address(foundation).balance, 600000000000000000);
+    }
+    
 
 }
