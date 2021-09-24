@@ -1,37 +1,3 @@
-Skip to content
-Search or jump to…
-Pull requests
-Issues
-Marketplace
-Explore
- 
-@vtleonardo 
-dapphub
-/
-ds-token
-Public
-16
-136
-56
-Code
-Issues
-3
-Pull requests
-1
-Actions
-Projects
-Wiki
-Security
-Insights
-ds-token/src/token.sol
-@gbalabasquer
-gbalabasquer Simplify usage of variables + local implementation start/stop
-Latest commit 51cf0a1 on Jul 20, 2020
- History
- 6 contributors
-@rainbreak@nmushegian@dbrock@nanexcool@gbalabasquer@apmilen
-136 lines (104 sloc)  4.31 KB
-   
 /// token.sol -- ERC20 implementation with minting and burning
 
 // Copyright (C) 2015, 2016, 2017  DappHub, LLC
@@ -168,16 +134,3 @@ contract DSToken is DSMath, DSAuth {
         name = name_;
     }
 }
-© 2021 GitHub, Inc.
-Terms
-Privacy
-Security
-Status
-Docs
-Contact GitHub
-Pricing
-API
-Training
-Blog
-About
-Loading complete
