@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT-open-group
 pragma solidity ^0.8.0;
 
-import "./lib/openzeppelin//token/ERC721/ERC721.sol";
-import "./lib/openzeppelin//token/ERC20/ERC20.sol";
+import "./lib/openzeppelin/token/ERC721/ERC721.sol";
+import "./lib/openzeppelin/token/ERC20/ERC20.sol";
 
 
 contract StakeNFT is ERC721, MagicValue, Admin, Governance, CircuitBreaker, AtomicCounter, EthSafeTransfer, ERC20SafeTransfer, GovernanceMaxLock, ICBOpener {
