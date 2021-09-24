@@ -49,6 +49,10 @@ contract FoundationAccount is BaseMock {
 
 contract UserAccount is BaseMock {
     constructor() {}
+
+    function transfer(address to, uint256 amount) public returns(bool) {
+        return token.transfer(to, amount);
+    }
 }
 
 contract MadByteTest is DSTest, Sigmoid {
@@ -116,71 +120,45 @@ contract MadByteTest is DSTest, Sigmoid {
         madBytes = token.mint{value: 3 ether}(0);
         assertEq(madBytes, 25682084669534371500);
         
-        /*
-        madBytes = token.mint{value: 3}(0);
-        assertEq(madBytes, 500);
-
-        madBytes = token.mint{value: 3}(0);
-        assertEq(madBytes, 0);
-        madBytes = token.mint{value: 3}(0);
-        assertEq(madBytes, 0);
-        madBytes = token.mint{value: 3}(0);
-        assertEq(madBytes, 0);
-        madBytes = token.mint{value: 3}(0);
-        assertEq(madBytes, 0);
-        madBytes = token.mint{value: 3}(0);
-        assertEq(madBytes, 0);
-        madBytes = token.mint{value: 3}(0);
-        assertEq(madBytes, 0);
-        madBytes = token.mint{value: 3}(0);
-        assertEq(madBytes, 0);
-        madBytes = token.mint{value: 3}(0);
-        assertEq(madBytes, 0);
-        madBytes = token.mint{value: 3}(0);
-        assertEq(madBytes, 0);
-        madBytes = token.mint{value: 3}(0);
-        assertEq(madBytes, 0);
-        madBytes = token.mint{value: 3}(0);
-        assertEq(madBytes, 0);
-        madBytes = token.mint{value: 3}(0);
-        assertEq(madBytes, 0);
-        madBytes = token.mint{value: 3}(0);
-        assertEq(madBytes, 0);
-        madBytes = token.mint{value: 3}(0);
-        assertEq(madBytes, 0);
-        madBytes = token.mint{value: 3}(0);
-        assertEq(madBytes, 0);
-        madBytes = token.mint{value: 3}(0);
-        assertEq(madBytes, 0);
-        madBytes = token.mint{value: 3}(0);
-        assertEq(madBytes, 0);
-        madBytes = token.mint{value: 3}(0);
-        assertEq(madBytes, 0);
-
-        madBytes = token.mint{value: 3}(0);
-        assertEq(madBytes, 500);
-
-        madBytes = token.mint{value: 3}(0);
-        assertEq(madBytes, 0);
-        madBytes = token.mint{value: 3}(0);
-        assertEq(madBytes, 0);
-        madBytes = token.mint{value: 3}(0);
-        assertEq(madBytes, 0);
-        madBytes = token.mint{value: 3}(0);
-        assertEq(madBytes, 0);
-        madBytes = token.mint{value: 3}(0);
-        assertEq(madBytes, 0);
-        */
-
         /*for (uint256 i=1 ether; i<100000 ether; i += 1 ether) {
             emit log_named_uint("i", _fx(i));
         }*/
 
-        
-
         //fail();
-
-        //to_.depositEth{value: amount_}(_getMagic());
     }
+
+    function testTransfer() public {
+        (MadByte token,,,,) = getFixtureData();
+        UserAccount acct1 = newUserAccount(token);
+        UserAccount acct2 = newUserAccount(token);
+
+        uint256 initialBalance1 = token.balanceOf(address(acct1));
+        uint256 initialBalance2 = token.balanceOf(address(acct2));
+
+        acct1.transfer(address(acct2), 1);
+        
+        uint256 finalBalance1 = token.balanceOf(address(acct1));
+        uint256 finalBalance2 = token.balanceOf(address(acct2));
+
+        assertEq(finalBalance1, initialBalance1-1);
+        assertEq(finalBalance2, initialBalance2+1);
+    }
+
+    /*function testTransferFrom() public {
+        (MadByte token,,,,) = getFixtureData();
+        UserAccount acct1 = newUserAccount(token);
+        UserAccount acct2 = newUserAccount(token);
+
+        uint256 initialBalance1 = token.balanceOf(address(acct1));
+        uint256 initialBalance2 = token.balanceOf(address(acct2));
+
+        token.transferFrom(address(acct1), address(acct2), 1);
+        
+        uint256 finalBalance1 = token.balanceOf(address(acct1));
+        uint256 finalBalance2 = token.balanceOf(address(acct2));
+
+        assertEq(finalBalance1, initialBalance1-1);
+        assertEq(finalBalance2, initialBalance2+1);
+    }*/
 
 }
