@@ -1,7 +1,6 @@
 {
   "language": "Solidity",
   "sources": {
-    "src/AccusationDiamond.sol": { "urls": ["src/AccusationDiamond.sol"] },
     "src/EthDKGDiamond.sol": { "urls": ["src/EthDKGDiamond.sol"] },
     "src/CryptoLibrary.sol": { "urls": ["src/CryptoLibrary.sol"] },
     "src/TokenMigrator.t.sol": { "urls": ["src/TokenMigrator.t.sol"] },
@@ -11,7 +10,6 @@
     "src/QueueLibrary.sol": { "urls": ["src/QueueLibrary.sol"] },
     "src/Token.t.sol": { "urls": ["src/Token.t.sol"] },
     "src/Token.sol": { "urls": ["src/Token.sol"] },
-    "src/MerkleProof.sol": { "urls": ["src/MerkleProof.sol"] },
     "src/CryptoLibrary.t.sol": { "urls": ["src/CryptoLibrary.t.sol"] },
     "src/TokenMigrator.sol": { "urls": ["src/TokenMigrator.sol"] },
     "src/Diamond.sol": { "urls": ["src/Diamond.sol"] },
