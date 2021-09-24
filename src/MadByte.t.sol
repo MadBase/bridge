@@ -53,9 +53,15 @@ contract UserAccount is BaseMock {
     function transfer(address to, uint256 amount) public returns(bool) {
         return token.transfer(to, amount);
     }
+
+    function approve(address who, uint256 amount) public returns (bool) {
+        return token.approve(who, amount);
+    }
 }
 
 contract MadByteTest is DSTest, Sigmoid {
+
+    uint256 ONE_MB = 1*10**18;
 
     // helper functions
 
@@ -79,6 +85,8 @@ contract MadByteTest is DSTest, Sigmoid {
             address(minerStaking),
             address(foundation)
         );
+
+        assertEq(1*10**token.decimals(), ONE_MB);
 
         admin.setToken(token);
         madStaking.setToken(token);
@@ -132,33 +140,85 @@ contract MadByteTest is DSTest, Sigmoid {
         UserAccount acct1 = newUserAccount(token);
         UserAccount acct2 = newUserAccount(token);
 
+        // mint and transfer some tokens to the accounts
+        uint256 madBytes = token.mint{value: 3 ether}(0);
+        assertEq(madBytes, 25_666259041293710500);
+        token.transfer(address(acct1), 2*ONE_MB);
+
         uint256 initialBalance1 = token.balanceOf(address(acct1));
         uint256 initialBalance2 = token.balanceOf(address(acct2));
 
-        acct1.transfer(address(acct2), 1);
+        assertEq(initialBalance1, 2*ONE_MB);
+        assertEq(initialBalance2, 0);
+
+        acct1.transfer(address(acct2), ONE_MB);
         
         uint256 finalBalance1 = token.balanceOf(address(acct1));
         uint256 finalBalance2 = token.balanceOf(address(acct2));
 
-        assertEq(finalBalance1, initialBalance1-1);
-        assertEq(finalBalance2, initialBalance2+1);
+        assertEq(finalBalance1, initialBalance1-ONE_MB);
+        assertEq(finalBalance2, initialBalance2+ONE_MB);
+
+        assertEq(finalBalance1, ONE_MB);
+        assertEq(finalBalance2, ONE_MB);
     }
 
-    /*function testTransferFrom() public {
+    function testFail_TransferFromWithoutAllowance() public {
         (MadByte token,,,,) = getFixtureData();
         UserAccount acct1 = newUserAccount(token);
         UserAccount acct2 = newUserAccount(token);
 
+        // mint and transfer some tokens to the accounts
+        uint256 madBytes = token.mint{value: 3 ether}(0);
+        assertEq(madBytes, 25_666259041293710500);
+        token.transfer(address(acct1), 2*ONE_MB);
+
         uint256 initialBalance1 = token.balanceOf(address(acct1));
         uint256 initialBalance2 = token.balanceOf(address(acct2));
 
-        token.transferFrom(address(acct1), address(acct2), 1);
+        assertEq(initialBalance1, 2*ONE_MB);
+        assertEq(initialBalance2, 0);
+
+        token.transferFrom(address(acct1), address(acct2), ONE_MB);
         
         uint256 finalBalance1 = token.balanceOf(address(acct1));
         uint256 finalBalance2 = token.balanceOf(address(acct2));
 
-        assertEq(finalBalance1, initialBalance1-1);
-        assertEq(finalBalance2, initialBalance2+1);
-    }*/
+        assertEq(finalBalance1, initialBalance1-ONE_MB);
+        assertEq(finalBalance2, initialBalance2+ONE_MB);
+
+        assertEq(finalBalance1, ONE_MB);
+        assertEq(finalBalance2, ONE_MB);
+    }
+
+    function testTransferFrom() public {
+        (MadByte token,,,,) = getFixtureData();
+        UserAccount acct1 = newUserAccount(token);
+        UserAccount acct2 = newUserAccount(token);
+
+        // mint and transfer some tokens to the accounts
+        uint256 madBytes = token.mint{value: 3 ether}(0);
+        assertEq(madBytes, 25_666259041293710500);
+        token.transfer(address(acct1), 2*ONE_MB);
+
+        uint256 initialBalance1 = token.balanceOf(address(acct1));
+        uint256 initialBalance2 = token.balanceOf(address(acct2));
+
+        assertEq(initialBalance1, 2*ONE_MB);
+        assertEq(initialBalance2, 0);
+
+        acct1.approve(address(this), ONE_MB);
+
+        token.transferFrom(address(acct1), address(acct2), ONE_MB);
+        
+        uint256 finalBalance1 = token.balanceOf(address(acct1));
+        uint256 finalBalance2 = token.balanceOf(address(acct2));
+
+        assertEq(finalBalance1, initialBalance1-ONE_MB);
+        assertEq(finalBalance2, initialBalance2+ONE_MB);
+
+        assertEq(finalBalance1, ONE_MB);
+        assertEq(finalBalance2, ONE_MB);
+    }
 
 }
