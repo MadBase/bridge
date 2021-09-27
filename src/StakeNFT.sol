@@ -161,7 +161,7 @@ contract StakeNFT is ERC721, MagicValue, Admin, Governance, CircuitBreaker, Atom
 
     // DO NOT CALL THIS METHOD UNLESS YOU ARE MAKING A DISTRIBUTION
     // ALL VALUE WILL BE DISTRIBUTED TO STAKERS EVENLY
-    // depositToken distribues MadToken to all stakers evenly
+    // depositToken distributes MadToken to all stakers evenly
     // should only be called during a slashing event
     // any MadToken sent to this method in error will be lost
     // this function will fail if the circuit breaker is tripped
@@ -177,7 +177,7 @@ contract StakeNFT is ERC721, MagicValue, Admin, Governance, CircuitBreaker, Atom
 
     // DO NOT CALL THIS METHOD UNLESS YOU ARE MAKING A DISTRIBUTION
     // ALL VALUE WILL BE DISTRIBUTED TO STAKERS EVENLY
-    // depositEth distribues Eth to all stakers evenly
+    // depositEth distributes Eth to all stakers evenly
     // should only be called by MadBytes contract
     // any Eth sent to this method in error will be lost
     // this function will fail if the circuit breaker is tripped
@@ -404,6 +404,7 @@ contract StakeNFT is ERC721, MagicValue, Admin, Governance, CircuitBreaker, Atom
         if (shares_ > 0) {
             uint256 deltaAccumulator = 0;
             (deltaAccumulator, slush_) = _rdiv(slush_,shares_);
+            deltaAccumulator /= shares_;
             accumulator_ += deltaAccumulator;
         }
         return (accumulator_, slush_);
