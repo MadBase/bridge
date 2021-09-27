@@ -114,15 +114,19 @@ contract MadByte is ERC20, Admin, Mutex, MagicEthTransfer, EthSafeTransfer, Sigm
     }
 
     function _burn(address from_,  address to_, uint256 nuMB_,  uint256 minEth_) internal returns(uint256 numEth) {
-        require(nuMB_ != 0);
+        require(nuMB_ != 0, "The number of MadBytes to be burn should be greater than 0!");
         uint256 poolBalance = _poolBalance;
         numEth = _MBtoEth(poolBalance, nuMB_);
-        require(numEth >= minEth_);
+        require(numEth >= minEth_, "Couldn't burn the minEth amount");
         poolBalance -= numEth;
         _poolBalance = poolBalance;
-        ERC20._burn(from_, nuMB_);
         _safeTransferEth(to_, numEth);
+        ERC20._burn(from_, nuMB_);
         return numEth;
+    }
+
+    function getPoolBalance() external view returns(uint256) {
+        return _poolBalance;
     }
 
     function _EthtoMB(uint256 poolBalance_, uint256 numEth_) internal pure returns(uint256) {
