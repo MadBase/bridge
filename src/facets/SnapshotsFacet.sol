@@ -43,21 +43,6 @@ contract SnapshotsFacet is AccessControlled, Constants, SnapshotsEvents, Stoppab
         return ChainStatusLibrary.epoch();
     }
 
-    function extractUint32(bytes calldata src, uint idx) external pure returns (uint32 val) {
-        return SnapshotsLibrary.extractUint32(src, idx);
-    }
-
-    function extractUint256(bytes calldata src, uint offset) external pure returns (uint256 val) {
-        return SnapshotsLibrary.extractUint256(src, offset);
-    }
-
-    function reverse(bytes memory orig) external pure returns (bytes memory reversed) {
-        return SnapshotsLibrary.reverse(orig);
-    }
-
-    function parseSignatureGroup(bytes memory _signatureGroup) external pure returns (uint256[4] memory publicKey, uint256[2] memory signature) {
-        return SnapshotsLibrary.parseSignatureGroup(_signatureGroup);
-    }
 
     function getChainIdFromSnapshot(uint256 snapshotNumber) external view returns (uint32) {
         return SnapshotsLibrary.getChainIdFromSnapshot(snapshotNumber);
