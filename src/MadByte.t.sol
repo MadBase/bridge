@@ -4,7 +4,6 @@ pragma solidity ^0.8.0;
 import "ds-test/test.sol";
 
 import "./MadByte.sol";
-import "./Sigmoid.sol";
 
 
 abstract contract BaseMock {
@@ -17,6 +16,20 @@ abstract contract BaseMock {
     function transfer(address recipient, uint256 amount) public virtual returns(bool){
         return token.transfer(recipient, amount);
     }
+
+    function burn(uint256 amount) public returns (uint256) {
+        return token.burn(amount, 0);
+    }
+
+    function approve(address who, uint256 amount) public returns (bool) {
+        return token.approve(who, amount);
+    }
+
+    function mint(uint256 minMB) payable public returns(uint256) {
+        return token.mint{value: msg.value}(minMB);
+    }
+
+    receive() external virtual payable{}
 }
 
 contract AdminAccount is BaseMock {
@@ -87,47 +100,26 @@ contract HackerAccountBurnReEntry is BaseMock, DSTest {
     uint256 public _count = 0;
     constructor() {}
 
-    function doNastyStuffBurn() internal {
-        if (_count < 5) {
+    function doNastyStuff() internal {
+        if (_count < 4) {
             _count++;
-            emit log_named_uint("Balance Madbytes before calling distribute:", token.balanceOf(address(this)));
-            emit log_named_uint("Balance Hacker before calling distribute:", address(this).balance);
-            emit log_named_uint("Balance Token before calling distribute:", address(token).balance);
             token.burnTo(address(this), 20_000000000000000000, 0);
-            emit log_named_uint("Balance Madbytes after calling distribute:", token.balanceOf(address(this)));
-            emit log_named_uint("Balance Hacker after calling distribute:", address(this).balance);
-            emit log_named_uint("Balance Token after calling distribute:", address(token).balance);
         } else {
             return;
         }
     }
 
-    receive() external payable{
-        doNastyStuffBurn();
+    receive() external override payable{
+        doNastyStuff();
     }
 }
-
 
 
 contract UserAccount is BaseMock {
     constructor() {}
-
-    function transfer(address to, uint256 amount) public override returns(bool) {
-        return token.transfer(to, amount);
-    }
-
-    function approve(address who, uint256 amount) public returns (bool) {
-        return token.approve(who, amount);
-    }
-
-    function burn(uint256 amount) public returns (uint256) {
-        return token.burn(amount, 0);
-    }
-
-    receive() external payable{}
 }
 
-contract MadByteTest is DSTest, Sigmoid {
+contract MadByteTest is DSTest {
 
     uint256 constant ONE_MB = 1*10**18;
 
@@ -305,9 +297,17 @@ contract MadByteTest is DSTest, Sigmoid {
 
         // mint and transfer some tokens to the accounts
         uint256 madBytes = token.mint{value: 3 ether}(0);
-        assertEq(madBytes, 25_666259041293710500);
+        assertEq(25_666259041293710500, madBytes);
+        assertEq(token.totalSupply(), madBytes);
+        assertEq(address(token).balance, 3 ether);
+        assertEq(token.getPoolBalance(), 1 ether);
+        // todo: fix this once the bonding curve is right
+        // assertEq(token.EthtoMB(token.getPoolBalance(), 1 ether), token.totalSupply());
 
         (uint256 foundationAmount, uint256 minerAmount, uint256 stakingAmount) = token.distribute();
+
+        // todo: fix this once the bonding curve is right
+        // assertEq(token.EthtoMB(token.getPoolBalance(), token.getPoolBalance()), token.totalSupply());
 
         // assert balances
         assertEq(stakingAmount, 997000000000000000);
@@ -317,6 +317,8 @@ contract MadByteTest is DSTest, Sigmoid {
         assertEq(address(madStaking).balance, 997000000000000000);
         assertEq(address(minerStaking).balance, 997000000000000000);
         assertEq(address(foundation).balance, 6000000000000000);
+        assertEq(address(token).balance, 1 ether);
+        assertEq(token.getPoolBalance(), 1 ether);
     }
 
     function testDistribute2() public {
@@ -336,8 +338,16 @@ contract MadByteTest is DSTest, Sigmoid {
         // mint and transfer some tokens to the accounts
         uint256 madBytes = token.mint{value: 300 ether}(0);
         assertEq(madBytes, 2647_334933607070027500);
+        assertEq(token.totalSupply(), madBytes);
+        assertEq(address(token).balance, 300 ether);
+        assertEq(token.getPoolBalance(), 100 ether);
 
+        // todo: fix this once the bonding curve is right
+        // assertEq(token.EthtoMB(token.getPoolBalance(), 1 ether), token.totalSupply());
         (uint256 foundationAmount, uint256 minerAmount, uint256 stakingAmount) = token.distribute();
+
+        // todo: fix this once the bonding curve is right
+        // assertEq(token.EthtoMB(token.getPoolBalance(), token.getPoolBalance()), token.totalSupply());
 
         // assert balances
         assertEq(stakingAmount, 99700000000000000000);
@@ -347,6 +357,8 @@ contract MadByteTest is DSTest, Sigmoid {
         assertEq(address(madStaking).balance, 99700000000000000000);
         assertEq(address(minerStaking).balance, 99700000000000000000);
         assertEq(address(foundation).balance, 600000000000000000);
+        assertEq(address(token).balance, 100 ether);
+        assertEq(token.getPoolBalance(), 100 ether);
     }
 
     function testFail_DistributeReEntrant() public {
@@ -373,68 +385,132 @@ contract MadByteTest is DSTest, Sigmoid {
         (uint256 foundationAmount, uint256 minerAmount, uint256 stakingAmount) = token.distribute();
     }
 
-    function test_BurnReEntrant() public {
-        (
-            MadByte token,
-            AdminAccount admin,
-            MadStakingAccount madStaking,
-            MinerStakingAccount minerStaking,
-            FoundationAccount foundation
-        ) = getFixtureData();
+    function testBurn() public {
+        ( MadByte token, , , , ) = getFixtureData();
+        UserAccount user = newUserAccount(token);
+        assertEq(token.totalSupply(), 0);
+        assertEq(address(token).balance, 0 ether);
+        assertEq(address(user).balance, 0 ether);
+        uint256 madBytes = token.mintTo{value: 30 ether}(address(user), 0);
+        assertEq(madBytes, 257_376457807820801000);
+        assertEq(token.totalSupply(), madBytes);
+        assertEq(token.balanceOf(address(user)), madBytes);
+        assertEq(address(token).balance, 30 ether);
+        assertEq(token.getPoolBalance(), 10 ether);
+        uint256 ethReceived = user.burn(madBytes - 100*ONE_MB);
+        assertEq(ethReceived, 6_107307728470320538);
+        assertEq(address(user).balance, ethReceived);
+        assertEq(token.totalSupply(), 100*ONE_MB);
+        assertEq(token.balanceOf(address(user)), 100*ONE_MB);
+        assertEq(address(token).balance, 30 ether - ethReceived);
+        assertEq(token.getPoolBalance(), 10 ether - ethReceived);
+        ethReceived = user.burn(100*ONE_MB);
+        assertEq(ethReceived, 10 ether - 6_107307728470320538);
+        assertEq(address(user).balance, 10 ether);
+        assertEq(address(token).balance, 20 ether);
+        assertEq(token.balanceOf(address(user)), 0);
+        assertEq(token.totalSupply(), 0);
+        assertEq(token.getPoolBalance(), 0);
+    }
 
+    function testFail_BurnMoreThanPossible() public {
+        ( MadByte token, , , , ) = getFixtureData();
+        UserAccount user = newUserAccount(token);
+        assertEq(token.totalSupply(), 0);
+        assertEq(address(token).balance, 0 ether);
+        assertEq(address(user).balance, 0 ether);
+        uint256 madBytes = token.mintTo{value: 30 ether}(address(user), 0);
+        assertEq(madBytes, 257_376457807820801000);
+        assertEq(token.totalSupply(), madBytes);
+        assertEq(token.balanceOf(address(user)), madBytes);
+        assertEq(address(token).balance, 30 ether);
+        assertEq(token.getPoolBalance(), 10 ether);
+        // trying to burn more than the max supply
+        user.burn(madBytes + 100*ONE_MB);
+    }
+
+    function test_MintWithBillionsOfEthereum() public {
+        ( MadByte token, , , , ) = getFixtureData();
+        UserAccount user = newUserAccount(token);
+        assertEq(token.totalSupply(), 0);
+        assertEq(address(token).balance, 0 ether);
+        assertEq(address(user).balance, 0 ether);
+        // Investing trillions of US dollars in ethereum
+        uint256 madBytes = token.mintTo{value: 70_000_000_000 ether}(address(user), 0);
+        assertEq(madBytes, 23_333_330_252_194_513963430759170500);
+        assertEq(token.totalSupply(), madBytes);
+        assertEq(token.balanceOf(address(user)), madBytes);
+        assertEq(address(token).balance, 70_000_000_000 ether);
+        assertEq(token.getPoolBalance(), 23333333333333333333333333333);
+    }
+
+    function test_BurnReEntrant() public {
+        ( MadByte token, , , , ) = getFixtureData();
         HackerAccountBurnReEntry hacker = new HackerAccountBurnReEntry();
         hacker.setToken(token);
-        // admin.setFoundation(address(hacker));
         // assert balances
-        assertEq(address(madStaking).balance, 0);
-        assertEq(address(minerStaking).balance, 0);
-        assertEq(address(foundation).balance, 0);
+        assertEq(token.totalSupply(), 0);
 
-        UserAccount user = newUserAccount(token);
-        // bootstrap to have some tokens before minting to other account
-        uint256 madBytes = token.mintTo{value: 300 ether}(address(user), 0);
-        assertEq(madBytes, 2647_334933607070027500);
-        emit log_named_uint("MadNet balance user:", token.balanceOf(address(user)));
-
-        // mint and transfer some tokens to the accounts
-        uint256 madBytes2 = token.mintTo{value: 300 ether}(address(hacker), 0);
-        assertEq(madBytes2, 2820_709714053816234500);
+        // mint some tokens to the accounts
+        uint256 madBytesHacker = token.mintTo{value: 30 ether}(address(hacker), 0);
+        assertEq(madBytesHacker, 257_376457807820801000);
+        assertEq(token.balanceOf(address(hacker)), madBytesHacker);
         // Transferring the excess to get only 100 MD on the hacker account to make checks easier
-        hacker.transfer(address(user), 2720_709714053816234500);
-        emit log_named_uint("MadNet balance user:", token.balanceOf(address(user)));
-        user.burn(2720_709714053816234500);
+        hacker.transfer(address(this), madBytesHacker - 100*ONE_MB);
+        assertEq(token.balanceOf(address(hacker)), 100*ONE_MB);
+        emit log_named_uint("MadNet balance hacker:", token.balanceOf(address(hacker)));
 
-        uint256 initialMDHackerBalance = token.balanceOf(address(hacker));
-        assertEq(initialMDHackerBalance, 100000000000000000000);
-
-        uint256 initialTokenBalance = address(token).balance;
-        assertEq(initialTokenBalance, 600000000000000000000);
-        uint256 initialHackerBalance = address(hacker).balance;
-        assertEq(initialHackerBalance, 0);
-
-        emit log_named_uint("initialTokenBalance", initialTokenBalance);
-        emit log_named_uint("initialHackerBalanceETH", initialHackerBalance);
-        emit log_named_uint("initialHackerBalanceMadBytes", initialMDHackerBalance);
+        assertEq(address(token).balance, 30 ether);
+        assertEq(address(hacker).balance, 0 ether);
 
         // burning with reentrancy 5 times
-        uint256 MDburnt = token.burnTo(address(hacker), 20_000000000000000000, 0);
+        uint256 ethReceivedHacker = hacker.burn(20*ONE_MB);
 
-        uint256 finalMDHackerBalance = token.balanceOf(address(hacker));
-        assertEq(finalMDHackerBalance, 0);
-        uint256 finalTokenBalance = address(token).balance;
-        uint256 finalHackerBalance = address(hacker).balance;
+        assertEq(token.balanceOf(address(hacker)), 0*ONE_MB);
+        assertEq(address(hacker).balance, 3_878031395542815703);
+        emit log_named_uint("Real Hacker Balance ETH", address(hacker).balance);
 
-        // uint256 madBytes3 = token.mintTo{value: 300 ether}(address(hacker), 0);
-        // assertEq(madBytes3, 2647_334933607070027500);
-        // hacker.transfer(address(this), 2620_709714053816234500);
-        // uint256 initialMDHackerBalance2 = token.balanceOf(address(hacker));
-        // assertEq(initialMDHackerBalance2, 200000000000000000000);
+        // If this check fails it means that the had a reentrancy issue
+        assertEq(address(token).balance, 26_121968604457184297);
 
-        emit log_named_uint("finalTokenBalance", finalTokenBalance);
-        emit log_named_uint("finalHackerBalanceETH", finalHackerBalance);
-        emit log_named_uint("finalHackerBalanceMadBytes", finalMDHackerBalance);
+        //testing a honest user
+        ( MadByte token2, , , , ) = getFixtureData();
+        assertEq(token2.totalSupply(), 0);
+        UserAccount honestUser = newUserAccount(token2);
+        uint256 madBytes = token2.mintTo{value: 30 ether}(address(honestUser), 0);
+        assertEq(madBytes, 257_376457807820801000);
+        assertEq(token2.balanceOf(address(honestUser)), madBytes);
+        // Transferring the excess to get only 100 MD on the hacker account to make checks easier
+        honestUser.transfer(address(this), madBytes - 100*ONE_MB);
+        assertEq(address(token2).balance, 30 ether);
+        assertEq(address(honestUser).balance, 0 ether);
+        emit log_named_uint("Initial MadNet balance honestUser:", token2.balanceOf(address(honestUser)));
 
-        //assertEq(finalBalance, finalPoolBalance);
-        fail();
+        uint256 totalBurnt = 0;
+        for (uint256 i=0; i<5; i++){
+            totalBurnt += honestUser.burn(20*ONE_MB);
+        }
+        assertEq(token2.balanceOf(address(honestUser)), 0);
+        assertEq(address(honestUser).balance, address(hacker).balance);
+        assertEq(address(token2).balance, address(token).balance);
+        emit log_named_uint("Honest Balance ETH", address(honestUser).balance);
     }
+
+    function testMarketSpreadWithMintAndBurn() public {
+        ( MadByte token, , , , ) = getFixtureData();
+
+        UserAccount user = newUserAccount(token);
+        uint256 supply = token.totalSupply();
+        assertEq(supply, 0);
+
+        // mint
+        uint256 mintedTokens = user.mint{value: 30 ether}(0);
+        assertEq(mintedTokens, token.balanceOf(address(user)));
+
+        // burn
+        uint256 receivedEther = user.burn(mintedTokens);
+        assertEq(receivedEther, 10 ether);
+    }
+
+
 }
