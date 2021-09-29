@@ -2,8 +2,17 @@
 pragma solidity ^0.8.0;
 
 import "./lib/openzeppelin/token/ERC721/ERC721.sol";
-import "./lib/openzeppelin/token/ERC20/ERC20.sol";
-
+import "./lib/openzeppelin/token/ERC721/IERC721.sol";
+import "./Admin.sol";
+import "./EthSafeTransfer.sol";
+import "./ERC20SafeTransfer.sol";
+import "./CircuitBreaker.sol";
+import "./Governance.sol";
+import "./GovernanceMaxLock.sol";
+import "./MagicValue.sol";
+import "./AtomicCounter.sol";
+import "./interfaces/ICBOpener.sol";
+import "./interfaces/IERC721Transfer.sol";
 
 contract StakeNFT is ERC721, MagicValue, Admin, Governance, CircuitBreaker, AtomicCounter, EthSafeTransfer, ERC20SafeTransfer, GovernanceMaxLock, ICBOpener {
 

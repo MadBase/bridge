@@ -143,4 +143,8 @@ contract MadByte is ERC20, Admin, Mutex, MagicEthTransfer, EthSafeTransfer, Sigm
       numEth = _min(_fp(totalSupply) - _fp(totalSupply - numMB_), poolBalance_);
       return numEth;
     }
+
+    function MBtoEth(uint256 poolBalance_, uint256 numMB_) public view returns(uint256 numEth) {
+      return _MBtoEth(poolBalance_, numMB_);
+    }
 }
