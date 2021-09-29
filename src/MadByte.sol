@@ -12,7 +12,7 @@ import "./Sigmoid.sol";
 
 contract MadByte is ERC20, Admin, Mutex, MagicEthTransfer, EthSafeTransfer, Sigmoid {
 
-    uint256 constant marketSpread = 3;
+    uint256 constant marketSpread = 4;
     uint256 constant madUnitOne = 1000;
     uint256 constant protocolFee = 3;
 
@@ -69,11 +69,8 @@ contract MadByte is ERC20, Admin, Mutex, MagicEthTransfer, EthSafeTransfer, Sigm
         minerAmount = excess - stakingAmount;
 
         // send out payout in super paranoid manner
-        require(address(this).balance >= poolBalance + foundationAmount + minerAmount + stakingAmount);
         _safeTransferEthWithMagic(_foundation, foundationAmount);
-        require(address(this).balance >= poolBalance + minerAmount + stakingAmount);
         _safeTransferEthWithMagic(_minerStaking, minerAmount);
-        require(address(this).balance >= poolBalance + stakingAmount);
         _safeTransferEthWithMagic(_madStaking, stakingAmount);
         require(address(this).balance >= poolBalance);
 
@@ -102,10 +99,10 @@ contract MadByte is ERC20, Admin, Mutex, MagicEthTransfer, EthSafeTransfer, Sigm
     }
 
     function _mint(address to_, uint256 numEth_, uint256 minMB_) internal returns(uint256 nuMB) {
-        require(numEth_ >= 3, "MadByte: requires at least 3 WEI");
+        require(numEth_ >= marketSpread, "MadByte: requires at least 4 WEI");
         numEth_ = numEth_/marketSpread;
         uint256 poolBalance = _poolBalance;
-        nuMB = _EthtoMB(_poolBalance, numEth_);
+        nuMB = _EthtoMB(poolBalance, numEth_);
         require(nuMB >= minMB_, "MadByte: could not mint minimum MadBytes");
         poolBalance += numEth_;
         _poolBalance = poolBalance;
@@ -116,7 +113,7 @@ contract MadByte is ERC20, Admin, Mutex, MagicEthTransfer, EthSafeTransfer, Sigm
     function _burn(address from_,  address to_, uint256 nuMB_,  uint256 minEth_) internal returns(uint256 numEth) {
         require(nuMB_ != 0, "MadByte: The number of MadBytes to be burn should be greater than 0!");
         uint256 poolBalance = _poolBalance;
-        numEth = _MBtoEth(poolBalance, nuMB_);
+        numEth = _MBtoEth(totalSupply(), nuMB_);
         require(numEth >= minEth_, "MadByte: Couldn't burn the minEth amount");
         poolBalance -= numEth;
         _poolBalance = poolBalance;
@@ -133,18 +130,18 @@ contract MadByte is ERC20, Admin, Mutex, MagicEthTransfer, EthSafeTransfer, Sigm
       return _fx(poolBalance_ + numEth_) - _fx(poolBalance_);
     }
 
-    function EthtoMB(uint256 poolBalance_, uint256 numEth_) public pure returns(uint256) {
-      return _EthtoMB(poolBalance_, numEth_);
-    }
-
-    function _MBtoEth(uint256 poolBalance_, uint256 numMB_) internal view returns(uint256 numEth) {
-      uint256 totalSupply = totalSupply();
-      require(totalSupply >= numMB_, "MadByte: The number of tokens to be burned is greater than the Total Supply!");
-      numEth = _min(_fp(totalSupply) - _fp(totalSupply - numMB_), poolBalance_);
+    function _MBtoEth(uint256 totalSupply_, uint256 numMB_) internal pure returns(uint256 numEth) {
+      require(totalSupply_ >= numMB_, "MadByte: The number of tokens to be burned is greater than the Total Supply!");
+      //numEth = _min(_fp(totalSupply) - _fp(totalSupply_ - numMB_), poolBalance_);
+      numEth = _fp(totalSupply_) - _fp(totalSupply_ - numMB_);
       return numEth;
     }
 
-    function MBtoEth(uint256 poolBalance_, uint256 numMB_) public view returns(uint256 numEth) {
-      return _MBtoEth(poolBalance_, numMB_);
+    function MBtoEth(uint256 totalSupply_, uint256 numMB_) public view returns(uint256 numEth) {
+      return _MBtoEth(totalSupply_, numMB_);
+    }
+
+    function EthtoMB(uint256 poolBalance_, uint256 numEth_) public pure returns(uint256) {
+      return _EthtoMB(poolBalance_, numEth_);
     }
 }

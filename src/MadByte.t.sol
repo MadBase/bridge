@@ -6,6 +6,13 @@ import "ds-test/test.sol";
 import "./MadByte.sol";
 
 
+/*
+todo:
+invariant of mint and burn
+
+ethIn / burn(mint(ethIn)) >= marketSpread;
+
+*/
 abstract contract BaseMock {
     MadByte public token;
 
@@ -193,17 +200,17 @@ contract MadByteTest is DSTest {
     function testMint() public {
         (MadByte token,,,,) = getFixtureData();
 
-        uint256 madBytes = token.mint{value: 3 ether}(0);
-        assertEq(madBytes, 25666259041293710500);
+        uint256 madBytes = token.mint{value: 4 ether}(0);
+        assertEq(madBytes, 863464958034876049000);
         assertEq(token.totalSupply(), madBytes);
-        assertEq(address(token).balance, 3 ether);
+        assertEq(address(token).balance, 4 ether);
         assertEq(token.getPoolBalance(), 1 ether);
 
-        uint256 madBytes2 = token.mint{value: 3 ether}(0);
-        assertEq(madBytes2, 25682084669534371500);
+        uint256 madBytes2 = token.mint{value: 4 ether}(0);
+        assertEq(madBytes2, 863287915942434319000);
         assertEq(token.balanceOf(address(this)), madBytes2 + madBytes);
         assertEq(token.totalSupply(), madBytes2 + madBytes);
-        assertEq(address(token).balance, 6 ether);
+        assertEq(address(token).balance, 8 ether);
         assertEq(token.getPoolBalance(), 2 ether);
 
         // todo: fix this once the bonding curve equations are fixed
@@ -216,29 +223,29 @@ contract MadByteTest is DSTest {
         assertEq(address(token).balance, 0 ether);
         // Investing trillions of US dollars in ethereum
         uint256 madBytes = token.mint{value: 70_000_000_000 ether}(0);
-        assertEq(madBytes, 23_333_330_252_194_513963430759170500);
+        assertEq(madBytes, 175_001_207_106_766900832413351500);
         assertEq(token.totalSupply(), madBytes);
         assertEq(token.balanceOf(address(this)), madBytes);
         assertEq(address(token).balance, 70_000_000_000 ether);
-        assertEq(token.getPoolBalance(), 23333333333333333333333333333);
+        assertEq(token.getPoolBalance(), 17500000000000000000000000000);
     }
 
     function testMintTo() public {
         (MadByte token,,,,) = getFixtureData();
         UserAccount acct1 = newUserAccount(token);
         UserAccount acct2 = newUserAccount(token);
-        uint256 madBytes = token.mintTo{value: 3 ether}(address(acct1), 0);
-        assertEq(madBytes, 25666259041293710500);
-        assertEq(token.balanceOf(address(acct1)), 25666259041293710500);
+        uint256 madBytes = token.mintTo{value: 4 ether}(address(acct1), 0);
+        assertEq(madBytes, 863464958034876049000);
+        assertEq(token.balanceOf(address(acct1)), 863464958034876049000);
         assertEq(token.totalSupply(), madBytes);
-        assertEq(address(token).balance, 3 ether);
+        assertEq(address(token).balance, 4 ether);
         assertEq(token.getPoolBalance(), 1 ether);
 
-        uint256 madBytes2 = token.mintTo{value: 3 ether}(address(acct2), 0);
-        assertEq(madBytes2, 25682084669534371500);
-        assertEq(token.balanceOf(address(acct2)), 25682084669534371500);
+        uint256 madBytes2 = token.mintTo{value: 4 ether}(address(acct2), 0);
+        assertEq(madBytes2, 863287915942434319000);
+        assertEq(token.balanceOf(address(acct2)), 863287915942434319000);
         assertEq(token.totalSupply(), madBytes + madBytes2);
-        assertEq(address(token).balance, 6 ether);
+        assertEq(address(token).balance, 8 ether);
         assertEq(token.getPoolBalance(), 2 ether);
         // todo: fix this once the bonding curve equations are fixed
         // assertEq(token.EthtoMB(token.getPoolBalance(), 1 ether), token.totalSupply());
@@ -252,25 +259,25 @@ contract MadByteTest is DSTest {
         assertEq(address(user).balance, 0 ether);
         // Investing trillions of US dollars in ethereum
         uint256 madBytes = token.mintTo{value: 70_000_000_000 ether}(address(user), 0);
-        assertEq(madBytes, 23_333_330_252_194_513963430759170500);
+        assertEq(madBytes, 175_001_207_106_766900832413351500);
         assertEq(token.totalSupply(), madBytes);
         assertEq(token.balanceOf(address(user)), madBytes);
         assertEq(address(token).balance, 70_000_000_000 ether);
-        assertEq(token.getPoolBalance(), 23333333333333333333333333333);
+        assertEq(token.getPoolBalance(), 17500000000000000000000000000);
     }
 
     function testFail_MintToZeroAddress() public {
         (MadByte token,,,,) = getFixtureData();
         UserAccount acct1 = newUserAccount(token);
         UserAccount acct2 = newUserAccount(token);
-        token.mintTo{value: 3 ether}(address(0), 0);
+        token.mintTo{value: 4 ether}(address(0), 0);
     }
 
     function testFail_MintToBigMinMBQuantity() public {
         (MadByte token,,,,) = getFixtureData();
         UserAccount acct1 = newUserAccount(token);
         UserAccount acct2 = newUserAccount(token);
-        token.mintTo{value: 3 ether}(address(acct1), 300*ONE_MB);
+        token.mintTo{value: 4 ether}(address(acct1), 900*ONE_MB);
     }
 
     function testTransfer() public {
@@ -279,8 +286,8 @@ contract MadByteTest is DSTest {
         UserAccount acct2 = newUserAccount(token);
 
         // mint and transfer some tokens to the accounts
-        uint256 madBytes = token.mint{value: 3 ether}(0);
-        assertEq(madBytes, 25_666259041293710500);
+        uint256 madBytes = token.mint{value: 4 ether}(0);
+        assertEq(madBytes, 863_464958034876049000);
         token.transfer(address(acct1), 2*ONE_MB);
 
         uint256 initialBalance1 = token.balanceOf(address(acct1));
@@ -307,8 +314,8 @@ contract MadByteTest is DSTest {
         UserAccount acct2 = newUserAccount(token);
 
         // mint and transfer some tokens to the accounts
-        uint256 madBytes = token.mint{value: 3 ether}(0);
-        assertEq(madBytes, 25_666259041293710500);
+        uint256 madBytes = token.mint{value: 4 ether}(0);
+        assertEq(madBytes, 863_464958034876049000);
         token.transfer(address(acct1), 2*ONE_MB);
 
         uint256 initialBalance1 = token.balanceOf(address(acct1));
@@ -337,8 +344,8 @@ contract MadByteTest is DSTest {
         UserAccount acct2 = newUserAccount(token);
 
         // mint and transfer some tokens to the accounts
-        uint256 madBytes = token.mint{value: 3 ether}(0);
-        assertEq(madBytes, 25_666259041293710500);
+        uint256 madBytes = token.mint{value: 4 ether}(0);
+        assertEq(madBytes, 863_464958034876049000);
         token.transfer(address(acct1), 2*ONE_MB);
 
         uint256 initialBalance1 = token.balanceOf(address(acct1));
@@ -365,8 +372,8 @@ contract MadByteTest is DSTest {
         UserAccount acct2 = newUserAccount(token);
 
         // mint and transfer some tokens to the accounts
-        uint256 madBytes = token.mint{value: 3 ether}(0);
-        assertEq(madBytes, 25_666259041293710500);
+        uint256 madBytes = token.mint{value: 4 ether}(0);
+        assertEq(madBytes, 863_464958034876049000);
         token.transfer(address(acct1), 2*ONE_MB);
 
         uint256 initialBalance1 = token.balanceOf(address(acct1));
@@ -403,10 +410,10 @@ contract MadByteTest is DSTest {
         assertEq(address(foundation).balance, 0);
 
         // mint and transfer some tokens to the accounts
-        uint256 madBytes = token.mint{value: 3 ether}(0);
-        assertEq(25_666259041293710500, madBytes);
+        uint256 madBytes = token.mint{value: 4 ether}(0);
+        assertEq(863_464958034876049000, madBytes);
         assertEq(token.totalSupply(), madBytes);
-        assertEq(address(token).balance, 3 ether);
+        assertEq(address(token).balance, 4 ether);
         assertEq(token.getPoolBalance(), 1 ether);
         // todo: fix this once the bonding curve is right
         // assertEq(token.EthtoMB(token.getPoolBalance(), 1 ether), token.totalSupply());
@@ -417,13 +424,13 @@ contract MadByteTest is DSTest {
         // assertEq(token.EthtoMB(token.getPoolBalance(), token.getPoolBalance()), token.totalSupply());
 
         // assert balances
-        assertEq(stakingAmount, 997000000000000000);
-        assertEq(minerAmount, 997000000000000000);
-        assertEq(foundationAmount, 6000000000000000);
+        assertEq(stakingAmount, 1495500000000000000);
+        assertEq(minerAmount, 1495500000000000000);
+        assertEq(foundationAmount, 9000000000000000);
 
-        assertEq(address(madStaking).balance, 997000000000000000);
-        assertEq(address(minerStaking).balance, 997000000000000000);
-        assertEq(address(foundation).balance, 6000000000000000);
+        assertEq(address(madStaking).balance, 1495500000000000000);
+        assertEq(address(minerStaking).balance, 1495500000000000000);
+        assertEq(address(foundation).balance, 9000000000000000);
         assertEq(address(token).balance, 1 ether);
         assertEq(token.getPoolBalance(), 1 ether);
     }
@@ -443,10 +450,10 @@ contract MadByteTest is DSTest {
         assertEq(address(foundation).balance, 0);
 
         // mint and transfer some tokens to the accounts
-        uint256 madBytes = token.mint{value: 300 ether}(0);
-        assertEq(madBytes, 2647_334933607070027500);
+        uint256 madBytes = token.mint{value: 400 ether}(0);
+        assertEq(madBytes, 85425_578832862009004000);
         assertEq(token.totalSupply(), madBytes);
-        assertEq(address(token).balance, 300 ether);
+        assertEq(address(token).balance, 400 ether);
         assertEq(token.getPoolBalance(), 100 ether);
 
         // todo: fix this once the bonding curve is right
@@ -457,13 +464,13 @@ contract MadByteTest is DSTest {
         // assertEq(token.EthtoMB(token.getPoolBalance(), token.getPoolBalance()), token.totalSupply());
 
         // assert balances
-        assertEq(stakingAmount, 99700000000000000000);
-        assertEq(minerAmount, 99700000000000000000);
-        assertEq(foundationAmount, 600000000000000000);
+        assertEq(stakingAmount, 149550000000000000000);
+        assertEq(minerAmount, 149550000000000000000);
+        assertEq(foundationAmount, 900000000000000000);
 
-        assertEq(address(madStaking).balance, 99700000000000000000);
-        assertEq(address(minerStaking).balance, 99700000000000000000);
-        assertEq(address(foundation).balance, 600000000000000000);
+        assertEq(address(madStaking).balance, 149550000000000000000);
+        assertEq(address(minerStaking).balance, 149550000000000000000);
+        assertEq(address(foundation).balance, 900000000000000000);
         assertEq(address(token).balance, 100 ether);
         assertEq(token.getPoolBalance(), 100 ether);
     }
@@ -486,8 +493,8 @@ contract MadByteTest is DSTest {
         assertEq(address(foundation).balance, 0);
 
         // mint and transfer some tokens to the accounts
-        uint256 madBytes = token.mint{value: 300 ether}(0);
-        assertEq(madBytes, 2647_334933607070027500);
+        uint256 madBytes = token.mint{value: 400 ether}(0);
+        assertEq(madBytes, 85425_578832862009004000);
 
         (uint256 foundationAmount, uint256 minerAmount, uint256 stakingAmount) = token.distribute();
     }
@@ -498,23 +505,23 @@ contract MadByteTest is DSTest {
         assertEq(token.totalSupply(), 0);
         assertEq(address(token).balance, 0 ether);
         assertEq(address(user).balance, 0 ether);
-        uint256 madBytes = token.mintTo{value: 30 ether}(address(user), 0);
-        assertEq(madBytes, 257_376457807820801000);
+        uint256 madBytes = token.mintTo{value: 40 ether}(address(user), 0);
+        assertEq(madBytes, 8626_650710991812139500);
         assertEq(token.totalSupply(), madBytes);
         assertEq(token.balanceOf(address(user)), madBytes);
-        assertEq(address(token).balance, 30 ether);
+        assertEq(address(token).balance, 40 ether);
         assertEq(token.getPoolBalance(), 10 ether);
         uint256 ethReceived = user.burn(madBytes - 100*ONE_MB);
-        assertEq(ethReceived, 6_107307728470320538);
+        assertEq(ethReceived, 9_884198028223574273);
         assertEq(address(user).balance, ethReceived);
         assertEq(token.totalSupply(), 100*ONE_MB);
         assertEq(token.balanceOf(address(user)), 100*ONE_MB);
-        assertEq(address(token).balance, 30 ether - ethReceived);
+        assertEq(address(token).balance, 40 ether - ethReceived);
         assertEq(token.getPoolBalance(), 10 ether - ethReceived);
         ethReceived = user.burn(100*ONE_MB);
-        assertEq(ethReceived, 10 ether - 6_107307728470320538);
+        assertEq(ethReceived, 10 ether - 9_884198028223574273);
         assertEq(address(user).balance, 10 ether);
-        assertEq(address(token).balance, 20 ether);
+        assertEq(address(token).balance, 30 ether);
         assertEq(token.balanceOf(address(user)), 0);
         assertEq(token.totalSupply(), 0);
         assertEq(token.getPoolBalance(), 0);
@@ -528,11 +535,11 @@ contract MadByteTest is DSTest {
         assertEq(token.totalSupply(), 0);
         assertEq(address(token).balance, 0 ether);
         assertEq(address(user).balance, 0 ether);
-        uint256 madBytes = token.mintTo{value: 30 ether}(address(user), 0);
-        assertEq(madBytes, 257_376457807820801000);
+        uint256 madBytes = token.mintTo{value: 40 ether}(address(user), 0);
+        assertEq(madBytes, 8626_650710991812139500);
         assertEq(token.totalSupply(), madBytes);
         assertEq(token.balanceOf(address(user)), madBytes);
-        assertEq(address(token).balance, 30 ether);
+        assertEq(address(token).balance, 40 ether);
         assertEq(token.getPoolBalance(), 10 ether);
         // trying to burn more than the max supply
         user.burn(madBytes + 100*ONE_MB);
@@ -544,11 +551,11 @@ contract MadByteTest is DSTest {
         assertEq(token.totalSupply(), 0);
         assertEq(address(token).balance, 0 ether);
         assertEq(address(user).balance, 0 ether);
-        uint256 madBytes = token.mintTo{value: 30 ether}(address(user), 0);
-        assertEq(madBytes, 257_376457807820801000);
+        uint256 madBytes = token.mintTo{value: 40 ether}(address(user), 0);
+        assertEq(madBytes, 8626_650710991812139500);
         assertEq(token.totalSupply(), madBytes);
         assertEq(token.balanceOf(address(user)), madBytes);
-        assertEq(address(token).balance, 30 ether);
+        assertEq(address(token).balance, 40 ether);
         assertEq(token.getPoolBalance(), 10 ether);
         user.burn(0);
     }
@@ -559,18 +566,18 @@ contract MadByteTest is DSTest {
         assertEq(token.totalSupply(), 0);
         assertEq(address(token).balance, 0 ether);
         assertEq(address(userTo).balance, 0 ether);
-        uint256 madBytes = token.mint{value: 30 ether}(0);
-        assertEq(madBytes, 257_376457807820801000);
+        uint256 madBytes = token.mint{value: 40 ether}(0);
+        assertEq(madBytes, 8626_650710991812139500);
         assertEq(token.totalSupply(), madBytes);
         assertEq(token.balanceOf(address(this)), madBytes);
-        assertEq(address(token).balance, 30 ether);
+        assertEq(address(token).balance, 40 ether);
         assertEq(token.getPoolBalance(), 10 ether);
         uint256 ethReceived = token.burnTo(address(userTo), madBytes - 100*ONE_MB, 0);
-        assertEq(ethReceived, 6_107307728470320538);
+        assertEq(ethReceived, 9_884198028223574273);
         assertEq(address(userTo).balance, ethReceived);
         assertEq(token.totalSupply(), 100*ONE_MB);
         assertEq(token.balanceOf(address(this)), 100*ONE_MB);
-        assertEq(address(token).balance, 30 ether - ethReceived);
+        assertEq(address(token).balance, 40 ether - ethReceived);
         assertEq(token.getPoolBalance(), 10 ether - ethReceived);
     }
 
@@ -580,11 +587,11 @@ contract MadByteTest is DSTest {
         assertEq(token.totalSupply(), 0);
         assertEq(address(token).balance, 0 ether);
         assertEq(address(userTo).balance, 0 ether);
-        uint256 madBytes = token.mintTo{value: 30 ether}(address(this), 0);
-        assertEq(madBytes, 257_376457807820801000);
+        uint256 madBytes = token.mintTo{value: 40 ether}(address(this), 0);
+        assertEq(madBytes, 8626_650710991812139500);
         assertEq(token.totalSupply(), madBytes);
         assertEq(token.balanceOf(address(this)), madBytes);
-        assertEq(address(token).balance, 30 ether);
+        assertEq(address(token).balance, 40 ether);
         assertEq(token.getPoolBalance(), 10 ether);
         // trying to burn more than the max supply
         token.burnTo(address(userTo), madBytes + 100*ONE_MB, 0);
@@ -596,11 +603,11 @@ contract MadByteTest is DSTest {
         assertEq(token.totalSupply(), 0);
         assertEq(address(token).balance, 0 ether);
         assertEq(address(userTo).balance, 0 ether);
-        uint256 madBytes = token.mintTo{value: 30 ether}(address(this), 0);
-        assertEq(madBytes, 257_376457807820801000);
+        uint256 madBytes = token.mintTo{value: 40 ether}(address(this), 0);
+        assertEq(madBytes, 8626_650710991812139500);
         assertEq(token.totalSupply(), madBytes);
         assertEq(token.balanceOf(address(this)), madBytes);
-        assertEq(address(token).balance, 30 ether);
+        assertEq(address(token).balance, 40 ether);
         assertEq(token.getPoolBalance(), 10 ether);
         token.burnTo(address(userTo), 0, 0);
     }
@@ -611,11 +618,11 @@ contract MadByteTest is DSTest {
         assertEq(token.totalSupply(), 0);
         assertEq(address(token).balance, 0 ether);
         assertEq(address(userTo).balance, 0 ether);
-        uint256 madBytes = token.mint{value: 30 ether}(0);
-        assertEq(madBytes, 257_376457807820801000);
+        uint256 madBytes = token.mint{value: 40 ether}(0);
+        assertEq(madBytes, 8626_650710991812139500);
         assertEq(token.totalSupply(), madBytes);
         assertEq(token.balanceOf(address(this)), madBytes);
-        assertEq(address(token).balance, 30 ether);
+        assertEq(address(token).balance, 40 ether);
         assertEq(token.getPoolBalance(), 10 ether);
         token.burnTo(address(0), madBytes, 0);
     }
@@ -626,14 +633,14 @@ contract MadByteTest is DSTest {
         assertEq(token.totalSupply(), 0);
         assertEq(address(token).balance, 0 ether);
         assertEq(address(userTo).balance, 0 ether);
-        uint256 madBytes = token.mintTo{value: 30 ether}(address(this), 0);
-        assertEq(madBytes, 257_376457807820801000);
+        uint256 madBytes = token.mintTo{value: 40 ether}(address(this), 0);
+        assertEq(madBytes, 8626_650710991812139500);
         assertEq(token.totalSupply(), madBytes);
         assertEq(token.balanceOf(address(this)), madBytes);
-        assertEq(address(token).balance, 30 ether);
+        assertEq(address(token).balance, 40 ether);
         assertEq(token.getPoolBalance(), 10 ether);
         // trying to burn more than the max supply
-        token.burnTo(address(userTo), 100*ONE_MB, 30 ether);
+        token.burnTo(address(userTo), 100*ONE_MB, 40 ether);
     }
 
     function testBurnReEntrant() public {
@@ -644,37 +651,37 @@ contract MadByteTest is DSTest {
         assertEq(token.totalSupply(), 0);
 
         // mint some tokens to the accounts
-        uint256 madBytesHacker = token.mintTo{value: 30 ether}(address(hacker), 0);
-        assertEq(madBytesHacker, 257_376457807820801000);
+        uint256 madBytesHacker = token.mintTo{value: 40 ether}(address(hacker), 0);
+        assertEq(madBytesHacker, 8626_650710991812139500);
         assertEq(token.balanceOf(address(hacker)), madBytesHacker);
         // Transferring the excess to get only 100 MD on the hacker account to make checks easier
         hacker.transfer(address(this), madBytesHacker - 100*ONE_MB);
         assertEq(token.balanceOf(address(hacker)), 100*ONE_MB);
         emit log_named_uint("MadNet balance hacker:", token.balanceOf(address(hacker)));
 
-        assertEq(address(token).balance, 30 ether);
+        assertEq(address(token).balance, 40 ether);
         assertEq(address(hacker).balance, 0 ether);
 
         // burning with reentrancy 5 times
         uint256 ethReceivedHacker = hacker.burn(20*ONE_MB);
 
         assertEq(token.balanceOf(address(hacker)), 0*ONE_MB);
-        assertEq(address(hacker).balance, 3_878031395542815703);
+        assertEq(address(hacker).balance, 116038531362031928);
         emit log_named_uint("Real Hacker Balance ETH", address(hacker).balance);
 
         // If this check fails it means that the had a reentrancy issue
-        assertEq(address(token).balance, 26_121968604457184297);
+        assertEq(address(token).balance, 39_883961468637968072);
 
         //testing a honest user
         ( MadByte token2, , , , ) = getFixtureData();
         assertEq(token2.totalSupply(), 0);
         UserAccount honestUser = newUserAccount(token2);
-        uint256 madBytes = token2.mintTo{value: 30 ether}(address(honestUser), 0);
-        assertEq(madBytes, 257_376457807820801000);
+        uint256 madBytes = token2.mintTo{value: 40 ether}(address(honestUser), 0);
+        assertEq(madBytes, 8626_650710991812139500);
         assertEq(token2.balanceOf(address(honestUser)), madBytes);
         // Transferring the excess to get only 100 MD on the hacker account to make checks easier
         honestUser.transfer(address(this), madBytes - 100*ONE_MB);
-        assertEq(address(token2).balance, 30 ether);
+        assertEq(address(token2).balance, 40 ether);
         assertEq(address(honestUser).balance, 0 ether);
         emit log_named_uint("Initial MadNet balance honestUser:", token2.balanceOf(address(honestUser)));
 
@@ -696,7 +703,7 @@ contract MadByteTest is DSTest {
         assertEq(supply, 0);
 
         // mint
-        uint256 mintedTokens = user.mint{value: 30 ether}(0);
+        uint256 mintedTokens = user.mint{value: 40 ether}(0);
         assertEq(mintedTokens, token.balanceOf(address(user)));
 
         // burn
@@ -704,34 +711,25 @@ contract MadByteTest is DSTest {
         assertEq(receivedEther, 10 ether);
     }
 
-    // function test_ConversionMBToEthAndEthMB(uint96 amountETH) public {
-    //     ( MadByte token, , , , ) = getFixtureData();
-    //     if (amountETH < 3) {
-    //         return;
-    //     }
-    //     assertEq(token.totalSupply(), 0);
-    //     uint256 madBytes = token.mint{value: amountETH}(0);
-    //     assertEq(token.totalSupply(), madBytes);
-    //     amountETH /= 3;
-    //     uint256 minAmountETH;
-    //     unchecked {
-    //         minAmountETH = amountETH-2;
-    //         if(minAmountETH >= amountETH) {
-    //             minAmountETH = 0;
-    //         }
-    //     }
-    //     uint256 maxAmountETH = amountETH+2;
-    //     // amountETH = 73021883342734;
-    //     uint256 returnedEth = token.MBtoEth(token.getPoolBalance(), madBytes);
-    //     emit log_named_uint("returnedEth", returnedEth);
-    //     emit log_named_uint("AmountETH", amountETH);
-    //     emit log_named_uint("Pool Balance", token.getPoolBalance());
-    //     assertTrue(returnedEth <= maxAmountETH && returnedEth >= minAmountETH);
-    //     // uint256 returnedMadBytes = token.EthtoMB(token.getPoolBalance(), returnedEth);
-    //     // assertEq(returnedMadBytes, token.totalSupply());
-    //     uint256 returnedMadBytes2 = token.EthtoMB(token.getPoolBalance(), token.getPoolBalance());
-    //     assertEq(returnedMadBytes2, token.totalSupply());
-    //     // assertEq(token.getPoolBalance(),  amountETH);
-    // }
+    function test_ConversionMBToEthAndEthMB() public {
+        ( MadByte token, , , , ) = getFixtureData();
+        uint256 amountETH = 400 ether;
+        assertEq(token.totalSupply(), 0);
+        uint256 temp = amountETH;
+        for (uint256 i=0; i<10; i++){
+            amountETH = temp + i*(i+1001);
+            uint256 madBytes = token.EthtoMB(10 ether, amountETH);
+            uint256 madBytesInitial = token.EthtoMB(0, 10 ether);
+            assertEq(madBytes+madBytesInitial, token.EthtoMB(0, 10 ether + amountETH));
+            emit log_named_uint("madBytes", madBytes);
+            //emit log_named_uint("token.totalSupply", token.totalSupply());
+
+            uint256 returnedEth = token.MBtoEth(madBytesInitial+madBytes, madBytes);
+            emit log_named_uint("returnedEth", returnedEth);
+            emit log_named_uint("AmountETH", amountETH);
+            // assertEq(returnedMadBytes, );
+        }
+            // fp(fx(x)) ~= x//marketSpread
+    }
 
 }
