@@ -1,8 +1,8 @@
 {
   "language": "Solidity",
   "sources": {
-    "src/MadByte.t.sol": {
-      "urls": ["src/MadByte.t.sol"]
+    "src/MadByte2.t.sol": {
+      "urls": ["src/MadByte2.t.sol"]
     }
   },
   "settings": {

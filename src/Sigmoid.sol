@@ -3,8 +3,21 @@ pragma solidity ^0.8.0;
 
 
 abstract contract Sigmoid {
+    
+    
     function _fx(uint256 x) internal pure returns(uint256) {
-      return 510*x + 707106781186547515392000 - 500*_sqrt(_safeAbsSub(1000000000000000000000,x)**2 + 999999999999999949038280487211713907654656);
+    //   return 510*x + 707106781186547515392000 - 500*_sqrt(_safeAbsSub(1000000000000000000000,x)**2 + 999999999999999949038280487211713907654656);
+        uint256 temp = _safeAbsSub(1000000000000000000000,x);
+        assembly {
+           temp := add(exp(temp, 2), 999999999999999949038280487211713907654656)
+        }
+        temp = _sqrt(temp);
+        assembly {
+            temp := mul(500, temp)
+            let temp2 := add(mul(510, x), 707106781186547515392000)
+            temp := sub(temp2, temp)
+        }
+        return temp;
     }
 
     function _fp(uint256 p) internal pure returns(uint256) {
@@ -31,15 +44,22 @@ abstract contract Sigmoid {
 
     function _sqrt(uint256 y_) internal pure returns(uint256 z) {
         z=0;
-        if (y_ > 3) {
-            z = y_;
-            uint256 x = y_ / 2 + 1;
-            while (x < z) {
-                z = x;
-                x = (y_ / x + x) / 2;
-            }
-        } else if (y_ != 0) {
-            z = 1;
+        assembly {
+            let flag := false
+            if gt (y_, 3) {
+                z := y_
+                let x := add(div(y_ , 2), 1)
+                for {} lt(x, z) {} {
+                    z := x
+                    x := div(add(div(y_, x),x),2)
+                }
+                flag := true
+            } 
+            if eq(flag, false) {
+                if eq(eq(y_,0), false) {
+                    z := 1
+                }
+            } 
         }
         return z;
     }
