@@ -119,6 +119,43 @@ contract UserAccount is BaseMock {
     constructor() {}
 }
 
+contract TokenPure {
+    MadByte public token;
+    uint256 public poolBalance;
+    uint256 public totalSupply;
+
+    constructor() {
+        AdminAccount admin = new AdminAccount();
+        MadStakingAccount madStaking = new MadStakingAccount();
+        MinerStakingAccount minerStaking = new MinerStakingAccount();
+        FoundationAccount foundation = new FoundationAccount();
+        token = new MadByte(
+            address(admin),
+            address(madStaking),
+            address(minerStaking),
+            address(foundation)
+        );
+        admin.setToken(token);
+        madStaking.setToken(token);
+        minerStaking.setToken(token);
+        foundation.setToken(token);
+    }
+
+    function mint(uint256 amountETH) public pure returns(uint256 madBytes){
+        madBytes = token.EthtoMB(poolBalance, amountETH);
+        poolBalance += amountETH;
+        totalSupply += madBytes;
+    }
+
+    function burn(uint256 amountMB) public pure returns (uint256 returnedEth){
+        require(totalSupply>= amountMB, "Underflow: totalSupply < amountMB");
+        returnedEth = token.MBtoEth(poolBalance, totalSupply, amountMB);
+        require(poolBalance>= returnedEth, "Underflow: poolBalance < returnedEth");
+        poolBalance -= returnedEth;
+        totalSupply -= amountMB;
+    }
+}
+
 contract MadByteTest is DSTest {
 
     uint256 constant ONE_MB = 1*10**18;
@@ -720,6 +757,34 @@ contract MadByteTest is DSTest {
     //     assertEq(receivedEther, 10 ether);
     // }
 
+    function test_ConversionMBToEthAndEthMB2() public {
+        token = new TokenPure();
+        uint256 amountETH = 2_000_000 ether;
+        assertEq(token.totalSupply(), 0);
+        uint256 madBytesInitial = token.mint(amountETH);
+        uint256 madBytes = token.mint(amountETH);
+        uint256 maxIt = 100;
+        uint256 cummulativeMBBurned = 0;
+        uint256 cummulativeMBMinted = 0;
+        uint256 cummulativeETHBurned = 0;
+        uint256 cummulativeETHMinted = 0;
+        uint256 amountBurned = madBytes/maxItt;
+        emit log_named_uint("amountBurned", amountBurned);
+        uint256 amountMinted = 1 ether;
+        emit log_named_uint("amountMinted", amountMinted);
+        for (uint256 i=0; i<maxIt-1; i++) {
+            cummulativeETHBurned += token.burn(amountBurned);
+            cummulativeMBBurned += amountBurned;
+            cummulativeMBMinted += token.mint(amountMinted);
+            cummulativeETHMinted += amountMinted;
+        }
+        emit log_named_uint("cummulativeETHBurned", cummulativeETHBurned);
+        emit log_named_uint("cummulativeMBBurned", amountBurned);
+        emit log_named_uint("cummulativeMBMinted", cummulativeMBMinted);
+        emit log_named_uint("cummulativeETHMinted", cummulativeETHMinted);
+
+    }
+
     function test_ConversionMBToEthAndEthMB() public {
         ( MadByte token, , , , ) = getFixtureData();
         // 2000, 10000, 700_000_000
@@ -727,7 +792,6 @@ contract MadByteTest is DSTest {
         // 79228162514264337593543950335
         uint256 amountETH = 2_000_000 ether; //2**122;
         assertEq(token.totalSupply(), 0);
-        uint256 temp = amountETH;
         //Mining the first amount of MB
        // uint256 initialValue = amountETH;
         uint256 madBytesInitial = token.EthtoMB(0, amountETH);
@@ -775,7 +839,7 @@ contract MadByteTest is DSTest {
             cummulativeETHMinted += 1 ether;
             totalSupply2 += madBytes2;
             cummulativeMBMinted += madBytes2;
-            
+
             uint256 returnedEth2 = token.MBtoEth(poolBalance2, totalSupply2, madBytes/maxItt);
             cummulativeETHBurned += returnedEth2;
             cummulativeMBBurned += madBytes/maxItt;
@@ -811,7 +875,7 @@ contract MadByteTest is DSTest {
         // totalSupply -= madBytesInitial;
         // assertEq(totalSupply, 0);
         // assertEq(poolBalance, 0);
-        // assertEq(returnedEth, 10 ether); //todo: check this. The last person to withdrawl is getting less ETH. 
+        // assertEq(returnedEth, 10 ether); //todo: check this. The last person to withdrawl is getting less ETH.
         // assertEq(poolBalance, 0);
         emit log_named_uint("returnedEthInitialMadBytes", returnedEth);
         emit log_named_uint("final Pool Balance", poolBalance);
@@ -833,17 +897,17 @@ contract MadByteTest is DSTest {
     //     uint256 ethReceived = user.burn(madBytes);
 
     //     assertTrue(40 ether / ethReceived >= 4);
-        
+
     //     madBytes = token.mintTo{value: 40 ether}(address(user2), 0);
     //     ethReceived = user2.burn(madBytes);
 
     //     assertTrue(40 ether / ethReceived >= 4);
-        
+
     //     madBytes = token.mintTo{value: 40 ether}(address(user), 0);
     //     uint256 madBytes2 = token.mintTo{value: 40 ether}(address(user2), 0);
     //     uint256 ethReceived2 = user2.burn(madBytes2);
     //     ethReceived = user.burn(madBytes);
-        
+
     //     emit log_named_uint("inv1.1:", 40 ether / ethReceived);
     //     emit log_named_uint("inv1.2:", 40 ether / ethReceived2);
 
@@ -855,7 +919,7 @@ contract MadByteTest is DSTest {
     //     madBytes2 = token.mintTo{value: 53 ether}(address(user2), 0);
     //     ethReceived2 = user2.burn(madBytes2);
     //     ethReceived = user.burn(madBytes);
-        
+
     //     emit log_named_uint("inv1.1:", 53 ether / ethReceived);
     //     emit log_named_uint("inv1.2:", 53 ether / ethReceived2);
 
@@ -878,6 +942,6 @@ contract MadByteTest is DSTest {
 
     //     emit log_named_uint("inv3:", 2000 ether / ethReceived);
     //     assertTrue(4*2000 ether / ethReceived >= 4);
-        
+
     // }
 }

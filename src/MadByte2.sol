@@ -10,7 +10,7 @@ import "./EthSafeTransfer.sol";
 import "./Sigmoid.sol";
 
 
-contract MadByte is ERC20, Admin, Mutex, MagicEthTransfer, EthSafeTransfer, Sigmoid {
+contract MadByte2 is ERC20, Admin, Mutex, MagicEthTransfer, EthSafeTransfer, Sigmoid {
 
     uint256 constant marketSpread = 4;
     uint256 constant madUnitOne = 1000;
@@ -153,58 +153,72 @@ contract MadByte is ERC20, Admin, Mutex, MagicEthTransfer, EthSafeTransfer, Sigm
 
     */
 
-    /*
-    
-    def correctCalc(a,b):
-        amod87 = a%87
-        bmod87 = b%87
-        delta = (amod87-bmod87)%87
-        return b+delta
-                
-    def burnCalc(poolBalance, totalSupply, mb):
-        numEth = fp(totalSupply) - fp(totalSupply-mb)
-        numMb = fx(poolBalance) - fx(poolBalance-numEth)
-        numMb2 = correctCalc(numEth, numMb)
-        numEth2 = fp(totalSupply) - fp(totalSupply-numMb2)
-        print(numEth, numEth2)
-        if numEth == numEth2:
-            return numEth
-        return numEth2-abs(numEth-numEth2)
-
-    */
-
-    function correctCalc(uint256 a, uint256 b) internal pure returns(uint256) {
-        uint256 amod87 = a%87;
-        uint256 bmod87 = b%87;
-        uint256 delta = (amod87-bmod87)%87;
-
-        return b+delta;
-    }
-
     function _MBtoEth(uint256 poolBalance_, uint256 totalSupply_, uint256 numMB_) internal returns(uint256) {
         require(totalSupply_ >= numMB_, "MadByte: The number of tokens to be burned is greater than the Total Supply!");
         require(numMB_ <= totalSupply_, "MadByte: Cannot burn more than total supply");
-        log("a", 1);
-        uint256 numEth = _fp(totalSupply_) - _fp(totalSupply_-numMB_);
-        log("b", 1);
-        uint256 numMb = _fx(poolBalance_) - _fx(poolBalance_-numEth);
-        log("c", 1);
-        uint256 numMb2 = correctCalc(numEth, numMb);
-        log("d", 1);
-        uint256 numEth2 = _fp(totalSupply_) - _fp(totalSupply_-numMb2);
-        
-        log('numEth', numEth);
-        log('numEth2', numEth2);
 
-        if (numEth == numEth2) {
-            return numEth;
+        log("----------------------", 1);
+        uint256 numEth_ = _fp(totalSupply_) - _fp(totalSupply_ - numMB_);
+
+        log("poolBalance_", poolBalance_);
+        log("totalSupply_", totalSupply_);
+        log("numMB_", numMB_);
+        log("numEth_", numEth_);
+
+        // DEBUG!
+        {
+            uint256 newPoolBalance = poolBalance_ - numEth_;
+            uint256 expectedMBs = _EthtoMB(newPoolBalance, numEth_);
+            log("newPoolBalance", newPoolBalance);
+            log("expectedMBs", expectedMBs);
+
+            if (expectedMBs < numMB_) {
+                uint256 diff = numMB_ - expectedMBs;
+                log("expectedMBs < numMB_ by:", diff);
+            } else {
+                uint256 diff = expectedMBs - numMB_;
+                log("expectedMBs >= numMB_ by:", diff);
+            }
         }
+        // DEBUG!
 
-        uint256 result = numEth2-_safeAbsSub(numEth, numEth2);
+        if (numEth_ > poolBalance_) {
+            log("numEth_ > poolBalance_ by:", numEth_ - poolBalance_);
+            numEth_ = poolBalance_;
+        }
+        uint256 tempMB_ = _fx(poolBalance_) - _fx(poolBalance_ - numEth_);
 
-        log('result', result);
-        
-        return result;
+        log("tempMB_", tempMB_);
+
+        /* if (tempMB_ > numMB_) {
+            log("entering (tempMB_ > numMB_)", 1);
+            
+            uint256 diff = tempMB_ - numMB_;
+            log("diff", diff);
+            //if (2*diff > numMB_) {
+            //    numMB_ = 2*diff;
+            //}
+            if (2*diff > numMB_) {
+                if (diff > numMB_) {
+                    if (diff/2 > numMB_) {
+                        numMB_ = numMB_;
+                    } else {
+                        numMB_ -= diff/2; 
+                    }
+                } else {
+                    numMB_ -= diff; 
+                }
+            } else {
+                numMB_ -= 2*diff;
+            }
+            log("numMB_2", numMB_);
+            numEth_ = _fp(totalSupply_) - _fp(totalSupply_ - numMB_);
+            return _min(numEth_+1, poolBalance_);
+        } */
+        //uint256 numEth = _min(_fp(totalSupply_) - _fp(totalSupply_ - tempMB_), poolBalance_);
+    //   uint256 error_ = _safeAbsSub(numEth_, numEth);
+    //   numEth_ -= error_ * 2;
+        return _min(numEth_, poolBalance_);
     }
 
     function _computeError(uint256 poolBalance_, uint256 totalSupply_, uint256 numMB_) internal pure returns(uint256 errorMB_, uint256 numEth_) {
