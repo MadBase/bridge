@@ -124,6 +124,12 @@ contract TokenPure {
     uint256 public poolBalance;
     uint256 public totalSupply;
 
+    event log_named_uint(string key, uint256 val);
+
+    function log(string memory name, uint256 value) internal{
+        emit log_named_uint(name, value);
+    }
+
     constructor() {
         AdminAccount admin = new AdminAccount();
         MadStakingAccount madStaking = new MadStakingAccount();
@@ -141,18 +147,23 @@ contract TokenPure {
         foundation.setToken(token);
     }
 
-    function mint(uint256 amountETH) public pure returns(uint256 madBytes){
+    function mint(uint256 amountETH) public returns(uint256 madBytes){
         madBytes = token.EthtoMB(poolBalance, amountETH);
         poolBalance += amountETH;
         totalSupply += madBytes;
     }
 
-    function burn(uint256 amountMB) public pure returns (uint256 returnedEth){
+    function burn(uint256 amountMB) public returns (uint256 returnedEth){
         require(totalSupply>= amountMB, "Underflow: totalSupply < amountMB");
         returnedEth = token.MBtoEth(poolBalance, totalSupply, amountMB);
         require(poolBalance>= returnedEth, "Underflow: poolBalance < returnedEth");
+        log("TokenPure: poolBalance      ", poolBalance);
+        log("TokenPure: returnedEth      ", returnedEth);
         poolBalance -= returnedEth;
+        log("TokenPure: totalSupply      ", totalSupply);
+        log("TokenPure: amountMB         ", amountMB);
         totalSupply -= amountMB;
+        log("TokenPure: totalSupply After", totalSupply);
     }
 }
 
@@ -758,130 +769,187 @@ contract MadByteTest is DSTest {
     // }
 
     function test_ConversionMBToEthAndEthMB2() public {
-        token = new TokenPure();
-        uint256 amountETH = 2_000_000 ether;
-        assertEq(token.totalSupply(), 0);
-        uint256 madBytesInitial = token.mint(amountETH);
+        TokenPure token = new TokenPure();
+        uint256 amountETH = 2_000_000;
+        token.mint(amountETH);
         uint256 madBytes = token.mint(amountETH);
+
         uint256 maxIt = 100;
-        uint256 cummulativeMBBurned = 0;
-        uint256 cummulativeMBMinted = 0;
-        uint256 cummulativeETHBurned = 0;
-        uint256 cummulativeETHMinted = 0;
-        uint256 amountBurned = madBytes/maxItt;
-        emit log_named_uint("amountBurned", amountBurned);
-        uint256 amountMinted = 1 ether;
-        emit log_named_uint("amountMinted", amountMinted);
-        for (uint256 i=0; i<maxIt-1; i++) {
-            cummulativeETHBurned += token.burn(amountBurned);
-            cummulativeMBBurned += amountBurned;
-            cummulativeMBMinted += token.mint(amountMinted);
-            cummulativeETHMinted += amountMinted;
+        uint256 cumulativeMBBurned = 0;
+        uint256 cumulativeMBMinted = 0;
+        uint256 cumulativeETHBurned = 0;
+        uint256 cumulativeETHMinted = 0;
+        uint256 amountBurned = madBytes/maxIt;
+        uint256 amountMinted = 1;
+        for (uint256 i=0; i<maxIt; i++) {
+            cumulativeETHBurned += token.burn(amountBurned);
+            cumulativeMBBurned += amountBurned;
+            cumulativeMBMinted += token.mint(amountMinted);
+            cumulativeETHMinted += amountMinted;
         }
-        emit log_named_uint("cummulativeETHBurned", cummulativeETHBurned);
-        emit log_named_uint("cummulativeMBBurned", amountBurned);
-        emit log_named_uint("cummulativeMBMinted", cummulativeMBMinted);
-        emit log_named_uint("cummulativeETHMinted", cummulativeETHMinted);
 
+        TokenPure token2 = new TokenPure();
+        token2.mint(amountETH);
+        token2.mint(amountETH);
+        uint256 burnedMBDiff = cumulativeMBBurned-cumulativeMBMinted;
+        uint256 burnedETH2 = token2.burn(burnedMBDiff);
+
+        emit log("=======================================================");
+        emit log_named_uint("amountMinted ETH   ", amountMinted);
+        emit log_named_uint("amountBurned       ", amountBurned);
+        emit log_named_uint("cumulativeMBBurned ", cumulativeMBBurned);
+        emit log_named_uint("cumulativeMBMinted ", cumulativeMBMinted);
+        emit log_named_uint("cumulativeETHBurned", cumulativeETHBurned);
+        emit log_named_uint("cumulativeETHMinted", cumulativeETHMinted);
+        emit log_named_uint("Diff MB after loop ", burnedMBDiff);
+        emit log_named_uint("ETH burned token2  ", burnedETH2);
+        emit log_named_uint("Token1 Balance:    ", token.poolBalance());
+        emit log_named_uint("Token2 Balance:    ", token2.poolBalance());
+        //fail();
     }
 
-    function test_ConversionMBToEthAndEthMB() public {
-        ( MadByte token, , , , ) = getFixtureData();
-        // 2000, 10000, 700_000_000
-        // 79083974178645291203200560051632892360767082149044608353057640485045702118670
-        // 79228162514264337593543950335
-        uint256 amountETH = 2_000_000 ether; //2**122;
-        assertEq(token.totalSupply(), 0);
-        //Mining the first amount of MB
-       // uint256 initialValue = amountETH;
-        uint256 madBytesInitial = token.EthtoMB(0, amountETH);
-        uint256 poolBalance = amountETH;
-        uint256 totalSupply = madBytesInitial;
-        //Mining the desired amount of MB
-        uint256 madBytes = token.EthtoMB(poolBalance, amountETH);
-        poolBalance += amountETH;
-        totalSupply += madBytes;
-        assertEq(madBytes+madBytesInitial, totalSupply);
-        //Checking if generating the tokens from scrath yields the sum of
-        //the MB generated in the steps above
-        assertEq(totalSupply, token.EthtoMB(0, poolBalance));
-        emit log_named_uint("madBytesInitial", madBytesInitial);
-        emit log_named_uint("madBytes   ", madBytes);
-        emit log_named_uint("Total Supply", totalSupply);
-        emit log_named_uint("Pool Balance", poolBalance);
-        emit log_named_uint("Invested amount", amountETH);
-        // Simulating the burn
-        // uint256 returnedEth = token.MBtoEth(poolBalance, totalSupply, madBytes);
-        // if (amountETH >= returnedEth) {
-        //     emit log_named_uint("Error", amountETH - returnedEth);
-        //     assertTrue(amountETH - returnedEth < 100);
-        // } else {
-        //     emit log_named_uint("Error", returnedEth - amountETH);
-        //     assertTrue(returnedEth - amountETH < 100);
-        // }
-        // poolBalance -= returnedEth;
-        // totalSupply -= madBytes;
-        emit log("=================");
-        // emit log_named_uint("returnedEthMadBytes", returnedEth);
-        emit log_named_uint("Pool Balance", poolBalance);
-        // assertEq(returnedEth, amountETH); //todo: check it has to be less or equal.Result now is greater or equal!
-        // assertEq(poolBalance, 10 ether); //todo: check it has to be greater or equal.Result now is less or equal!
-        uint256 cummulativeMBBurned = 0;
-        uint256 cummulativeMBMinted = 0;
-        uint256 cummulativeETHBurned = 0;
-        uint256 cummulativeETHMinted = 0;
-        uint256 maxItt = 100;
-        uint256 poolBalance2 = poolBalance;
-        uint256 totalSupply2 = totalSupply;
-        for (uint256 i=0; i<maxItt-1; i++) {
-            uint256 madBytes2 = token.EthtoMB(poolBalance, 1 ether);
-            poolBalance2 += 1 ether;
-            cummulativeETHMinted += 1 ether;
-            totalSupply2 += madBytes2;
-            cummulativeMBMinted += madBytes2;
+    function test_ConversionMBToEthAndEthMB3(/* uint96 amountETH */) public {
+        TokenPure token = new TokenPure();
+        uint256 amountETH = 0xa89984770802767127/* 2287_987654321987654311 */;
+        token.mint(amountETH);
 
-            uint256 returnedEth2 = token.MBtoEth(poolBalance2, totalSupply2, madBytes/maxItt);
-            cummulativeETHBurned += returnedEth2;
-            cummulativeMBBurned += madBytes/maxItt;
-            poolBalance2 -= returnedEth2;
-            totalSupply2 -= madBytes/maxItt;
+        uint256 maxIt = 10;
+        uint256 cumulativeMBBurned = 0;
+        uint256 cumulativeMBMinted = 0;
+        uint256 cumulativeETHBurned = 0;
+        uint256 cumulativeETHMinted = 0;
+        uint256 countUser = 0;
+        uint256 countPool = 0;
+        uint256 amountMinted = amountETH/maxIt;
+        for (uint256 i=0; i<maxIt; i++) {
+            emit log("Minting");
+            uint256 MBMinted = token.mint(amountMinted);
+            cumulativeMBMinted += MBMinted;
+            cumulativeETHMinted += amountMinted;
+            emit log("Burning");
+            uint256 ETHBurned = token.burn(MBMinted);
+            cumulativeETHBurned += ETHBurned;
+            cumulativeMBBurned += MBMinted;
+            emit log("Updating counters");
+            if (ETHBurned > amountMinted) {
+                countUser++;
+            } else {
+                countPool++;
+            }
         }
-        //uint256 returnedLeftOver =token.MBtoEth(poolBalance2, totalSupply2, madBytes - cummulativeMBBurned);
-        //emit log_named_uint("LeftOverETH", returnedLeftOver);
-        //assertEq(cummulativeMBBurned, madBytes);
-        poolBalance2 -= token.MBtoEth(poolBalance2, totalSupply2, cummulativeMBMinted);
-        totalSupply2 -= cummulativeMBMinted;
-        emit log_named_uint("Pool Balance 2 Before", poolBalance2);
-        emit log("===========");
-        uint256 returnedEth = token.MBtoEth(poolBalance +  cummulativeETHMinted - cummulativeETHBurned, totalSupply + cummulativeMBMinted - cummulativeMBBurned, cummulativeMBBurned);
-        emit log("===========");
-        poolBalance -= returnedEth;
-        totalSupply -= madBytes;
-        //emit log_named_uint("Error pool", returnedEth);
-        if (poolBalance2 >= poolBalance) {
-            emit log_named_uint("Pool Balance", poolBalance);
-            emit log_named_uint("Pool Balance 2", poolBalance2);
-            emit log_named_uint("Error2", poolBalance2 - poolBalance);
-            assertTrue(poolBalance2 - poolBalance < 450);
-        } else {
-            emit log_named_uint("Error1", poolBalance - poolBalance2);
-            assertTrue(poolBalance - poolBalance2 < 450);
-        }
+        assertEq(countUser, 0);
+        TokenPure token2 = new TokenPure();
+        token2.mint(amountETH);
 
-        // // emit log_named_uint("Error pool", returnedEth);
-        // returnedEth = token.MBtoEth(poolBalance, totalSupply, totalSupply);
-        // // assertTrue(amountETH - returnedEth < 10);
-        // poolBalance -= returnedEth;
-        // totalSupply -= madBytesInitial;
-        // assertEq(totalSupply, 0);
-        // assertEq(poolBalance, 0);
-        // assertEq(returnedEth, 10 ether); //todo: check this. The last person to withdrawl is getting less ETH.
-        // assertEq(poolBalance, 0);
-        emit log_named_uint("returnedEthInitialMadBytes", returnedEth);
-        emit log_named_uint("final Pool Balance", poolBalance);
-        emit log_named_uint("final totalSupply", totalSupply);
-        fail();
+        emit log("=======================================================");
+        emit log_named_uint("amountMinted ETH   ", amountMinted);
+        emit log_named_uint("cumulativeMBBurned ", cumulativeMBBurned);
+        emit log_named_uint("cumulativeMBMinted ", cumulativeMBMinted);
+        emit log_named_uint("cumulativeETHBurned", cumulativeETHBurned);
+        emit log_named_uint("cumulativeETHMinted", cumulativeETHMinted);
+        emit log_named_uint("countUser          ", countUser);
+        emit log_named_uint("countPool          ", countPool);
+        emit log_named_uint("Token1 Balance     ", token.poolBalance());
+        emit log_named_uint("Token2 Balance     ", token2.poolBalance());
     }
+
+    // function test_ConversionMBToEthAndEthMB() public {
+    //     ( MadByte token, , , , ) = getFixtureData();
+    //     // 2000, 10000, 700_000_000
+    //     // 79083974178645291203200560051632892360767082149044608353057640485045702118670
+    //     // 79228162514264337593543950335
+    //     uint256 amountETH = 2_000_000 ether; //2**122;
+    //     assertEq(token.totalSupply(), 0);
+    //     //Mining the first amount of MB
+    //    // uint256 initialValue = amountETH;
+    //     uint256 madBytesInitial = token.EthtoMB(0, amountETH);
+    //     uint256 poolBalance = amountETH;
+    //     uint256 totalSupply = madBytesInitial;
+    //     //Mining the desired amount of MB
+    //     uint256 madBytes = token.EthtoMB(poolBalance, amountETH);
+    //     poolBalance += amountETH;
+    //     totalSupply += madBytes;
+    //     assertEq(madBytes+madBytesInitial, totalSupply);
+    //     //Checking if generating the tokens from scrath yields the sum of
+    //     //the MB generated in the steps above
+    //     assertEq(totalSupply, token.EthtoMB(0, poolBalance));
+    //     emit log_named_uint("madBytesInitial", madBytesInitial);
+    //     emit log_named_uint("madBytes   ", madBytes);
+    //     emit log_named_uint("Total Supply", totalSupply);
+    //     emit log_named_uint("Pool Balance", poolBalance);
+    //     emit log_named_uint("Invested amount", amountETH);
+    //     // Simulating the burn
+    //     // uint256 returnedEth = token.MBtoEth(poolBalance, totalSupply, madBytes);
+    //     // if (amountETH >= returnedEth) {
+    //     //     emit log_named_uint("Error", amountETH - returnedEth);
+    //     //     assertTrue(amountETH - returnedEth < 100);
+    //     // } else {
+    //     //     emit log_named_uint("Error", returnedEth - amountETH);
+    //     //     assertTrue(returnedEth - amountETH < 100);
+    //     // }
+    //     // poolBalance -= returnedEth;
+    //     // totalSupply -= madBytes;
+    //     emit log("=================");
+    //     // emit log_named_uint("returnedEthMadBytes", returnedEth);
+    //     emit log_named_uint("Pool Balance", poolBalance);
+    //     // assertEq(returnedEth, amountETH); //todo: check it has to be less or equal.Result now is greater or equal!
+    //     // assertEq(poolBalance, 10 ether); //todo: check it has to be greater or equal.Result now is less or equal!
+    //     uint256 cummulativeMBBurned = 0;
+    //     uint256 cummulativeMBMinted = 0;
+    //     uint256 cummulativeETHBurned = 0;
+    //     uint256 cummulativeETHMinted = 0;
+    //     uint256 maxItt = 100;
+    //     uint256 poolBalance2 = poolBalance;
+    //     uint256 totalSupply2 = totalSupply;
+    //     for (uint256 i=0; i<maxItt-1; i++) {
+    //         uint256 madBytes2 = token.EthtoMB(poolBalance, 1 ether);
+    //         poolBalance2 += 1 ether;
+    //         cummulativeETHMinted += 1 ether;
+    //         totalSupply2 += madBytes2;
+    //         cummulativeMBMinted += madBytes2;
+
+    //         uint256 returnedEth2 = token.MBtoEth(poolBalance2, totalSupply2, madBytes/maxItt);
+    //         cummulativeETHBurned += returnedEth2;
+    //         cummulativeMBBurned += madBytes/maxItt;
+    //         poolBalance2 -= returnedEth2;
+    //         totalSupply2 -= madBytes/maxItt;
+    //     }
+    //     //uint256 returnedLeftOver =token.MBtoEth(poolBalance2, totalSupply2, madBytes - cummulativeMBBurned);
+    //     //emit log_named_uint("LeftOverETH", returnedLeftOver);
+    //     //assertEq(cummulativeMBBurned, madBytes);
+    //     poolBalance2 -= token.MBtoEth(poolBalance2, totalSupply2, cummulativeMBMinted);
+    //     totalSupply2 -= cummulativeMBMinted;
+    //     emit log_named_uint("Pool Balance 2 Before", poolBalance2);
+    //     emit log("===========");
+    //     uint256 returnedEth = token.MBtoEth(poolBalance +  cummulativeETHMinted - cummulativeETHBurned, totalSupply + cummulativeMBMinted - cummulativeMBBurned, cummulativeMBBurned);
+    //     emit log("===========");
+    //     poolBalance -= returnedEth;
+    //     totalSupply -= madBytes;
+    //     //emit log_named_uint("Error pool", returnedEth);
+    //     if (poolBalance2 >= poolBalance) {
+    //         emit log_named_uint("Pool Balance", poolBalance);
+    //         emit log_named_uint("Pool Balance 2", poolBalance2);
+    //         emit log_named_uint("Error2", poolBalance2 - poolBalance);
+    //         assertTrue(poolBalance2 - poolBalance < 450);
+    //     } else {
+    //         emit log_named_uint("Error1", poolBalance - poolBalance2);
+    //         assertTrue(poolBalance - poolBalance2 < 450);
+    //     }
+
+    //     // // emit log_named_uint("Error pool", returnedEth);
+    //     // returnedEth = token.MBtoEth(poolBalance, totalSupply, totalSupply);
+    //     // // assertTrue(amountETH - returnedEth < 10);
+    //     // poolBalance -= returnedEth;
+    //     // totalSupply -= madBytesInitial;
+    //     // assertEq(totalSupply, 0);
+    //     // assertEq(poolBalance, 0);
+    //     // assertEq(returnedEth, 10 ether); //todo: check this. The last person to withdrawl is getting less ETH.
+    //     // assertEq(poolBalance, 0);
+    //     emit log_named_uint("returnedEthInitialMadBytes", returnedEth);
+    //     emit log_named_uint("final Pool Balance", poolBalance);
+    //     emit log_named_uint("final totalSupply", totalSupply);
+    //     fail();
+    // }
 
     // function testInvariantHold() public {
     //     /*
