@@ -3,25 +3,14 @@ pragma solidity ^0.8.0;
 
 
 abstract contract Sigmoid {
-    
-    
+
+
     function _fx(uint256 x) internal pure returns(uint256) {
-    //   return 510*x + 707106781186547515392000 - 500*_sqrt(_safeAbsSub(1000000000000000000000,x)**2 + 999999999999999949038280487211713907654656);
-        uint256 temp = _safeAbsSub(1000000000000000000000,x);
-        assembly {
-           temp := add(exp(temp, 2), 999999999999999949038280487211713907654656)
-        }
-        temp = _sqrt(temp);
-        assembly {
-            temp := mul(500, temp)
-            let temp2 := add(mul(510, x), 707106781186547515392000)
-            temp := sub(temp2, temp)
-        }
-        return temp;
+      return 51*x + 70710678118654752440100 - _sqrt(50**2*((_safeAbsSub(1000000000000000000000, x))**2 + 1000000000000000000000880420888566761635204));
     }
 
     function _fp(uint256 p) internal pure returns(uint256) {
-      return (51*p + 50*_sqrt(p**2 + 1491448916810278452444696754723766787380976025600 - 2434213562373095030784000*p) - 61062445840513923284992000)/ 1010;
+      return (51*p + _sqrt(50**2*(p**2 + 14914489168102784748892489974731162147013165604 - 243421356237309504880200*p)) - 6106244584051392374445100)/101;
     }
 
     function _safeAbsSub(uint256 a, uint256 b) internal pure returns(uint256) {
@@ -42,26 +31,62 @@ abstract contract Sigmoid {
       return b_;
     }
 
-    function _sqrt(uint256 y_) internal pure returns(uint256 z) {
-        z=0;
-        assembly {
-            let flag := false
-            if gt (y_, 3) {
-                z := y_
-                let x := add(div(y_ , 2), 1)
-                for {} lt(x, z) {} {
-                    z := x
-                    x := div(add(div(y_, x),x),2)
-                }
-                flag := true
-            } 
-            if eq(flag, false) {
-                if eq(eq(y_,0), false) {
-                    z := 1
-                }
-            } 
+    /// @notice Calculates the square root of x, rounding down.
+    /// @dev Uses the Babylonian method https://en.wikipedia.org/wiki/Methods_of_computing_square_roots#Babylonian_method.
+    ///
+    /// Caveats:
+    /// - This function does not work with fixed-point numbers.
+    ///
+    /// @param x The uint256 number for which to calculate the square root.
+    /// @return result The result as an uint256.
+    function _sqrt(uint256 x) internal pure returns (uint256 result) {
+        if (x == 0) {
+            return 0;
         }
-        return z;
+
+        // Set the initial guess to the closest power of two that is higher than x.
+        uint256 xAux = uint256(x);
+        result = 1;
+        if (xAux >= 0x100000000000000000000000000000000) {
+            xAux >>= 128;
+            result <<= 64;
+        }
+        if (xAux >= 0x10000000000000000) {
+            xAux >>= 64;
+            result <<= 32;
+        }
+        if (xAux >= 0x100000000) {
+            xAux >>= 32;
+            result <<= 16;
+        }
+        if (xAux >= 0x10000) {
+            xAux >>= 16;
+            result <<= 8;
+        }
+        if (xAux >= 0x100) {
+            xAux >>= 8;
+            result <<= 4;
+        }
+        if (xAux >= 0x10) {
+            xAux >>= 4;
+            result <<= 2;
+        }
+        if (xAux >= 0x8) {
+            result <<= 1;
+        }
+
+        // The operations can never overflow because the result is max 2^127 when it enters this block.
+        unchecked {
+            result = (result + x / result) >> 1;
+            result = (result + x / result) >> 1;
+            result = (result + x / result) >> 1;
+            result = (result + x / result) >> 1;
+            result = (result + x / result) >> 1;
+            result = (result + x / result) >> 1;
+            result = (result + x / result) >> 1; // Seven iterations should be enough
+            uint256 roundedDownResult = x / result;
+            return result >= roundedDownResult ? roundedDownResult : result;
+        }
     }
 
 }

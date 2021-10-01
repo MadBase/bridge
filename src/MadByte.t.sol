@@ -4,6 +4,7 @@ pragma solidity ^0.8.0;
 import "ds-test/test.sol";
 
 import "./MadByte.sol";
+import "./Sigmoid.sol";
 
 
 abstract contract BaseMock {
@@ -157,17 +158,17 @@ contract TokenPure {
         require(totalSupply>= amountMB, "Underflow: totalSupply < amountMB");
         returnedEth = token.MBtoEth(poolBalance, totalSupply, amountMB);
         require(poolBalance>= returnedEth, "Underflow: poolBalance < returnedEth");
-        log("TokenPure: poolBalance      ", poolBalance);
-        log("TokenPure: returnedEth      ", returnedEth);
+        // log("TokenPure: poolBalance      ", poolBalance);
+        // log("TokenPure: returnedEth      ", returnedEth);
         poolBalance -= returnedEth;
-        log("TokenPure: totalSupply      ", totalSupply);
-        log("TokenPure: amountMB         ", amountMB);
+        // log("TokenPure: totalSupply      ", totalSupply);
+        // log("TokenPure: amountMB         ", amountMB);
         totalSupply -= amountMB;
-        log("TokenPure: totalSupply After", totalSupply);
+        // log("TokenPure: totalSupply After", totalSupply);
     }
 }
 
-contract MadByteTest is DSTest {
+contract MadByteTest is DSTest, Sigmoid {
 
     uint256 constant ONE_MB = 1*10**18;
 
@@ -768,89 +769,151 @@ contract MadByteTest is DSTest {
     //     assertEq(receivedEther, 10 ether);
     // }
 
-    function test_ConversionMBToEthAndEthMB2() public {
-        TokenPure token = new TokenPure();
-        uint256 amountETH = 2_000_000;
-        token.mint(amountETH);
-        uint256 madBytes = token.mint(amountETH);
+    // function test_ConversionMBToEthAndEthMB2(uint96 amountETH) public {
+    //     uint256 maxIt = 101;
+    //     if (amountETH <= maxIt) {
+    //         amountETH = amountETH+uint96(maxIt)**2+1;
+    //     }
+    //     TokenPure token = new TokenPure();
+    //     uint256 initialMB = token.mint(amountETH);
+    //     emit log_named_uint("Initial supply:    ", token.totalSupply());
+    //     uint256 madBytes = token.mint(amountETH);
+    //     emit log_named_uint("Mb generated 2:   ", madBytes);
+    //     emit log_named_uint("Initial supply2:   ", token.totalSupply());
 
-        uint256 maxIt = 100;
-        uint256 cumulativeMBBurned = 0;
-        uint256 cumulativeMBMinted = 0;
-        uint256 cumulativeETHBurned = 0;
-        uint256 cumulativeETHMinted = 0;
-        uint256 amountBurned = madBytes/maxIt;
-        uint256 amountMinted = 1;
-        for (uint256 i=0; i<maxIt; i++) {
-            cumulativeETHBurned += token.burn(amountBurned);
-            cumulativeMBBurned += amountBurned;
-            cumulativeMBMinted += token.mint(amountMinted);
-            cumulativeETHMinted += amountMinted;
+    //     uint256 cumulativeMBBurned = 0;
+    //     uint256 cumulativeMBMinted = 0;
+    //     uint256 cumulativeETHBurned = 0;
+    //     uint256 cumulativeETHMinted = 0;
+    //     uint256 amountBurned = madBytes/maxIt;
+    //     uint256 amountMinted = amountETH/10000;
+    //     if (amountMinted == 0) {
+    //         amountMinted=1;
+    //     }
+    //     for (uint256 i=0; i<maxIt; i++) {
+    //         amountBurned = _min(amountBurned, token.totalSupply());
+    //         cumulativeETHBurned += token.burn(amountBurned);
+    //         cumulativeMBBurned += amountBurned;
+    //         cumulativeMBMinted += token.mint(amountMinted);
+    //         cumulativeETHMinted += amountMinted;
+    //     }
+
+    //     TokenPure token2 = new TokenPure();
+    //     token2.mint(amountETH);
+    //     token2.mint(amountETH);
+    //     int256 burnedMBDiff = int256(cumulativeMBBurned)-int256(cumulativeMBMinted);
+    //     if (burnedMBDiff < 0) {
+    //         burnedMBDiff *= -1;
+    //     }
+    //     uint256 burnedETH2 = token2.burn(uint256(burnedMBDiff));
+
+    //     emit log("=======================================================");
+    //     emit log_named_uint("Token Balance:    ", token.totalSupply());
+    //     emit log_named_uint("amountMinted ETH   ", amountMinted);
+    //     emit log_named_uint("amountBurned       ", amountBurned);
+    //     emit log_named_uint("cumulativeMBBurned ", cumulativeMBBurned);
+    //     emit log_named_uint("cumulativeMBMinted ", cumulativeMBMinted);
+    //     emit log_named_uint("cumulativeETHBurned", cumulativeETHBurned);
+    //     emit log_named_uint("cumulativeETHMinted", cumulativeETHMinted);
+    //     emit log_named_int("Diff MB after loop ", burnedMBDiff);
+    //     emit log_named_uint("ETH burned token2  ", burnedETH2);
+    //     emit log_named_uint("Token1 Balance:    ", token.poolBalance());
+    //     emit log_named_uint("Token2 Balance:    ", token2.poolBalance());
+    //     emit log_named_uint("Token1 supply:     ", token.totalSupply());
+    //     emit log_named_uint("Token2 Balance:    ", token2.totalSupply());
+    //     assertEq(token.poolBalance(), token2.poolBalance());
+    // }
+
+    // function test_ConversionMBToEthAndEthMB3Old(uint96 amountETH) public {
+    //     TokenPure token = new TokenPure();
+    //     // uint256 amountETH = 0xa89984770802767127/* 2287_987654321987654311 */;
+    //     token.mint(amountETH);
+
+    //     uint256 maxIt = 10;
+    //     uint256 cumulativeMBBurned = 0;
+    //     uint256 cumulativeMBMinted = 0;
+    //     uint256 cumulativeETHBurned = 0;
+    //     uint256 cumulativeETHMinted = 0;
+    //     uint256 countUser = 0;
+    //     uint256 countPool = 0;
+    //     uint256 amountMinted = amountETH/maxIt;
+    //     for (uint256 i=0; i<maxIt; i++) {
+    //         emit log("Minting");
+    //         uint256 MBMinted = token.mint(amountMinted);
+    //         cumulativeMBMinted += MBMinted;
+    //         cumulativeETHMinted += amountMinted;
+    //         emit log("Burning");
+    //         uint256 ETHBurned = token.burn(MBMinted);
+    //         cumulativeETHBurned += ETHBurned;
+    //         cumulativeMBBurned += MBMinted;
+    //         emit log("Updating counters");
+    //         if (ETHBurned > amountMinted) {
+    //             countUser++;
+    //         } else {
+    //             countPool++;
+    //         }
+    //     }
+    //     assertEq(countUser, 0);
+    //     TokenPure token2 = new TokenPure();
+    //     token2.mint(amountETH);
+
+    //     emit log("=======================================================");
+    //     emit log_named_uint("amountMinted ETH   ", amountMinted);
+    //     emit log_named_uint("cumulativeMBBurned ", cumulativeMBBurned);
+    //     emit log_named_uint("cumulativeMBMinted ", cumulativeMBMinted);
+    //     emit log_named_uint("cumulativeETHBurned", cumulativeETHBurned);
+    //     emit log_named_uint("cumulativeETHMinted", cumulativeETHMinted);
+    //     emit log_named_uint("countUser          ", countUser);
+    //     emit log_named_uint("countPool          ", countPool);
+    //     emit log_named_uint("Token1 Balance     ", token.poolBalance());
+    //     emit log_named_uint("Token2 Balance     ", token2.poolBalance());
+    //     assertEq(token.poolBalance(), token2.poolBalance());
+    // }
+
+    function test_ConversionMBToEthAndEthMB3(uint96 amountEth) public {
+        ( MadByte token, , , , ) = getFixtureData();
+
+        if (amountEth == 0) {
+            return;
         }
-
-        TokenPure token2 = new TokenPure();
-        token2.mint(amountETH);
-        token2.mint(amountETH);
-        uint256 burnedMBDiff = cumulativeMBBurned-cumulativeMBMinted;
-        uint256 burnedETH2 = token2.burn(burnedMBDiff);
-
-        emit log("=======================================================");
-        emit log_named_uint("amountMinted ETH   ", amountMinted);
-        emit log_named_uint("amountBurned       ", amountBurned);
-        emit log_named_uint("cumulativeMBBurned ", cumulativeMBBurned);
-        emit log_named_uint("cumulativeMBMinted ", cumulativeMBMinted);
-        emit log_named_uint("cumulativeETHBurned", cumulativeETHBurned);
-        emit log_named_uint("cumulativeETHMinted", cumulativeETHMinted);
-        emit log_named_uint("Diff MB after loop ", burnedMBDiff);
-        emit log_named_uint("ETH burned token2  ", burnedETH2);
-        emit log_named_uint("Token1 Balance:    ", token.poolBalance());
-        emit log_named_uint("Token2 Balance:    ", token2.poolBalance());
-        //fail();
+        uint256 poolBalance = amountEth;
+        uint startGas = gasleft();
+        uint256 totalSupply = token.EthtoMB(0, amountEth);
+        uint endGas = gasleft();
+        emit log_named_uint("gas EthtoMB", startGas - endGas);
+        uint256 poolBalanceAfter = uint256(keccak256(abi.encodePacked(amountEth))) % amountEth;
+        uint256 totalSupplyAfter = _fx(poolBalanceAfter);
+        uint256 mb = totalSupply - totalSupplyAfter;
+        startGas = gasleft();
+        uint256 returnedEth = token.MBtoEth(poolBalance, totalSupply, mb);
+        endGas = gasleft();
+        emit log_named_uint("gas MBtoEth", startGas - endGas);
+        emit log_named_uint("Diff:", poolBalance - returnedEth);
+        assertTrue(poolBalance - returnedEth == poolBalanceAfter);
     }
 
-    function test_ConversionMBToEthAndEthMB3(/* uint96 amountETH */) public {
+    function test_ConversionMBToEthAndEthMB4(uint96 amountEth) public {
+        //value that caused the underflow: 0x0dc3c7e617a25ea1eb6ea21
+        //value that failed: 0xf23f3bea83a489fafd4cfc2, 0x1
         TokenPure token = new TokenPure();
-        uint256 amountETH = 0xa89984770802767127/* 2287_987654321987654311 */;
-        token.mint(amountETH);
-
-        uint256 maxIt = 10;
-        uint256 cumulativeMBBurned = 0;
-        uint256 cumulativeMBMinted = 0;
-        uint256 cumulativeETHBurned = 0;
-        uint256 cumulativeETHMinted = 0;
-        uint256 countUser = 0;
-        uint256 countPool = 0;
-        uint256 amountMinted = amountETH/maxIt;
-        for (uint256 i=0; i<maxIt; i++) {
-            emit log("Minting");
-            uint256 MBMinted = token.mint(amountMinted);
-            cumulativeMBMinted += MBMinted;
-            cumulativeETHMinted += amountMinted;
-            emit log("Burning");
-            uint256 ETHBurned = token.burn(MBMinted);
-            cumulativeETHBurned += ETHBurned;
-            cumulativeMBBurned += MBMinted;
-            emit log("Updating counters");
-            if (ETHBurned > amountMinted) {
-                countUser++;
-            } else {
-                countPool++;
-            }
+        if (amountEth == 0) {
+            return;
         }
-        assertEq(countUser, 0);
-        TokenPure token2 = new TokenPure();
-        token2.mint(amountETH);
-
-        emit log("=======================================================");
-        emit log_named_uint("amountMinted ETH   ", amountMinted);
-        emit log_named_uint("cumulativeMBBurned ", cumulativeMBBurned);
-        emit log_named_uint("cumulativeMBMinted ", cumulativeMBMinted);
-        emit log_named_uint("cumulativeETHBurned", cumulativeETHBurned);
-        emit log_named_uint("cumulativeETHMinted", cumulativeETHMinted);
-        emit log_named_uint("countUser          ", countUser);
-        emit log_named_uint("countPool          ", countPool);
-        emit log_named_uint("Token1 Balance     ", token.poolBalance());
-        emit log_named_uint("Token2 Balance     ", token2.poolBalance());
+        uint256 totalSupply = token.mint(amountEth);
+        uint256 poolBalanceAfter = uint256(keccak256(abi.encodePacked(amountEth))) % amountEth;
+        uint256 totalSupplyAfter = _fx(poolBalanceAfter);
+        uint256 mb = totalSupply - totalSupplyAfter;
+        uint256 poolBalanceBeforeBurn = token.poolBalance();
+        uint256 returnedEth = token.burn(mb);
+        emit log_named_uint("Tt supply after", totalSupplyAfter);
+        emit log_named_uint("MB burned      ", mb);
+        emit log_named_uint("Pool balance   ", poolBalanceBeforeBurn);
+        emit log_named_uint("Pool After     ", poolBalanceAfter);
+        emit log_named_uint("returnedEth    ", returnedEth);
+        emit log_named_uint("Diff           ", poolBalanceBeforeBurn - returnedEth);
+        emit log_named_uint("ExpectedDiff   ", poolBalanceAfter);
+        emit log_named_int("Delta          ", int256(poolBalanceAfter) - int256(poolBalanceBeforeBurn - returnedEth));
+        assertTrue(poolBalanceBeforeBurn - returnedEth == poolBalanceAfter);
     }
 
     // function test_ConversionMBToEthAndEthMB() public {
