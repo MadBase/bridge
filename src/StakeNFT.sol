@@ -125,7 +125,7 @@ contract StakeNFT is ERC721, MagicValue, Admin, Governance, CircuitBreaker, Atom
         _safeTransferERC20(token, to_, amount_);
     }
 
-    // skimExcessOtherERC721 sends ERC721 asset with tokenID_ from contract located at tokenAddress_ fro the ownership of this
+    // skimExcessOtherERC721 sends ERC721 asset with tokenID_ from contract located at tokenAddress_ from the ownership of this
     // contract to the address defined as to_
     // This function allows the Admin role to refund any asset ERC721 sent to this contract in error by a user
     function skimExcessOtherERC721(address tokenAddress_, address to_, uint256 tokenID_) public onlyAdmin {
@@ -139,7 +139,7 @@ contract StakeNFT is ERC721, MagicValue, Admin, Governance, CircuitBreaker, Atom
     // contract in error by a user
     // this method can not return any funds sent to the contract via the depositEth method
     // this function should only be necessary if a user somehow manages to accidentally
-    // selfDestruct a contract with this contract as the reciepient
+    // selfDestruct a contract with this contract as the recipient
     function skimExcessEth(address to_) public onlyAdmin returns(uint256 excess) {
         excess = _estimateExcessEth();
         _safeTransferEth(to_, excess);
@@ -262,7 +262,7 @@ contract StakeNFT is ERC721, MagicValue, Admin, Governance, CircuitBreaker, Atom
 
     // _lockPosition prevents a position from being burned for duration_ number of blocks
     // by setting the freeAfter field on the Position struct
-    // returns the number of shares in the locked Position so that goverance vote counting
+    // returns the number of shares in the locked Position so that governance vote counting
     // may be performed when setting a lock
     function _lockPosition(uint256 tokenID_, uint256 duration_) internal returns(uint256 shares) {
         require(_exists(tokenID_));
@@ -273,7 +273,7 @@ contract StakeNFT is ERC721, MagicValue, Admin, Governance, CircuitBreaker, Atom
         return p.shares;
     }
 
-    // _mintNFT performs the mint operation and invokes the inheritted _mint method
+    // _mintNFT performs the mint operation and invokes the inherited _mint method
     function _mintNFT(address to_, uint256 amount_) internal returns(uint256 tokenID) {
         // amount must be less than maxUInt32 - this is to allow struct packing
         // and is safe due to MadToken having a total distribution of 220M
@@ -378,7 +378,7 @@ contract StakeNFT is ERC721, MagicValue, Admin, Governance, CircuitBreaker, Atom
         // skim slush into accumulator
         (state_.accumulator, state_.slush) = _slushSkim(shares_, state_.accumulator, state_.slush);
 
-        // determine number of sccumulator steps this Position needs distributions from
+        // determine number of accumulator steps this Position needs distributions from
         uint256 accumulatorDelta = state_.accumulator - positionAccumulatorValue_;
 
         // calculate payout based on shares held in position
