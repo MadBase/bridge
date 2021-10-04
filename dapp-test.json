@@ -169,6 +169,9 @@
     },
     "src/MadByte.t.sol": {
       "urls": ["src/MadByte.t.sol"]
+    },
+    "src/StakeNFT.t.sol": {
+        "urls": ["src/StakeNFT.t.sol"]
     }
   },
   "settings": {

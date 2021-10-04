@@ -101,56 +101,58 @@ contract StakeNFT is ERC721, MagicValue, Admin, Governance, CircuitBreaker, Atom
         return payout;
     }
 
-    // estimateExcessToken returns the amount of MadToken that is held in the name of this
-    // contract
-    // this is the value that would be returned by a call to skimExcessToken
+    // estimateExcessToken returns the amount of MadToken that is held in the
+    // name of this contract this is the value that would be returned by a call
+    // to skimExcessToken
     function estimateExcessToken() public view returns(uint256 excess) {
         ( , excess) = _estimateExcessToken();
         return excess;
     }
 
-    // estimateExcessEth returns the amount of Eth that is held in the name of this
-    // contract
-    // this is the value that would be returned by a call to skimExcessEth
+    // estimateExcessEth returns the amount of Eth that is held in the name of
+    // this contract this is the value that would be returned by a call to
+    // skimExcessEth
     function estimateExcessEth() public view returns(uint256 excess) {
         return _estimateExcessEth();
     }
 
-    // skimExcessOtherERC20 sends amount_ of an external ERC20 (other than MadToken) that is held in the name of this
-    // contract to the address defined as to_
-    // This function allows the Admin role to refund any ERC20 asset sent to this contract in error by a user
+    // skimExcessOtherERC20 sends amount_ of an external ERC20 (other than
+    // MadToken) that is held in the name of this contract to the address
+    // defined as to_ . This function allows the Admin role to refund any ERC20
+    // asset sent to this contract in error by a user
     function skimExcessOtherERC20(address tokenAddress_, address to_, uint256 amount_) public onlyAdmin {
         require(tokenAddress_ != address(_MadToken));
         IERC20Transfer token = IERC20Transfer(tokenAddress_);
         _safeTransferERC20(token, to_, amount_);
     }
 
-    // skimExcessOtherERC721 sends ERC721 asset with tokenID_ from contract located at tokenAddress_ from the ownership of this
-    // contract to the address defined as to_
-    // This function allows the Admin role to refund any asset ERC721 sent to this contract in error by a user
+    // skimExcessOtherERC721 sends ERC721 asset with tokenID_ from contract
+    // located at tokenAddress_ from the ownership of this contract to the
+    // address defined as to_ . This function allows the Admin role to refund any
+    // asset ERC721 sent to this contract in error by a user
     function skimExcessOtherERC721(address tokenAddress_, address to_, uint256 tokenID_) public onlyAdmin {
         IERC721Transfer token = IERC721Transfer(tokenAddress_);
         token.safeTransferFrom(address(this), to_, tokenID_);
     }
 
     // skimExcessEth will send to the address passed as to_ any amount of Eth
-    // held by this contract that is not tracked by the Accumulator system
-    // This function allows the Admin role to refund any Eth sent to this
-    // contract in error by a user
-    // this method can not return any funds sent to the contract via the depositEth method
-    // this function should only be necessary if a user somehow manages to accidentally
-    // selfDestruct a contract with this contract as the recipient
+    // held by this contract that is not tracked by the Accumulator system This
+    // function allows the Admin role to refund any Eth sent to this contract in
+    // error by a user this method can not return any funds sent to the contract
+    // via the depositEth method this function should only be necessary if a
+    // user somehow manages to accidentally selfDestruct a contract with this
+    // contract as the recipient
     function skimExcessEth(address to_) public onlyAdmin returns(uint256 excess) {
         excess = _estimateExcessEth();
         _safeTransferEth(to_, excess);
         return excess;
     }
 
-    // skimExcessToken will send to the address passed as to_ any amount of MadToken
-    // held by this contract that is not tracked by the Accumulator system
-    // This function allows the Admin role to refund any MadToken sent to this
-    // contract in error by a user
-    // this method can not return any funds sent to the contract via the depositToken method
+    // skimExcessToken will send to the address passed as to_ any amount of
+    // MadToken held by this contract that is not tracked by the Accumulator
+    // system This function allows the Admin role to refund any MadToken sent to
+    // this contract in error by a user this method can not return any funds
+    // sent to the contract via the depositToken method
     function skimExcessToken(address to_) public onlyAdmin returns(uint256 excess) {
         IERC20Transfer MadToken;
         (MadToken, excess) = _estimateExcessToken();
@@ -158,25 +160,23 @@ contract StakeNFT is ERC721, MagicValue, Admin, Governance, CircuitBreaker, Atom
         return excess;
     }
 
-    // lockPosition is called by governance system when a governance vote is cast
-    // this function will lock the specified Position for up to _maxGovernanceLock
-    // this method may only be called by the governance contract
-    // this function will fail if the circuit breaker is tripped
+    // lockPosition is called by governance system when a governance vote is
+    // cast this function will lock the specified Position for up to
+    // _maxGovernanceLock this method may only be called by the governance
+    // contract this function will fail if the circuit breaker is tripped
     function lockPosition(address caller_, uint256 tokenID_, uint256 lockDuration_) public withCB onlyGovernance returns(uint256 numberShares) {
         require(caller_ == ownerOf(tokenID_));
         require(lockDuration_ <= _maxGovernanceLock);
         return _lockPosition(tokenID_, lockDuration_);
     }
 
-    // DO NOT CALL THIS METHOD UNLESS YOU ARE MAKING A DISTRIBUTION
-    // ALL VALUE WILL BE DISTRIBUTED TO STAKERS EVENLY
-    // depositToken distributes MadToken to all stakers evenly
-    // should only be called during a slashing event
-    // any MadToken sent to this method in error will be lost
-    // this function will fail if the circuit breaker is tripped
-    // the magic_ parameter is intended to stop some one from
-    // successfully interacting with this method without first reading
-    // the source code and hopefully this comment
+    // DO NOT CALL THIS METHOD UNLESS YOU ARE MAKING A DISTRIBUTION ALL VALUE
+    // WILL BE DISTRIBUTED TO STAKERS EVENLY depositToken distributes MadToken
+    // to all stakers evenly should only be called during a slashing event any
+    // MadToken sent to this method in error will be lost this function will
+    // fail if the circuit breaker is tripped the magic_ parameter is intended
+    // to stop some one from successfully interacting with this method without
+    // first reading the source code and hopefully this comment
     function depositToken(uint8 magic_, uint256 amount_) public withCB checkMagic(magic_) {
         // collect tokens
         _safeTransferFromERC20(_MadToken, msg.sender, amount_);
@@ -184,36 +184,35 @@ contract StakeNFT is ERC721, MagicValue, Admin, Governance, CircuitBreaker, Atom
         _tokenState = _deposit(_shares, amount_, _tokenState);
     }
 
-    // DO NOT CALL THIS METHOD UNLESS YOU ARE MAKING A DISTRIBUTION
-    // ALL VALUE WILL BE DISTRIBUTED TO STAKERS EVENLY
-    // depositEth distributes Eth to all stakers evenly
-    // should only be called by MadBytes contract
-    // any Eth sent to this method in error will be lost
-    // this function will fail if the circuit breaker is tripped
-    // the magic_ parameter is intended to stop some one from
-    // successfully interacting with this method without first reading
-    // the source code and hopefully this comment
+    // DO NOT CALL THIS METHOD UNLESS YOU ARE MAKING A DISTRIBUTION ALL VALUE
+    // WILL BE DISTRIBUTED TO STAKERS EVENLY depositEth distributes Eth to all
+    // stakers evenly should only be called by MadBytes contract any Eth sent to
+    // this method in error will be lost this function will fail if the circuit
+    // breaker is tripped the magic_ parameter is intended to stop some one from
+    // successfully interacting with this method without first reading the
+    // source code and hopefully this comment
     function depositEth(uint8 magic_) public payable withCB checkMagic(magic_) {
         _ethState = _deposit(_shares, msg.value, _ethState);
     }
 
-    // mint allows a staking position to be opened
-    // this function requires the caller to have performed
-    // an approve invocation against MadBytes into this contract
-    // this function will fail if the circuit breaker is tripped
+    /** mint allows a staking position to be opened. This function
+        requires the caller to have performed an approve invocation against
+        MadToken into this contract. This function will fail if the circuit
+        breaker is tripped.
+    */
     function mint(uint256 amount_) public withCB returns(uint256 tokenID) {
         return _mintNFT(msg.sender, amount_);
     }
 
-    // mintTo allows a staking position to be opened
-    // in the name of an account other than the caller
-    // this method also allows a lock to be placed on the
-    // position up to _maxMintLock
-    // this function requires the caller to have performed
-    // an approve invocation against MadBytes into this contract
-    // this function will fail if the circuit breaker is tripped
+    /** mintTo allows a staking position to be opened in the name of an
+        account other than the caller. This method also allows a lock to be
+        placed on the position up to _maxMintLock . This function requires the
+        caller to have performed an approve invocation against MadToken into
+        this contract. This function will fail if the circuit breaker is
+        tripped.
+    */
     function mintTo(address to_, uint256 amount_, uint256 lockDuration_) public withCB returns(uint256 tokenID) {
-        require(lockDuration_ <= _maxMintLock);
+        require(lockDuration_ <= _maxMintLock, "StakeNFT: The lock duration must be less or equal than the maxMintLock!");
         tokenID = _mintNFT(to_, amount_);
         if (lockDuration_ > 0) {
             _lockPosition(tokenID, lockDuration_);
@@ -221,15 +220,15 @@ contract StakeNFT is ERC721, MagicValue, Admin, Governance, CircuitBreaker, Atom
         return tokenID;
     }
 
-    // burn exits a staking position such that
-    // all accumulated value is transferred to the owner on burn
+    /** burn exits a staking position such that all accumulated value is
+        transferred to the owner on burn.
+    */
     function burn(uint256 tokenID_) public returns(uint256 payoutEth, uint256 payoutMadToken) {
         return _burn(msg.sender, msg.sender, tokenID_);
     }
 
-    // burnTo exits a staking position such that
-    // all accumulated value is transferred to a specified
-    // account on burn
+    // burnTo exits a staking position such that all accumulated value is
+    // transferred to a specified account on burn
     function burnTo(address to_, uint256 tokenID_) public returns(uint256 payoutEth, uint256 payoutMadToken) {
         return _burn(msg.sender, to_, tokenID_);
     }
@@ -260,12 +259,27 @@ contract StakeNFT is ERC721, MagicValue, Admin, Governance, CircuitBreaker, Atom
         return payout;
     }
 
+    function getPosition(uint256 tokenID_) public view
+    returns (
+        uint32 shares,
+        uint32 freeAfter,
+        uint256 accumulatorEth,
+        uint256 accumulatorToken
+    ){
+        require(_exists(tokenID_), "StakeNFT: Token ID doesn't exist!");
+        Position memory p = _positions[tokenID_];
+        shares = p.shares;
+        freeAfter = p.freeAfter;
+        accumulatorEth = p.accumulatorEth;
+        accumulatorToken = p.accumulatorToken;
+    }
+
     // _lockPosition prevents a position from being burned for duration_ number of blocks
     // by setting the freeAfter field on the Position struct
     // returns the number of shares in the locked Position so that governance vote counting
     // may be performed when setting a lock
     function _lockPosition(uint256 tokenID_, uint256 duration_) internal returns(uint256 shares) {
-        require(_exists(tokenID_));
+        require(_exists(tokenID_), "StakeNFT: Token ID doesn't exist!");
         Position memory p = _positions[tokenID_];
         uint32 freeDur = uint32(block.number) + uint32(duration_);
         p.freeAfter = freeDur > p.freeAfter ? freeDur : p.freeAfter;
@@ -277,7 +291,7 @@ contract StakeNFT is ERC721, MagicValue, Admin, Governance, CircuitBreaker, Atom
     function _mintNFT(address to_, uint256 amount_) internal returns(uint256 tokenID) {
         // amount must be less than maxUInt32 - this is to allow struct packing
         // and is safe due to MadToken having a total distribution of 220M
-        require(amount_ <= 2**32-1);
+        require(amount_ <= 2**32-1, "StakeNFT: The amount exceeds the maximum number of MadTokens that will ever exist!");
 
         // transfer the number of tokens specified by amount_ into contract
         // from the callers account
@@ -299,19 +313,20 @@ contract StakeNFT is ERC721, MagicValue, Admin, Governance, CircuitBreaker, Atom
         _tokenState = tokenState;
         _positions[tokenID] = Position(uint32(amount_), 1, ethState.accumulator, tokenState.accumulator);
 
-        // invoke inheritted method and return
+        // invoke inherited method and return
         ERC721._mint(to_, tokenID);
         return tokenID;
     }
 
-    // _burn performs the burn operation and invokes the inheritted _burn method
+    // _burn performs the burn operation and invokes the inherited _burn method
     function _burn(address from_, address to_, uint256 tokenID_) internal returns(uint256 payoutEth, uint256 payoutToken) {
-        require(from_ == ownerOf(tokenID_));
+        require(from_ == ownerOf(tokenID_), "StakeNFT: User is not the owner of the tokenID!");
 
         // collect state
         Position memory p = _positions[tokenID_];
         // enforce freeAfter to prevent burn during lock
-        require(p.freeAfter < block.number);
+        require(p.freeAfter < block.number, "StakeNFT: The position is not ready to be burned!");
+
 
         // get copy of storage to save gas
         uint256 shares = _shares;
@@ -333,8 +348,8 @@ contract StakeNFT is ERC721, MagicValue, Admin, Governance, CircuitBreaker, Atom
         return (payoutEth, payoutToken);
     }
 
-     // _estimateExcessEth returns the amount of Eth that is held in the name of this
-    // contract
+    // _estimateExcessEth returns the amount of Eth that is held in the name of
+    // this contract
     function _estimateExcessEth() internal view returns(uint256 excess) {
         Accumulator memory state = _ethState;
         uint256 balance = address(this).balance;
@@ -342,8 +357,8 @@ contract StakeNFT is ERC721, MagicValue, Admin, Governance, CircuitBreaker, Atom
         return excess;
     }
 
-    // _estimateExcessToken returns the amount of MadToken that is held in the name of this
-    // contract
+    // _estimateExcessToken returns the amount of MadToken that is held in the
+    // name of this contract
     function _estimateExcessToken() internal view returns(IERC20Transfer MadToken, uint256 excess) {
         Accumulator memory state = _tokenState;
         MadToken = _MadToken;
@@ -352,28 +367,31 @@ contract StakeNFT is ERC721, MagicValue, Admin, Governance, CircuitBreaker, Atom
         return (MadToken, excess);
     }
 
-     // _estimateExcess calculates excess value for an asset in a type agnostic manner to reduce redundant logic
+     // _estimateExcess calculates excess value for an asset in a type agnostic
+     // manner to reduce redundant logic
     function _estimateExcess(Accumulator memory state_, uint256 balance_) internal view returns(uint256 excess) {
         uint256 shares = _shares;
         excess = balance_ - shares * state_.accumulator + state_.slush;
         return excess;
     }
 
-    // _collectToken performs call to _collect and updates state during a request for a token distribution
+    // _collectToken performs call to _collect and updates state during a
+    // request for a token distribution
     function _collectToken(uint256 shares_, Position memory p_) internal returns(Position memory p, uint256 payout) {
         (_tokenState, p, p.accumulatorEth, payout) = _collect(shares_, _tokenState, p_, p_.accumulatorToken);
         return (p, payout);
     }
 
-    // _collectEth performs call to _collect and updates state during a request for an eth distribution
+    // _collectEth performs call to _collect and updates state during a request
+    // for an eth distribution
     function _collectEth(uint256 shares_, Position memory p_) internal returns(Position memory p, uint256 payout) {
         (_ethState, p, p.accumulatorEth, payout) = _collect(shares_, _ethState, p_, p_.accumulatorEth);
         return (p, payout);
     }
 
-    // _collect performs calculations necessary to determine any distributions due to an account
-    // such that it may be used for both token and eth distributions
-    // this prevents the need to keep redundant logic
+    // _collect performs calculations necessary to determine any distributions
+    // due to an account such that it may be used for both token and eth
+    // distributions this prevents the need to keep redundant logic
     function _collect(uint256 shares_, Accumulator memory state_, Position memory p_, uint256 positionAccumulatorValue_) internal pure returns(Accumulator memory, Position memory, uint256, uint256) {
         // skim slush into accumulator
         (state_.accumulator, state_.slush) = _slushSkim(shares_, state_.accumulator, state_.slush);
@@ -387,9 +405,8 @@ contract StakeNFT is ERC721, MagicValue, Admin, Governance, CircuitBreaker, Atom
         // update accumulator value for calling method
         positionAccumulatorValue_ += accumulatorDelta;
 
-        // if there are no shares other than this position,
-        // flush the slush fund into the payout
-        // and update the in memory state object
+        // if there are no shares other than this position, flush the slush fund
+        // into the payout and update the in memory state object
         if (shares_ == p_.shares) {
             payout += state_.slush;
             state_.slush = 0;
@@ -397,8 +414,8 @@ contract StakeNFT is ERC721, MagicValue, Admin, Governance, CircuitBreaker, Atom
         return (state_, p_, positionAccumulatorValue_, payout);
     }
 
-    // _deposit allows an Accumulator to be updated with new value
-    // if there are no currently staked positions, all value is stored in the slush
+    // _deposit allows an Accumulator to be updated with new value if there are
+    // no currently staked positions, all value is stored in the slush
     function _deposit(uint256 shares_, uint256 delta_, Accumulator memory state_) internal pure returns(Accumulator memory){
         state_.slush += delta_;
         if (shares_ > 0) {
@@ -407,8 +424,8 @@ contract StakeNFT is ERC721, MagicValue, Admin, Governance, CircuitBreaker, Atom
         return state_;
     }
 
-    // _slushSkim flushes value from the slush into the accumulator
-    // if there are no currently staked positions, all value is stored in the slush
+    // _slushSkim flushes value from the slush into the accumulator if there are
+    // no currently staked positions, all value is stored in the slush
     function _slushSkim(uint256 shares_, uint256 accumulator_, uint256 slush_) internal pure returns(uint256, uint256) {
         if (shares_ > 0) {
             uint256 deltaAccumulator = 0;
@@ -419,7 +436,8 @@ contract StakeNFT is ERC721, MagicValue, Admin, Governance, CircuitBreaker, Atom
         return (accumulator_, slush_);
     }
 
-    // rdiv performs remainder division and returns floor(a,b) and a - floor(a,b)
+    // rdiv performs remainder division and returns floor(a,b) and a -
+    // floor(a,b)
     function _rdiv(uint256 a_, uint256 b_) internal pure returns(uint256,uint256) {
         uint256 c = (a_/b_) * b_;
         uint256 d = a_ - c;
