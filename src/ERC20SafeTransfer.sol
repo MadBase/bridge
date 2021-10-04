@@ -14,6 +14,7 @@ abstract contract ERC20SafeTransfer {
         if (amount_ == 0 ){
             return;
         }
+        require(address(contract_) != address(0x0), "ERC20SafeTransfer: Cannot call methods on contract address 0x0.");
         bool success = contract_.transferFrom(sender_, address(this), amount_);
         require(success, "ERC20SafeTransfer: Transfer failed.");
     }
@@ -26,6 +27,7 @@ abstract contract ERC20SafeTransfer {
         if (amount_ == 0 ){
             return;
         }
+        require(address(contract_) != address(0x0), "ERC20SafeTransfer: Cannot call methods on contract address 0x0.");
         bool success = contract_.transfer(to_, amount_);
         require(success, "ERC20SafeTransfer: Transfer failed.");
     }

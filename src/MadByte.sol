@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT-open-group
 pragma solidity ^0.8.0;
 
-//import "./lib/openzeppelin/token/ERC721/ERC721.sol";
 import "./lib/openzeppelin/token/ERC20/ERC20.sol";
 import "./Admin.sol";
 import "./Mutex.sol";
@@ -68,7 +67,6 @@ contract MadByte is ERC20, Admin, Mutex, MagicEthTransfer, EthSafeTransfer, Sigm
         // stakingAmount
         minerAmount = excess - stakingAmount;
 
-        // send out payout in super paranoid manner
         _safeTransferEthWithMagic(_foundation, foundationAmount);
         _safeTransferEthWithMagic(_minerStaking, minerAmount);
         _safeTransferEthWithMagic(_madStaking, stakingAmount);
@@ -132,7 +130,7 @@ contract MadByte is ERC20, Admin, Mutex, MagicEthTransfer, EthSafeTransfer, Sigm
 
     function _MBtoEth(uint256 poolBalance_, uint256 totalSupply_, uint256 numMB_) internal pure returns(uint256 numEth) {
       require(totalSupply_ >= numMB_, "MadByte: The number of tokens to be burned is greater than the Total Supply!");
-      return _fp(totalSupply_) - _fp(totalSupply_ - numMB_);
+      return _min(poolBalance_, _fp(totalSupply_) - _fp(totalSupply_ - numMB_));
     }
 
     function MBtoEth(uint256 poolBalance_, uint256 totalSupply_, uint256 numMB_) public returns(uint256 numEth) {
@@ -141,11 +139,5 @@ contract MadByte is ERC20, Admin, Mutex, MagicEthTransfer, EthSafeTransfer, Sigm
 
     function EthtoMB(uint256 poolBalance_, uint256 numEth_) public pure returns(uint256) {
       return _EthtoMB(poolBalance_, numEth_);
-    }
-
-    event log_named_uint(string key, uint256 val);
-
-    function log(string memory name, uint256 value) internal{
-        emit log_named_uint(name, value);
     }
 }
