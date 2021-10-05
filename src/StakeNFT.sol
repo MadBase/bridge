@@ -24,7 +24,8 @@ contract StakeNFT is ERC721, MagicValue, Admin, Governance, CircuitBreaker, Atom
     // Position describes a staked position
     struct Position {
         // number of madToken
-        uint32 shares;
+        uint256 shares;
+        //uint32 shares;
 
         // block number after which the position may be burned
         // prevents double spend of voting weight
@@ -236,7 +237,7 @@ contract StakeNFT is ERC721, MagicValue, Admin, Governance, CircuitBreaker, Atom
     // collectEth returns all due Eth allocations to caller
     function collectEth(uint256 tokenID_) public returns(uint256 payout) {
         address owner = ownerOf(tokenID_);
-        require(msg.sender == owner);
+        require(msg.sender == owner, "StakeNFT: Error sender is not the owner of the tokenID!");
 
         // get values and update state
         (_positions[tokenID_], payout) = _collectEth(_shares, _positions[tokenID_]);
@@ -249,7 +250,7 @@ contract StakeNFT is ERC721, MagicValue, Admin, Governance, CircuitBreaker, Atom
     // collectToken returns all due MadToken allocations to caller
     function collectToken(uint256 tokenID_) public returns(uint256 payout) {
         address owner = ownerOf(tokenID_);
-        require(msg.sender == owner);
+        require(msg.sender == owner, "StakeNFT: Error sender is not the owner of the tokenID!");
 
         // get values and update state
         (_positions[tokenID_], payout) = _collectToken(_shares, _positions[tokenID_]);
@@ -261,7 +262,7 @@ contract StakeNFT is ERC721, MagicValue, Admin, Governance, CircuitBreaker, Atom
 
     function getPosition(uint256 tokenID_) public view
     returns (
-        uint32 shares,
+        uint256 shares,
         uint32 freeAfter,
         uint256 accumulatorEth,
         uint256 accumulatorToken
@@ -301,8 +302,8 @@ contract StakeNFT is ERC721, MagicValue, Admin, Governance, CircuitBreaker, Atom
     function _mintNFT(address to_, uint256 amount_) internal returns(uint256 tokenID) {
         // amount must be less than maxUInt32 - this is to allow struct packing
         // and is safe due to MadToken having a total distribution of 220M
-        require(amount_ <= 2**32-1, "StakeNFT: The amount exceeds the maximum number of MadTokens that will ever exist!");
-
+        //require(amount_ <= 2**32-1, "StakeNFT: The amount exceeds the maximum number of MadTokens that will ever exist!");
+        amount_ /= 10**18; 
         // transfer the number of tokens specified by amount_ into contract
         // from the callers account
         _safeTransferFromERC20(_MadToken, msg.sender, amount_);
@@ -313,6 +314,9 @@ contract StakeNFT is ERC721, MagicValue, Admin, Governance, CircuitBreaker, Atom
         (ethState.accumulator, ethState.slush) = _slushSkim(shares, ethState.accumulator, ethState.slush);
         Accumulator memory tokenState = _tokenState;
         (tokenState.accumulator, tokenState.slush) = _slushSkim(shares, tokenState.accumulator, tokenState.slush);
+        //tokenState = _deposit(shares, amount_, tokenState);
+
+        //(tokenState.accumulator, tokenState.slush) = _slushSkim(shares, tokenState.accumulator, tokenState.slush+amount_);
 
         // get new tokenID from counter
         tokenID = _increment();
@@ -321,7 +325,8 @@ contract StakeNFT is ERC721, MagicValue, Admin, Governance, CircuitBreaker, Atom
         _shares += amount_;
         _ethState = ethState;
         _tokenState = tokenState;
-        _positions[tokenID] = Position(uint32(amount_), 1, ethState.accumulator, tokenState.accumulator);
+        //_positions[tokenID] = Position(uint32(amount_), 1, ethState.accumulator, tokenState.accumulator);
+        _positions[tokenID] = Position(amount_, 1, ethState.accumulator, tokenState.accumulator);
 
         // invoke inherited method and return
         ERC721._mint(to_, tokenID);
@@ -388,14 +393,18 @@ contract StakeNFT is ERC721, MagicValue, Admin, Governance, CircuitBreaker, Atom
     // _collectToken performs call to _collect and updates state during a
     // request for a token distribution
     function _collectToken(uint256 shares_, Position memory p_) internal returns(Position memory p, uint256 payout) {
-        (_tokenState, p, p.accumulatorEth, payout) = _collect(shares_, _tokenState, p_, p_.accumulatorToken);
+        uint256 acc;
+        (_tokenState, p, acc, payout) = _collect(shares_, _tokenState, p_, p_.accumulatorToken);
+        p.accumulatorToken = acc;
         return (p, payout);
     }
 
     // _collectEth performs call to _collect and updates state during a request
     // for an eth distribution
     function _collectEth(uint256 shares_, Position memory p_) internal returns(Position memory p, uint256 payout) {
-        (_ethState, p, p.accumulatorEth, payout) = _collect(shares_, _ethState, p_, p_.accumulatorEth);
+        uint256 acc;
+        (_ethState, p, acc, payout) = _collect(shares_, _ethState, p_, p_.accumulatorEth);
+        p.accumulatorEth = acc;
         return (p, payout);
     }
 
