@@ -274,6 +274,16 @@ contract StakeNFT is ERC721, MagicValue, Admin, Governance, CircuitBreaker, Atom
         accumulatorToken = p.accumulatorToken;
     }
 
+    function getEthAccumulator() external view returns(uint256 accumulator, uint256 slush) {
+        accumulator = _ethState.accumulator;
+        slush = _ethState.slush;
+    }
+
+    function getTokenAccumulator() external view returns(uint256 accumulator, uint256 slush) {
+        accumulator = _tokenState.accumulator;
+        slush = _tokenState.slush;
+    }
+
     // _lockPosition prevents a position from being burned for duration_ number of blocks
     // by setting the freeAfter field on the Position struct
     // returns the number of shares in the locked Position so that governance vote counting
@@ -304,7 +314,7 @@ contract StakeNFT is ERC721, MagicValue, Admin, Governance, CircuitBreaker, Atom
         Accumulator memory tokenState = _tokenState;
         (tokenState.accumulator, tokenState.slush) = _slushSkim(shares, tokenState.accumulator, tokenState.slush);
 
-        // get new tokeID from counter
+        // get new tokenID from counter
         tokenID = _increment();
 
         // update storage

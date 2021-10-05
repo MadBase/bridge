@@ -16,11 +16,21 @@ contract MadTokenMock is ERC20 {
 abstract contract BaseMock {
     StakeNFT public stakeNFT;
     MadTokenMock public madToken;
+    
     function setTokens(MadTokenMock madToken_, StakeNFT stakeNFT_) public {
         stakeNFT = stakeNFT_;
         madToken = madToken_;
     }
+    
     receive() external virtual payable{}
+
+    function mint(uint256 amount_) public returns(uint256) {
+        return stakeNFT.mint(amount_);
+    }
+
+    function approve(address who, uint256 amount_) public returns(bool) {
+        return madToken.approve(who, amount_);
+    }
 }
 
 contract AdminAccount is BaseMock {
@@ -185,8 +195,79 @@ contract StakeNFTTest is DSTest {
         StakeNFT.Position memory expected = StakeNFT.Position(1000, 1, 0, 0);
         assertPosition(actual, expected);
     }
-    //todo: test mint with slush skim
-    //todo: test mintTo
 
+    function testMintTo_WithoutLock() public {
+        (StakeNFT stakeNFT, MadTokenMock madToken,,) = getFixtureData();
+        UserAccount user = newUserAccount(madToken, stakeNFT);
 
+        madToken.approve(address(stakeNFT), 1000);
+        uint256 tokenID = stakeNFT.mintTo(address(user), 1000, 0);
+
+        StakeNFT.Position memory actual = getCurrentPosition(stakeNFT, tokenID);
+        StakeNFT.Position memory expected = StakeNFT.Position(1000, 1, 0, 0);
+
+        assertPosition(actual, expected);
+
+        assertEq(stakeNFT.ownerOf(tokenID), address(user));
+    }
+
+    function testMintTo_WithLock() public {
+        (StakeNFT stakeNFT, MadTokenMock madToken,,) = getFixtureData();
+        UserAccount user = newUserAccount(madToken, stakeNFT);
+
+        madToken.approve(address(stakeNFT), 1000);
+        uint256 tokenID = stakeNFT.mintTo(address(user), 1000, 10);
+
+        StakeNFT.Position memory actual = getCurrentPosition(stakeNFT, tokenID);
+        StakeNFT.Position memory expected = StakeNFT.Position(1000, 10, 0, 0);
+
+        assertPosition(actual, expected);
+
+        assertEq(stakeNFT.ownerOf(tokenID), address(user));
+    }
+
+    // todo: test mint with slush skim
+    function testMint_WithSlushSkim() public {
+        (StakeNFT stakeNFT, MadTokenMock madToken,,) = getFixtureData();
+        UserAccount user1 = newUserAccount(madToken, stakeNFT);
+        UserAccount user2 = newUserAccount(madToken, stakeNFT);
+        UserAccount user3 = newUserAccount(madToken, stakeNFT);
+
+        madToken.transfer(address(user1), 100);
+        madToken.transfer(address(user2), 100);
+        madToken.transfer(address(user3), 100);
+
+        user1.approve(address(stakeNFT), 100);
+        user2.approve(address(stakeNFT), 100);
+        user3.approve(address(stakeNFT), 100);
+        
+        uint256 tokenID1 = user1.mint(100);
+        (uint256 acc, uint256 slush) = stakeNFT.getEthAccumulator();
+        assertEq(acc, 0);
+        assertEq(slush, 0);
+        (acc, slush) = stakeNFT.getTokenAccumulator();
+        assertEq(acc, 0);
+        assertEq(slush, 0);
+
+        uint256 tokenID2 = user2.mint(100);
+        (acc, slush) = stakeNFT.getEthAccumulator();
+        assertEq(acc, 0);
+        assertEq(slush, 0);
+        (acc, slush) = stakeNFT.getTokenAccumulator();
+        assertEq(acc, 0);
+        assertEq(slush, 0);
+
+        uint256 tokenID3 = user3.mint(100);
+        (acc, slush) = stakeNFT.getEthAccumulator();
+        assertEq(acc, 0);
+        assertEq(slush, 0);
+        (acc, slush) = stakeNFT.getTokenAccumulator();
+        assertEq(acc, 0);
+        assertEq(slush, 0);
+
+        //StakeNFT.Position memory actual = getCurrentPosition(stakeNFT, tokenID);
+        //StakeNFT.Position memory expected = StakeNFT.Position(1000, 1, 0, 0);
+    }
+
+    // todo: burn, burnTo, *withoutLock, *withLock, *with slush skim
 }
