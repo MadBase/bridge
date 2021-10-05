@@ -187,6 +187,12 @@ contract StakeNFTTest is DSTest {
         getCurrentPosition(stakeNFT, 4);
     }
 
+    function testBasicERC721() public {
+        (StakeNFT stakeNFT,,,) = getFixtureData();
+        assertEq(stakeNFT.name(), "MNStake");
+        assertEq(stakeNFT.symbol(), "MNS");
+    }
+
     function testMint() public {
         (StakeNFT stakeNFT, MadTokenMock madToken,,) = getFixtureData();
         madToken.approve(address(stakeNFT), 1000);
@@ -194,6 +200,9 @@ contract StakeNFTTest is DSTest {
         StakeNFT.Position memory actual = getCurrentPosition(stakeNFT, tokenID);
         StakeNFT.Position memory expected = StakeNFT.Position(1000, 1, 0, 0);
         assertPosition(actual, expected);
+        uint256 balanceNFT = stakeNFT.balanceOf(address(this));
+        assertEq(balanceNFT, 1);
+        assertEq(stakeNFT.ownerOf(tokenID), address(this));
     }
 
     function testMintTo_WithoutLock() public {
