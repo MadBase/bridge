@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT-open-group
 pragma solidity >=0.5.15;
 
-import "ds-token/token.sol";
+import "./lib/ds-token/token.sol";
 
 import "./SafeMath.sol";
 import "./SimpleAuth.sol";

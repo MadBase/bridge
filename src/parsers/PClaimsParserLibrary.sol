@@ -33,8 +33,7 @@ library PClaimsParserLibrary {
         pure
         returns (PClaims memory pClaims)
     {
-        uint256 _;
-        (pClaims, _) = extractInnerPClaims(src, CAPNPROTO_HEADER_SIZE);
+        (pClaims,) = extractInnerPClaims(src, CAPNPROTO_HEADER_SIZE);
     }
 
     /**
