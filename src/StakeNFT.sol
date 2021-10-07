@@ -392,12 +392,12 @@ contract StakeNFT is ERC721, MagicValue, Admin, Governance, CircuitBreaker, Atom
         // determine number of accumulator steps this Position needs distributions from
         uint256 accumulatorDelta = 0;
         if (positionAccumulatorValue_ > state_.accumulator) {
-            accumulatorDelta = type(uint168).max - state_.accumulator;
-            positionAccumulatorValue_ += accumulatorDelta;
+            accumulatorDelta = type(uint168).max - positionAccumulatorValue_;
+            positionAccumulatorValue_ = 0;
         } else {
             accumulatorDelta = state_.accumulator - positionAccumulatorValue_;
             // update accumulator value for calling method
-            positionAccumulatorValue_ = 0;
+            positionAccumulatorValue_ += accumulatorDelta;
         }
 
         // calculate payout based on shares held in position
@@ -421,7 +421,7 @@ contract StakeNFT is ERC721, MagicValue, Admin, Governance, CircuitBreaker, Atom
     // _deposit allows an Accumulator to be updated with new value if there are
     // no currently staked positions, all value is stored in the slush
     function _deposit(uint256 shares_, uint256 delta_, Accumulator memory state_) internal pure returns(Accumulator memory){
-        state_.slush += (delta_*_accumulatorScaleFactor);
+        state_.slush += (delta_ * _accumulatorScaleFactor);
         if (shares_ > 0) {
             (state_.accumulator, state_.slush) = _slushSkim(shares_, state_.accumulator, state_.slush);
         }
