@@ -393,7 +393,8 @@ contract StakeNFT is ERC721, MagicValue, Admin, Governance, CircuitBreaker, Atom
         uint256 accumulatorDelta = 0;
         if (positionAccumulatorValue_ > state_.accumulator) {
             accumulatorDelta = type(uint168).max - positionAccumulatorValue_;
-            positionAccumulatorValue_ = 0;
+            accumulatorDelta += state_.accumulator;
+            positionAccumulatorValue_ = accumulatorDelta;
         } else {
             accumulatorDelta = state_.accumulator - positionAccumulatorValue_;
             // update accumulator value for calling method
@@ -402,8 +403,6 @@ contract StakeNFT is ERC721, MagicValue, Admin, Governance, CircuitBreaker, Atom
 
         // calculate payout based on shares held in position
         uint256 payout = accumulatorDelta * p_.shares;
-
-
 
         // if there are no shares other than this position, flush the slush fund
         // into the payout and update the in memory state object
@@ -425,6 +424,9 @@ contract StakeNFT is ERC721, MagicValue, Admin, Governance, CircuitBreaker, Atom
         if (shares_ > 0) {
             (state_.accumulator, state_.slush) = _slushSkim(shares_, state_.accumulator, state_.slush);
         }
+        // Slush should be never be above 2**167 to protect against overflow in
+        // the later code.
+        require(state_.slush < 2**167, "StakeNFT: slush too large");
         return state_;
     }
 
@@ -435,8 +437,12 @@ contract StakeNFT is ERC721, MagicValue, Admin, Governance, CircuitBreaker, Atom
             uint256 deltaAccumulator = slush_ / shares_;
             slush_ -= deltaAccumulator * shares_;
             accumulator_ += deltaAccumulator;
+            // avoiding accumulator_ overflow.
             if (accumulator_ > type(uint168).max) {
-                accumulator_ -= type(uint168).max;
+                // The maximum allowed value for the accumulator is 2**168-1.
+                // This hard limit was set to not overflow the operation
+                // `accumulator * shares` that happens later in the code.
+                accumulator_ = accumulator_ % type(uint168).max;
             }
         }
         return (accumulator_, slush_);
