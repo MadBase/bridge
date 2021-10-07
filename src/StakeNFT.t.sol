@@ -48,6 +48,10 @@ abstract contract BaseMock {
     function collectToken(uint256 tokenID_) public returns(uint256 payout) {
         return stakeNFT.collectToken(tokenID_);
     }
+
+    function collectEth(uint256 tokenID_) public returns(uint256 payout) {
+        return stakeNFT.collectEth(tokenID_);
+    }
 }
 
 contract AdminAccount is BaseMock {
@@ -738,52 +742,51 @@ contract StakeNFTTest is DSTest {
 
         madToken.transfer(address(user1), 100);
         madToken.transfer(address(user2), 100);
-        madToken.transfer(address(donator), 210_000_000 * ONE_MADTOKEN );
 
         user1.approve(address(stakeNFTHugeAcc), 100);
         user2.approve(address(stakeNFTHugeAcc), 100);
-        donator.approve(address(stakeNFTHugeAcc), 210_000_000 * ONE_MADTOKEN);
+        payable(address(donator)).transfer(1000);
 
         uint256 expectedAccumulatorToken = type(uint168).max - stakeNFTHugeAcc.getOffsetToOverflow();
         uint256 expectedAccumulatorETH = type(uint168).max - stakeNFTHugeAcc.getOffsetToOverflow();
         uint224 user1Shares = 50;
         uint256 tokenID1 = user1.mint(user1Shares);
         assertPosition(getCurrentPosition(stakeNFTHugeAcc, tokenID1), StakeNFT.Position(user1Shares, 1, expectedAccumulatorETH, expectedAccumulatorToken));
-        (uint256 acc, uint256 slush) = stakeNFTHugeAcc.getTokenAccumulator();
-        assertEq(acc, expectedAccumulatorToken);
+        (uint256 acc, uint256 slush) = stakeNFTHugeAcc.getEthAccumulator();
+        assertEq(acc, expectedAccumulatorETH);
         assertEq(slush, 0);
 
         //moving the accumulator closer to the overflow
         uint256 deposit1 = 25; //wei
-        donator.depositEthereum(deposit1);
-        expectedAccumulatorToken += (deposit1 * stakeNFTHugeAcc.accumulatorScaleFactor())/user1Shares;
+        donator.depositEth(deposit1);
+        expectedAccumulatorETH += (deposit1 * stakeNFTHugeAcc.accumulatorScaleFactor())/user1Shares;
 
         uint224 user2Shares = 50;
         uint256 tokenID2 = user2.mint(user2Shares);
         assertPosition(getCurrentPosition(stakeNFTHugeAcc, tokenID2), StakeNFT.Position(user2Shares, 1, expectedAccumulatorETH, expectedAccumulatorToken));
         {
-            (uint256 acc, uint256 slush) = stakeNFTHugeAcc.getTokenAccumulator();
-            assertEq(acc, expectedAccumulatorToken);
+            (uint256 acc, uint256 slush) = stakeNFTHugeAcc.getEthAccumulator();
+            assertEq(acc, expectedAccumulatorETH);
             assertEq(slush, 0);
         }
 
         // the overflow should happen here. As we are incrementing the accumulator by 150 * 10**16
-        uint256 deposit2 = 150;
+        uint256 deposit2 = 150; //wei
         donator.depositEth(deposit2);
         expectedAccumulatorToken += (deposit2 * stakeNFTHugeAcc.accumulatorScaleFactor())/(user1Shares+user2Shares);
         expectedAccumulatorToken -= type(uint168).max;
-        (acc, slush) = stakeNFTHugeAcc.getTokenAccumulator();
-        assertEq(acc, expectedAccumulatorToken);
+        (acc, slush) = stakeNFTHugeAcc.getEthAccumulator();
+        assertEq(acc, expectedAccumulatorETH);
         assertEq(acc, 1000000000000000000);
         assertEq(slush, 0);
 
         // Testing collecting the dividends after the accumulator overflow Each
         // user has to call collect twice to get the right amount of funds
         // (before and after the overflow)
-        assertEq(stakeNFTHugeAcc.estimateTokenCollection(tokenID1), 100);
-        assertEq(user1.collectToken(tokenID1), 100);
-        assertEq(stakeNFTHugeAcc.estimateTokenCollection(tokenID2), 75);
-        assertEq(user2.collectToken(tokenID2), 75);
+        assertEq(stakeNFTHugeAcc.estimateEthCollection(tokenID1), 100);
+        assertEq(user1.collectEth(tokenID1), 100);
+        assertEq(stakeNFTHugeAcc.estimateEthCollection(tokenID2), 75);
+        assertEq(user2.collectEth(tokenID2), 75);
     }
 
     function testBurnWithHugeAccumulatorDistributingEther() public {
@@ -805,7 +808,7 @@ contract StakeNFTTest is DSTest {
         uint224 user1Shares = 50;
         uint256 tokenID1 = user1.mint(user1Shares);
         assertPosition(getCurrentPosition(stakeNFTHugeAcc, tokenID1), StakeNFT.Position(user1Shares, 1, expectedAccumulatorETH, expectedAccumulatorToken));
-        (uint256 acc, uint256 slush) = stakeNFTHugeAcc.getTokenAccumulator();
+        (uint256 acc, uint256 slush) = stakeNFTHugeAcc.getEthAccumulator();
         assertEq(acc, expectedAccumulatorToken);
         assertEq(slush, 0);
 
@@ -818,7 +821,7 @@ contract StakeNFTTest is DSTest {
         uint256 tokenID2 = user2.mint(user2Shares);
         assertPosition(getCurrentPosition(stakeNFTHugeAcc, tokenID2), StakeNFT.Position(user2Shares, 1, expectedAccumulatorETH, expectedAccumulatorToken));
         {
-            (uint256 acc, uint256 slush) = stakeNFTHugeAcc.getTokenAccumulator();
+            (uint256 acc, uint256 slush) = stakeNFTHugeAcc.getEthAccumulator();
             assertEq(acc, expectedAccumulatorToken);
             assertEq(slush, 0);
         }
@@ -828,7 +831,7 @@ contract StakeNFTTest is DSTest {
         donator.depositToken(deposit2);
         expectedAccumulatorToken += (deposit2 * stakeNFTHugeAcc.accumulatorScaleFactor())/(user1Shares+user2Shares);
         expectedAccumulatorToken -= type(uint168).max;
-        (acc, slush) = stakeNFTHugeAcc.getTokenAccumulator();
+        (acc, slush) = stakeNFTHugeAcc.getEthAccumulator();
         assertEq(acc, expectedAccumulatorToken);
         assertEq(acc, 1000000000000000000);
         assertEq(slush, 0);
