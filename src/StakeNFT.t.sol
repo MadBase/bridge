@@ -147,7 +147,6 @@ contract StakeNFTTest is DSTest {
     function newUserAccount(MadTokenMock madToken, StakeNFT stakeNFT) private returns(UserAccount acct) {
         acct = new UserAccount();
         acct.setTokens(madToken, stakeNFT);
-        payable(address(acct)).transfer(10 ether);
     }
 
     function setBlockNumber(uint256 bn) internal returns(bool) {
@@ -475,11 +474,6 @@ contract StakeNFTTest is DSTest {
         assertEq(madToken.balanceOf(address(stakeNFT)), 0);
     }
 
-    // todo:
-    // reentrancy
-    // tripCB
-    // _maxMintLock
-
     function test_CollectTokenWithMultipleUsers() public {
         (StakeNFT stakeNFT, MadTokenMock madToken,,) = getFixtureData();
         UserAccount user1 = newUserAccount(madToken, stakeNFT);
@@ -659,6 +653,77 @@ contract StakeNFTTest is DSTest {
             assertEq(payout3, 888);
         }
 
+    }
+
+    function testBurnWithTripCB() public {
+        (StakeNFT stakeNFT, MadTokenMock madToken, AdminAccount admin,) = getFixtureData();
+        UserAccount user1 = newUserAccount(madToken, stakeNFT);
+        UserAccount user2 = newUserAccount(madToken, stakeNFT);
+        UserAccount donator = newUserAccount(madToken, stakeNFT);
+
+        madToken.transfer(address(user1), 1000 * ONE_MADTOKEN);
+        madToken.transfer(address(user2), 1000 * ONE_MADTOKEN);
+        madToken.transfer(address(donator), 1_000_000 * ONE_MADTOKEN);
+        user1.approve(address(stakeNFT), 1000 * ONE_MADTOKEN);
+        user2.approve(address(stakeNFT), 1000 * ONE_MADTOKEN);
+        donator.approve(address(stakeNFT), 20000 * ONE_MADTOKEN);
+        payable(address(donator)).transfer(2000 ether);
+
+        // minting
+        uint256 tokenID1 = user1.mint(1000 * ONE_MADTOKEN );
+        assertPosition(getCurrentPosition(stakeNFT, tokenID1), StakeNFT.Position(uint224(1000 * ONE_MADTOKEN), 1, 0, 0));
+        uint256 tokenID2 = user2.mint(800 * ONE_MADTOKEN);
+        assertPosition(getCurrentPosition(stakeNFT, tokenID2), StakeNFT.Position(uint224(800 * ONE_MADTOKEN), 1, 0, 0));
+
+        // depositing to move the accumulators
+        donator.depositToken(1800 * ONE_MADTOKEN);
+        donator.depositEth(1800 ether);
+
+        setBlockNumber(block.number+2);
+        // minting one more position to user 2
+        uint256 tokenID3 = user2.mint(200 * ONE_MADTOKEN);
+        assertPosition(getCurrentPosition(stakeNFT, tokenID3), StakeNFT.Position(uint224(200 * ONE_MADTOKEN), 1, 10**18, 10**18));
+
+        donator.depositEth(200 ether);
+        donator.depositToken(200 * ONE_MADTOKEN);
+
+        assertEq(madToken.balanceOf(address(user1)), 0);
+        assertEq(madToken.balanceOf(address(user2)), 0);
+        assertEq(stakeNFT.balanceOf(address(user1)), 1);
+        assertEq(stakeNFT.balanceOf(address(user2)), 2);
+        assertEq(address(user1).balance, 0 ether);
+        assertEq(address(user2).balance, 0 ether);
+        assertEq(madToken.balanceOf(address(stakeNFT)), 4000 * ONE_MADTOKEN);
+        assertEq(address(stakeNFT).balance, 2000 ether);
+
+        setBlockNumber(block.number+2);
+
+        //e.g bug was found so we needed to trip the Circuit breaker
+        admin.tripCB();
+
+        // Only burn (which uses both collect) should work now
+        (uint256 payoutEth, uint256 payoutToken) = user1.burn(tokenID1);
+        assertEq(payoutEth, 1100 ether);
+        assertEq(payoutToken, 2100 * ONE_MADTOKEN);
+        assertEq(stakeNFT.balanceOf(address(user1)), 0);
+        assertEq(address(user1).balance, 1100 ether);
+        assertEq(madToken.balanceOf(address(user1)), 2100 * ONE_MADTOKEN);
+
+        (payoutEth, payoutToken) = user2.burn(tokenID2);
+        assertEq(payoutEth, 880 ether);
+        assertEq(payoutToken, 1680 * ONE_MADTOKEN);
+        assertEq(stakeNFT.balanceOf(address(user2)), 1);
+        assertEq(address(user2).balance, 880 ether);
+        assertEq(madToken.balanceOf(address(user2)), 1680 * ONE_MADTOKEN);
+
+        (payoutEth, payoutToken) = user2.burn(tokenID3);
+        assertEq(payoutEth, 20 ether);
+        assertEq(payoutToken, 220 * ONE_MADTOKEN);
+        assertEq(stakeNFT.balanceOf(address(user2)), 0);
+        assertEq(address(user2).balance, 900 ether);
+        assertEq(madToken.balanceOf(address(user2)), 1900 * ONE_MADTOKEN);
+
+        assertEq(madToken.balanceOf(address(stakeNFT)), 0);
     }
 
     function testCollectTokensWithOverflowOnTheAccumulator() public {
