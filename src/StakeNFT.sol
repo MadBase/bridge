@@ -90,7 +90,7 @@ contract StakeNFT is ERC721, MagicValue, Admin, Governance, CircuitBreaker, Atom
 
     /// estimateEthCollection returns the amount of eth a tokenID may withdraw
     function estimateEthCollection(uint256 tokenID_) public view returns(uint256 payout) {
-        require(_exists(tokenID_));
+        require(_exists(tokenID_), "StakeNFT: Error, NFT token doesn't exist!");
         Position memory p = _positions[tokenID_];
         (, , , payout) = _collect(_shares, _ethState, p, p.accumulatorEth);
         return payout;
@@ -98,7 +98,7 @@ contract StakeNFT is ERC721, MagicValue, Admin, Governance, CircuitBreaker, Atom
 
     /// estimateTokenCollection returns the amount of MadToken a tokenID may withdraw
     function estimateTokenCollection(uint256 tokenID_) public view returns(uint256 payout) {
-        require(_exists(tokenID_));
+        require(_exists(tokenID_), "StakeNFT: Error, NFT token doesn't exist!");
         Position memory p = _positions[tokenID_];
         (, , , payout) = _collect(_shares, _tokenState, p, p.accumulatorToken);
         return payout;
