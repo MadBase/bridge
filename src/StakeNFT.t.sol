@@ -86,6 +86,22 @@ contract UserAccount is BaseMock {
     constructor() {}
 }
 
+contract BadEthCollectorAccount is BaseMock {
+    uint256 tokenID;
+    
+    constructor() {}
+
+    receive() external virtual payable{
+        collectEth(tokenID);
+    }
+
+    function setTokenID(uint256 tokenID_) {
+        tokenID = tokenID_;
+    }
+
+
+}
+
 contract StakeNFTHugeAccumulator is StakeNFT {
 
     uint256 public constant offsetToOverflow = 1_000000000000000000;
@@ -1167,5 +1183,30 @@ contract StakeNFTTest is DSTest {
         (StakeNFT stakeNFT, MadTokenMock madToken,, GovernanceAccount governance) = getFixtureData();
         UserAccount user = newUserAccount(madToken, stakeNFT);
         governance.lockPosition(address(user), 4, 172800);
+    }
+
+    function testReentrantCollectEth() public {
+        (StakeNFT stakeNFT, MadTokenMock madToken,,) = getFixtureData();
+        UserAccount donator = newUserAccount(madToken, stakeNFT);
+        BadEthCollectorAccount user = new BadEthCollectorAccount();
+        user.setTokens(stakeNFT, madToken);
+        
+        madToken.transfer(address(user), 100);
+        //madToken.transfer(address(donator), 210_000_000 * ONE_MADTOKEN );
+
+        user.approve(address(stakeNFTHugeAcc), 100);
+        //donator.approve(address(stakeNFTHugeAcc), 210_000_000 * ONE_MADTOKEN);
+
+        //payable(address(user)).transfer(2000 ether);
+        payable(address(donator)).transfer(2000 ether);
+
+        uint256 tokenID = user.mint(1000);
+
+        donator.depositEth(1000 ether);
+
+        user.collectEth(tokenID);
+
+        assertEq(address(user).balance, 1000 ether);
+        
     }
 }
