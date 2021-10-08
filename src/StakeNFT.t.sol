@@ -224,28 +224,6 @@ contract StakeNFTTest is DSTest {
         stakeNFT.depositToken(42, 100);
     }
 
-    function testFail_MintWithoutApprove() public {
-        (StakeNFT stakeNFT,,,) = getFixtureData();
-        stakeNFT.mint(100);
-    }
-
-    function testFail_MintToWithoutApprove() public {
-        (StakeNFT stakeNFT, MadTokenMock madToken,,) = getFixtureData();
-        UserAccount user = newUserAccount(madToken, stakeNFT);
-        stakeNFT.mintTo(address(user), 100, 1);
-    }
-
-    function testFail_MintMoreMadTokensThanPossible() public {
-        (StakeNFT stakeNFT,,,) = getFixtureData();
-        stakeNFT.mint(2**32);
-    }
-
-    function testFail_MintToMoreMadTokensThanPossible() public {
-        (StakeNFT stakeNFT, MadTokenMock madToken,,) = getFixtureData();
-        UserAccount user = newUserAccount(madToken, stakeNFT);
-        stakeNFT.mintTo(address(user), 2**32, 1);
-    }
-
     function testFail_getPositionThatDoesNotExist() public {
         (StakeNFT stakeNFT, MadTokenMock madToken,,) = getFixtureData();
         getCurrentPosition(stakeNFT, 4);
@@ -255,17 +233,6 @@ contract StakeNFTTest is DSTest {
         (StakeNFT stakeNFT,,,) = getFixtureData();
         assertEq(stakeNFT.name(), "MNStake");
         assertEq(stakeNFT.symbol(), "MNS");
-    }
-
-    function testFail_MintWithoutApproval() public {
-        (StakeNFT stakeNFT, MadTokenMock madToken,,) = getFixtureData();
-        uint256 tokenID = stakeNFT.mint(1000);
-    }
-
-    function testFail_MintToWithoutApproval() public {
-        (StakeNFT stakeNFT, MadTokenMock madToken,,) = getFixtureData();
-        UserAccount user = newUserAccount(madToken, stakeNFT);
-        uint256 tokenID = stakeNFT.mintTo(address(user), 1000, 0);
     }
 
     function testMint() public {
@@ -278,6 +245,16 @@ contract StakeNFTTest is DSTest {
         uint256 balanceNFT = stakeNFT.balanceOf(address(this));
         assertEq(balanceNFT, 1);
         assertEq(stakeNFT.ownerOf(tokenID), address(this));
+    }
+
+    function testFail_MintWithoutApproval() public {
+        (StakeNFT stakeNFT, MadTokenMock madToken,,) = getFixtureData();
+        uint256 tokenID = stakeNFT.mint(1000);
+    }
+
+    function testFail_MintMoreMadTokensThanPossible() public {
+        (StakeNFT stakeNFT,,,) = getFixtureData();
+        stakeNFT.mint(2**32);
     }
 
     function testMintTo_WithoutLock() public {
@@ -308,6 +285,18 @@ contract StakeNFTTest is DSTest {
         assertPosition(actual, expected);
 
         assertEq(stakeNFT.ownerOf(tokenID), address(user));
+    }
+
+    function testFail_MintToMoreMadTokensThanPossible() public {
+        (StakeNFT stakeNFT, MadTokenMock madToken,,) = getFixtureData();
+        UserAccount user = newUserAccount(madToken, stakeNFT);
+        stakeNFT.mintTo(address(user), 2**32, 1);
+    }
+
+    function testFail_MintToWithoutApproval() public {
+        (StakeNFT stakeNFT, MadTokenMock madToken,,) = getFixtureData();
+        UserAccount user = newUserAccount(madToken, stakeNFT);
+        stakeNFT.mintTo(address(user), 100, 1);
     }
 
     // mint+burn
@@ -470,7 +459,7 @@ contract StakeNFTTest is DSTest {
     // tripCB
     // _maxMintLock
 
-    function testMint_MultipleUsers() public {
+    function test_CollectTokenWithMultipleUsers() public {
         (StakeNFT stakeNFT, MadTokenMock madToken,,) = getFixtureData();
         UserAccount user1 = newUserAccount(madToken, stakeNFT);
         UserAccount user2 = newUserAccount(madToken, stakeNFT);
@@ -651,49 +640,7 @@ contract StakeNFTTest is DSTest {
 
     }
 
-
-    // function testMint_WithEthSlushSkim() public {
-    //     (StakeNFT stakeNFT, MadTokenMock madToken,,) = getFixtureData();
-    //     UserAccount user1 = newUserAccount(madToken, stakeNFT);
-    //     UserAccount user2 = newUserAccount(madToken, stakeNFT);
-    //     UserAccount user3 = newUserAccount(madToken, stakeNFT);
-
-    //     madToken.transfer(address(user1), 100);
-    //     madToken.transfer(address(user2), 100);
-    //     madToken.transfer(address(user3), 100);
-
-    //     payable(address(user2)).transfer(50);
-
-    //     user1.approve(address(stakeNFT), 100);
-    //     user2.approve(address(stakeNFT), 100);
-    //     user3.approve(address(stakeNFT), 100);
-
-    //     uint256 tokenID1 = user1.mint(100);
-    //     (uint256 acc, uint256 slush) = stakeNFT.getEthAccumulator();
-    //     assertEq(acc, 0);
-    //     assertEq(slush, 0);
-    //     (acc, slush) = stakeNFT.getTokenAccumulator();
-    //     assertEq(acc, 0);
-    //     assertEq(slush, 0);
-
-    //     user2.depositEth(50);
-    //     (acc, slush) = stakeNFT.getEthAccumulator();
-    //     assertEq(acc, 0);
-    //     assertEq(slush, 50);
-    //     (acc, slush) = stakeNFT.getTokenAccumulator();
-    //     assertEq(acc, 0);
-    //     assertEq(slush, 0);
-
-    //     uint256 tokenID3 = user3.mint(100);
-    //     (acc, slush) = stakeNFT.getEthAccumulator();
-    //     assertEq(acc, 0);
-    //     assertEq(slush, 50);
-    //     (acc, slush) = stakeNFT.getTokenAccumulator();
-    //     assertEq(acc, 0);
-    //     assertEq(slush, 0);
-    // }
-
-    function testMintWithHugeAccumulatorDistributingTokens() public {
+    function testCollectTokensWithOverflowOnTheAccumulator() public {
         (StakeNFTHugeAccumulator stakeNFTHugeAcc, MadTokenMock madToken,,) = getFixtureDataWithHugeAccumulator();
         UserAccount user1 = newUserAccount(madToken, stakeNFTHugeAcc);
         UserAccount user2 = newUserAccount(madToken, stakeNFTHugeAcc);
@@ -749,7 +696,7 @@ contract StakeNFTTest is DSTest {
         assertEq(user2.collectToken(tokenID2), 75);
     }
 
-    function testBurnWithHugeAccumulatorDistributingTokens() public {
+    function testBurnTokensWithOverflowOnTheAccumulator() public {
         (StakeNFTHugeAccumulator stakeNFTHugeAcc, MadTokenMock madToken,,) = getFixtureDataWithHugeAccumulator();
         UserAccount user1 = newUserAccount(madToken, stakeNFTHugeAcc);
         UserAccount user2 = newUserAccount(madToken, stakeNFTHugeAcc);
@@ -786,7 +733,7 @@ contract StakeNFTTest is DSTest {
             assertEq(slush, 0);
         }
 
-        // the overflow should happen here. As we are incrementing the accumulator by 150 * 10**16
+        // the overflow should happen here as we are incrementing the accumulator by 150 * 10**16
         uint256 deposit2 = 150;
         donator.depositToken(deposit2);
         expectedAccumulatorToken += (deposit2 * stakeNFTHugeAcc.accumulatorScaleFactor())/(user1Shares+user2Shares);
@@ -796,9 +743,7 @@ contract StakeNFTTest is DSTest {
         assertEq(acc, 1000000000000000000);
         assertEq(slush, 0);
 
-        // Testing collecting the dividends after the accumulator overflow Each
-        // user has to call collect twice to get the right amount of funds
-        // (before and after the overflow)
+        // Testing collecting the dividends after the accumulator overflow
         assertEq(stakeNFTHugeAcc.estimateTokenCollection(tokenID1), 100);
         assertEq(stakeNFTHugeAcc.estimateTokenCollection(tokenID2), 75);
         // advance block number
@@ -809,8 +754,7 @@ contract StakeNFTTest is DSTest {
         assertEq(payoutToken2, 125);
     }
 
-    /*
-    function testMintWithHugeAccumulatorDistributingEther() public {
+    function testCollectEtherWithOverflowOnTheAccumulator() public {
         (StakeNFTHugeAccumulator stakeNFTHugeAcc, MadTokenMock madToken,,) = getFixtureDataWithHugeAccumulator();
         UserAccount user1 = newUserAccount(madToken, stakeNFTHugeAcc);
         UserAccount user2 = newUserAccount(madToken, stakeNFTHugeAcc);
@@ -846,7 +790,7 @@ contract StakeNFTTest is DSTest {
             assertEq(slush, 0);
         }
 
-        // the overflow should happen here. As we are incrementing the accumulator by 150 * 10**16
+        // the overflow should happen here as we are incrementing the accumulator by 150 * 10**16
         uint256 deposit2 = 150; //wei
         donator.depositEth(deposit2);
         expectedAccumulatorETH += (deposit2 * stakeNFTHugeAcc.accumulatorScaleFactor())/(user1Shares+user2Shares);
@@ -856,18 +800,14 @@ contract StakeNFTTest is DSTest {
         assertEq(acc, 1000000000000000000);
         assertEq(slush, 0);
 
-        // Testing collecting the dividends after the accumulator overflow Each
-        // user has to call collect twice to get the right amount of funds
-        // (before and after the overflow)
+        // Testing collecting the dividends after the accumulator overflow
         assertEq(stakeNFTHugeAcc.estimateEthCollection(tokenID1), 100);
         assertEq(user1.collectEth(tokenID1), 100);
         assertEq(stakeNFTHugeAcc.estimateEthCollection(tokenID2), 75);
         assertEq(user2.collectEth(tokenID2), 75);
     }
-    */
 
-    /*
-    function testBurnWithHugeAccumulatorDistributingEther() public {
+    function testBurnEtherWithOverflowOnTheAccumulator() public {
         (StakeNFTHugeAccumulator stakeNFTHugeAcc, MadTokenMock madToken,,) = getFixtureDataWithHugeAccumulator();
         UserAccount user1 = newUserAccount(madToken, stakeNFTHugeAcc);
         UserAccount user2 = newUserAccount(madToken, stakeNFTHugeAcc);
@@ -928,231 +868,6 @@ contract StakeNFTTest is DSTest {
         assertEq(payoutEth2, 75);
         assertEq(payoutToken2, 50);
     }
-    */
-
-    // todo: burn, burnTo, *withoutLock, *withLock, *with slush skim
-    // function testBurn() public {
-    //     (StakeNFT stakeNFT, MadTokenMock madToken,,) = getFixtureData();
-
-    //     madToken.approve(address(stakeNFT), 1000);
-    //     uint256 tokenID = stakeNFT.mint(1000);
-
-    //     StakeNFT.Position memory actual = getCurrentPosition(stakeNFT, tokenID);
-    //     StakeNFT.Position memory expected = StakeNFT.Position(1000, 1, 0, 0);
-    //     assertPosition(actual, expected);
-
-    //     (uint256 acc, uint256 slush) = stakeNFT.getEthAccumulator();
-    //     assertEq(acc, 0);
-    //     assertEq(slush, 0);
-    //     (acc, slush) = stakeNFT.getTokenAccumulator();
-    //     assertEq(acc, 0);
-    //     assertEq(slush, 1000);
-
-    //     uint256 balanceNFT = stakeNFT.balanceOf(address(this));
-    //     assertEq(balanceNFT, 1);
-    //     assertEq(stakeNFT.ownerOf(tokenID), address(this));
-    //     assertEq(madToken.balanceOf(address(this)), 220000000-1000);
-    //     assertEq(madToken.balanceOf(address(stakeNFT)), 1000);
-
-    //     // advance block number
-    //     require(setBlockNumber(block.number+2));
-
-    //     uint256 payout = stakeNFT.estimateTokenCollection(tokenID);
-    //     assertEq(payout, 1000);
-    //     //payout = stakeNFT.collectToken(tokenID);
-    //     //assertEq(payout, 1000);
-
-    //     (uint256 payoutEth, uint256 payoutMadToken) = stakeNFT.burn(tokenID);
-    //     assertEq(payoutMadToken, 1000);
-    //     assertEq(madToken.balanceOf(address(this)), 220000000);
-    // }
-
-    // function testBurn2() public {
-    //     (StakeNFT stakeNFT, MadTokenMock madToken,,) = getFixtureData();
-
-    //     madToken.approve(address(stakeNFT), 1000);
-    //     uint256 tokenID = stakeNFT.mint(1000);
-
-    //     StakeNFT.Position memory actual = getCurrentPosition(stakeNFT, tokenID);
-    //     StakeNFT.Position memory expected = StakeNFT.Position(1000, 1, 0, 0);
-    //     assertPosition(actual, expected);
-
-    //     (uint256 acc, uint256 slush) = stakeNFT.getEthAccumulator();
-    //     assertEq(acc, 0);
-    //     assertEq(slush, 0);
-    //     (acc, slush) = stakeNFT.getTokenAccumulator();
-    //     assertEq(acc, 0);
-    //     assertEq(slush, 1000);
-
-    //     uint256 balanceNFT = stakeNFT.balanceOf(address(this));
-    //     assertEq(balanceNFT, 1);
-    //     assertEq(stakeNFT.ownerOf(tokenID), address(this));
-    //     assertEq(madToken.balanceOf(address(this)), 220000000-1000);
-    //     assertEq(madToken.balanceOf(address(stakeNFT)), 1000);
-
-    //     // advance block number
-    //     require(setBlockNumber(block.number+2));
-
-    //     uint256 payout = stakeNFT.estimateTokenCollection(tokenID);
-    //     assertEq(payout, 1000);
-    //     payout = stakeNFT.collectToken(tokenID);
-    //     assertEq(payout, 1000);
-
-    //     actual = getCurrentPosition(stakeNFT, tokenID);
-    //     expected = StakeNFT.Position(1000, 1, 0, 1);
-    //     assertPosition(actual, expected);
-
-    //     (acc, slush) = stakeNFT.getEthAccumulator();
-    //     assertEq(acc, 0);
-    //     assertEq(slush, 0);
-    //     (acc, slush) = stakeNFT.getTokenAccumulator();
-    //     assertEq(acc, 1);
-    //     assertEq(slush, 0);
-
-    //     assertEq(madToken.balanceOf(address(this)), 220000000);
-    //     assertEq(madToken.balanceOf(address(stakeNFT)), 0);
-
-    //     (uint256 payoutEth, uint256 payoutMadToken) = stakeNFT.burn(tokenID);
-    //     assertEq(payoutMadToken, 0);
-    //     assertEq(payoutEth, 0);
-    //     assertEq(madToken.balanceOf(address(this)), 220000000);
-    //     assertEq(madToken.balanceOf(address(stakeNFT)), 0);
-    // }
-
-    // function testBurnMultipleUsers() public {
-    //     (StakeNFT stakeNFT, MadTokenMock madToken,,) = getFixtureData();
-    //     UserAccount user1 = newUserAccount(madToken, stakeNFT);
-
-    //     madToken.transfer(address(user1), 3000);
-    //     user1.approve(address(stakeNFT), 3000);
-
-    //     madToken.approve(address(stakeNFT), 1000);
-
-    //     uint256 tokenID = stakeNFT.mint(1000);
-    //     StakeNFT.Position memory actual = getCurrentPosition(stakeNFT, tokenID);
-    //     StakeNFT.Position memory expected = StakeNFT.Position(1000, 1, 0, 0);
-    //     assertPosition(actual, expected);
-    //     assertEq(stakeNFT.balanceOf(address(this)), 1);
-    //     assertEq(stakeNFT.ownerOf(tokenID), address(this));
-    //     assertEq(madToken.balanceOf(address(this)), 220000000-2000);
-    //     assertEq(madToken.balanceOf(address(stakeNFT)), 1000);
-
-    //     (uint256 acc, uint256 slush) = stakeNFT.getEthAccumulator();
-    //     assertEq(acc, 0);
-    //     assertEq(slush, 0);
-    //     (acc, slush) = stakeNFT.getTokenAccumulator();
-    //     assertEq(acc, 0);
-    //     assertEq(slush, 1000);
-
-    //     uint256 tokenIDUser = user1.mint(3000);
-    //     assertPosition(getCurrentPosition(stakeNFT, tokenIDUser), StakeNFT.Position(3000, 1, 0, 4));
-    //     assertEq(stakeNFT.balanceOf(address(user1)), 1);
-    //     assertEq(stakeNFT.ownerOf(tokenIDUser), address(user1));
-    //     assertEq(madToken.balanceOf(address(user1)), 0);
-    //     assertEq(madToken.balanceOf(address(stakeNFT)), 4000);
-
-
-    //     // advance block number
-    //     require(setBlockNumber(block.number+2));
-
-    //     uint256 payout = stakeNFT.estimateTokenCollection(tokenID);
-    //     assertEq(payout, 4000);
-    //     uint256 payoutUser = stakeNFT.estimateTokenCollection(tokenIDUser);
-    //     assertEq(payoutUser, 0);
-    //     payout = stakeNFT.collectToken(tokenID);
-    //     assertEq(payout, 4000);
-    //     payoutUser = user1.collectToken(tokenIDUser);
-    //     assertEq(payoutUser, 0);
-
-    //     assertPosition(getCurrentPosition(stakeNFT, tokenID), StakeNFT.Position(1000, 1, 0, 4));
-    //     assertPosition(getCurrentPosition(stakeNFT, tokenIDUser), StakeNFT.Position(1000, 1, 0, 4));
-
-    //     (acc, slush) = stakeNFT.getEthAccumulator();
-    //     assertEq(acc, 0);
-    //     assertEq(slush, 0);
-    //     (acc, slush) = stakeNFT.getTokenAccumulator();
-    //     assertEq(acc, 4);
-    //     assertEq(slush, 0);
-
-    //     assertEq(madToken.balanceOf(address(this)), 220000000);
-    //     assertEq(madToken.balanceOf(address(stakeNFT)), 0);
-
-    //     (uint256 payoutEth, uint256 payoutMadToken) = stakeNFT.burn(tokenID);
-    //     assertEq(payoutMadToken, 0);
-    //     assertEq(payoutEth, 0);
-    //     // assertEq(madToken.balanceOf(address(this)), 220000000);
-    //     // assertEq(madToken.balanceOf(address(stakeNFT)), 0);
-    // }
-
-    // function testTokenFullCircle() public {
-    //     (StakeNFT stakeNFT, MadTokenMock madToken,,) = getFixtureData();
-
-    //     UserAccount user1 = newUserAccount(madToken, stakeNFT);
-    //     UserAccount user2 = newUserAccount(madToken, stakeNFT);
-    //     UserAccount user3 = newUserAccount(madToken, stakeNFT);
-
-    //     madToken.transfer(address(user1), 10000);
-    //     madToken.transfer(address(user2), 10000);
-    //     madToken.transfer(address(user3), 10000);
-
-    //     //payable(address(user2)).transfer(50);
-
-    //     user1.approve(address(stakeNFT), 1000);
-    //     user2.approve(address(stakeNFT), 1000);
-    //     user3.approve(address(stakeNFT), 1000);
-
-    //     madToken.approve(address(stakeNFT), 3000);
-
-    //     uint256 tokenID1 = user1.mint(1000);
-    //     uint256 payoutToken = user1.collectToken(tokenID1);
-    //     assertEq(payoutToken, 0);
-
-    //     uint256 tokenID2 = user2.mint(1000);
-    //     uint256 tokenID3 = user3.mint(1000);
-
-    //     assertPosition(
-    //         getCurrentPosition(stakeNFT, tokenID1),
-    //         StakeNFT.Position(1000, 1, 0, 0)
-    //     );
-    //     assertPosition(
-    //         getCurrentPosition(stakeNFT, tokenID2),
-    //         StakeNFT.Position(1000, 1, 0, 0)
-    //     );
-    //     assertPosition(
-    //         getCurrentPosition(stakeNFT, tokenID3),
-    //         StakeNFT.Position(1000, 1, 0, 0)
-    //     );
-
-    //     // advance block number
-    //     require(setBlockNumber(block.number+2));
-
-    //     uint256 payout1 = stakeNFT.estimateTokenCollection(tokenID1);
-    //     assertEq(payout1, 0);
-    //     uint256 payout2 = stakeNFT.estimateTokenCollection(tokenID2);
-    //     assertEq(payout2, 0);
-    //     uint256 payout3 = stakeNFT.estimateTokenCollection(tokenID3);
-    //     assertEq(payout3, 0);
-
-    //     // deposit tokens
-    //     //stakeNFT.depositEth{value: 1000}(42);
-    //     stakeNFT.depositToken(42, 1000);
-
-    //     payout1 = stakeNFT.estimateTokenCollection(tokenID1);
-    //     assertEq(payout1, 0);
-    //     payout2 = stakeNFT.estimateTokenCollection(tokenID2);
-    //     assertEq(payout2, 0);
-    //     payout3 = stakeNFT.estimateTokenCollection(tokenID3);
-    //     assertEq(payout3, 0);
-
-    //     stakeNFT.depositToken(42, 2000);
-
-    //     payout1 = stakeNFT.estimateTokenCollection(tokenID1);
-    //     assertEq(payout1, 1000);
-    //     payout2 = stakeNFT.estimateTokenCollection(tokenID2);
-    //     assertEq(payout2, 1000);
-    //     payout3 = stakeNFT.estimateTokenCollection(tokenID3);
-    //     assertEq(payout3, 1000);
-    // }
 
     // function testEthFullCircle() public {
     //     (StakeNFT stakeNFT, MadTokenMock madToken,,) = getFixtureData();

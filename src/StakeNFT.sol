@@ -107,34 +107,6 @@ contract StakeNFT is ERC721, MagicValue, Admin, Governance, CircuitBreaker, Atom
         return payout;
     }
 
-    // estimateExcessToken returns the amount of MadToken that is held in the
-    // name of this contract this is the value that would be returned by a call
-    // to skimExcessToken
-    function estimateExcessToken() public view returns(uint256 excess) {
-        ( , excess) = _estimateExcessToken();
-        return excess;
-    }
-
-    // estimateExcessEth returns the amount of Eth that is held in the name of
-    // this contract this is the value that would be returned by a call to
-    // skimExcessEth
-    function estimateExcessEth() public view returns(uint256 excess) {
-        return _estimateExcessEth();
-    }
-
-
-    // skimExcessToken will send to the address passed as to_ any amount of
-    // MadToken held by this contract that is not tracked by the Accumulator
-    // system This function allows the Admin role to refund any MadToken sent to
-    // this contract in error by a user this method can not return any funds
-    // sent to the contract via the depositToken method
-    // function skimExcessToken(address to_) public onlyAdmin returns(uint256 excess) {
-    //     IERC20Transfer MadToken;
-    //     (MadToken, excess) = _estimateExcessToken();
-    //     _safeTransferERC20(MadToken, to_, excess);
-    //     return excess;
-    // }
-
     // lockPosition is called by governance system when a governance vote is
     // cast this function will lock the specified Position for up to
     // _maxGovernanceLock this method may only be called by the governance
