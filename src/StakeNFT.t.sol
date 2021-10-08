@@ -76,6 +76,10 @@ contract AdminAccount is BaseMock {
 
 contract GovernanceAccount is BaseMock {
     constructor() {}
+
+    function lockPosition(address caller_, uint256 tokenID_, uint256 lockDuration_) public {
+        stakeNFT.lockPosition(caller_, tokenID_, lockDuration_);
+    }
 }
 
 contract UserAccount is BaseMock {
@@ -213,9 +217,12 @@ contract StakeNFTTest is DSTest {
     }
 
     function testFail_tripCBLockPosition() public {
-        (StakeNFT stakeNFT,, AdminAccount admin,) = getFixtureData();
+        (StakeNFT stakeNFT, MadTokenMock madToken, AdminAccount admin, GovernanceAccount governance) = getFixtureData();
+        UserAccount user = newUserAccount(madToken, stakeNFT);
+        madToken.approve(address(stakeNFT), 1000);
+        uint256 tokenID = stakeNFT.mintTo(address(user), 1000, 0);
         admin.tripCB(); // open CB
-        stakeNFT.lockPosition(address(0x0), 100, 0);
+        governance.lockPosition(address(0x0), 100, 0);
     }
 
     function testFail_tripDepositToken() public {
@@ -242,9 +249,20 @@ contract StakeNFTTest is DSTest {
         uint256 tokenID = stakeNFT.mint(1000);
         assertPosition(getCurrentPosition(stakeNFT, tokenID), StakeNFT.Position(1000, 1, 0, 0));
 
-        uint256 balanceNFT = stakeNFT.balanceOf(address(this));
-        assertEq(balanceNFT, 1);
+        assertEq(stakeNFT.balanceOf(address(this)), 1);
         assertEq(stakeNFT.ownerOf(tokenID), address(this));
+    }
+
+    function testMintManyTokensSameUser() public {
+        (StakeNFT stakeNFT, MadTokenMock madToken,,) = getFixtureData();
+        madToken.approve(address(stakeNFT), 1000);
+
+        for (uint256 i=0; i < 10; i++) {
+            uint256 tokenID = stakeNFT.mint(100);
+            assertEq(stakeNFT.ownerOf(tokenID), address(this));
+            assertPosition(getCurrentPosition(stakeNFT, tokenID), StakeNFT.Position(100, 1, 0, 0));
+        }
+        assertEq(stakeNFT.balanceOf(address(this)), 10);
     }
 
     function testFail_MintWithoutApproval() public {
@@ -264,11 +282,8 @@ contract StakeNFTTest is DSTest {
         madToken.approve(address(stakeNFT), 1000);
         uint256 tokenID = stakeNFT.mintTo(address(user), 1000, 0);
 
-        StakeNFT.Position memory actual = getCurrentPosition(stakeNFT, tokenID);
-        StakeNFT.Position memory expected = StakeNFT.Position(1000, 1, 0, 0);
-
-        assertPosition(actual, expected);
-
+        assertPosition(getCurrentPosition(stakeNFT, tokenID), StakeNFT.Position(1000, 1, 0, 0));
+        assertEq(stakeNFT.balanceOf(address(user)), 1);
         assertEq(stakeNFT.ownerOf(tokenID), address(user));
     }
 
@@ -279,11 +294,8 @@ contract StakeNFTTest is DSTest {
         madToken.approve(address(stakeNFT), 1000);
         uint256 tokenID = stakeNFT.mintTo(address(user), 1000, 10);
 
-        StakeNFT.Position memory actual = getCurrentPosition(stakeNFT, tokenID);
-        StakeNFT.Position memory expected = StakeNFT.Position(1000, 10, 0, 0);
-
-        assertPosition(actual, expected);
-
+        assertPosition(getCurrentPosition(stakeNFT, tokenID), StakeNFT.Position(1000, 10, 0, 0));
+        assertEq(stakeNFT.balanceOf(address(user)), 1);
         assertEq(stakeNFT.ownerOf(tokenID), address(user));
     }
 
@@ -297,6 +309,14 @@ contract StakeNFTTest is DSTest {
         (StakeNFT stakeNFT, MadTokenMock madToken,,) = getFixtureData();
         UserAccount user = newUserAccount(madToken, stakeNFT);
         stakeNFT.mintTo(address(user), 100, 1);
+    }
+
+    function testFail_MintToWithInvalidLockHeight() public {
+        (StakeNFT stakeNFT, MadTokenMock madToken,,) = getFixtureData();
+        UserAccount user = newUserAccount(madToken, stakeNFT);
+        madToken.transfer(address(user), 1000);
+        user.approve(address(stakeNFT), 1000);
+        stakeNFT.mintTo(address(user), 100, 1051200 + 1);
     }
 
     // mint+burn
@@ -325,7 +345,8 @@ contract StakeNFTTest is DSTest {
 
         uint256 tokenID = user.mint(1000);
         assertPosition(getCurrentPosition(stakeNFT, tokenID), StakeNFT.Position(1000, 1, 0, 0));
-
+        assertEq(stakeNFT.balanceOf(address(user)), 1);
+        assertEq(stakeNFT.ownerOf(tokenID), address(user));
         assertEq(madToken.balanceOf(address(user)), 0);
         assertEq(madToken.balanceOf(address(stakeNFT)), 1000);
 
@@ -948,4 +969,93 @@ contract StakeNFTTest is DSTest {
     //     assertEq(payout3, 1 ether);
     //     fail();
     // }
+
+    function testLockPosition() public {
+        (StakeNFT stakeNFT, MadTokenMock madToken,, GovernanceAccount governance) = getFixtureData();
+        UserAccount user = newUserAccount(madToken, stakeNFT);
+
+        madToken.approve(address(stakeNFT), 1000);
+        uint256 tokenID = stakeNFT.mintTo(address(user), 1000, 0);
+
+        assertPosition(getCurrentPosition(stakeNFT, tokenID),  StakeNFT.Position(1000, 1, 0, 0));
+        assertEq(stakeNFT.balanceOf(address(user)), 1);
+        assertEq(stakeNFT.ownerOf(tokenID), address(user));
+
+        governance.lockPosition(address(user), tokenID, 172800);
+    }
+
+    function testLockPositionAndBurn() public {
+        (StakeNFT stakeNFT, MadTokenMock madToken,, GovernanceAccount governance) = getFixtureData();
+        UserAccount user = newUserAccount(madToken, stakeNFT);
+
+        madToken.approve(address(stakeNFT), 1000);
+        uint256 tokenID = stakeNFT.mintTo(address(user), 1000, 0);
+
+        assertPosition(getCurrentPosition(stakeNFT, tokenID),  StakeNFT.Position(1000, 1, 0, 0));
+        assertEq(stakeNFT.balanceOf(address(user)), 1);
+        assertEq(stakeNFT.ownerOf(tokenID), address(user));
+
+        governance.lockPosition(address(user), tokenID, 172800);
+        setBlockNumber(block.number+172801);
+        (uint256 payoutEth, uint256 payoutToken) = user.burn(tokenID);
+        assertEq(payoutEth, 0);
+        assertEq(payoutToken, 1000);
+
+        assertEq(madToken.balanceOf(address(user)), 1000);
+        assertEq(madToken.balanceOf(address(stakeNFT)), 0);
+        assertEq(stakeNFT.balanceOf(address(user)), 0);
+
+    }
+
+    function testFail_LockPositionAndTryToBurnBeforeLockHasFinished() public {
+        (StakeNFT stakeNFT, MadTokenMock madToken,, GovernanceAccount governance) = getFixtureData();
+        UserAccount user = newUserAccount(madToken, stakeNFT);
+
+        madToken.approve(address(stakeNFT), 1000);
+        uint256 tokenID = stakeNFT.mintTo(address(user), 1000, 0);
+
+        assertPosition(getCurrentPosition(stakeNFT, tokenID),  StakeNFT.Position(1000, 1, 0, 0));
+        assertEq(stakeNFT.balanceOf(address(user)), 1);
+        assertEq(stakeNFT.ownerOf(tokenID), address(user));
+
+        governance.lockPosition(address(user), tokenID, 800);
+
+        setBlockNumber(block.number+750);
+
+        user.burn(tokenID);
+    }
+
+    function testFail_LockPositionNotTheOwner() public {
+        (StakeNFT stakeNFT, MadTokenMock madToken,, GovernanceAccount governance) = getFixtureData();
+        UserAccount user = newUserAccount(madToken, stakeNFT);
+
+        madToken.approve(address(stakeNFT), 1000);
+        uint256 tokenID = stakeNFT.mintTo(address(user), 1000, 0);
+
+        assertPosition(getCurrentPosition(stakeNFT, tokenID),  StakeNFT.Position(1000, 1, 0, 0));
+        assertEq(stakeNFT.balanceOf(address(user)), 1);
+        assertEq(stakeNFT.ownerOf(tokenID), address(user));
+
+        governance.lockPosition(address(this), tokenID, 1);
+    }
+
+    function testFail_LockPositionInvalidLockHeight() public {
+        (StakeNFT stakeNFT, MadTokenMock madToken,, GovernanceAccount governance) = getFixtureData();
+        UserAccount user = newUserAccount(madToken, stakeNFT);
+
+        madToken.approve(address(stakeNFT), 1000);
+        uint256 tokenID = stakeNFT.mintTo(address(user), 1000, 0);
+
+        assertPosition(getCurrentPosition(stakeNFT, tokenID),  StakeNFT.Position(1000, 1, 0, 0));
+        assertEq(stakeNFT.balanceOf(address(user)), 1);
+        assertEq(stakeNFT.ownerOf(tokenID), address(user));
+
+        governance.lockPosition(address(user), tokenID, 172800 + 1);
+    }
+
+    function testFail_LockNonExistentPosition() public {
+        (StakeNFT stakeNFT, MadTokenMock madToken,, GovernanceAccount governance) = getFixtureData();
+        UserAccount user = newUserAccount(madToken, stakeNFT);
+        governance.lockPosition(address(user), 4, 172800);
+    }
 }

@@ -109,8 +109,8 @@ contract StakeNFT is ERC721, MagicValue, Admin, Governance, CircuitBreaker, Atom
     /// _maxGovernanceLock. This method may only be called by the governance
     /// contract. This function will fail if the circuit breaker is tripped
     function lockPosition(address caller_, uint256 tokenID_, uint256 lockDuration_) public withCB onlyGovernance returns(uint256 numberShares) {
-        require(caller_ == ownerOf(tokenID_));
-        require(lockDuration_ <= _maxGovernanceLock);
+        require(caller_ == ownerOf(tokenID_), "StakeNFT: Error, token doesn't exists or not belong to the caller!");
+        require(lockDuration_ <= _maxGovernanceLock, "StakeNFT: Lock Duration is greater thant the amount allowed!");
         return _lockPosition(tokenID_, lockDuration_);
     }
 
