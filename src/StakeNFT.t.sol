@@ -241,6 +241,26 @@ contract StakeNFTTest is DSTest {
         assertEq(stakeNFT.symbol(), "MNS");
     }
 
+    function testDeposit() public {
+        (StakeNFT stakeNFT, MadTokenMock madToken,,) = getFixtureData();
+        madToken.approve(address(stakeNFT), 100000);
+        stakeNFT.depositToken(42, 100000);
+        stakeNFT.depositEth{value: 10 ether}(42);
+        assertEq(madToken.balanceOf(address(stakeNFT)), 100000);
+        assertEq(address(stakeNFT).balance, 10 ether);
+    }
+
+    function testFail_DepositTokenWithWrongMagicNumber() public {
+        (StakeNFT stakeNFT, MadTokenMock madToken,,) = getFixtureData();
+        madToken.approve(address(stakeNFT), 100000);
+        stakeNFT.depositToken(41, 100000);
+    }
+
+    function testFail_DepositEthWithWrongMagicNumber() public {
+        (StakeNFT stakeNFT, MadTokenMock madToken,,) = getFixtureData();
+        stakeNFT.depositEth{value: 10 ether}(41);
+    }
+
     function testMint() public {
         (StakeNFT stakeNFT, MadTokenMock madToken,,) = getFixtureData();
 
@@ -769,6 +789,16 @@ contract StakeNFTTest is DSTest {
         assertPosition(getCurrentPosition(stakeNFT, tokenID1), StakeNFT.Position(uint224(1000 * ONE_MADTOKEN), 1, 0, 0));
 
         user2.burn(tokenID1);
+    }
+
+    function testFail_estimateEthCollectionNonExistentToken() public {
+        (StakeNFT stakeNFT, MadTokenMock madToken,,) = getFixtureData();
+        stakeNFT.estimateEthCollection(100);
+    }
+
+    function testFail_estimateTokenCollectionNonExistentToken() public {
+        (StakeNFT stakeNFT, MadTokenMock madToken,,) = getFixtureData();
+        stakeNFT.estimateTokenCollection(100);
     }
 
     function testCollectTokensWithOverflowOnTheAccumulator() public {
