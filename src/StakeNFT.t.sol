@@ -726,6 +726,51 @@ contract StakeNFTTest is DSTest {
         assertEq(madToken.balanceOf(address(stakeNFT)), 0);
     }
 
+    function testFail_CollectNonOnwedToken() public {
+        (StakeNFT stakeNFT, MadTokenMock madToken,,) = getFixtureData();
+        UserAccount user1 = newUserAccount(madToken, stakeNFT);
+        UserAccount user2 = newUserAccount(madToken, stakeNFT);
+
+        madToken.transfer(address(user1), 1000 * ONE_MADTOKEN);
+        user1.approve(address(stakeNFT), 1000 * ONE_MADTOKEN);
+
+        // minting
+        uint256 tokenID1 = user1.mint(1000 * ONE_MADTOKEN );
+        assertPosition(getCurrentPosition(stakeNFT, tokenID1), StakeNFT.Position(uint224(1000 * ONE_MADTOKEN), 1, 0, 0));
+
+        user2.collectToken(tokenID1);
+    }
+
+    function testFail_CollectNonOnwedEth() public {
+        (StakeNFT stakeNFT, MadTokenMock madToken,,) = getFixtureData();
+        UserAccount user1 = newUserAccount(madToken, stakeNFT);
+        UserAccount user2 = newUserAccount(madToken, stakeNFT);
+
+        madToken.transfer(address(user1), 1000 * ONE_MADTOKEN);
+        user1.approve(address(stakeNFT), 1000 * ONE_MADTOKEN);
+
+        // minting
+        uint256 tokenID1 = user1.mint(1000 * ONE_MADTOKEN );
+        assertPosition(getCurrentPosition(stakeNFT, tokenID1), StakeNFT.Position(uint224(1000 * ONE_MADTOKEN), 1, 0, 0));
+
+        user2.collectEth(tokenID1);
+    }
+
+    function testFail_BurnNonOnwedPosition() public {
+        (StakeNFT stakeNFT, MadTokenMock madToken,,) = getFixtureData();
+        UserAccount user1 = newUserAccount(madToken, stakeNFT);
+        UserAccount user2 = newUserAccount(madToken, stakeNFT);
+
+        madToken.transfer(address(user1), 1000 * ONE_MADTOKEN);
+        user1.approve(address(stakeNFT), 1000 * ONE_MADTOKEN);
+
+        // minting
+        uint256 tokenID1 = user1.mint(1000 * ONE_MADTOKEN );
+        assertPosition(getCurrentPosition(stakeNFT, tokenID1), StakeNFT.Position(uint224(1000 * ONE_MADTOKEN), 1, 0, 0));
+
+        user2.burn(tokenID1);
+    }
+
     function testCollectTokensWithOverflowOnTheAccumulator() public {
         (StakeNFTHugeAccumulator stakeNFTHugeAcc, MadTokenMock madToken,,) = getFixtureDataWithHugeAccumulator();
         UserAccount user1 = newUserAccount(madToken, stakeNFTHugeAcc);
