@@ -5,6 +5,7 @@ pragma abicoder v2;
 import "./ChainStatusLibrary.sol";
 import "./ParticipantsLibrary.sol";
 import "./StakingLibrary.sol";
+import "../parsers/RCertParserLibrary.sol";
 
 import "../CryptoLibrary.sol";
 import "../Registry.sol";
@@ -48,33 +49,7 @@ library SnapshotsLibrary {
         val = (val << 8) | uint8(src[idx]);
     }
 
-    function extractUint256(bytes memory src, uint offset) internal pure returns (uint256 val) {
-        for (uint idx = offset+31; idx > offset; idx--) {
-            val = uint8(src[idx]) | (val << 8);
-        }
 
-        val = uint8(src[offset]) | (val << 8);
-    }
-
-    function reverse(bytes memory orig) internal pure returns (bytes memory reversed) {
-        reversed = new bytes(orig.length);
-        for (uint idx = 0; idx<orig.length; idx++) {
-            reversed[orig.length-idx-1] = orig[idx];
-        }
-    }
-
-    function parseSignatureGroup(bytes memory _signatureGroup) internal pure returns (uint256[4] memory publicKey, uint256[2] memory signature) {
-
-        // Go big.Ints are big endian but Solidity is little endian
-        bytes memory signatureGroup = reverse(_signatureGroup);
-
-        signature[1] = extractUint256(signatureGroup, 0);
-        signature[0] = extractUint256(signatureGroup, 32);
-        publicKey[3] = extractUint256(signatureGroup, 64);
-        publicKey[2] = extractUint256(signatureGroup, 96);
-        publicKey[1] = extractUint256(signatureGroup, 128);
-        publicKey[0] = extractUint256(signatureGroup, 160);
-    }
 
     function getChainIdFromSnapshot(uint256 snapshotNumber) internal view returns (uint32) {
         SnapshotsStorage storage ss = snapshotsStorage();
@@ -123,7 +98,7 @@ library SnapshotsLibrary {
 
         uint256[4] memory publicKey;
         uint256[2] memory signature;
-        (publicKey, signature) = parseSignatureGroup(_signatureGroup);
+        (publicKey, signature) = RCertParserLibrary.extractSigGroup(_signatureGroup, 0);
 
         bytes memory blockHash = abi.encodePacked(keccak256(_bclaims));
 
