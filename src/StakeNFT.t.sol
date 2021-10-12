@@ -5,6 +5,7 @@ import "ds-test/test.sol";
 
 import "./StakeNFT.sol";
 import "./lib/openzeppelin/token/ERC20/ERC20.sol";
+import "./lib/openzeppelin/token/ERC721/IERC721Receiver.sol";
 
 uint256 constant ONE_MADTOKEN = 10**18;
 
@@ -66,6 +67,10 @@ abstract contract BaseMock {
 
     function collectEth(uint256 tokenID_) public returns (uint256 payout) {
         return stakeNFT.collectEth(tokenID_);
+    }
+
+    function approvePosition(address to, uint256 tokenID) public {
+        stakeNFT.approve(to, tokenID);
     }
 }
 
@@ -162,6 +167,89 @@ contract ReentrantFiniteBurnAccount is BaseMock {
 
     function setTokenID(uint256 tokenID_) public {
         tokenID = tokenID_;
+    }
+}
+
+contract ERC721ReceiverAccount is BaseMock, IERC721Receiver {
+
+    constructor() {}
+
+    // receive() external payable virtual override {
+
+    // }
+
+    function onERC721Received(
+        address operator,
+        address from,
+        uint256 tokenId,
+        bytes calldata data
+    ) external override pure returns (bytes4) {
+        return bytes4(keccak256("onERC721Received(address,address,uint256,bytes)"));
+    }
+}
+
+contract ReentrantLoopBurnERC721ReceiverAccount is BaseMock, IERC721Receiver {
+    uint256 _tokenId;
+    constructor() {}
+
+    receive() external payable virtual override {
+        stakeNFT.burn(_tokenId);
+    }
+
+    function onERC721Received(
+        address operator,
+        address from,
+        uint256 tokenId,
+        bytes calldata data
+    ) external override returns (bytes4) {
+        _tokenId = tokenId;
+        stakeNFT.burn(tokenId);
+        return bytes4(keccak256("onERC721Received(address,address,uint256,bytes)"));
+    }
+}
+
+contract ReentrantFiniteBurnERC721ReceiverAccount is BaseMock, IERC721Receiver {
+    uint256 _tokenId;
+    uint256 _count = 0;
+    constructor() {}
+
+    receive() external payable virtual override {
+        stakeNFT.burn(_tokenId);
+    }
+
+    function onERC721Received(
+        address operator,
+        address from,
+        uint256 tokenId,
+        bytes calldata data
+    ) external override returns (bytes4) {
+        if (_count < 2) {
+            _count++;
+            _tokenId = tokenId;
+            stakeNFT.burn(tokenId);
+        }
+        
+        return bytes4(keccak256("onERC721Received(address,address,uint256,bytes)"));
+    }
+}
+
+contract ReentrantLoopCollectEthERC721ReceiverAccount is BaseMock, IERC721Receiver {
+    uint256 _tokenId;
+    constructor() {}
+
+    receive() external payable virtual override {
+        stakeNFT.collectEth(_tokenId);
+    }
+
+    function onERC721Received(
+        address operator,
+        address from,
+        uint256 tokenId,
+        bytes calldata data
+    ) external override returns (bytes4) {
+        _tokenId = tokenId;
+        stakeNFT.collectEth(tokenId);
+        return bytes4(keccak256("onERC721Received(address,address,uint256,bytes)"));
     }
 }
 
@@ -1650,5 +1738,125 @@ contract StakeNFTTest is DSTest {
         //assertEq(payout, 1000 ether);
 
         //assertEq(address(user).balance, 1000 ether);
+    }
+
+    function testFail_SafeTransferPosition_WithoutApproval() public {
+        (StakeNFT stakeNFT, MadTokenMock madToken, , ) = getFixtureData();
+        UserAccount user1 = newUserAccount(madToken, stakeNFT);
+        UserAccount user2 = newUserAccount(madToken, stakeNFT);
+
+        madToken.transfer(address(user1), 100);
+        user1.approve(address(stakeNFT), 100);
+        uint256 tokenID = user1.mint(100);
+
+        stakeNFT.safeTransferFrom(address(user1), address(user2), tokenID);
+    }
+
+    function testFail_SafeTransferPosition_toNonERC721Receiver() public {
+        (StakeNFT stakeNFT, MadTokenMock madToken, , ) = getFixtureData();
+        UserAccount user1 = newUserAccount(madToken, stakeNFT);
+        UserAccount user2 = newUserAccount(madToken, stakeNFT);
+
+        madToken.transfer(address(user1), 100);
+        user1.approve(address(stakeNFT), 100);
+        uint256 tokenID = user1.mint(100);
+
+        setBlockNumber(block.number+2);
+
+        user1.approvePosition(address(this), tokenID);
+
+        stakeNFT.safeTransferFrom(address(user1), address(user2), tokenID);
+    }
+
+    function testSafeTransferPosition_toERC721Receiver() public {
+        (StakeNFT stakeNFT, MadTokenMock madToken, , ) = getFixtureData();
+        UserAccount user1 = newUserAccount(madToken, stakeNFT);
+        ERC721ReceiverAccount user2 = new ERC721ReceiverAccount();
+        user2.setTokens(madToken, stakeNFT);
+
+        madToken.transfer(address(user1), 100);
+        user1.approve(address(stakeNFT), 100);
+        uint256 tokenID = user1.mint(100);
+
+        setBlockNumber(block.number+2);
+
+        user1.approvePosition(address(this), tokenID);
+
+        stakeNFT.safeTransferFrom(address(user1), address(user2), tokenID);
+
+        assertEq(stakeNFT.ownerOf(tokenID), address(user2));
+        assertEq(stakeNFT.balanceOf(address(user1)), 0);
+        assertEq(stakeNFT.balanceOf(address(user2)), 1);
+        assertEq(stakeNFT.balanceOf(address(stakeNFT)), 0);
+    }
+
+    function testFail_SafeTransferPosition_toReentrantLoopBurnERC721Receiver() public {
+        (StakeNFT stakeNFT, MadTokenMock madToken, , ) = getFixtureData();
+        UserAccount donator = newUserAccount(madToken, stakeNFT);
+        UserAccount user1 = newUserAccount(madToken, stakeNFT);
+        ReentrantLoopBurnERC721ReceiverAccount user2 = new ReentrantLoopBurnERC721ReceiverAccount();
+        user2.setTokens(madToken, stakeNFT);
+
+        madToken.transfer(address(user1), 100);
+        user1.approve(address(stakeNFT), 100);
+        uint256 tokenID = user1.mint(100);
+
+        payable(donator).transfer(100 ether);
+        donator.depositEth(100 ether);
+
+        setBlockNumber(block.number+2);
+
+        user1.approvePosition(address(this), tokenID);
+        stakeNFT.safeTransferFrom(address(user1), address(user2), tokenID);
+    }
+
+    function testFail_SafeTransferPosition_toReentrantFiniteBurnERC721Receiver() public {
+        (StakeNFT stakeNFT, MadTokenMock madToken, , ) = getFixtureData();
+        UserAccount donator = newUserAccount(madToken, stakeNFT);
+        UserAccount user1 = newUserAccount(madToken, stakeNFT);
+        ReentrantFiniteBurnERC721ReceiverAccount user2 = new ReentrantFiniteBurnERC721ReceiverAccount();
+        user2.setTokens(madToken, stakeNFT);
+
+        madToken.transfer(address(user1), 100);
+        user1.approve(address(stakeNFT), 100);
+        uint256 tokenID = user1.mint(100);
+
+        payable(donator).transfer(100 ether);
+        donator.depositEth(100 ether);
+
+        setBlockNumber(block.number+2);
+
+        user1.approvePosition(address(this), tokenID);
+        stakeNFT.safeTransferFrom(address(user1), address(user2), tokenID);
+    }
+
+    function testSafeTransferPosition_toReentrantLoopCollectEthERC721Receiver() public {
+        (StakeNFT stakeNFT, MadTokenMock madToken, , ) = getFixtureData();
+        UserAccount donator = newUserAccount(madToken, stakeNFT);
+        UserAccount user1 = newUserAccount(madToken, stakeNFT);
+        ReentrantLoopCollectEthERC721ReceiverAccount user2 = new ReentrantLoopCollectEthERC721ReceiverAccount();
+        user2.setTokens(madToken, stakeNFT);
+
+        madToken.transfer(address(user1), 100);
+        user1.approve(address(stakeNFT), 100);
+        uint256 tokenID = user1.mint(100);
+
+        payable(donator).transfer(100 ether);
+        donator.depositEth(100 ether);
+
+        setBlockNumber(block.number+2);
+
+        user1.approvePosition(address(this), tokenID);
+        stakeNFT.safeTransferFrom(address(user1), address(user2), tokenID);
+
+        assertEq(stakeNFT.ownerOf(tokenID), address(user2));
+        assertEq(stakeNFT.balanceOf(address(user1)), 0);
+        assertEq(stakeNFT.balanceOf(address(user2)), 1);
+        assertEq(stakeNFT.balanceOf(address(stakeNFT)), 0);
+
+        assertEq(address(user2).balance, 100 ether);
+        assertEq(address(user1).balance, 0);
+        assertEq(address(donator).balance, 0);
+        assertEq(address(stakeNFT).balance, 0);
     }
 }
