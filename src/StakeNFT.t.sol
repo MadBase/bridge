@@ -72,8 +72,8 @@ abstract contract BaseMock {
         return stakeNFT.approve(to, tokenID_);
     }
 
-    function setApprovalForAll(address to, uint256 tokenID_) public{
-        return stakeNFT.setApprovalForAll(to, true);
+    function setApprovalForAll(address to, bool approve) public{
+        return stakeNFT.setApprovalForAll(to, approve);
     }
 
     function transferFrom(address from, address to, uint256 tokenID_) public {
@@ -1770,4 +1770,130 @@ contract StakeNFTTest is DSTest {
         assertEq(stakeNFT.ownerOf(token1User1), address(user2));
         assertEq(stakeNFT.balanceOf(address(user2)), 1);
     }
+
+    function testApproveTransferPosition() public {
+        (StakeNFT stakeNFT, MadTokenMock madToken, , ) = getFixtureData();
+        UserAccount user1 = newUserAccount(madToken, stakeNFT);
+        UserAccount user2 = newUserAccount(madToken, stakeNFT);
+
+        madToken.transfer(address(user1), 100 * ONE_MADTOKEN);
+        madToken.transfer(address(user2), 100 * ONE_MADTOKEN);
+
+        user1.approve(address(stakeNFT), 100 * ONE_MADTOKEN);
+        user2.approve(address(stakeNFT), 100 * ONE_MADTOKEN);
+
+        uint256 token1User1 = user1.mint(100 * ONE_MADTOKEN);
+        assertPosition(
+            getCurrentPosition(stakeNFT, token1User1),
+            StakeNFT.Position(uint224(100 * ONE_MADTOKEN), 1, 0, 0)
+        );
+        assertEq(stakeNFT.balanceOf(address(user1)), 1);
+        assertEq(stakeNFT.ownerOf(token1User1), address(user1));
+        assertEq(stakeNFT.balanceOf(address(user2)), 0);
+
+        //approving user2 to transfer user1 token
+        user1.approveNFT(address(user2), token1User1);
+        user1.transferFrom(address(user1), address(user2), token1User1);
+
+        assertEq(stakeNFT.balanceOf(address(user1)), 0);
+        assertEq(stakeNFT.ownerOf(token1User1), address(user2));
+        assertEq(stakeNFT.balanceOf(address(user2)), 1);
+    }
+
+    function testApproveAllTransferPosition() public {
+        (StakeNFT stakeNFT, MadTokenMock madToken, , ) = getFixtureData();
+        UserAccount user1 = newUserAccount(madToken, stakeNFT);
+        UserAccount user2 = newUserAccount(madToken, stakeNFT);
+
+        madToken.transfer(address(user1), 100 * ONE_MADTOKEN);
+        madToken.transfer(address(user2), 100 * ONE_MADTOKEN);
+
+        user1.approve(address(stakeNFT), 100 * ONE_MADTOKEN);
+        user2.approve(address(stakeNFT), 100 * ONE_MADTOKEN);
+
+        uint256 token1User1 = user1.mint(50 * ONE_MADTOKEN);
+        assertPosition(
+            getCurrentPosition(stakeNFT, token1User1),
+            StakeNFT.Position(uint224(50 * ONE_MADTOKEN), 1, 0, 0)
+        );
+        assertEq(stakeNFT.balanceOf(address(user1)), 1);
+        assertEq(stakeNFT.ownerOf(token1User1), address(user1));
+
+        uint256 token2User1 = user1.mint(50 * ONE_MADTOKEN);
+        assertPosition(
+            getCurrentPosition(stakeNFT, token2User1),
+            StakeNFT.Position(uint224(50 * ONE_MADTOKEN), 1, 0, 0)
+        );
+        assertEq(stakeNFT.balanceOf(address(user1)), 2);
+        assertEq(stakeNFT.ownerOf(token2User1), address(user1));
+        assertEq(stakeNFT.balanceOf(address(user2)), 0);
+
+        //approving the test contract to transfer all user1 token
+        user1.setApprovalForAll(address(this), true);
+        stakeNFT.transferFrom(address(user1), address(user2), token1User1);
+        stakeNFT.transferFrom(address(user1), address(this), token2User1);
+
+        assertEq(stakeNFT.balanceOf(address(user1)), 0);
+        assertEq(stakeNFT.ownerOf(token1User1), address(user2));
+        assertEq(stakeNFT.balanceOf(address(user2)), 1);
+        assertEq(stakeNFT.ownerOf(token2User1), address(this));
+        assertEq(stakeNFT.balanceOf(address(this)), 1);
+    }
+
+    function testFail_TransferNotOwnedPositionWithoutApproval() public {
+        (StakeNFT stakeNFT, MadTokenMock madToken, , ) = getFixtureData();
+        UserAccount user1 = newUserAccount(madToken, stakeNFT);
+        UserAccount user2 = newUserAccount(madToken, stakeNFT);
+
+        madToken.transfer(address(user1), 100 * ONE_MADTOKEN);
+        madToken.transfer(address(user2), 100 * ONE_MADTOKEN);
+
+        user1.approve(address(stakeNFT), 100 * ONE_MADTOKEN);
+        user2.approve(address(stakeNFT), 100 * ONE_MADTOKEN);
+
+        uint256 token1User1 = user1.mint(50 * ONE_MADTOKEN);
+        assertPosition(
+            getCurrentPosition(stakeNFT, token1User1),
+            StakeNFT.Position(uint224(50 * ONE_MADTOKEN), 1, 0, 0)
+        );
+        assertEq(stakeNFT.balanceOf(address(user1)), 1);
+        assertEq(stakeNFT.ownerOf(token1User1), address(user1));
+
+        // test contract was not approved to run the transfer method
+        stakeNFT.transferFrom(address(user1), address(user2), token1User1);
+    }
+
+    function testFail_TransferNotOwnedPositionWithoutApproval2() public {
+        (StakeNFT stakeNFT, MadTokenMock madToken, , ) = getFixtureData();
+        UserAccount user1 = newUserAccount(madToken, stakeNFT);
+        UserAccount user2 = newUserAccount(madToken, stakeNFT);
+
+        madToken.transfer(address(user1), 100 * ONE_MADTOKEN);
+        madToken.transfer(address(user2), 100 * ONE_MADTOKEN);
+
+        user1.approve(address(stakeNFT), 100 * ONE_MADTOKEN);
+        user2.approve(address(stakeNFT), 100 * ONE_MADTOKEN);
+
+        uint256 token1User1 = user1.mint(50 * ONE_MADTOKEN);
+        assertPosition(
+            getCurrentPosition(stakeNFT, token1User1),
+            StakeNFT.Position(uint224(50 * ONE_MADTOKEN), 1, 0, 0)
+        );
+        assertEq(stakeNFT.balanceOf(address(user1)), 1);
+        assertEq(stakeNFT.ownerOf(token1User1), address(user1));
+
+        uint256 token2User1 = user1.mint(50 * ONE_MADTOKEN);
+        assertPosition(
+            getCurrentPosition(stakeNFT, token2User1),
+            StakeNFT.Position(uint224(50 * ONE_MADTOKEN), 1, 0, 0)
+        );
+        assertEq(stakeNFT.balanceOf(address(user1)), 2);
+        assertEq(stakeNFT.ownerOf(token2User1), address(user1));
+        assertEq(stakeNFT.balanceOf(address(user2)), 0);
+
+        user1.approveNFT(address(this), token1User1);
+        // test contract was not approved to transfer token 2 only token1
+        stakeNFT.transferFrom(address(user1), address(user2), token2User1);
+    }
+
 }
