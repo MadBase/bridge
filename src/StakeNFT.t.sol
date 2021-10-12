@@ -131,6 +131,40 @@ contract ReentrantFiniteEthCollectorAccount is BaseMock {
     }
 }
 
+contract ReentrantLoopBurnAccount is BaseMock {
+    uint256 tokenID;
+
+    constructor() {}
+
+    receive() external payable virtual override {
+        burn(tokenID);
+    }
+
+    function setTokenID(uint256 tokenID_) public {
+        tokenID = tokenID_;
+    }
+}
+
+contract ReentrantFiniteBurnAccount is BaseMock {
+    uint256 tokenID;
+    uint256 public _count = 0;
+
+    constructor() {}
+
+    receive() external payable virtual override {
+        if (_count < 2) {
+            _count++;
+            burn(tokenID);
+        } else {
+            return;
+        }
+    }
+
+    function setTokenID(uint256 tokenID_) public {
+        tokenID = tokenID_;
+    }
+}
+
 contract StakeNFTHugeAccumulator is StakeNFT {
     uint256 public constant offsetToOverflow = 1_000000000000000000;
 
@@ -1633,6 +1667,58 @@ contract StakeNFTTest is DSTest {
         donator.depositEth(1000 ether);
 
         user.collectEth(tokenID);
+
+        // it should not get here
+
+        //assertEq(payout, 1000 ether);
+
+        //assertEq(address(user).balance, 1000 ether);
+    }
+
+    function testFail_ReentrantLoopBurn() public {
+        (StakeNFT stakeNFT, MadTokenMock madToken, , ) = getFixtureData();
+        UserAccount donator = newUserAccount(madToken, stakeNFT);
+        ReentrantLoopBurnAccount user = new ReentrantLoopBurnAccount();
+        user.setTokens(madToken, stakeNFT);
+
+        madToken.transfer(address(user), 100);
+        //madToken.transfer(address(donator), 210_000_000 * ONE_MADTOKEN );
+
+        user.approve(address(stakeNFT), 100);
+        //donator.approve(address(stakeNFT), 210_000_000 * ONE_MADTOKEN);
+
+        //payable(address(user)).transfer(2000 ether);
+        payable(address(donator)).transfer(2000 ether);
+
+        uint256 tokenID = user.mint(100);
+
+        donator.depositEth(1000 ether);
+
+        user.burn(tokenID);
+
+        // it should not get here
+    }
+
+    function testFail_ReentrantFiniteBurn() public {
+        (StakeNFT stakeNFT, MadTokenMock madToken, , ) = getFixtureData();
+        UserAccount donator = newUserAccount(madToken, stakeNFT);
+        ReentrantFiniteBurnAccount user = new ReentrantFiniteBurnAccount();
+        user.setTokens(madToken, stakeNFT);
+
+        madToken.transfer(address(user), 100);
+        //madToken.transfer(address(donator), 210_000_000 * ONE_MADTOKEN );
+
+        user.approve(address(stakeNFT), 100);
+        //donator.approve(address(stakeNFT), 210_000_000 * ONE_MADTOKEN);
+
+        //payable(address(user)).transfer(2000 ether);
+        payable(address(donator)).transfer(2000 ether);
+
+        uint256 tokenID = user.mint(100);
+
+        donator.depositEth(1000 ether);
+
+        user.burn(tokenID);
 
         // it should not get here
 
