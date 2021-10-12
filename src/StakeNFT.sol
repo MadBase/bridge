@@ -89,7 +89,7 @@ contract StakeNFT is ERC721, MagicValue, Admin, Governance, CircuitBreaker, Atom
     }
 
     /// estimateEthCollection returns the amount of eth a tokenID may withdraw
-    function estimateEthCollection(uint256 tokenID_) public view returns(uint256 payout) {
+    function estimateEthCollection(uint256 tokenID_) public returns(uint256 payout) {
         require(_exists(tokenID_), "StakeNFT: Error, NFT token doesn't exist!");
         Position memory p = _positions[tokenID_];
         (, , , payout) = _collect(_shares, _ethState, p, p.accumulatorEth);
@@ -97,7 +97,7 @@ contract StakeNFT is ERC721, MagicValue, Admin, Governance, CircuitBreaker, Atom
     }
 
     /// estimateTokenCollection returns the amount of MadToken a tokenID may withdraw
-    function estimateTokenCollection(uint256 tokenID_) public view returns(uint256 payout) {
+    function estimateTokenCollection(uint256 tokenID_) public returns(uint256 payout) {
         require(_exists(tokenID_), "StakeNFT: Error, NFT token doesn't exist!");
         Position memory p = _positions[tokenID_];
         (, , , payout) = _collect(_shares, _tokenState, p, p.accumulatorToken);
@@ -338,25 +338,29 @@ contract StakeNFT is ERC721, MagicValue, Admin, Governance, CircuitBreaker, Atom
     // _collectToken performs call to _collect and updates state during a
     // request for a token distribution
     function _collectToken(uint256 shares_, Position memory p_) internal returns(Position memory p, uint256 payout) {
+        log("*******Collect Token Begins*********", 0);
         uint256 acc;
         (_tokenState, p, acc, payout) = _collect(shares_, _tokenState, p_, p_.accumulatorToken);
         p.accumulatorToken = acc;
+        log("*******Collect Token Finishes*********", 0);
         return (p, payout);
     }
 
     // _collectEth performs call to _collect and updates state during a request
     // for an eth distribution
     function _collectEth(uint256 shares_, Position memory p_) internal returns(Position memory p, uint256 payout) {
+        log("*******Collect Ethereum Begins*********", 0);
         uint256 acc;
         (_ethState, p, acc, payout) = _collect(shares_, _ethState, p_, p_.accumulatorEth);
         p.accumulatorEth = acc;
+        log("*******Collect Ethereum Finishes*********", 0);
         return (p, payout);
     }
 
     // _collect performs calculations necessary to determine any distributions
     // due to an account such that it may be used for both token and eth
     // distributions this prevents the need to keep redundant logic
-    function _collect(uint256 shares_, Accumulator memory state_, Position memory p_, uint256 positionAccumulatorValue_) internal pure returns(Accumulator memory, Position memory, uint256, uint256) {
+    function _collect(uint256 shares_, Accumulator memory state_, Position memory p_, uint256 positionAccumulatorValue_) internal returns(Accumulator memory, Position memory, uint256, uint256) {
 
         // skim slush into accumulator
         (state_.accumulator, state_.slush) = _slushSkim(shares_, state_.accumulator, state_.slush);
@@ -372,27 +376,37 @@ contract StakeNFT is ERC721, MagicValue, Admin, Governance, CircuitBreaker, Atom
             // update accumulator value for calling method
             positionAccumulatorValue_ += accumulatorDelta;
         }
-
+        log("++++++++_Collect Begins++++++++", 0);
+        log("accumulatorDelta:", accumulatorDelta);
+        log("state_.slush:", state_.slush);
         // calculate payout based on shares held in position
         uint256 payout = accumulatorDelta * p_.shares;
-
+        log("payout with scale:", payout);
+        log("shares_:", shares_);
+        log("p_.shares:", p_.shares);
         // if there are no shares other than this position, flush the slush fund
         // into the payout and update the in memory state object
         if (shares_ == p_.shares) {
-            payout += state_.slush;
+            log("Adding only owner adding slush:", state_.slush);
+            // payout += state_.slush * _accumulatorScaleFactor;
+            payout += state_.slush; //333_000000000000000001
+            log("payout with slush:", payout);
             state_.slush = 0;
         }
 
         // reduce payout by scale factor
-        payout /= _accumulatorScaleFactor;
+        payout /= _accumulatorScaleFactor; //333
+        log("payout without scale:", payout);
+        log("++++++++_Collect Finishes++++++++", 0);
 
         return (state_, p_, positionAccumulatorValue_, payout);
     }
 
     // _deposit allows an Accumulator to be updated with new value if there are
     // no currently staked positions, all value is stored in the slush
-    function _deposit(uint256 shares_, uint256 delta_, Accumulator memory state_) internal pure returns(Accumulator memory){
+    function _deposit(uint256 shares_, uint256 delta_, Accumulator memory state_) internal returns(Accumulator memory){
         state_.slush += (delta_ * _accumulatorScaleFactor);
+        //state_.slush = (state_.slush + delta_) * _accumulatorScaleFactor;
         if (shares_ > 0) {
             (state_.accumulator, state_.slush) = _slushSkim(shares_, state_.accumulator, state_.slush);
         }
@@ -404,10 +418,16 @@ contract StakeNFT is ERC721, MagicValue, Admin, Governance, CircuitBreaker, Atom
 
     // _slushSkim flushes value from the slush into the accumulator if there are
     // no currently staked positions, all value is stored in the slush
-    function _slushSkim(uint256 shares_, uint256 accumulator_, uint256 slush_) internal pure returns(uint256, uint256) {
+    function _slushSkim(uint256 shares_, uint256 accumulator_, uint256 slush_) internal returns(uint256, uint256) {
         if (shares_ > 0) {
-            uint256 deltaAccumulator = slush_ / shares_;
-            slush_ -= deltaAccumulator * shares_;
+            log("====SlushSkim Begins====", 0);
+            log("accumulator_ before:", accumulator_);
+            log("slush_ before:", slush_);
+            uint256 deltaAccumulator = slush_ / shares_; // 1 * 10 **18 // 300
+            log("deltaAccumulator:", deltaAccumulator);
+            slush_ -= deltaAccumulator * shares_; // 1000 000 000 000 000 000 000/300 = 333_333333333333333333 * 300 = 1000 0000000 0000 000 - 999_999999999999999 = 00000000001
+            log("slush_ after:", slush_);
+            //slush_ = (slush_ / _accumulatorScaleFactor) - ((deltaAccumulator * shares_) /_accumulatorScaleFactor);
             accumulator_ += deltaAccumulator;
             // avoiding accumulator_ overflow.
             if (accumulator_ > type(uint168).max) {
@@ -416,8 +436,16 @@ contract StakeNFT is ERC721, MagicValue, Admin, Governance, CircuitBreaker, Atom
                 // `accumulator * shares` that happens later in the code.
                 accumulator_ = accumulator_ % type(uint168).max;
             }
+            log("accumulator_ after:", accumulator_);
+            log("====SlushSkim Finishes====", 0);
         }
         return (accumulator_, slush_);
+    }
+
+    event log_named_uint256(string my_str, uint256 value);
+
+    function log(string memory my_str, uint256 value) internal {
+        emit log_named_uint256(my_str, value);
     }
 
 }
