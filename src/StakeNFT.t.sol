@@ -802,7 +802,7 @@ contract StakeNFTTest is DSTest {
 
         uint256 credits = 0;
         uint256 debits = 0;
-        for (uint256 i =0; i < 29; i++){
+        for (uint256 i =0; i < 2; i++){
             donator.depositEth(1000);
             credits += 1000;
             uint256 payout = user1.collectEth(tokenID1);
@@ -815,28 +815,121 @@ contract StakeNFTTest is DSTest {
             assertEq(payout3, 333);
             debits += payout3;
         }
-        uint256 balanceContract = address(stakeNFT).balance;
-        emit log_named_uint("Balance ETH: ", balanceContract);
-        (uint256 acc, uint256 slush) = stakeNFT.getEthAccumulator();
-        assertEq(slush, credits - debits);
+        {
+            emit log_named_uint("Balance ETH: ", address(stakeNFT).balance);
+            (, uint256 slush) = stakeNFT.getEthAccumulator();
+            assertEq(slush, (credits - debits) * 10**18);
+        }
         {
             donator.depositEth(2000);
             credits += 2000;
             uint256 payout = user1.collectEth(tokenID1);
-            assertEq(payout, 676); //666 from integer division + 10 from the slush flush
+            assertEq(payout, 667);
             debits += payout;
             uint256 payout2 = user2.collectEth(tokenID2);
-            assertEq(payout2, 676);
+            assertEq(payout2, 667);
             debits += payout2;
             uint256 payout3 = user3.collectEth(tokenID3);
-            assertEq(payout3, 676);
+            assertEq(payout3, 667);
+            debits += payout3;
+            emit log_named_uint("Balance ETH After: ", address(stakeNFT).balance);
+            (, uint256 slush) = stakeNFT.getEthAccumulator();
+            assertEq(slush, (credits - debits) * 10**18);
+            assertEq(slush, 1 ether);
+        }
+    }
+
+    function test_SlushInvariance() public {
+        (StakeNFT stakeNFT, MadTokenMock madToken,,) = getFixtureData();
+        UserAccount user1 = newUserAccount(madToken, stakeNFT);
+        UserAccount user2 = newUserAccount(madToken, stakeNFT);
+        UserAccount user3 = newUserAccount(madToken, stakeNFT);
+        UserAccount donator = newUserAccount(madToken, stakeNFT);
+
+        madToken.transfer(address(user1), 3333);
+        madToken.transfer(address(user2), 111);
+        madToken.transfer(address(user3), 7);
+        madToken.transfer(address(donator), 100000 * ONE_MADTOKEN);
+
+        user1.approve(address(stakeNFT), 3333);
+        user2.approve(address(stakeNFT), 111);
+        user3.approve(address(stakeNFT), 7);
+        donator.approve(address(stakeNFT), 100000 * ONE_MADTOKEN);
+        payable(address(donator)).transfer(10000000000 ether);
+
+        uint256 tokenID1 = user1.mint(3333);
+        uint256 tokenID2 = user2.mint(111);
+        uint256 tokenID3 = user3.mint(7);
+
+        uint256 credits = 0;
+        uint256 debits = 0;
+        for (uint256 i =0; i < 37; i++){
+            donator.depositEth(777);
+            credits += 777;
+            uint256 payout = user1.collectEth(tokenID1);
+            debits += payout;
+            uint256 payout2 = user2.collectEth(tokenID2);
+            debits += payout2;
+            uint256 payout3 = user3.collectEth(tokenID3);
             debits += payout3;
         }
-        balanceContract = address(stakeNFT).balance;
-        emit log_named_uint("Balance ETH: ", balanceContract);
-        (acc, slush) = stakeNFT.getEthAccumulator();
-        assertEq(slush, credits - debits);
-        assertEq(slush, 1);
+        {
+            emit log_named_uint("Balance ETH: ", address(stakeNFT).balance);
+            (, uint256 slush) = stakeNFT.getEthAccumulator();
+            // As long as all the users have withdrawal their dividends this should hold true
+            assertEq(slush, (credits - debits) * 10**18);
+        }
+        {
+            donator.depositEth(13457811);
+            credits += 13457811;
+            uint256 payout = user1.collectEth(tokenID1);
+            debits += payout;
+            uint256 payout2 = user2.collectEth(tokenID2);
+            debits += payout2;
+            uint256 payout3 = user3.collectEth(tokenID3);
+            debits += payout3;
+            emit log_named_uint("Balance ETH After: ", address(stakeNFT).balance);
+            (, uint256 slush) = stakeNFT.getEthAccumulator();
+            assertEq(slush, (credits - debits) * 10**18);
+        }
+        {
+            donator.depositEth(1381_209873167895423687);
+            credits += 1381_209873167895423687;
+            uint256 payout = user1.collectEth(tokenID1);
+            debits += payout;
+            uint256 payout2 = user2.collectEth(tokenID2);
+            debits += payout2;
+            uint256 payout3 = user3.collectEth(tokenID3);
+            debits += payout3;
+            emit log_named_uint("Balance ETH After: ", address(stakeNFT).balance);
+            (, uint256 slush) = stakeNFT.getEthAccumulator();
+            // As long as all the users have withdrawal their dividends this should hold true
+            assertEq(slush, (credits - debits) * 10**18);
+        }
+        {
+            donator.depositEth(1111_209873167895423687);
+            credits += 1111_209873167895423687;
+            uint256 payout = user1.collectEth(tokenID1);
+            debits += payout;
+            uint256 payout2 = user2.collectEth(tokenID2);
+            debits += payout2;
+            donator.depositEth(11_209873167895423687);
+            credits += 11_209873167895423687;
+            payout = user1.collectEth(tokenID1);
+            debits += payout;
+            donator.depositEth(156_209873167895423687);
+            credits += 156_209873167895423687;
+            payout = user1.collectEth(tokenID1);
+            debits += payout;
+            payout2 = user2.collectEth(tokenID2);
+            debits += payout2;
+            uint256 payout3 = user3.collectEth(tokenID3);
+            debits += payout3;
+            emit log_named_uint("Balance ETH After: ", address(stakeNFT).balance);
+            (, uint256 slush) = stakeNFT.getEthAccumulator();
+            // As long as all the users have withdrawal their dividends this should hold true
+            assertEq(slush, (credits - debits) * 10**18);
+        }
     }
 
 
