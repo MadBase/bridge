@@ -250,10 +250,10 @@ contract StakeNFT is ERC721, MagicValue, Admin, Governance, CircuitBreaker, Atom
         slush = _tokenState.slush;
     }
 
-    // _lockPosition prevents a position from being burned for duration_ number of blocks
-    // by setting the freeAfter field on the Position struct
-    // returns the number of shares in the locked Position so that governance vote counting
-    // may be performed when setting a lock
+    // _lockPosition prevents a position from being burned for duration_ number
+    // of blocks by setting the freeAfter field on the Position struct returns
+    // the number of shares in the locked Position so that governance vote
+    // counting may be performed when setting a lock
     function _lockPosition(uint256 tokenID_, uint256 duration_) internal returns(uint256 shares) {
         require(_exists(tokenID_), "StakeNFT: Token ID doesn't exist!");
         Position memory p = _positions[tokenID_];
