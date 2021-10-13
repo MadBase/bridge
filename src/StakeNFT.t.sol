@@ -978,7 +978,7 @@ contract StakeNFTTest is DSTest {
         uint256 tokenID1 = user1.mint(sharesPerUser);
         assertPosition(
             getCurrentPosition(stakeNFT, tokenID1),
-            StakeNFT.Position(100, 1, 0, 0)
+            StakeNFT.Position(100, 1, 1, 0, 0)
         );
 
         {
@@ -1033,14 +1033,14 @@ contract StakeNFTTest is DSTest {
 
             assertPosition(
                 getCurrentPosition(stakeNFT, tokenID1),
-                StakeNFT.Position(100, 1, 0, 500000000000000000)
+                StakeNFT.Position(100, 1, 1, 0, 500000000000000000)
             );
         }
 
         uint256 tokenID2 = user2.mint(sharesPerUser);
         assertPosition(
             getCurrentPosition(stakeNFT, tokenID2),
-            StakeNFT.Position(100, 1, 0, 500000000000000000)
+            StakeNFT.Position(100, 1, 1, 0, 500000000000000000)
         );
 
         {
@@ -1087,7 +1087,7 @@ contract StakeNFTTest is DSTest {
 
             assertPosition(
                 getCurrentPosition(stakeNFT, tokenID1),
-                StakeNFT.Position(100, 1, 0, 3_000000000000000000)
+                StakeNFT.Position(100, 1, 1, 0, 3_000000000000000000)
             );
         }
 
@@ -1116,14 +1116,14 @@ contract StakeNFTTest is DSTest {
 
             assertPosition(
                 getCurrentPosition(stakeNFT, tokenID2),
-                StakeNFT.Position(100, 1, 0, 3_000000000000000000)
+                StakeNFT.Position(100, 1, 1, 0, 3_000000000000000000)
             );
         }
 
         uint256 tokenID3 = user3.mint(sharesPerUser);
         assertPosition(
             getCurrentPosition(stakeNFT, tokenID3),
-            StakeNFT.Position(100, 1, 0, 3_000000000000000000)
+            StakeNFT.Position(100, 1, 1, 0, 3_000000000000000000)
         );
 
         donator.depositToken(1000);
