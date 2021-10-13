@@ -27,8 +27,8 @@ contract StakeNFT is ERC721, MagicValue, Admin, Governance, CircuitBreaker, Atom
         // number of madToken
         uint224 shares;
 
-        // block number after which the position may be burned prevents double
-        // spend of voting weight
+        // block number after which the position may be burned.
+        // prevents double spend of voting weight
         uint32 freeAfter;
 
         // the last value of the ethState accumulator this account performed a
@@ -89,7 +89,7 @@ contract StakeNFT is ERC721, MagicValue, Admin, Governance, CircuitBreaker, Atom
     }
 
     /// estimateEthCollection returns the amount of eth a tokenID may withdraw
-    function estimateEthCollection(uint256 tokenID_) public returns(uint256 payout) {
+    function estimateEthCollection(uint256 tokenID_) public view returns(uint256 payout) {
         require(_exists(tokenID_), "StakeNFT: Error, NFT token doesn't exist!");
         Position memory p = _positions[tokenID_];
         (, , , payout) = _collect(_shares, _ethState, p, p.accumulatorEth);
@@ -97,7 +97,7 @@ contract StakeNFT is ERC721, MagicValue, Admin, Governance, CircuitBreaker, Atom
     }
 
     /// estimateTokenCollection returns the amount of MadToken a tokenID may withdraw
-    function estimateTokenCollection(uint256 tokenID_) public returns(uint256 payout) {
+    function estimateTokenCollection(uint256 tokenID_) public view returns(uint256 payout) {
         require(_exists(tokenID_), "StakeNFT: Error, NFT token doesn't exist!");
         Position memory p = _positions[tokenID_];
         (, , , payout) = _collect(_shares, _tokenState, p, p.accumulatorToken);
@@ -114,9 +114,9 @@ contract StakeNFT is ERC721, MagicValue, Admin, Governance, CircuitBreaker, Atom
         return _lockPosition(tokenID_, lockDuration_);
     }
 
-    /// This function will lock the specified Position for up to
+    /// This function will lock withdraws on the specified Position for up to
     /// _maxGovernanceLock. This function will fail if the circuit breaker is tripped
-    function lockOwnPosition(uint256 tokenID_, uint256 lockDuration_) public withCB returns(uint256 numberShares) {
+    function lockWithdraw(uint256 tokenID_, uint256 lockDuration_) public withCB returns(uint256 numberShares) {
         require(msg.sender == ownerOf(tokenID_), "StakeNFT: Error, token doesn't exist or doesn't belong to the caller!");
         require(lockDuration_ <= _maxGovernanceLock, "StakeNFT: Lock Duration is greater thant the amount allowed!");
         return _lockPosition(tokenID_, lockDuration_);
@@ -270,7 +270,8 @@ contract StakeNFT is ERC721, MagicValue, Admin, Governance, CircuitBreaker, Atom
         tokenID = _increment();
 
         // update storage
-        _shares += amount_;
+        shares += amount_;
+        _shares = shares;
         _ethState = ethState;
         _tokenState = tokenState;
         _positions[tokenID] = Position(uint224(amount_), 1, ethState.accumulator, tokenState.accumulator);
@@ -362,7 +363,9 @@ contract StakeNFT is ERC721, MagicValue, Admin, Governance, CircuitBreaker, Atom
     // _collect performs calculations necessary to determine any distributions
     // due to an account such that it may be used for both token and eth
     // distributions this prevents the need to keep redundant logic
-    function _collect(uint256 shares_, Accumulator memory state_, Position memory p_, uint256 positionAccumulatorValue_) internal returns(Accumulator memory, Position memory, uint256, uint256) {
+    function _collect(uint256 shares_, Accumulator memory state_, Position memory p_, uint256 positionAccumulatorValue_) internal view returns(Accumulator memory, Position memory, uint256, uint256) {
+        // enforce freeAfter to prevent collect during lock
+        require(p_.freeAfter < block.number, "StakeNFT: The position is not ready to be collected!");
 
         // determine number of accumulator steps this Position needs distributions from
         uint256 accumulatorDelta = 0;
@@ -395,7 +398,7 @@ contract StakeNFT is ERC721, MagicValue, Admin, Governance, CircuitBreaker, Atom
 
     // _deposit allows an Accumulator to be updated with new value if there are
     // no currently staked positions, all value is stored in the slush
-    function _deposit(uint256 shares_, uint256 delta_, Accumulator memory state_) internal returns(Accumulator memory){
+    function _deposit(uint256 shares_, uint256 delta_, Accumulator memory state_) internal pure returns(Accumulator memory){
         state_.slush += (delta_ * _accumulatorScaleFactor);
         //state_.slush = (state_.slush + delta_) * _accumulatorScaleFactor;
         if (shares_ > 0) {
@@ -409,7 +412,7 @@ contract StakeNFT is ERC721, MagicValue, Admin, Governance, CircuitBreaker, Atom
 
     // _slushSkim flushes value from the slush into the accumulator if there are
     // no currently staked positions, all value is stored in the slush
-    function _slushSkim(uint256 shares_, uint256 accumulator_, uint256 slush_) internal returns(uint256, uint256) {
+    function _slushSkim(uint256 shares_, uint256 accumulator_, uint256 slush_) internal pure returns(uint256, uint256) {
         if (shares_ > 0) {
             uint256 deltaAccumulator = slush_ / shares_;
             slush_ -= deltaAccumulator * shares_;

@@ -84,6 +84,10 @@ abstract contract BaseMock {
     function safeTransferFrom(address from, address to, uint256 tokenID_, bytes calldata data) public {
         return stakeNFT.safeTransferFrom(from, to, tokenID_, data);
     }
+
+    function lockWithdraw(uint256 tokenID, uint256 lockDuration) public returns(uint256) {
+        return stakeNFT.lockWithdraw(tokenID, lockDuration);
+    }
 }
 
 contract AdminAccount is BaseMock {
@@ -800,6 +804,8 @@ contract StakeNFTTest is DSTest {
         uint256 tokenID2 = user2.mint(sharesPerUser);
         uint256 tokenID3 = user3.mint(sharesPerUser);
 
+        setBlockNumber(block.number+2);
+
         uint256 credits = 0;
         uint256 debits = 0;
         for (uint256 i =0; i < 2; i++){
@@ -860,6 +866,8 @@ contract StakeNFTTest is DSTest {
         uint256 tokenID1 = user1.mint(3333);
         uint256 tokenID2 = user2.mint(111);
         uint256 tokenID3 = user3.mint(7);
+
+        setBlockNumber(block.number+2);
 
         uint256 credits = 0;
         uint256 debits = 0;
@@ -1405,6 +1413,8 @@ contract StakeNFTTest is DSTest {
         assertEq(acc, 1000000000000000000);
         assertEq(slush, 0);
 
+        setBlockNumber(block.number+2);
+
         // Testing collecting the dividends after the accumulator overflow Each
         // user has to call collect twice to get the right amount of funds
         // (before and after the overflow)
@@ -1488,6 +1498,8 @@ contract StakeNFTTest is DSTest {
         assertEq(acc, expectedAccumulatorToken);
         assertEq(acc, 1000000000000000000);
         assertEq(slush, 0);
+
+        setBlockNumber(block.number+2);
 
         // Testing collecting the dividends after the accumulator overflow
         assertEq(stakeNFTHugeAcc.estimateTokenCollection(tokenID1), 100);
@@ -1573,6 +1585,8 @@ contract StakeNFTTest is DSTest {
         assertEq(acc, 1000000000000000000);
         assertEq(slush, 0);
 
+        setBlockNumber(block.number+2);
+
         // Testing collecting the dividends after the accumulator overflow
         assertEq(stakeNFTHugeAcc.estimateEthCollection(tokenID1), 100);
         assertEq(user1.collectEth(tokenID1), 100);
@@ -1653,6 +1667,8 @@ contract StakeNFTTest is DSTest {
         assertEq(acc, expectedAccumulatorETH);
         assertEq(acc, 1000000000000000000);
         assertEq(slush, 0);
+
+        setBlockNumber(block.number+2);
 
         // Testing collecting the dividends after the accumulator overflow Each
         // user has to call collect twice to get the right amount of funds
@@ -2257,5 +2273,95 @@ contract StakeNFTTest is DSTest {
         user1.approveNFT(address(this), token1User1);
         // test contract was not approved to transfer token 2 only token1
         stakeNFT.transferFrom(address(user1), address(user2), token2User1);
+    }
+
+    function testFail_BurnLockedWithdraw() public {
+        (StakeNFT stakeNFT, MadTokenMock madToken, , ) = getFixtureData();
+        UserAccount user = newUserAccount(madToken, stakeNFT);
+
+        madToken.transfer(address(user), 100 * ONE_MADTOKEN);
+
+        user.approve(address(stakeNFT), 100 * ONE_MADTOKEN);
+
+        uint256 tokenID = user.mint(100 * ONE_MADTOKEN);
+
+        assertPosition(
+            getCurrentPosition(stakeNFT, tokenID),
+            StakeNFT.Position(uint224(100 * ONE_MADTOKEN), 1, 0, 0)
+        );
+
+        user.lockWithdraw(tokenID, 10);
+
+        user.burn(tokenID);
+    }
+
+    function testBurnLockedWithdraw() public {
+        (StakeNFT stakeNFT, MadTokenMock madToken, , ) = getFixtureData();
+        UserAccount user = newUserAccount(madToken, stakeNFT);
+
+        madToken.transfer(address(user), 100 * ONE_MADTOKEN);
+
+        user.approve(address(stakeNFT), 100 * ONE_MADTOKEN);
+
+        uint256 tokenID = user.mint(100 * ONE_MADTOKEN);
+
+        assertPosition(
+            getCurrentPosition(stakeNFT, tokenID),
+            StakeNFT.Position(uint224(100 * ONE_MADTOKEN), 1, 0, 0)
+        );
+
+        user.lockWithdraw(tokenID, 10);
+
+        setBlockNumber(block.number+11);
+
+        user.burn(tokenID);
+
+        assertEq(madToken.balanceOf(address(user)), 100 * ONE_MADTOKEN);
+        assertEq(madToken.balanceOf(address(stakeNFT)), 0);
+    }
+
+    function testFail_CollectLockedWithdraw() public {
+        (StakeNFT stakeNFT, MadTokenMock madToken, , ) = getFixtureData();
+        UserAccount user = newUserAccount(madToken, stakeNFT);
+
+        madToken.transfer(address(user), 100 * ONE_MADTOKEN);
+
+        user.approve(address(stakeNFT), 100 * ONE_MADTOKEN);
+
+        uint256 tokenID = user.mint(100 * ONE_MADTOKEN);
+
+        assertPosition(
+            getCurrentPosition(stakeNFT, tokenID),
+            StakeNFT.Position(uint224(100 * ONE_MADTOKEN), 1, 0, 0)
+        );
+
+        user.lockWithdraw(tokenID, 10);
+
+        user.collectEth(tokenID);
+    }
+
+    function testCollectLockedWithdraw() public {
+        (StakeNFT stakeNFT, MadTokenMock madToken, , ) = getFixtureData();
+        UserAccount user = newUserAccount(madToken, stakeNFT);
+
+        madToken.transfer(address(user), 100 * ONE_MADTOKEN);
+
+        user.approve(address(stakeNFT), 100 * ONE_MADTOKEN);
+
+        uint256 tokenID = user.mint(100 * ONE_MADTOKEN);
+
+        assertPosition(
+            getCurrentPosition(stakeNFT, tokenID),
+            StakeNFT.Position(uint224(100 * ONE_MADTOKEN), 1, 0, 0)
+        );
+
+        user.lockWithdraw(tokenID, 10);
+
+        setBlockNumber(block.number+11);
+
+        user.collectEth(tokenID);
+
+        assertEq(madToken.balanceOf(address(user)), 0);
+        assertEq(madToken.balanceOf(address(stakeNFT)), 100 * ONE_MADTOKEN);
     }
 }
