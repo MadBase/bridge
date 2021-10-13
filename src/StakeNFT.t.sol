@@ -871,21 +871,35 @@ contract StakeNFTTest is DSTest {
 
         uint256 credits = 0;
         uint256 debits = 0;
-        for (uint256 i =0; i < 37; i++){
-            donator.depositEth(777);
-            credits += 777;
-            uint256 payout = user1.collectEth(tokenID1);
-            debits += payout;
-            uint256 payout2 = user2.collectEth(tokenID2);
-            debits += payout2;
-            uint256 payout3 = user3.collectEth(tokenID3);
-            debits += payout3;
-        }
         {
-            emit log_named_uint("Balance ETH: ", address(stakeNFT).balance);
-            (, uint256 slush) = stakeNFT.getEthAccumulator();
-            // As long as all the users have withdrawal their dividends this should hold true
-            assertEq(slush, (credits - debits) * 10**18);
+            for (uint256 i =0; i < 37; i++){
+                donator.depositEth(7 ether);
+                credits += 7 ether;
+                uint256 payout = user1.collectEth(tokenID1);
+                debits += payout;
+                uint256 payout2 = user2.collectEth(tokenID2);
+                debits += payout2;
+                uint256 payout3 = user3.collectEth(tokenID3);
+                debits += payout3;
+            }
+            {
+                emit log_named_uint("Balance ETH: ", address(stakeNFT).balance);
+                (, uint256 slush) = stakeNFT.getEthAccumulator();
+                // As long as all the users have withdrawal their dividends this should hold true
+                assertEq(slush, (credits - debits) * 10**18);
+            }
+            {
+                donator.depositEth(credits);
+                credits += credits;
+                uint256 payout = user1.collectEth(tokenID1);
+                debits += payout;
+                uint256 payout2 = user2.collectEth(tokenID2);
+                debits += payout2;
+                uint256 payout3 = user3.collectEth(tokenID3);
+                debits += payout3;
+                (, uint256 slush) = stakeNFT.getEthAccumulator();
+                assertEq(slush, (credits - debits) * 10**18);
+            }
         }
         {
             donator.depositEth(13457811);
@@ -896,7 +910,6 @@ contract StakeNFTTest is DSTest {
             debits += payout2;
             uint256 payout3 = user3.collectEth(tokenID3);
             debits += payout3;
-            emit log_named_uint("Balance ETH After: ", address(stakeNFT).balance);
             (, uint256 slush) = stakeNFT.getEthAccumulator();
             assertEq(slush, (credits - debits) * 10**18);
         }
@@ -909,7 +922,6 @@ contract StakeNFTTest is DSTest {
             debits += payout2;
             uint256 payout3 = user3.collectEth(tokenID3);
             debits += payout3;
-            emit log_named_uint("Balance ETH After: ", address(stakeNFT).balance);
             (, uint256 slush) = stakeNFT.getEthAccumulator();
             // As long as all the users have withdrawal their dividends this should hold true
             assertEq(slush, (credits - debits) * 10**18);
@@ -933,7 +945,6 @@ contract StakeNFTTest is DSTest {
             debits += payout2;
             uint256 payout3 = user3.collectEth(tokenID3);
             debits += payout3;
-            emit log_named_uint("Balance ETH After: ", address(stakeNFT).balance);
             (, uint256 slush) = stakeNFT.getEthAccumulator();
             // As long as all the users have withdrawal their dividends this should hold true
             assertEq(slush, (credits - debits) * 10**18);
@@ -941,253 +952,253 @@ contract StakeNFTTest is DSTest {
     }
 
 
-    // function test_CollectTokensAndBurnPositionWithMultipleUsersSameProportion() public {
-    //     (StakeNFT stakeNFT, MadTokenMock madToken,,) = getFixtureData();
-    //     UserAccount user1 = newUserAccount(madToken, stakeNFT);
-    //     UserAccount user2 = newUserAccount(madToken, stakeNFT);
-    //     UserAccount user3 = newUserAccount(madToken, stakeNFT);
-    //     UserAccount donator = newUserAccount(madToken, stakeNFT);
+    function test_CollectTokensAndBurnPositionWithMultipleUsersSameProportion() public {
+        (StakeNFT stakeNFT, MadTokenMock madToken,,) = getFixtureData();
+        UserAccount user1 = newUserAccount(madToken, stakeNFT);
+        UserAccount user2 = newUserAccount(madToken, stakeNFT);
+        UserAccount user3 = newUserAccount(madToken, stakeNFT);
+        UserAccount donator = newUserAccount(madToken, stakeNFT);
 
-    //     madToken.transfer(address(user1), 100);
-    //     madToken.transfer(address(user2), 100);
-    //     madToken.transfer(address(user3), 100);
-    //     madToken.transfer(address(donator), 100000);
+        madToken.transfer(address(user1), 100);
+        madToken.transfer(address(user2), 100);
+        madToken.transfer(address(user3), 100);
+        madToken.transfer(address(donator), 100000);
 
-    //     user1.approve(address(stakeNFT), 100);
-    //     user2.approve(address(stakeNFT), 100);
-    //     user3.approve(address(stakeNFT), 100);
-    //     donator.approve(address(stakeNFT), 100000);
-    //     payable(address(donator)).transfer(1000 ether);
+        user1.approve(address(stakeNFT), 100);
+        user2.approve(address(stakeNFT), 100);
+        user3.approve(address(stakeNFT), 100);
+        donator.approve(address(stakeNFT), 100000);
+        payable(address(donator)).transfer(1000 ether);
 
-    //     uint256 sharesPerUser = 100;
-    //     uint256 tokenID1 = user1.mint(sharesPerUser);
-    //     assertPosition(
-    //         getCurrentPosition(stakeNFT, tokenID1),
-    //         StakeNFT.Position(100, 1, 0, 0)
-    //     );
+        uint256 sharesPerUser = 100;
+        uint256 tokenID1 = user1.mint(sharesPerUser);
+        assertPosition(
+            getCurrentPosition(stakeNFT, tokenID1),
+            StakeNFT.Position(100, 1, 0, 0)
+        );
 
-    //     {
-    //         (uint256 acc, uint256 slush) = stakeNFT.getEthAccumulator();
-    //         assertEq(acc, 0);
-    //         assertEq(slush, 0);
-    //         (acc, slush) = stakeNFT.getTokenAccumulator();
-    //         assertEq(acc, 0);
-    //         assertEq(slush, 0);
-    //     }
+        {
+            (uint256 acc, uint256 slush) = stakeNFT.getEthAccumulator();
+            assertEq(acc, 0);
+            assertEq(slush, 0);
+            (acc, slush) = stakeNFT.getTokenAccumulator();
+            assertEq(acc, 0);
+            assertEq(slush, 0);
+        }
 
-    //     donator.depositToken(50);
-    //     {
-    //         (uint256 acc, uint256 slush) = stakeNFT.getEthAccumulator();
-    //         assertEq(acc, 0);
-    //         assertEq(slush, 0);
-    //         (acc, slush) = stakeNFT.getTokenAccumulator();
-    //         assertEq(
-    //             acc,
-    //             (50 * stakeNFT.accumulatorScaleFactor()) / sharesPerUser
-    //         );
-    //         assertEq(acc, 500000000000000000);
-    //         assertEq(slush, 0);
-    //         assertEq(
-    //             slush + (acc * sharesPerUser),
-    //             50 * stakeNFT.accumulatorScaleFactor()
-    //         );
-    //     }
+        donator.depositToken(50);
+        {
+            (uint256 acc, uint256 slush) = stakeNFT.getEthAccumulator();
+            assertEq(acc, 0);
+            assertEq(slush, 0);
+            (acc, slush) = stakeNFT.getTokenAccumulator();
+            assertEq(
+                acc,
+                (50 * stakeNFT.accumulatorScaleFactor()) / sharesPerUser
+            );
+            assertEq(acc, 500000000000000000);
+            assertEq(slush, 0);
+            assertEq(
+                slush + (acc * sharesPerUser),
+                50 * stakeNFT.accumulatorScaleFactor()
+            );
+        }
 
-    //     {
-    //         uint256 stakeBalance = madToken.balanceOf(address(stakeNFT));
-    //         assertEq(stakeBalance, 150);
+        {
+            uint256 stakeBalance = madToken.balanceOf(address(stakeNFT));
+            assertEq(stakeBalance, 150);
 
-    //         uint256 payout = stakeNFT.estimateTokenCollection(tokenID1);
-    //         assertEq(payout, 50);
-    //         payout = user1.collectToken(tokenID1);
-    //         assertEq(payout, 50);
+            uint256 payout = stakeNFT.estimateTokenCollection(tokenID1);
+            assertEq(payout, 50);
+            payout = user1.collectToken(tokenID1);
+            assertEq(payout, 50);
 
-    //         assertEq(madToken.balanceOf(address(user1)), 50);
-    //         assertEq(madToken.balanceOf(address(stakeNFT)), 100);
-    //         assertEq(
-    //             madToken.balanceOf(address(stakeNFT)),
-    //             stakeBalance - payout
-    //         );
+            assertEq(madToken.balanceOf(address(user1)), 50);
+            assertEq(madToken.balanceOf(address(stakeNFT)), 100);
+            assertEq(
+                madToken.balanceOf(address(stakeNFT)),
+                stakeBalance - payout
+            );
 
-    //         (uint256 acc, uint256 slush) = stakeNFT.getEthAccumulator();
-    //         assertEq(acc, 0);
-    //         assertEq(slush, 0);
-    //         (acc, slush) = stakeNFT.getTokenAccumulator();
-    //         assertEq(acc, 500000000000000000);
-    //         assertEq(slush, 0);
+            (uint256 acc, uint256 slush) = stakeNFT.getEthAccumulator();
+            assertEq(acc, 0);
+            assertEq(slush, 0);
+            (acc, slush) = stakeNFT.getTokenAccumulator();
+            assertEq(acc, 500000000000000000);
+            assertEq(slush, 0);
 
-    //         assertPosition(
-    //             getCurrentPosition(stakeNFT, tokenID1),
-    //             StakeNFT.Position(100, 1, 0, 500000000000000000)
-    //         );
-    //     }
+            assertPosition(
+                getCurrentPosition(stakeNFT, tokenID1),
+                StakeNFT.Position(100, 1, 0, 500000000000000000)
+            );
+        }
 
-    //     uint256 tokenID2 = user2.mint(sharesPerUser);
-    //     assertPosition(
-    //         getCurrentPosition(stakeNFT, tokenID2),
-    //         StakeNFT.Position(100, 1, 0, 500000000000000000)
-    //     );
+        uint256 tokenID2 = user2.mint(sharesPerUser);
+        assertPosition(
+            getCurrentPosition(stakeNFT, tokenID2),
+            StakeNFT.Position(100, 1, 0, 500000000000000000)
+        );
 
-    //     {
-    //         (uint256 acc, uint256 slush) = stakeNFT.getEthAccumulator();
-    //         assertEq(acc, 0);
-    //         assertEq(slush, 0);
-    //         (acc, slush) = stakeNFT.getTokenAccumulator();
-    //         assertEq(acc, 500000000000000000);
-    //         assertEq(slush, 0);
-    //     }
+        {
+            (uint256 acc, uint256 slush) = stakeNFT.getEthAccumulator();
+            assertEq(acc, 0);
+            assertEq(slush, 0);
+            (acc, slush) = stakeNFT.getTokenAccumulator();
+            assertEq(acc, 500000000000000000);
+            assertEq(slush, 0);
+        }
 
-    //     donator.depositToken(500);
-    //     {
-    //         (uint256 acc, uint256 slush) = stakeNFT.getEthAccumulator();
-    //         assertEq(acc, 0);
-    //         assertEq(slush, 0);
-    //         (acc, slush) = stakeNFT.getTokenAccumulator();
-    //         assertEq(acc, 3_000000000000000000);
-    //         assertEq(slush, 0);
-    //     }
+        donator.depositToken(500);
+        {
+            (uint256 acc, uint256 slush) = stakeNFT.getEthAccumulator();
+            assertEq(acc, 0);
+            assertEq(slush, 0);
+            (acc, slush) = stakeNFT.getTokenAccumulator();
+            assertEq(acc, 3_000000000000000000);
+            assertEq(slush, 0);
+        }
 
-    //     {
-    //         uint256 stakeBalance = madToken.balanceOf(address(stakeNFT));
-    //         assertEq(stakeBalance, 700);
+        {
+            uint256 stakeBalance = madToken.balanceOf(address(stakeNFT));
+            assertEq(stakeBalance, 700);
 
-    //         uint256 payout = stakeNFT.estimateTokenCollection(tokenID1);
-    //         assertEq(payout, 250);
-    //         payout = user1.collectToken(tokenID1);
-    //         assertEq(payout, 250);
+            uint256 payout = stakeNFT.estimateTokenCollection(tokenID1);
+            assertEq(payout, 250);
+            payout = user1.collectToken(tokenID1);
+            assertEq(payout, 250);
 
-    //         assertEq(madToken.balanceOf(address(user1)), 300);
-    //         assertEq(madToken.balanceOf(address(stakeNFT)), 450);
-    //         assertEq(
-    //             madToken.balanceOf(address(stakeNFT)),
-    //             stakeBalance - payout
-    //         );
+            assertEq(madToken.balanceOf(address(user1)), 300);
+            assertEq(madToken.balanceOf(address(stakeNFT)), 450);
+            assertEq(
+                madToken.balanceOf(address(stakeNFT)),
+                stakeBalance - payout
+            );
 
-    //         (uint256 acc, uint256 slush) = stakeNFT.getEthAccumulator();
-    //         assertEq(acc, 0);
-    //         assertEq(slush, 0);
-    //         (acc, slush) = stakeNFT.getTokenAccumulator();
-    //         assertEq(acc, 3_000000000000000000);
-    //         assertEq(slush, 0);
+            (uint256 acc, uint256 slush) = stakeNFT.getEthAccumulator();
+            assertEq(acc, 0);
+            assertEq(slush, 0);
+            (acc, slush) = stakeNFT.getTokenAccumulator();
+            assertEq(acc, 3_000000000000000000);
+            assertEq(slush, 0);
 
-    //         assertPosition(
-    //             getCurrentPosition(stakeNFT, tokenID1),
-    //             StakeNFT.Position(100, 1, 0, 3_000000000000000000)
-    //         );
-    //     }
+            assertPosition(
+                getCurrentPosition(stakeNFT, tokenID1),
+                StakeNFT.Position(100, 1, 0, 3_000000000000000000)
+            );
+        }
 
-    //     {
-    //         uint256 stakeBalance = madToken.balanceOf(address(stakeNFT));
-    //         assertEq(stakeBalance, 450);
+        {
+            uint256 stakeBalance = madToken.balanceOf(address(stakeNFT));
+            assertEq(stakeBalance, 450);
 
-    //         uint256 payout2 = stakeNFT.estimateTokenCollection(tokenID2);
-    //         assertEq(payout2, 250);
-    //         payout2 = user2.collectToken(tokenID2);
-    //         assertEq(payout2, 250);
+            uint256 payout2 = stakeNFT.estimateTokenCollection(tokenID2);
+            assertEq(payout2, 250);
+            payout2 = user2.collectToken(tokenID2);
+            assertEq(payout2, 250);
 
-    //         assertEq(madToken.balanceOf(address(user2)), 250);
-    //         assertEq(madToken.balanceOf(address(stakeNFT)), 200);
-    //         assertEq(
-    //             madToken.balanceOf(address(stakeNFT)),
-    //             stakeBalance - payout2
-    //         );
+            assertEq(madToken.balanceOf(address(user2)), 250);
+            assertEq(madToken.balanceOf(address(stakeNFT)), 200);
+            assertEq(
+                madToken.balanceOf(address(stakeNFT)),
+                stakeBalance - payout2
+            );
 
-    //         (uint256 acc, uint256 slush) = stakeNFT.getEthAccumulator();
-    //         assertEq(acc, 0);
-    //         assertEq(slush, 0);
-    //         (acc, slush) = stakeNFT.getTokenAccumulator();
-    //         assertEq(acc, 3_000000000000000000);
-    //         assertEq(slush, 0);
+            (uint256 acc, uint256 slush) = stakeNFT.getEthAccumulator();
+            assertEq(acc, 0);
+            assertEq(slush, 0);
+            (acc, slush) = stakeNFT.getTokenAccumulator();
+            assertEq(acc, 3_000000000000000000);
+            assertEq(slush, 0);
 
-    //         assertPosition(
-    //             getCurrentPosition(stakeNFT, tokenID2),
-    //             StakeNFT.Position(100, 1, 0, 3_000000000000000000)
-    //         );
-    //     }
+            assertPosition(
+                getCurrentPosition(stakeNFT, tokenID2),
+                StakeNFT.Position(100, 1, 0, 3_000000000000000000)
+            );
+        }
 
-    //     uint256 tokenID3 = user3.mint(sharesPerUser);
-    //     assertPosition(
-    //         getCurrentPosition(stakeNFT, tokenID3),
-    //         StakeNFT.Position(100, 1, 0, 3_000000000000000000)
-    //     );
+        uint256 tokenID3 = user3.mint(sharesPerUser);
+        assertPosition(
+            getCurrentPosition(stakeNFT, tokenID3),
+            StakeNFT.Position(100, 1, 0, 3_000000000000000000)
+        );
 
-    //     donator.depositToken(1000);
-    //     {
-    //         uint256 payout = stakeNFT.estimateTokenCollection(tokenID1);
-    //         assertEq(payout, 333);
-    //         payout = user1.collectToken(tokenID1);
-    //         assertEq(payout, 333);
-    //         uint256 payout2 = stakeNFT.estimateTokenCollection(tokenID2);
-    //         assertEq(payout2, 333);
-    //         payout2 = user2.collectToken(tokenID2);
-    //         assertEq(payout2, 333);
-    //         uint256 payout3 = stakeNFT.estimateTokenCollection(tokenID3);
-    //         assertEq(payout3, 333);
-    //         payout3 = user3.collectToken(tokenID3);
-    //         assertEq(payout3, 333);
-    //     }
-    //     fail();
-    //     {
-    //         donator.depositToken(1000);
-    //         uint256 payout = user1.collectToken(tokenID1);
-    //         assertEq(payout, 333);
-    //         uint256 payout2 = user2.collectToken(tokenID2);
-    //         assertEq(payout2, 333);
-    //         uint256 payout3 = user3.collectToken(tokenID3);
-    //         assertEq(payout3, 333);
-    //         //accumulator 1*10**18
-    //     }
+        donator.depositToken(1000);
+        {
+            uint256 payout = stakeNFT.estimateTokenCollection(tokenID1);
+            assertEq(payout, 333);
+            payout = user1.collectToken(tokenID1);
+            assertEq(payout, 333);
+            uint256 payout2 = stakeNFT.estimateTokenCollection(tokenID2);
+            assertEq(payout2, 333);
+            payout2 = user2.collectToken(tokenID2);
+            assertEq(payout2, 333);
+            uint256 payout3 = stakeNFT.estimateTokenCollection(tokenID3);
+            assertEq(payout3, 333);
+            payout3 = user3.collectToken(tokenID3);
+            assertEq(payout3, 333);
+        }
+        fail();
+        {
+            donator.depositToken(1000);
+            uint256 payout = user1.collectToken(tokenID1);
+            assertEq(payout, 333);
+            uint256 payout2 = user2.collectToken(tokenID2);
+            assertEq(payout2, 333);
+            uint256 payout3 = user3.collectToken(tokenID3);
+            assertEq(payout3, 333);
+            //accumulator 1*10**18
+        }
 
-    //     {
-    //         donator.depositToken(3000 - 999 - 333 - 2);
-    //         uint256 payout = stakeNFT.estimateTokenCollection(tokenID1);
-    //         assertEq(payout, 555);
-    //         payout = user1.collectToken(tokenID1);
-    //         assertEq(payout, 555);
-    //         uint256 payout2 = stakeNFT.estimateTokenCollection(tokenID2);
-    //         assertEq(payout2, 555);
-    //         payout2 = user2.collectToken(tokenID2);
-    //         assertEq(payout2, 555);
-    //         uint256 payout3 = stakeNFT.estimateTokenCollection(tokenID3);
-    //         assertEq(payout3, 888);
-    //         payout3 = user3.collectToken(tokenID3);
-    //         assertEq(payout3, 888);
-    //     }
+        {
+            donator.depositToken(3000 - 999 - 333 - 2);
+            uint256 payout = stakeNFT.estimateTokenCollection(tokenID1);
+            assertEq(payout, 555);
+            payout = user1.collectToken(tokenID1);
+            assertEq(payout, 555);
+            uint256 payout2 = stakeNFT.estimateTokenCollection(tokenID2);
+            assertEq(payout2, 555);
+            payout2 = user2.collectToken(tokenID2);
+            assertEq(payout2, 555);
+            uint256 payout3 = stakeNFT.estimateTokenCollection(tokenID3);
+            assertEq(payout3, 888);
+            payout3 = user3.collectToken(tokenID3);
+            assertEq(payout3, 888);
+        }
 
-    //     {
-    //         setBlockNumber(block.number+2);
-    //         donator.depositEth(1000 ether);
-    //         (uint256 payoutEth, uint256 payoutToken) = user1.burn(tokenID1);
-    //         assertEq(payoutEth, 333_333333333333333333);
-    //         assertEq(payoutToken, 100);
-    //         assertEq(stakeNFT.balanceOf(address(user1)), 0);
-    //         assertEq(address(user1).balance, 333_333333333333333333);
+        {
+            setBlockNumber(block.number+2);
+            donator.depositEth(1000 ether);
+            (uint256 payoutEth, uint256 payoutToken) = user1.burn(tokenID1);
+            assertEq(payoutEth, 333_333333333333333333);
+            assertEq(payoutToken, 100);
+            assertEq(stakeNFT.balanceOf(address(user1)), 0);
+            assertEq(address(user1).balance, 333_333333333333333333);
 
-    //         (payoutEth, payoutToken) = user2.burn(tokenID2);
-    //         assertEq(payoutEth, 333_333333333333333333);
-    //         assertEq(payoutToken, 100);
-    //         assertEq(stakeNFT.balanceOf(address(user2)), 0);
-    //         assertEq(address(user2).balance, 333_333333333333333333);
+            (payoutEth, payoutToken) = user2.burn(tokenID2);
+            assertEq(payoutEth, 333_333333333333333333);
+            assertEq(payoutToken, 100);
+            assertEq(stakeNFT.balanceOf(address(user2)), 0);
+            assertEq(address(user2).balance, 333_333333333333333333);
 
 
-    //         // last user gets the slush as well
-    //         (payoutEth, payoutToken) = user3.burn(tokenID3);
-    //         assertEq(payoutEth, 333_333333333333333334);
-    //         assertEq(payoutToken, 103);
-    //         assertEq(stakeNFT.balanceOf(address(user3)), 0);
-    //         assertEq(address(user3).balance, 333_333333333333333334);
-    //     }
-    //     {
-    //         (uint256 acc, uint256 slush) = stakeNFT.getEthAccumulator();
-    //         assertEq(acc, 3333333333333333333333333333333333334);
-    //         assertEq(slush, 0);
-    //         (acc, slush) = stakeNFT.getTokenAccumulator();
-    //         assertEq(acc, 15220000000000000000);
-    //         assertEq(slush, 0);
-    //         assertEq(madToken.balanceOf(address(stakeNFT)), 0);
-    //         assertEq(address(stakeNFT).balance, 0);
-    //     }
-    // }
+            // last user gets the slush as well
+            (payoutEth, payoutToken) = user3.burn(tokenID3);
+            assertEq(payoutEth, 333_333333333333333334);
+            assertEq(payoutToken, 103);
+            assertEq(stakeNFT.balanceOf(address(user3)), 0);
+            assertEq(address(user3).balance, 333_333333333333333334);
+        }
+        {
+            (uint256 acc, uint256 slush) = stakeNFT.getEthAccumulator();
+            assertEq(acc, 3333333333333333333333333333333333334);
+            assertEq(slush, 0);
+            (acc, slush) = stakeNFT.getTokenAccumulator();
+            assertEq(acc, 15220000000000000000);
+            assertEq(slush, 0);
+            assertEq(madToken.balanceOf(address(stakeNFT)), 0);
+            assertEq(address(stakeNFT).balance, 0);
+        }
+    }
 
     function testBurnWithTripCB() public {
         (
