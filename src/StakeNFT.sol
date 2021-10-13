@@ -93,6 +93,11 @@ contract StakeNFT is ERC721, MagicValue, Admin, Governance, CircuitBreaker, Atom
         return _accumulatorScaleFactor;
     }
 
+    /// gets the total amount of MadToken staked in contract
+    function getTotalShares() public view returns(uint256) {
+        return _shares;
+    }
+
     /// estimateEthCollection returns the amount of eth a tokenID may withdraw
     function estimateEthCollection(uint256 tokenID_) public view returns(uint256 payout) {
         require(_exists(tokenID_), "StakeNFT: Error, NFT token doesn't exist!");
@@ -193,10 +198,14 @@ contract StakeNFT is ERC721, MagicValue, Admin, Governance, CircuitBreaker, Atom
     function collectEth(uint256 tokenID_) public returns(uint256 payout) {
         address owner = ownerOf(tokenID_);
         require(msg.sender == owner, "StakeNFT: Error sender is not the owner of the tokenID!");
+        Position memory position = _positions[tokenID_];
         require(_positions[tokenID_].withdrawFreeAfter < block.number, "StakeNFT: Cannot withdraw at the moment.");
 
+        // enforce freeAfter to prevent collect during lock
+        require(position.freeAfter < block.number, "StakeNFT: The position is not ready to be collected!");
+
         // get values and update state
-        (_positions[tokenID_], payout) = _collectEth(_shares, _positions[tokenID_]);
+        (_positions[tokenID_], payout) = _collectEth(_shares, position);
 
         // perform transfer and return amount paid out
         _safeTransferEth(owner, payout);
@@ -208,10 +217,11 @@ contract StakeNFT is ERC721, MagicValue, Admin, Governance, CircuitBreaker, Atom
     function collectToken(uint256 tokenID_) public returns(uint256 payout) {
         address owner = ownerOf(tokenID_);
         require(msg.sender == owner, "StakeNFT: Error sender is not the owner of the tokenID!");
-        require(_positions[tokenID_].withdrawFreeAfter < block.number, "StakeNFT: Cannot withdraw at the moment.");
+        Position memory position = _positions[tokenID_];
+        require(position.withdrawFreeAfter < block.number, "StakeNFT: Cannot withdraw at the moment.");
 
         // get values and update state
-        (_positions[tokenID_], payout) = _collectToken(_shares, _positions[tokenID_]);
+        (_positions[tokenID_], payout) = _collectToken(_shares, position);
 
         // perform transfer and return amount paid out
         _safeTransferERC20(_MadToken, owner, payout);
@@ -249,10 +259,10 @@ contract StakeNFT is ERC721, MagicValue, Admin, Governance, CircuitBreaker, Atom
         slush = _tokenState.slush;
     }
 
-    // _lockPosition prevents a position from being burned for duration_ number of blocks
-    // by setting the freeAfter field on the Position struct
-    // returns the number of shares in the locked Position so that governance vote counting
-    // may be performed when setting a lock
+    // _lockPosition prevents a position from being burned for duration_ number
+    // of blocks by setting the freeAfter field on the Position struct returns
+    // the number of shares in the locked Position so that governance vote
+    // counting may be performed when setting a lock
     function _lockPosition(uint256 tokenID_, uint256 duration_) internal returns(uint256 shares) {
         require(_exists(tokenID_), "StakeNFT: Token ID doesn't exist!");
         Position memory p = _positions[tokenID_];
@@ -364,12 +374,18 @@ contract StakeNFT is ERC721, MagicValue, Admin, Governance, CircuitBreaker, Atom
         return excess;
     }
 
-    // _collectToken performs call to _collect and updates state during a
-    // request for a token distribution
     function _collectToken(uint256 shares_, Position memory p_) internal returns(Position memory p, uint256 payout) {
         uint256 acc;
         (_tokenState, p, acc, payout) = _collect(shares_, _tokenState, p_, p_.accumulatorToken);
         p.accumulatorToken = acc;
+        // The last person exiting gets any excess in the token Balance that is
+        // not tracked by the contract
+        if (shares_ == p_.shares) {
+            uint256 balance = _MadToken.balanceOf(address(this)) - p_.shares;
+            if (payout < balance) {
+                payout = balance;
+            }
+        }
         return (p, payout);
     }
 
@@ -379,6 +395,14 @@ contract StakeNFT is ERC721, MagicValue, Admin, Governance, CircuitBreaker, Atom
         uint256 acc;
         (_ethState, p, acc, payout) = _collect(shares_, _ethState, p_, p_.accumulatorEth);
         p.accumulatorEth = acc;
+        // The last person exiting gets any excess in the Balance that is not
+        // tracked by the contract
+        if (shares_ == p_.shares) {
+            uint256 balance = (address(this)).balance;
+            if (payout < balance) {
+                payout = balance;
+            }
+        }
         return (p, payout);
     }
 
@@ -409,6 +433,8 @@ contract StakeNFT is ERC721, MagicValue, Admin, Governance, CircuitBreaker, Atom
         uint256 payoutReminder = payout;
         // reduce payout by scale factor
         payout /= _accumulatorScaleFactor;
+        // Computing and saving the numeric error from the floor division in the
+        // slush.
         payoutReminder -= payout * _accumulatorScaleFactor;
         state_.slush += payoutReminder;
 
