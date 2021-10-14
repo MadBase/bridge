@@ -100,6 +100,14 @@ contract AdminAccount is BaseMock {
     function setGovernance(address governance_) public {
         stakeNFT.setGovernance(governance_);
     }
+
+    function skimExcessEth(address to_) public returns(uint256 excess) {
+        return stakeNFT.skimExcessEth(to_);
+    }
+
+    function skimExcessToken(address to_) public returns(uint256 excess) {
+        return stakeNFT.skimExcessToken(to_);
+    }
 }
 
 contract GovernanceAccount is BaseMock {
@@ -391,6 +399,20 @@ contract StakeNFTTest is DSTest {
         assertEq(slush, expectedSlush);
     }
 
+    function assertReserveAndExcessZero(StakeNFT stakeNFT, uint256 reserveAmountToken, uint256 reserveAmountEth) internal{
+        assertEq(stakeNFT.getTotalReserveMadToken(), reserveAmountToken);
+        assertEq(stakeNFT.getTotalReserveEth(), reserveAmountEth);
+        assertEq(stakeNFT.estimateExcessToken(), 0);
+        assertEq(stakeNFT.estimateExcessEth(), 0);
+    }
+
+    function assertReserveAndExcess(StakeNFT stakeNFT, uint256 reserveAmountToken, uint256 reserveAmountEth, uint256 excessToken, uint256 excessEth ) internal{
+        assertEq(stakeNFT.getTotalReserveMadToken(), reserveAmountToken);
+        assertEq(stakeNFT.getTotalReserveEth(), reserveAmountEth);
+        assertEq(stakeNFT.estimateExcessToken(), excessToken);
+        assertEq(stakeNFT.estimateExcessEth(), excessEth);
+    }
+
     function testAdminTripCBAndChangeGovernance() public {
         (, , AdminAccount admin, ) = getFixtureData();
         admin.tripCB();
@@ -405,6 +427,16 @@ contract StakeNFTTest is DSTest {
     function testFail_noAdminSetGovernance() public {
         (StakeNFT stakeNFT, , , ) = getFixtureData();
         stakeNFT.setGovernance(address(0x0));
+    }
+
+    function testFail_noAdminSkimExcessEth() public {
+        (StakeNFT stakeNFT, , , ) = getFixtureData();
+        stakeNFT.skimExcessEth(address(0));
+    }
+
+    function testFail_noAdminSkimExcessToken() public {
+        (StakeNFT stakeNFT, , , ) = getFixtureData();
+        stakeNFT.skimExcessToken(address(0));
     }
 
     function testFail_noGovernanceLockPosition() public {
@@ -468,6 +500,7 @@ contract StakeNFTTest is DSTest {
         stakeNFT.depositEth{value: 10 ether}(42);
         assertEq(madToken.balanceOf(address(stakeNFT)), 100000);
         assertEq(address(stakeNFT).balance, 10 ether);
+        assertReserveAndExcessZero(stakeNFT, 100000, 10 ether);
     }
 
     function testFail_DepositTokenWithWrongMagicNumber() public {
@@ -493,6 +526,7 @@ contract StakeNFTTest is DSTest {
 
         assertEq(stakeNFT.balanceOf(address(this)), 1);
         assertEq(stakeNFT.ownerOf(tokenID), address(this));
+        assertReserveAndExcessZero(stakeNFT, 1000, 0 ether);
     }
 
     function testMintManyTokensSameUser() public {
@@ -508,6 +542,7 @@ contract StakeNFTTest is DSTest {
             );
         }
         assertEq(stakeNFT.balanceOf(address(this)), 10);
+        assertReserveAndExcessZero(stakeNFT, 1000, 0 ether);
     }
 
     function testFail_MintWithoutApproval() public {
@@ -533,6 +568,7 @@ contract StakeNFTTest is DSTest {
         );
         assertEq(stakeNFT.balanceOf(address(user)), 1);
         assertEq(stakeNFT.ownerOf(tokenID), address(user));
+        assertReserveAndExcessZero(stakeNFT, 1000, 0 ether);
     }
 
     function testMintTo_WithLock() public {
@@ -548,6 +584,7 @@ contract StakeNFTTest is DSTest {
         );
         assertEq(stakeNFT.balanceOf(address(user)), 1);
         assertEq(stakeNFT.ownerOf(tokenID), address(user));
+        assertReserveAndExcessZero(stakeNFT, 1000, 0 ether);
     }
 
     function testFail_MintToMoreMadTokensThanPossible() public {
@@ -606,15 +643,17 @@ contract StakeNFTTest is DSTest {
         assertEq(stakeNFT.ownerOf(tokenID), address(user));
         assertEq(madToken.balanceOf(address(user)), 0);
         assertEq(madToken.balanceOf(address(stakeNFT)), 1000);
+        assertReserveAndExcessZero(stakeNFT, 1000, 0 ether);
 
         setBlockNumber(block.number + 2);
 
         (uint256 payoutEth, uint256 payoutToken) = user.burn(tokenID);
         assertEq(payoutEth, 0);
         assertEq(payoutToken, 1000);
-
+        assertReserveAndExcessZero(stakeNFT, 0, 0 ether);
         assertEq(madToken.balanceOf(address(user)), 1000);
         assertEq(madToken.balanceOf(address(stakeNFT)), 0);
+
     }
 
     // mint+burnTo
@@ -636,6 +675,7 @@ contract StakeNFTTest is DSTest {
         assertEq(madToken.balanceOf(address(user)), 0);
         assertEq(madToken.balanceOf(address(user2)), 0);
         assertEq(madToken.balanceOf(address(stakeNFT)), 1000);
+        assertReserveAndExcessZero(stakeNFT, 1000, 0 ether);
 
         setBlockNumber(block.number + 2);
 
@@ -649,6 +689,7 @@ contract StakeNFTTest is DSTest {
         assertEq(madToken.balanceOf(address(user)), 0);
         assertEq(madToken.balanceOf(address(user2)), 1000);
         assertEq(madToken.balanceOf(address(stakeNFT)), 0);
+        assertReserveAndExcessZero(stakeNFT, 0, 0 ether);
     }
 
     // mintTo + burn
@@ -669,6 +710,7 @@ contract StakeNFTTest is DSTest {
         assertEq(madToken.balanceOf(address(user)), 0);
         assertEq(madToken.balanceOf(address(user2)), 0);
         assertEq(madToken.balanceOf(address(stakeNFT)), 1000);
+        assertReserveAndExcessZero(stakeNFT, 1000, 0 ether);
 
         setBlockNumber(block.number + 2);
 
@@ -679,6 +721,7 @@ contract StakeNFTTest is DSTest {
         assertEq(madToken.balanceOf(address(user)), 0);
         assertEq(madToken.balanceOf(address(user2)), 1000);
         assertEq(madToken.balanceOf(address(stakeNFT)), 0);
+        assertReserveAndExcessZero(stakeNFT, 0, 0 ether);
     }
 
     // mintTo + burnTo
@@ -701,6 +744,7 @@ contract StakeNFTTest is DSTest {
         assertEq(madToken.balanceOf(address(user2)), 0);
         assertEq(madToken.balanceOf(address(user3)), 0);
         assertEq(madToken.balanceOf(address(stakeNFT)), 1000);
+        assertReserveAndExcessZero(stakeNFT, 1000, 0 ether);
 
         setBlockNumber(block.number + 2);
 
@@ -715,6 +759,7 @@ contract StakeNFTTest is DSTest {
         assertEq(madToken.balanceOf(address(user2)), 0);
         assertEq(madToken.balanceOf(address(user3)), 1000);
         assertEq(madToken.balanceOf(address(stakeNFT)), 0);
+        assertReserveAndExcessZero(stakeNFT, 0, 0 ether);
     }
 
     // mintTo + burnTo + lock 10 blocks
@@ -737,6 +782,7 @@ contract StakeNFTTest is DSTest {
         assertEq(madToken.balanceOf(address(user2)), 0);
         assertEq(madToken.balanceOf(address(user3)), 0);
         assertEq(madToken.balanceOf(address(stakeNFT)), 1000);
+        assertReserveAndExcessZero(stakeNFT, 1000, 0 ether);
 
         setBlockNumber(block.number + 11);
 
@@ -751,6 +797,7 @@ contract StakeNFTTest is DSTest {
         assertEq(madToken.balanceOf(address(user2)), 0);
         assertEq(madToken.balanceOf(address(user3)), 1000);
         assertEq(madToken.balanceOf(address(stakeNFT)), 0);
+        assertReserveAndExcessZero(stakeNFT, 0, 0 ether);
     }
 
     function test_SharesInvariance() public {
@@ -771,6 +818,7 @@ contract StakeNFTTest is DSTest {
             shares += (1_000_000 * ONE_MADTOKEN)+i;
         }
         assertEq(shares, stakeNFT.getTotalShares());
+        assertReserveAndExcessZero(stakeNFT, shares, 0 ether);
         setBlockNumber(block.number+2);
         // burning some of the NFTs
         for (uint256 i=0; i < 50; i++){
@@ -779,6 +827,7 @@ contract StakeNFTTest is DSTest {
                 shares -= (1_000_000 * ONE_MADTOKEN)+i;
             }
         }
+        assertReserveAndExcessZero(stakeNFT, shares, 0 ether);
         assertEq(shares, stakeNFT.getTotalShares());
     }
 
@@ -804,6 +853,7 @@ contract StakeNFTTest is DSTest {
         uint256 tokenID1 = user1.mint(sharesPerUser);
         uint256 tokenID2 = user2.mint(sharesPerUser);
         uint256 tokenID3 = user3.mint(sharesPerUser);
+        assertReserveAndExcessZero(stakeNFT, 30, 0 ether);
 
         setBlockNumber(block.number+2);
 
@@ -826,10 +876,12 @@ contract StakeNFTTest is DSTest {
             emit log_named_uint("Balance ETH: ", address(stakeNFT).balance);
             (, uint256 slush) = stakeNFT.getEthAccumulator();
             assertEq(slush, (credits - debits) * 10**18);
+            assertReserveAndExcessZero(stakeNFT, 30, (credits - debits));
         }
         {
             donator.depositEth(2000);
             credits += 2000;
+            assertReserveAndExcessZero(stakeNFT, 30, (credits - debits));
             uint256 payout = user1.collectEth(tokenID1);
             assertEq(payout, 667);
             debits += payout;
@@ -843,6 +895,9 @@ contract StakeNFTTest is DSTest {
             (, uint256 slush) = stakeNFT.getEthAccumulator();
             assertEq(slush, (credits - debits) * 10**18);
             assertEq(slush, 1 ether);
+        }
+        {
+            assertReserveAndExcessZero(stakeNFT, 30, (credits - debits));
         }
     }
 
@@ -867,7 +922,7 @@ contract StakeNFTTest is DSTest {
         uint256 tokenID1 = user1.mint(3333);
         uint256 tokenID2 = user2.mint(111);
         uint256 tokenID3 = user3.mint(7);
-
+        assertReserveAndExcessZero(stakeNFT, 3333 + 111 + 7, 0 ether);
         setBlockNumber(block.number+2);
 
         uint256 credits = 0;
@@ -888,6 +943,7 @@ contract StakeNFTTest is DSTest {
                 (, uint256 slush) = stakeNFT.getEthAccumulator();
                 // As long as all the users have withdrawal their dividends this should hold true
                 assertEq(slush, (credits - debits) * 10**18);
+                assertReserveAndExcessZero(stakeNFT, 3333 + 111 + 7, (credits - debits));
             }
             {
                 donator.depositEth(credits);
@@ -900,6 +956,7 @@ contract StakeNFTTest is DSTest {
                 debits += payout3;
                 (, uint256 slush) = stakeNFT.getEthAccumulator();
                 assertEq(slush, (credits - debits) * 10**18);
+                assertReserveAndExcessZero(stakeNFT, 3333 + 111 + 7, (credits - debits));
             }
         }
         {
@@ -913,6 +970,7 @@ contract StakeNFTTest is DSTest {
             debits += payout3;
             (, uint256 slush) = stakeNFT.getEthAccumulator();
             assertEq(slush, (credits - debits) * 10**18);
+            assertReserveAndExcessZero(stakeNFT, 3333 + 111 + 7, (credits - debits));
         }
         {
             donator.depositEth(1381_209873167895423687);
@@ -926,6 +984,7 @@ contract StakeNFTTest is DSTest {
             (, uint256 slush) = stakeNFT.getEthAccumulator();
             // As long as all the users have withdrawal their dividends this should hold true
             assertEq(slush, (credits - debits) * 10**18);
+            assertReserveAndExcessZero(stakeNFT, 3333 + 111 + 7, (credits - debits));
         }
         {
             donator.depositEth(1111_209873167895423687);
@@ -949,6 +1008,7 @@ contract StakeNFTTest is DSTest {
             (, uint256 slush) = stakeNFT.getEthAccumulator();
             // As long as all the users have withdrawal their dividends this should hold true
             assertEq(slush, (credits - debits) * 10**18);
+            assertReserveAndExcessZero(stakeNFT, 3333 + 111 + 7, (credits - debits));
         }
     }
 
@@ -977,6 +1037,7 @@ contract StakeNFTTest is DSTest {
             getCurrentPosition(stakeNFT, tokenID1),
             StakeNFT.Position(100, 1, 0, 0)
         );
+        assertReserveAndExcessZero(stakeNFT, 100, 0 ether);
 
         {
             (uint256 acc, uint256 slush) = stakeNFT.getEthAccumulator();
@@ -988,6 +1049,7 @@ contract StakeNFTTest is DSTest {
         }
 
         donator.depositToken(50);
+        assertReserveAndExcessZero(stakeNFT, 150, 0 ether);
         {
             (uint256 acc, uint256 slush) = stakeNFT.getEthAccumulator();
             assertEq(acc, 0);
@@ -1016,6 +1078,7 @@ contract StakeNFTTest is DSTest {
 
             assertEq(madToken.balanceOf(address(user1)), 50);
             assertEq(madToken.balanceOf(address(stakeNFT)), 100);
+            assertReserveAndExcessZero(stakeNFT, 100, 0 ether);
             assertEq(
                 madToken.balanceOf(address(stakeNFT)),
                 stakeBalance - payout
@@ -1039,7 +1102,7 @@ contract StakeNFTTest is DSTest {
             getCurrentPosition(stakeNFT, tokenID2),
             StakeNFT.Position(100, 1, 0, 500000000000000000)
         );
-
+        assertReserveAndExcessZero(stakeNFT, 200, 0 ether);
         {
             (uint256 acc, uint256 slush) = stakeNFT.getEthAccumulator();
             assertEq(acc, 0);
@@ -1062,6 +1125,7 @@ contract StakeNFTTest is DSTest {
         {
             uint256 stakeBalance = madToken.balanceOf(address(stakeNFT));
             assertEq(stakeBalance, 700);
+            assertReserveAndExcessZero(stakeNFT, 700, 0 ether);
 
             uint256 payout = stakeNFT.estimateTokenCollection(tokenID1);
             assertEq(payout, 250);
@@ -1070,6 +1134,7 @@ contract StakeNFTTest is DSTest {
 
             assertEq(madToken.balanceOf(address(user1)), 300);
             assertEq(madToken.balanceOf(address(stakeNFT)), 450);
+            assertReserveAndExcessZero(stakeNFT, 450, 0 ether);
             assertEq(
                 madToken.balanceOf(address(stakeNFT)),
                 stakeBalance - payout
@@ -1099,6 +1164,7 @@ contract StakeNFTTest is DSTest {
 
             assertEq(madToken.balanceOf(address(user2)), 250);
             assertEq(madToken.balanceOf(address(stakeNFT)), 200);
+            assertReserveAndExcessZero(stakeNFT, 200, 0 ether);
             assertEq(
                 madToken.balanceOf(address(stakeNFT)),
                 stakeBalance - payout2
@@ -1118,64 +1184,79 @@ contract StakeNFTTest is DSTest {
         }
 
         uint256 tokenID3 = user3.mint(sharesPerUser);
+        assertReserveAndExcessZero(stakeNFT, 300, 0 ether);
         assertPosition(
             getCurrentPosition(stakeNFT, tokenID3),
             StakeNFT.Position(100, 1, 0, 3_000000000000000000)
         );
 
         donator.depositToken(1000);
+        assertReserveAndExcessZero(stakeNFT, 1300, 0 ether);
         {
             uint256 payout = stakeNFT.estimateTokenCollection(tokenID1);
             assertEq(payout, 333);
             payout = user1.collectToken(tokenID1);
             assertEq(payout, 333);
+            assertReserveAndExcessZero(stakeNFT, 967, 0 ether);
             uint256 payout2 = stakeNFT.estimateTokenCollection(tokenID2);
             assertEq(payout2, 333);
             payout2 = user2.collectToken(tokenID2);
             assertEq(payout2, 333);
+            assertReserveAndExcessZero(stakeNFT, 634, 0 ether);
             uint256 payout3 = stakeNFT.estimateTokenCollection(tokenID3);
             assertEq(payout3, 333);
             payout3 = user3.collectToken(tokenID3);
             assertEq(payout3, 333);
+            assertReserveAndExcessZero(stakeNFT, 301, 0 ether);
         }
         {
             donator.depositToken(1000);
+            assertReserveAndExcessZero(stakeNFT, 1301, 0 ether);
             uint256 payout = user1.collectToken(tokenID1);
             assertEq(payout, 333);
+            assertReserveAndExcessZero(stakeNFT, 968, 0 ether);
             uint256 payout2 = user2.collectToken(tokenID2);
             assertEq(payout2, 333);
+            assertReserveAndExcessZero(stakeNFT, 635, 0 ether);
         }
 
         {
             donator.depositToken(3000 - 999 - 333 - 2);
+            assertReserveAndExcessZero(stakeNFT, 2301, 0 ether);
             uint256 payout = stakeNFT.estimateTokenCollection(tokenID1);
             assertEq(payout, 555);
             payout = user1.collectToken(tokenID1);
             assertEq(payout, 555);
+            assertReserveAndExcessZero(stakeNFT, 1746, 0 ether);
             uint256 payout2 = stakeNFT.estimateTokenCollection(tokenID2);
             assertEq(payout2, 555);
             payout2 = user2.collectToken(tokenID2);
             assertEq(payout2, 555);
+            assertReserveAndExcessZero(stakeNFT, 1191, 0 ether);
             uint256 payout3 = stakeNFT.estimateTokenCollection(tokenID3);
             assertEq(payout3, 889);
             payout3 = user3.collectToken(tokenID3);
             assertEq(payout3, 889);
+            assertReserveAndExcessZero(stakeNFT, 302, 0 ether);
         }
 
         {
             setBlockNumber(block.number+2);
             donator.depositEth(1000 ether);
+            assertReserveAndExcessZero(stakeNFT, 302, 1000 ether);
             (uint256 payoutEth, uint256 payoutToken) = user1.burn(tokenID1);
             assertEq(payoutEth, 333_333333333333333333);
             assertEq(payoutToken, 100);
             assertEq(stakeNFT.balanceOf(address(user1)), 0);
             assertEq(address(user1).balance, 333_333333333333333333);
+            assertReserveAndExcessZero(stakeNFT, 202, 666_666666666666666667);
 
             (payoutEth, payoutToken) = user2.burn(tokenID2);
             assertEq(payoutEth, 333_333333333333333333);
             assertEq(payoutToken, 100);
             assertEq(stakeNFT.balanceOf(address(user2)), 0);
             assertEq(address(user2).balance, 333_333333333333333333);
+            assertReserveAndExcessZero(stakeNFT, 102, 333_333333333333333334);
 
 
             // last user gets the slush as well
@@ -1184,6 +1265,7 @@ contract StakeNFTTest is DSTest {
             assertEq(payoutToken, 102);
             assertEq(stakeNFT.balanceOf(address(user3)), 0);
             assertEq(address(user3).balance, 333_333333333333333334);
+            assertReserveAndExcessZero(stakeNFT, 0, 0);
         }
         {
             (uint256 acc, uint256 slush) = stakeNFT.getEthAccumulator();
@@ -1222,15 +1304,18 @@ contract StakeNFTTest is DSTest {
             getCurrentPosition(stakeNFT, tokenID1),
             StakeNFT.Position(uint224(1000 * ONE_MADTOKEN), 1, 0, 0)
         );
+        assertReserveAndExcessZero(stakeNFT, 1000 * ONE_MADTOKEN, 0);
         uint256 tokenID2 = user2.mint(800 * ONE_MADTOKEN);
         assertPosition(
             getCurrentPosition(stakeNFT, tokenID2),
             StakeNFT.Position(uint224(800 * ONE_MADTOKEN), 1, 0, 0)
         );
+        assertReserveAndExcessZero(stakeNFT, 1800 * ONE_MADTOKEN, 0);
 
         // depositing to move the accumulators
         donator.depositToken(1800 * ONE_MADTOKEN);
         donator.depositEth(1800 ether);
+        assertReserveAndExcessZero(stakeNFT, 3600 * ONE_MADTOKEN, 1800 ether);
 
         setBlockNumber(block.number + 2);
         // minting one more position to user 2
@@ -1239,9 +1324,11 @@ contract StakeNFTTest is DSTest {
             getCurrentPosition(stakeNFT, tokenID3),
             StakeNFT.Position(uint224(200 * ONE_MADTOKEN), 1, 10**18, 10**18)
         );
+        assertReserveAndExcessZero(stakeNFT, 3800 * ONE_MADTOKEN, 1800 ether);
 
         donator.depositEth(200 ether);
         donator.depositToken(200 * ONE_MADTOKEN);
+        assertReserveAndExcessZero(stakeNFT, 4000 * ONE_MADTOKEN, 2000 ether);
 
         assertEq(madToken.balanceOf(address(user1)), 0);
         assertEq(madToken.balanceOf(address(user2)), 0);
@@ -1264,6 +1351,7 @@ contract StakeNFTTest is DSTest {
         assertEq(stakeNFT.balanceOf(address(user1)), 0);
         assertEq(address(user1).balance, 1100 ether);
         assertEq(madToken.balanceOf(address(user1)), 2100 * ONE_MADTOKEN);
+        assertReserveAndExcessZero(stakeNFT, 1900 * ONE_MADTOKEN, 900 ether);
 
         (payoutEth, payoutToken) = user2.burn(tokenID2);
         assertEq(payoutEth, 880 ether);
@@ -1271,6 +1359,7 @@ contract StakeNFTTest is DSTest {
         assertEq(stakeNFT.balanceOf(address(user2)), 1);
         assertEq(address(user2).balance, 880 ether);
         assertEq(madToken.balanceOf(address(user2)), 1680 * ONE_MADTOKEN);
+        assertReserveAndExcessZero(stakeNFT, 220 * ONE_MADTOKEN, 20 ether);
 
         (payoutEth, payoutToken) = user2.burn(tokenID3);
         assertEq(payoutEth, 20 ether);
@@ -1280,6 +1369,7 @@ contract StakeNFTTest is DSTest {
         assertEq(madToken.balanceOf(address(user2)), 1900 * ONE_MADTOKEN);
 
         assertEq(madToken.balanceOf(address(stakeNFT)), 0);
+        assertReserveAndExcessZero(stakeNFT, 0, 0 ether);
     }
 
     function test_MintCollectBurnALot() public {
@@ -1293,39 +1383,52 @@ contract StakeNFTTest is DSTest {
         uint256[100] memory tokenIDs;
         uint256 j=0;
         uint256 iterations = 21;
+        uint256 reserveEth = 0;
+        uint256 reserveToken = 0;
         // Minting a lot
         for (uint256 i=0; i < iterations; i++){
             users[i] = newUserAccount(madToken, stakeNFT);
             madToken.transfer(address(users[i]), (1_000_000 * ONE_MADTOKEN)+i);
             users[i].approve(address(stakeNFT), (1_000_000 * ONE_MADTOKEN)+i);
             tokenIDs[j] = users[i].mint((500_000 * ONE_MADTOKEN)-i);
+            reserveToken += (500_000 * ONE_MADTOKEN)-i;
             tokenIDs[j+1] = users[i].mint((500_000 * ONE_MADTOKEN)+i);
+            reserveToken += (500_000 * ONE_MADTOKEN)+i;
             j += 2;
         }
+        assertReserveAndExcessZero(stakeNFT, reserveToken, reserveEth);
         setBlockNumber(block.number+2);
         j=0;
         // depositing and collecting some
         for (uint256 i=0; i < iterations; i++){
             if (i % 3 == 0){
                 donator.depositEth(i * 1 ether);
-                donator.depositEth(i * ONE_MADTOKEN);
-                users[i].collectEth(tokenIDs[j]);
-                users[i].collectToken(tokenIDs[j]);
-                users[i].collectEth(tokenIDs[j+1]);
-                users[i].collectToken(tokenIDs[j+1]);
+                reserveEth += i * 1 ether;
+                donator.depositToken(i * ONE_MADTOKEN);
+                reserveToken += i * ONE_MADTOKEN;
+                reserveEth -= users[i].collectEth(tokenIDs[j]);
+                reserveToken -= users[i].collectToken(tokenIDs[j]);
+                reserveEth -= users[i].collectEth(tokenIDs[j+1]);
+                reserveToken -= users[i].collectToken(tokenIDs[j+1]);
             }
             j += 2;
         }
+        assertReserveAndExcessZero(stakeNFT, reserveToken, reserveEth);
         setBlockNumber(block.number+2);
         j=0;
         // burning some amount of Positions
         for (uint256 i=0; i < iterations; i++){
             if (i % 7 == 0){
-                users[i].burn(tokenIDs[j]);
-                users[i].burn(tokenIDs[j+1]);
+                (uint256 payoutEth, uint256 payoutToken) = users[i].burn(tokenIDs[j]);
+                reserveToken -= payoutToken;
+                reserveEth -= payoutEth;
+                (payoutEth, payoutToken) = users[i].burn(tokenIDs[j+1]);
+                reserveToken -= payoutToken;
+                reserveEth -= payoutEth;
             }
             j += 2;
         }
+        assertReserveAndExcessZero(stakeNFT, reserveToken, reserveEth);
         setBlockNumber(block.number+2);
         j=0;
         //mint more tokens again
@@ -1335,35 +1438,48 @@ contract StakeNFTTest is DSTest {
                 madToken.transfer(address(users[i]), (1_000_000 * ONE_MADTOKEN)+i);
                 users[i].approve(address(stakeNFT), (1_000_000 * ONE_MADTOKEN)+i);
                 tokenIDs[j] = users[i].mint((500_000 * ONE_MADTOKEN)-i);
+                reserveToken += (500_000 * ONE_MADTOKEN)-i;
                 tokenIDs[j+1] = users[i].mint((500_000 * ONE_MADTOKEN)+i);
+                reserveToken += (500_000 * ONE_MADTOKEN)+i;
                 donator.depositEth(i * 1 ether);
-                donator.depositEth(i * ONE_MADTOKEN);
+                reserveEth += i * 1 ether;
+                donator.depositToken(i * ONE_MADTOKEN);
+                reserveToken += i * ONE_MADTOKEN;
             }
             j +=2;
         }
+        assertReserveAndExcessZero(stakeNFT, reserveToken, reserveEth);
         setBlockNumber(block.number+2);
         j=0;
         // collecting all the existing tokens
         for (uint256 i=0; i < iterations; i++){
-            users[i].collectEth(tokenIDs[j]);
-            users[i].collectToken(tokenIDs[j]);
-            users[i].collectEth(tokenIDs[j+1]);
-            users[i].collectToken(tokenIDs[j+1]);
+            reserveEth -= users[i].collectEth(tokenIDs[j]);
+            reserveToken -= users[i].collectToken(tokenIDs[j]);
+            reserveEth -= users[i].collectEth(tokenIDs[j+1]);
+            reserveToken -= users[i].collectToken(tokenIDs[j+1]);
             j += 2;
         }
+        assertReserveAndExcessZero(stakeNFT, reserveToken, reserveEth);
         j=0;
         // burning all token expect 1
         for (uint256 i=0; i < iterations-1; i++){
-            users[i].burn(tokenIDs[j]);
-            users[i].burn(tokenIDs[j+1]);
+            (uint256 payoutEth, uint256 payoutToken) = users[i].burn(tokenIDs[j]);
+            reserveToken -= payoutToken;
+            reserveEth -= payoutEth;
+            assertReserveAndExcessZero(stakeNFT, reserveToken, reserveEth);
+            (payoutEth, payoutToken) = users[i].burn(tokenIDs[j+1]);
+            reserveToken -= payoutToken;
+            reserveEth -= payoutEth;
+            assertReserveAndExcessZero(stakeNFT, reserveToken, reserveEth);
             j += 2;
         }
-
+        assertReserveAndExcessZero(stakeNFT, reserveToken, reserveEth);
         users[iterations-1].burn(tokenIDs[(iterations-1)*2]);
         users[iterations-1].burn(tokenIDs[(iterations-1)*2+1]);
         assertEq(madToken.balanceOf(address(stakeNFT)), 0);
         assertEq(address(stakeNFT).balance, 0);
         assertEq(stakeNFT.getTotalShares(), 0);
+        assertReserveAndExcessZero(stakeNFT, 0, 0);
     }
 
     function testFail_CollectNonOwnedToken() public {
@@ -1464,6 +1580,7 @@ contract StakeNFTTest is DSTest {
                 expectedAccumulatorToken
             )
         );
+        assertReserveAndExcessZero(stakeNFTHugeAcc, user1Shares, 0);
         (uint256 acc, uint256 slush) = stakeNFTHugeAcc.getTokenAccumulator();
         assertEq(acc, expectedAccumulatorToken);
         assertEq(slush, 0);
@@ -1471,6 +1588,7 @@ contract StakeNFTTest is DSTest {
         //moving the accumulator closer to the overflow
         uint256 deposit1 = 25;
         donator.depositToken(deposit1);
+        assertReserveAndExcessZero(stakeNFTHugeAcc, user1Shares + deposit1, 0);
         expectedAccumulatorToken +=
             (deposit1 * stakeNFTHugeAcc.accumulatorScaleFactor()) /
             user1Shares;
@@ -1492,6 +1610,7 @@ contract StakeNFTTest is DSTest {
             assertEq(acc_, expectedAccumulatorToken);
             assertEq(slush_, 0);
         }
+        assertReserveAndExcessZero(stakeNFTHugeAcc, user1Shares + deposit1 + user2Shares, 0);
 
         // the overflow should happen here. As we are incrementing the accumulator by 150 * 10**16
         uint256 deposit2 = 150;
@@ -1504,6 +1623,7 @@ contract StakeNFTTest is DSTest {
         assertEq(acc, expectedAccumulatorToken);
         assertEq(acc, 1000000000000000000);
         assertEq(slush, 0);
+        assertReserveAndExcessZero(stakeNFTHugeAcc, user1Shares + deposit1 + user2Shares + deposit2, 0);
 
         setBlockNumber(block.number+2);
 
@@ -1511,9 +1631,12 @@ contract StakeNFTTest is DSTest {
         // user has to call collect twice to get the right amount of funds
         // (before and after the overflow)
         assertEq(stakeNFTHugeAcc.estimateTokenCollection(tokenID1), 100);
+        assertReserveAndExcessZero(stakeNFTHugeAcc, 275, 0);
         assertEq(user1.collectToken(tokenID1), 100);
+
         assertEq(stakeNFTHugeAcc.estimateTokenCollection(tokenID2), 75);
         assertEq(user2.collectToken(tokenID2), 75);
+        assertReserveAndExcessZero(stakeNFTHugeAcc, 100, 0);
     }
 
     function testBurnTokensWithOverflowOnTheAccumulator() public {
@@ -1553,6 +1676,7 @@ contract StakeNFTTest is DSTest {
         (uint256 acc, uint256 slush) = stakeNFTHugeAcc.getTokenAccumulator();
         assertEq(acc, expectedAccumulatorToken);
         assertEq(slush, 0);
+        assertReserveAndExcessZero(stakeNFTHugeAcc, user1Shares, 0);
 
         //moving the accumulator closer to the overflow
         uint256 deposit1 = 25;
@@ -1560,7 +1684,7 @@ contract StakeNFTTest is DSTest {
         expectedAccumulatorToken +=
             (deposit1 * stakeNFTHugeAcc.accumulatorScaleFactor()) /
             user1Shares;
-
+        assertReserveAndExcessZero(stakeNFTHugeAcc, user1Shares + deposit1, 0);
         uint224 user2Shares = 50;
         uint256 tokenID2 = user2.mint(user2Shares);
         assertPosition(
@@ -1572,6 +1696,7 @@ contract StakeNFTTest is DSTest {
                 expectedAccumulatorToken
             )
         );
+        assertReserveAndExcessZero(stakeNFTHugeAcc, user1Shares + deposit1 + user2Shares, 0);
         {
             (uint256 acc_, uint256 slush_) = stakeNFTHugeAcc
                 .getTokenAccumulator();
@@ -1579,17 +1704,20 @@ contract StakeNFTTest is DSTest {
             assertEq(slush_, 0);
         }
 
-        // the overflow should happen here as we are incrementing the accumulator by 150 * 10**16
-        uint256 deposit2 = 150;
-        donator.depositToken(deposit2);
-        expectedAccumulatorToken +=
-            (deposit2 * stakeNFTHugeAcc.accumulatorScaleFactor()) /
-            (user1Shares + user2Shares);
-        expectedAccumulatorToken -= type(uint168).max;
-        (acc, slush) = stakeNFTHugeAcc.getTokenAccumulator();
-        assertEq(acc, expectedAccumulatorToken);
-        assertEq(acc, 1000000000000000000);
-        assertEq(slush, 0);
+        {
+            // the overflow should happen here as we are incrementing the accumulator by 150 * 10**16
+            uint256 deposit2 = 150;
+            donator.depositToken(deposit2);
+            expectedAccumulatorToken +=
+                (deposit2 * stakeNFTHugeAcc.accumulatorScaleFactor()) /
+                (user1Shares + user2Shares);
+            expectedAccumulatorToken -= type(uint168).max;
+            (acc, slush) = stakeNFTHugeAcc.getTokenAccumulator();
+            assertEq(acc, expectedAccumulatorToken);
+            assertEq(acc, 1000000000000000000);
+            assertEq(slush, 0);
+            assertReserveAndExcessZero(stakeNFTHugeAcc, user1Shares + deposit1 + user2Shares + deposit2, 0);
+        }
 
         setBlockNumber(block.number+2);
 
@@ -1598,10 +1726,17 @@ contract StakeNFTTest is DSTest {
         assertEq(stakeNFTHugeAcc.estimateTokenCollection(tokenID2), 75);
         // advance block number
         require(setBlockNumber(block.number + 2));
-        (, uint256 payoutToken1) = user1.burn(tokenID1);
-        assertEq(payoutToken1, 150);
-        (, uint256 payoutToken2) = user2.burn(tokenID2);
-        assertEq(payoutToken2, 125);
+        {
+            assertReserveAndExcessZero(stakeNFTHugeAcc, 275, 0);
+            (, uint256 payoutToken1) = user1.burn(tokenID1);
+            assertEq(payoutToken1, 150);
+            assertReserveAndExcessZero(stakeNFTHugeAcc, 125, 0);
+        }
+        {
+            (, uint256 payoutToken2) = user2.burn(tokenID2);
+            assertEq(payoutToken2, 125);
+        }
+        assertReserveAndExcessZero(stakeNFTHugeAcc, 0, 0);
     }
 
     function testCollectEtherWithOverflowOnTheAccumulator() public {
@@ -1637,6 +1772,7 @@ contract StakeNFTTest is DSTest {
                 expectedAccumulatorToken
             )
         );
+        assertReserveAndExcessZero(stakeNFTHugeAcc, user1Shares, 0);
         (uint256 acc, uint256 slush) = stakeNFTHugeAcc.getEthAccumulator();
         assertEq(acc, expectedAccumulatorETH);
         assertEq(slush, 0);
@@ -1647,6 +1783,7 @@ contract StakeNFTTest is DSTest {
         expectedAccumulatorETH +=
             (deposit1 * stakeNFTHugeAcc.accumulatorScaleFactor()) /
             user1Shares;
+        assertReserveAndExcessZero(stakeNFTHugeAcc, user1Shares, deposit1);
 
         uint224 user2Shares = 50;
         uint256 tokenID2 = user2.mint(user2Shares);
@@ -1664,7 +1801,7 @@ contract StakeNFTTest is DSTest {
             assertEq(acc_, expectedAccumulatorETH);
             assertEq(slush_, 0);
         }
-
+        assertReserveAndExcessZero(stakeNFTHugeAcc, user1Shares + user2Shares, deposit1);
         // the overflow should happen here as we are incrementing the accumulator by 150 * 10**16
         uint256 deposit2 = 150; //wei
         donator.depositEth(deposit2);
@@ -1676,14 +1813,17 @@ contract StakeNFTTest is DSTest {
         assertEq(acc, expectedAccumulatorETH);
         assertEq(acc, 1000000000000000000);
         assertEq(slush, 0);
+        assertReserveAndExcessZero(stakeNFTHugeAcc, user1Shares + user2Shares, deposit1 + deposit2);
 
         setBlockNumber(block.number+2);
 
         // Testing collecting the dividends after the accumulator overflow
         assertEq(stakeNFTHugeAcc.estimateEthCollection(tokenID1), 100);
         assertEq(user1.collectEth(tokenID1), 100);
+        assertReserveAndExcessZero(stakeNFTHugeAcc, 100, 75);
         assertEq(stakeNFTHugeAcc.estimateEthCollection(tokenID2), 75);
         assertEq(user2.collectEth(tokenID2), 75);
+        assertReserveAndExcessZero(stakeNFTHugeAcc, 100, 0);
     }
 
     function testBurnEtherWithOverflowOnTheAccumulator() public {
@@ -1719,6 +1859,7 @@ contract StakeNFTTest is DSTest {
                 expectedAccumulatorToken
             )
         );
+        assertReserveAndExcessZero(stakeNFTHugeAcc, user1Shares, 0);
         (uint256 acc, uint256 slush) = stakeNFTHugeAcc.getEthAccumulator();
         assertEq(acc, expectedAccumulatorETH);
         assertEq(slush, 0);
@@ -1729,7 +1870,7 @@ contract StakeNFTTest is DSTest {
         expectedAccumulatorETH +=
             (deposit1 * stakeNFTHugeAcc.accumulatorScaleFactor()) /
             user1Shares;
-
+        assertReserveAndExcessZero(stakeNFTHugeAcc, user1Shares, deposit1);
         uint224 user2Shares = 50;
         uint256 tokenID2 = user2.mint(user2Shares);
         assertPosition(
@@ -1747,6 +1888,7 @@ contract StakeNFTTest is DSTest {
             assertEq(acc_, expectedAccumulatorETH);
             assertEq(slush_, 0);
         }
+        assertReserveAndExcessZero(stakeNFTHugeAcc, user1Shares + user2Shares, deposit1);
 
         // the overflow should happen here. As we are incrementing the accumulator by 150 * 10**16
         uint256 deposit2 = 150; //wei
@@ -1759,6 +1901,7 @@ contract StakeNFTTest is DSTest {
         assertEq(acc, expectedAccumulatorETH);
         assertEq(acc, 1000000000000000000);
         assertEq(slush, 0);
+        assertReserveAndExcessZero(stakeNFTHugeAcc, user1Shares + user2Shares, deposit1 + deposit2);
 
         setBlockNumber(block.number+2);
 
@@ -1769,13 +1912,18 @@ contract StakeNFTTest is DSTest {
         assertEq(stakeNFTHugeAcc.estimateEthCollection(tokenID2), 75);
         // advance block number
         require(setBlockNumber(block.number + 2));
-
-        (uint256 payoutEth1, uint256 payoutToken1) = user1.burn(tokenID1);
-        assertEq(payoutEth1, 100);
-        assertEq(payoutToken1, 50);
-        (uint256 payoutEth2, uint256 payoutToken2) = user2.burn(tokenID2);
-        assertEq(payoutEth2, 75);
-        assertEq(payoutToken2, 50);
+       {
+            (uint256 payoutEth1, uint256 payoutToken1) = user1.burn(tokenID1);
+            assertEq(payoutEth1, 100);
+            assertEq(payoutToken1, 50);
+        }
+        assertReserveAndExcessZero(stakeNFTHugeAcc, 50, 75);
+        {
+            (uint256 payoutEth2, uint256 payoutToken2) = user2.burn(tokenID2);
+            assertEq(payoutEth2, 75);
+            assertEq(payoutToken2, 50);
+        }
+        assertReserveAndExcessZero(stakeNFTHugeAcc, 0, 0);
     }
 
     function testLockPosition() public {
@@ -1796,6 +1944,7 @@ contract StakeNFTTest is DSTest {
         );
         assertEq(stakeNFT.balanceOf(address(user)), 1);
         assertEq(stakeNFT.ownerOf(tokenID), address(user));
+        assertReserveAndExcessZero(stakeNFT, 1000, 0);
 
         governance.lockPosition(address(user), tokenID, 172800);
     }
@@ -1818,6 +1967,7 @@ contract StakeNFTTest is DSTest {
         );
         assertEq(stakeNFT.balanceOf(address(user)), 1);
         assertEq(stakeNFT.ownerOf(tokenID), address(user));
+        assertReserveAndExcessZero(stakeNFT, 1000, 0);
 
         governance.lockPosition(address(user), tokenID, 172800);
         setBlockNumber(block.number + 172801);
@@ -1828,6 +1978,7 @@ contract StakeNFTTest is DSTest {
         assertEq(madToken.balanceOf(address(user)), 1000);
         assertEq(madToken.balanceOf(address(stakeNFT)), 0);
         assertEq(stakeNFT.balanceOf(address(user)), 0);
+        assertReserveAndExcessZero(stakeNFT, 0, 0);
     }
 
     function testFail_LockPositionAndTryToBurnBeforeLockHasFinished() public {
@@ -2053,6 +2204,7 @@ contract StakeNFTTest is DSTest {
         madToken.transfer(address(user1), 100);
         user1.approve(address(stakeNFT), 100);
         uint256 tokenID = user1.mint(100);
+        assertReserveAndExcessZero(stakeNFT, 100, 0);
 
         setBlockNumber(block.number+2);
 
@@ -2064,6 +2216,7 @@ contract StakeNFTTest is DSTest {
         assertEq(stakeNFT.balanceOf(address(user1)), 0);
         assertEq(stakeNFT.balanceOf(address(user2)), 1);
         assertEq(stakeNFT.balanceOf(address(stakeNFT)), 0);
+        assertReserveAndExcessZero(stakeNFT, 100, 0);
     }
 
     function testFail_SafeTransferPosition_toReentrantLoopBurnERC721Receiver() public {
@@ -2155,12 +2308,14 @@ contract StakeNFTTest is DSTest {
         assertEq(stakeNFT.balanceOf(address(user1)), 1);
         assertEq(stakeNFT.ownerOf(token1User1), address(user1));
         assertEq(stakeNFT.balanceOf(address(user2)), 0);
+        assertReserveAndExcessZero(stakeNFT, 100 * ONE_MADTOKEN, 0);
 
         user1.transferFrom(address(user1), address(user2), token1User1);
 
         assertEq(stakeNFT.balanceOf(address(user1)), 0);
         assertEq(stakeNFT.ownerOf(token1User1), address(user2));
         assertEq(stakeNFT.balanceOf(address(user2)), 1);
+        assertReserveAndExcessZero(stakeNFT, 100 * ONE_MADTOKEN, 0);
     }
 
     function testApproveTransferPosition() public {
@@ -2182,6 +2337,7 @@ contract StakeNFTTest is DSTest {
         assertEq(stakeNFT.balanceOf(address(user1)), 1);
         assertEq(stakeNFT.ownerOf(token1User1), address(user1));
         assertEq(stakeNFT.balanceOf(address(user2)), 0);
+        assertReserveAndExcessZero(stakeNFT, 100 * ONE_MADTOKEN, 0);
 
         //approving user2 to transfer user1 token
         user1.approveNFT(address(user2), token1User1);
@@ -2190,6 +2346,7 @@ contract StakeNFTTest is DSTest {
         assertEq(stakeNFT.balanceOf(address(user1)), 0);
         assertEq(stakeNFT.ownerOf(token1User1), address(user2));
         assertEq(stakeNFT.balanceOf(address(user2)), 1);
+        assertReserveAndExcessZero(stakeNFT, 100 * ONE_MADTOKEN, 0);
     }
 
     function testApproveAllTransferPosition() public {
@@ -2210,6 +2367,7 @@ contract StakeNFTTest is DSTest {
         );
         assertEq(stakeNFT.balanceOf(address(user1)), 1);
         assertEq(stakeNFT.ownerOf(token1User1), address(user1));
+        assertReserveAndExcessZero(stakeNFT, 50  * ONE_MADTOKEN, 0);
 
         uint256 token2User1 = user1.mint(50 * ONE_MADTOKEN);
         assertPosition(
@@ -2219,6 +2377,7 @@ contract StakeNFTTest is DSTest {
         assertEq(stakeNFT.balanceOf(address(user1)), 2);
         assertEq(stakeNFT.ownerOf(token2User1), address(user1));
         assertEq(stakeNFT.balanceOf(address(user2)), 0);
+        assertReserveAndExcessZero(stakeNFT, 100  * ONE_MADTOKEN, 0);
 
         //approving the test contract to transfer all user1 token
         user1.setApprovalForAll(address(this), true);
@@ -2230,6 +2389,7 @@ contract StakeNFTTest is DSTest {
         assertEq(stakeNFT.balanceOf(address(user2)), 1);
         assertEq(stakeNFT.ownerOf(token2User1), address(this));
         assertEq(stakeNFT.balanceOf(address(this)), 1);
+        assertReserveAndExcessZero(stakeNFT, 100 * ONE_MADTOKEN, 0);
     }
 
     function testFail_TransferNotOwnedPositionWithoutApproval() public {
@@ -2376,5 +2536,175 @@ contract StakeNFTTest is DSTest {
 
         assertEq(madToken.balanceOf(address(user)), 0);
         assertEq(madToken.balanceOf(address(stakeNFT)), 100 * ONE_MADTOKEN);
+    }
+
+    function testSkimExcessEth() public {
+        // transferring money before the contract is created
+        payable(address(0xf5a2fE45F4f1308502b1C136b9EF8af136141382)).transfer(100 ether + 1);
+        (StakeNFT stakeNFT, MadTokenMock madToken, AdminAccount admin , ) = getFixtureData();
+        assertEq(address(stakeNFT).balance, 100 ether + 1);
+        assertReserveAndExcess(stakeNFT, 0, 0, 0, 100 ether + 1);
+        UserAccount user = newUserAccount(madToken, stakeNFT);
+        assertEq(address(user).balance, 0);
+        admin.skimExcessEth(address(user));
+        assertEq(address(user).balance, 100 ether + 1);
+        assertEq(address(stakeNFT).balance, 0);
+    }
+
+    function testSkimExcessToken() public {
+        (StakeNFT stakeNFT, MadTokenMock madToken, AdminAccount admin , ) = getFixtureData();
+        // transferring Token excess
+        madToken.transfer(address(0xf5a2fE45F4f1308502b1C136b9EF8af136141382), 1000 * ONE_MADTOKEN + 1);
+        assertEq(madToken.balanceOf(address(stakeNFT)), 1000 * ONE_MADTOKEN + 1);
+        assertReserveAndExcess(stakeNFT, 0, 0, 1000 * ONE_MADTOKEN + 1, 0);
+        UserAccount user = newUserAccount(madToken, stakeNFT);
+        assertEq(madToken.balanceOf(address(user)), 0);
+        admin.skimExcessToken(address(user));
+        assertEq(madToken.balanceOf(address(user)), 1000 * ONE_MADTOKEN + 1);
+        assertEq(madToken.balanceOf(address(stakeNFT)), 0);
+    }
+
+    function testSkimExcessWithMintBurnCollectAndDeposit() public {
+        // transferring money before the contract is created
+        payable(address(0xf5a2fE45F4f1308502b1C136b9EF8af136141382)).transfer(100 ether + 1);
+        (StakeNFT stakeNFT, MadTokenMock madToken, AdminAccount admin , ) = getFixtureData();
+        // transferring Token excess
+        madToken.transfer(address(0xf5a2fE45F4f1308502b1C136b9EF8af136141382), 1000 * ONE_MADTOKEN + 1);
+        assertEq(address(stakeNFT).balance, 100 ether + 1);
+        assertReserveAndExcess(stakeNFT, 0, 0, 1000 * ONE_MADTOKEN + 1, 100 ether + 1);
+
+        UserAccount user1 = newUserAccount(madToken, stakeNFT);
+        assertEq(address(user1).balance, 0);
+        UserAccount user2 = newUserAccount(madToken, stakeNFT);
+        UserAccount user3 = newUserAccount(madToken, stakeNFT);
+        UserAccount donator = newUserAccount(madToken, stakeNFT);
+
+        madToken.transfer(address(user1), 10 * ONE_MADTOKEN);
+        madToken.transfer(address(user2), 10 * ONE_MADTOKEN);
+        madToken.transfer(address(user3), 10 * ONE_MADTOKEN);
+        madToken.transfer(address(donator), 100000 * ONE_MADTOKEN);
+
+        user1.approve(address(stakeNFT), 10 * ONE_MADTOKEN);
+        user2.approve(address(stakeNFT), 10 * ONE_MADTOKEN);
+        user3.approve(address(stakeNFT), 10 * ONE_MADTOKEN);
+        donator.approve(address(stakeNFT), 100000 * ONE_MADTOKEN);
+        payable(address(donator)).transfer(100000 ether);
+
+        uint256 sharesPerUser = 10 * ONE_MADTOKEN;
+        uint256 tokenID1 = user1.mint(sharesPerUser);
+        setBlockNumber(block.number+2);
+        {
+            uint256 payout = user1.collectToken(tokenID1);
+            assertEq(payout, 0);
+            payout = user1.collectEth(tokenID1);
+            assertEq(payout, 0);
+        }
+        uint256 tokenID2 = user2.mint(sharesPerUser);
+        uint256 tokenID3 = user3.mint(sharesPerUser);
+        assertReserveAndExcess(stakeNFT, 30 * ONE_MADTOKEN, 0 ether, 1000 * ONE_MADTOKEN + 1, 100 ether + 1);
+
+        setBlockNumber(block.number+2);
+
+        uint256 credits = 0;
+        uint256 debits = 0;
+        for (uint256 i =0; i < 2; i++){
+            donator.depositEth(1000);
+            credits += 1000;
+            uint256 payout = user1.collectEth(tokenID1);
+            assertEq(payout, 330);
+            debits += payout;
+            uint256 payout2 = user2.collectEth(tokenID2);
+            assertEq(payout2, 330);
+            debits += payout2;
+            uint256 payout3 = user3.collectEth(tokenID3);
+            assertEq(payout3, 330);
+            debits += payout3;
+        }
+        {
+            emit log_named_uint("Balance ETH: ", address(stakeNFT).balance);
+            (, uint256 slush) = stakeNFT.getEthAccumulator();
+            assertEq(slush, (credits - debits) * 10**18);
+            assertReserveAndExcess(stakeNFT, 30 * ONE_MADTOKEN, (credits - debits), 1000 * ONE_MADTOKEN + 1, 100 ether + 1);
+        }
+        {
+            donator.depositEth(2000);
+            credits += 2000;
+            assertReserveAndExcess(stakeNFT, 30 * ONE_MADTOKEN, (credits - debits), 1000 * ONE_MADTOKEN + 1, 100 ether + 1);
+            uint256 payout = user1.collectEth(tokenID1);
+            assertEq(payout, 670);
+            debits += payout;
+            uint256 payout2 = user2.collectEth(tokenID2);
+            assertEq(payout2, 670);
+            debits += payout2;
+            uint256 payout3 = user3.collectEth(tokenID3);
+            assertEq(payout3, 670);
+            debits += payout3;
+        }
+        {
+            (, uint256 slush) = stakeNFT.getEthAccumulator();
+            assertEq(slush, (credits - debits) * 10**18);
+            assertEq(slush, 10 * 10**18);
+        }
+        {
+            donator.depositToken(2000);
+            assertReserveAndExcess(stakeNFT, 30 * ONE_MADTOKEN + 2000, (credits - debits), 1000 * ONE_MADTOKEN + 1, 100 ether + 1);
+            uint256 payout = user1.collectToken(tokenID1);
+            assertEq(payout, 660);
+            uint256 payout2 = user2.collectToken(tokenID2);
+            assertEq(payout2, 660);
+            uint256 payout3 = user3.collectToken(tokenID3);
+            assertEq(payout3, 660);
+        }
+        assertReserveAndExcess(stakeNFT, 30 * ONE_MADTOKEN + 20, (credits - debits), 1000 * ONE_MADTOKEN + 1, 100 ether + 1);
+        {
+            (, uint256 slush) = stakeNFT.getEthAccumulator();
+            assertEq(slush, (credits - debits) * 10**18);
+            assertEq(slush, 10 * 10**18);
+        }
+        {
+            (, uint256 slush) = stakeNFT.getTokenAccumulator();
+            assertEq(slush, 20 * 10**18);
+        }
+
+        assertEq(madToken.balanceOf(address(stakeNFT)), 1000 * ONE_MADTOKEN + 1 + 30 * ONE_MADTOKEN + 20);
+        admin.skimExcessToken(address(user2));
+        assertEq(madToken.balanceOf(address(user2)), 1000 * ONE_MADTOKEN + 1 + 660);
+        assertEq(madToken.balanceOf(address(stakeNFT)), 30 * ONE_MADTOKEN + 20);
+        assertReserveAndExcess(stakeNFT, 30 * ONE_MADTOKEN + 20, (credits - debits), 0, 100 ether + 1);
+
+        madToken.transfer(address(0xf5a2fE45F4f1308502b1C136b9EF8af136141382), 100 * ONE_MADTOKEN + 1);
+        {
+            (uint256 payoutEth, uint256 payoutToken) = user1.burn(tokenID1);
+            assertEq(payoutEth, 0);
+            assertEq(payoutToken, 10 * ONE_MADTOKEN);
+            assertEq(stakeNFT.balanceOf(address(user1)), 0);
+            assertReserveAndExcess(stakeNFT, 20 * ONE_MADTOKEN + 20, (credits - debits), 100 * ONE_MADTOKEN + 1, 100 ether + 1);
+
+            (payoutEth, payoutToken) = user2.burn(tokenID2);
+            assertEq(payoutEth, 0);
+            assertEq(payoutToken, 10 * ONE_MADTOKEN);
+            assertEq(stakeNFT.balanceOf(address(user2)), 0);
+            assertReserveAndExcess(stakeNFT, 10 * ONE_MADTOKEN + 20, (credits - debits), 100 * ONE_MADTOKEN + 1, 100 ether + 1);
+
+
+            // last user gets the slush as well
+            (payoutEth, payoutToken) = user3.burn(tokenID3);
+            assertEq(payoutEth, (credits - debits));
+            assertEq(payoutToken, 10 * ONE_MADTOKEN + 20);
+            assertEq(stakeNFT.balanceOf(address(user3)), 0);
+            assertReserveAndExcess(stakeNFT, 0, 0, 100 * ONE_MADTOKEN + 1, 100 ether + 1);
+        }
+
+        assertEq(address(stakeNFT).balance, 100 ether + 1);
+        admin.skimExcessEth(address(user1));
+        assertEq(address(user1).balance, 1330 + 100 ether + 1);
+        assertEq(address(stakeNFT).balance, 0);
+
+        assertEq(madToken.balanceOf(address(stakeNFT)), 100 * ONE_MADTOKEN + 1);
+        admin.skimExcessToken(address(user3));
+        assertEq(madToken.balanceOf(address(user3)), (100 * ONE_MADTOKEN + 1) + 660 + (10 * ONE_MADTOKEN) + 20);
+        assertReserveAndExcess(stakeNFT, 0, 0, 0, 0);
+
+        assertEq(madToken.balanceOf(address(stakeNFT)), 0);
     }
 }

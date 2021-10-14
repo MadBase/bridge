@@ -67,6 +67,10 @@ contract StakeNFT is ERC721, MagicValue, Admin, Governance, CircuitBreaker, Atom
     // _positions tracks all staked positions based on tokenID
     mapping (uint256=>Position) _positions;
 
+    uint256 _reserveEth;
+
+    uint256 _reserveToken;
+
 
     constructor(IERC20Transfer MadToken_, address admin_, address governance_) ERC721("MNStake","MNS") Governance(governance_) Admin(admin_) {
         _MadToken = MadToken_;
@@ -93,6 +97,16 @@ contract StakeNFT is ERC721, MagicValue, Admin, Governance, CircuitBreaker, Atom
         return _shares;
     }
 
+    /// gets the total amount of MadToken staked in contract
+    function getTotalReserveEth() public view returns(uint256) {
+        return _reserveEth;
+    }
+
+    /// gets the total amount of MadToken staked in contract
+    function getTotalReserveMadToken() public view returns(uint256) {
+        return _reserveToken;
+    }
+
     /// estimateEthCollection returns the amount of eth a tokenID may withdraw
     function estimateEthCollection(uint256 tokenID_) public view returns(uint256 payout) {
         require(_exists(tokenID_), "StakeNFT: Error, NFT token doesn't exist!");
@@ -107,6 +121,46 @@ contract StakeNFT is ERC721, MagicValue, Admin, Governance, CircuitBreaker, Atom
         Position memory p = _positions[tokenID_];
         (, , , payout) = _collect(_shares, _tokenState, p, p.accumulatorToken);
         return payout;
+    }
+
+    /// estimateExcessToken returns the amount of MadToken that is held in the
+    /// name of this contract. The value returned is the value that would be
+    /// returned by a call to skimExcessToken.
+    function estimateExcessToken() public view returns(uint256 excess) {
+        ( , excess) = _estimateExcessToken();
+        return excess;
+    }
+
+    /// estimateExcessEth returns the amount of Eth that is held in the name of
+    /// this contract. The value returned is the value that would be returned by
+    /// a call to skimExcessEth.
+    function estimateExcessEth() public view returns(uint256 excess) {
+        return _estimateExcessEth();
+    }
+
+    /// skimExcessEth will send to the address passed as to_ any amount of Eth
+    /// held by this contract that is not tracked by the Accumulator system. This
+    /// function allows the Admin role to refund any Eth sent to this contract in
+    /// error by a user. This method can not return any funds sent to the contract
+    /// via the depositEth method. This function should only be necessary if a
+    /// user somehow manages to accidentally selfDestruct a contract with this
+    /// contract as the recipient.
+    function skimExcessEth(address to_) public onlyAdmin returns(uint256 excess) {
+        excess = _estimateExcessEth();
+        _safeTransferEth(to_, excess);
+        return excess;
+    }
+
+    /// skimExcessToken will send to the address passed as to_ any amount of
+    /// MadToken held by this contract that is not tracked by the Accumulator
+    /// system. This function allows the Admin role to refund any MadToken sent to
+    /// this contract in error by a user. This method can not return any funds
+    /// sent to the contract via the depositToken method.
+    function skimExcessToken(address to_) public onlyAdmin returns(uint256 excess) {
+        IERC20Transfer MadToken;
+        (MadToken, excess) = _estimateExcessToken();
+        _safeTransferERC20(MadToken, to_, excess);
+        return excess;
     }
 
     /// lockPosition is called by governance system when a governance
@@ -139,6 +193,7 @@ contract StakeNFT is ERC721, MagicValue, Admin, Governance, CircuitBreaker, Atom
         _safeTransferFromERC20(_MadToken, msg.sender, amount_);
         // update state
         _tokenState = _deposit(_shares, amount_, _tokenState);
+        _reserveToken += amount_;
     }
 
     /// DO NOT CALL THIS METHOD UNLESS YOU ARE MAKING A DISTRIBUTION ALL VALUE
@@ -150,6 +205,7 @@ contract StakeNFT is ERC721, MagicValue, Admin, Governance, CircuitBreaker, Atom
     /// source code and hopefully this comment
     function depositEth(uint8 magic_) public payable withCB checkMagic(magic_) {
         _ethState = _deposit(_shares, msg.value, _ethState);
+        _reserveEth += msg.value;
     }
 
     /// mint allows a staking position to be opened. This function
@@ -199,7 +255,7 @@ contract StakeNFT is ERC721, MagicValue, Admin, Governance, CircuitBreaker, Atom
 
         // get values and update state
         (_positions[tokenID_], payout) = _collectEth(_shares, position);
-
+        _reserveEth -= payout;
         // perform transfer and return amount paid out
         _safeTransferEth(owner, payout);
         return payout;
@@ -215,7 +271,7 @@ contract StakeNFT is ERC721, MagicValue, Admin, Governance, CircuitBreaker, Atom
         require(position.freeAfter < block.number, "StakeNFT: The position is not ready to be collected!");
         // get values and update state
         (_positions[tokenID_], payout) = _collectToken(_shares, position);
-
+        _reserveToken -= payout;
         // perform transfer and return amount paid out
         _safeTransferERC20(_MadToken, owner, payout);
         return payout;
@@ -265,8 +321,8 @@ contract StakeNFT is ERC721, MagicValue, Admin, Governance, CircuitBreaker, Atom
 
     // _mintNFT performs the mint operation and invokes the inherited _mint method
     function _mintNFT(address to_, uint256 amount_) internal returns(uint256 tokenID) {
-        // amount must be less than maxUInt32 - this is to allow struct packing
-        // and is safe due to MadToken having a total distribution of 220M
+        // this is to allow struct packing and is safe due to MadToken having a
+        // total distribution of 220M
         require(amount_ <= 2**224-1, "StakeNFT: The amount exceeds the maximum number of MadTokens that will ever exist!");
         // transfer the number of tokens specified by amount_ into contract
         // from the callers account
@@ -286,7 +342,7 @@ contract StakeNFT is ERC721, MagicValue, Admin, Governance, CircuitBreaker, Atom
         _ethState = ethState;
         _tokenState = tokenState;
         _positions[tokenID] = Position(uint224(amount_), 1, ethState.accumulator, tokenState.accumulator);
-
+        _reserveToken += amount_;
         // invoke inherited method and return
         ERC721._mint(to_, tokenID);
         return tokenID;
@@ -315,6 +371,8 @@ contract StakeNFT is ERC721, MagicValue, Admin, Governance, CircuitBreaker, Atom
 
         // debit global shares counter and delete from mapping
         _shares -= p.shares;
+        _reserveToken -= payoutToken;
+        _reserveEth -= payoutEth;
         delete _positions[tokenID_];
 
         // invoke inherited burn method
@@ -329,42 +387,27 @@ contract StakeNFT is ERC721, MagicValue, Admin, Governance, CircuitBreaker, Atom
     // _estimateExcessEth returns the amount of Eth that is held in the name of
     // this contract
     function _estimateExcessEth() internal view returns(uint256 excess) {
-        Accumulator memory state = _ethState;
+        uint256 reserve = _reserveEth;
         uint256 balance = address(this).balance;
-        excess = _estimateExcess(state, balance);
-        return excess;
+        require(balance >= reserve, "StakeNFT: The balance of the contract is less then the tracked reserve!");
+        excess =  balance - reserve;
     }
 
     // _estimateExcessToken returns the amount of MadToken that is held in the
     // name of this contract
     function _estimateExcessToken() internal view returns(IERC20Transfer MadToken, uint256 excess) {
-        Accumulator memory state = _tokenState;
+        uint256 reserve = _reserveToken;
         MadToken = _MadToken;
         uint256 balance = MadToken.balanceOf(address(this));
-        excess = _estimateExcess(state, balance);
+        require(balance >= reserve, "StakeNFT: The balance of the contract is less then the tracked reserve!");
+        excess =  balance - reserve;
         return (MadToken, excess);
-    }
-
-     // _estimateExcess calculates excess value for an asset in a type agnostic
-     // manner to reduce redundant logic
-    function _estimateExcess(Accumulator memory state_, uint256 balance_) internal view returns(uint256 excess) {
-        uint256 shares = _shares;
-        excess = balance_ - shares * state_.accumulator + state_.slush;
-        return excess;
     }
 
     function _collectToken(uint256 shares_, Position memory p_) internal returns(Position memory p, uint256 payout) {
         uint256 acc;
         (_tokenState, p, acc, payout) = _collect(shares_, _tokenState, p_, p_.accumulatorToken);
         p.accumulatorToken = acc;
-        // The last person exiting gets any excess in the token Balance that is
-        // not tracked by the contract
-        if (shares_ == p_.shares) {
-            uint256 balance = _MadToken.balanceOf(address(this)) - p_.shares;
-            if (payout < balance) {
-                payout = balance;
-            }
-        }
         return (p, payout);
     }
 
@@ -374,14 +417,6 @@ contract StakeNFT is ERC721, MagicValue, Admin, Governance, CircuitBreaker, Atom
         uint256 acc;
         (_ethState, p, acc, payout) = _collect(shares_, _ethState, p_, p_.accumulatorEth);
         p.accumulatorEth = acc;
-        // The last person exiting gets any excess in the Balance that is not
-        // tracked by the contract
-        if (shares_ == p_.shares) {
-            uint256 balance = (address(this)).balance;
-            if (payout < balance) {
-                payout = balance;
-            }
-        }
         return (p, payout);
     }
 
