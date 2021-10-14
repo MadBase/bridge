@@ -2832,6 +2832,7 @@ contract StakeNFTTest is DSTest {
         setBlockNumber(block.number+2);
         donator.depositEth(1000 ether);
         admin.skimExcessEth(address(user));
+    }
 
     function testCanEstimateEthWithoutNewBlocks() public {
         (StakeNFT stakeNFT, MadTokenMock madToken, , ) = getFixtureData();
@@ -2853,13 +2854,15 @@ contract StakeNFTTest is DSTest {
         madToken.transfer(address(user), 100 * ONE_MADTOKEN);
         user.approve(address(stakeNFT), 100 * ONE_MADTOKEN);
 
-        uint256 tokenID = user.mintTo(address(user2), 100 * ONE_MADTOKEN, 1);
-
+        uint256 tokenID = user.mint(100 * ONE_MADTOKEN);
         assertPosition(
             getCurrentPosition(stakeNFT, tokenID),
             StakeNFT.Position(uint224(100 * ONE_MADTOKEN), 1, 1, 0, 0)
         );
-
+        assertEq(stakeNFT.ownerOf(tokenID), address(user));
+        user.transferFrom(address(user), address(user2), tokenID);
+        assertEq(stakeNFT.ownerOf(tokenID), address(user2));
+        // old user should not be able to withdraw after transfer
         user.lockWithdraw(tokenID, 10);
     }
 
@@ -2871,14 +2874,19 @@ contract StakeNFTTest is DSTest {
         madToken.transfer(address(user), 100 * ONE_MADTOKEN);
         user.approve(address(stakeNFT), 100 * ONE_MADTOKEN);
 
-        uint256 tokenID = user.mintTo(address(user2), 100 * ONE_MADTOKEN, 1);
-
+        uint256 tokenID = user.mint(100 * ONE_MADTOKEN);
         assertPosition(
             getCurrentPosition(stakeNFT, tokenID),
             StakeNFT.Position(uint224(100 * ONE_MADTOKEN), 1, 1, 0, 0)
         );
+        //Old user locks the position
+        user.lockWithdraw(tokenID, 10);
 
-        user2.lockWithdraw(tokenID, 10);
+        assertEq(stakeNFT.ownerOf(tokenID), address(user));
+        user.transferFrom(address(user), address(user2), tokenID);
+        assertEq(stakeNFT.ownerOf(tokenID), address(user2));
+
+        // old user trying to collect ETh after transferring the token
         user.collectEth(tokenID);
     }
 
@@ -2890,14 +2898,18 @@ contract StakeNFTTest is DSTest {
         madToken.transfer(address(user), 100 * ONE_MADTOKEN);
         user.approve(address(stakeNFT), 100 * ONE_MADTOKEN);
 
-        uint256 tokenID = user.mintTo(address(user2), 100 * ONE_MADTOKEN, 1);
-
+        uint256 tokenID = user.mint(100 * ONE_MADTOKEN);
         assertPosition(
             getCurrentPosition(stakeNFT, tokenID),
             StakeNFT.Position(uint224(100 * ONE_MADTOKEN), 1, 1, 0, 0)
         );
+        //Old user locks the position
+        user.lockWithdraw(tokenID, 10);
 
-        user2.lockWithdraw(tokenID, 10);
+        assertEq(stakeNFT.ownerOf(tokenID), address(user));
+        user.transferFrom(address(user), address(user2), tokenID);
+        assertEq(stakeNFT.ownerOf(tokenID), address(user2));
+        setBlockNumber(block.number+9);
         user2.collectEth(tokenID);
     }
 
@@ -2909,14 +2921,18 @@ contract StakeNFTTest is DSTest {
         madToken.transfer(address(user), 100 * ONE_MADTOKEN);
         user.approve(address(stakeNFT), 100 * ONE_MADTOKEN);
 
-        uint256 tokenID = user.mintTo(address(user2), 100 * ONE_MADTOKEN, 1);
-
+        uint256 tokenID = user.mint(100 * ONE_MADTOKEN);
         assertPosition(
             getCurrentPosition(stakeNFT, tokenID),
             StakeNFT.Position(uint224(100 * ONE_MADTOKEN), 1, 1, 0, 0)
         );
+        //Old user locks the position
+        user.lockWithdraw(tokenID, 10);
 
-        user2.lockWithdraw(tokenID, 10);
+        assertEq(stakeNFT.ownerOf(tokenID), address(user));
+        user.transferFrom(address(user), address(user2), tokenID);
+        assertEq(stakeNFT.ownerOf(tokenID), address(user2));
+        setBlockNumber(block.number+9);
         user2.burn(tokenID);
     }
 
@@ -2928,14 +2944,17 @@ contract StakeNFTTest is DSTest {
         madToken.transfer(address(user), 100 * ONE_MADTOKEN);
         user.approve(address(stakeNFT), 100 * ONE_MADTOKEN);
 
-        uint256 tokenID = user.mintTo(address(user2), 100 * ONE_MADTOKEN, 1);
-
+        uint256 tokenID = user.mint(100 * ONE_MADTOKEN);
         assertPosition(
             getCurrentPosition(stakeNFT, tokenID),
             StakeNFT.Position(uint224(100 * ONE_MADTOKEN), 1, 1, 0, 0)
         );
+        //Old user locks the position
+        user.lockWithdraw(tokenID, 10);
 
-        user2.lockWithdraw(tokenID, 10);
+        assertEq(stakeNFT.ownerOf(tokenID), address(user));
+        user.transferFrom(address(user), address(user2), tokenID);
+        assertEq(stakeNFT.ownerOf(tokenID), address(user2));
 
         setBlockNumber(block.number+11);
         user2.burn(tokenID);
@@ -3092,6 +3111,11 @@ contract StakeNFTTest is DSTest {
             GovernanceAccount governance
         ) = getFixtureData();
         UserAccount user = newUserAccount(madToken, stakeNFT);
+        UserAccount donator = newUserAccount(madToken, stakeNFT);
+
+        madToken.transfer(address(donator), 100000 * ONE_MADTOKEN);
+        donator.approve(address(stakeNFT), 100000 * ONE_MADTOKEN);
+        payable(address(donator)).transfer(100000 ether);
 
         madToken.approve(address(stakeNFT), 1000);
         uint256 tokenID = stakeNFT.mintTo(address(user), 1000, 0);
@@ -3103,8 +3127,14 @@ contract StakeNFTTest is DSTest {
         assertEq(stakeNFT.balanceOf(address(user)), 1);
         assertEq(stakeNFT.ownerOf(tokenID), address(user));
 
+        donator.depositEth(10 ether);
+        donator.depositToken(10 * ONE_MADTOKEN);
+
         governance.lockPosition(address(user), tokenID, 850);
         user.lockWithdraw(tokenID, 800);
+
+        assertEq(stakeNFT.estimateTokenCollection(tokenID), 10 * ONE_MADTOKEN);
+        assertEq(stakeNFT.estimateEthCollection(tokenID), 10 ether);
 
         setBlockNumber(block.number + 801);
 

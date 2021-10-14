@@ -33,7 +33,6 @@ contract StakeNFT is ERC721, MagicValue, Admin, Governance, CircuitBreaker, Atom
         uint32 freeAfter;
 
         // block number after which the position may be collected or burned.
-        // todo: delete this: "prevents double spend of voting weight"
         uint32 withdrawFreeAfter;
 
         // the last value of the ethState accumulator this account performed a
