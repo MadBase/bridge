@@ -105,7 +105,7 @@ contract StakeNFT is ERC721, MagicValue, Admin, Governance, CircuitBreaker, Atom
         return _shares;
     }
 
-    /// gets the total amount of MadToken staked in contract
+    /// gets the total amount of Ether staked in contract
     function getTotalReserveEth() public view returns(uint256) {
         return _reserveEth;
     }
