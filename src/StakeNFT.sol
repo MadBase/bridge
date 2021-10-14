@@ -201,9 +201,6 @@ contract StakeNFT is ERC721, MagicValue, Admin, Governance, CircuitBreaker, Atom
         Position memory position = _positions[tokenID_];
         require(_positions[tokenID_].withdrawFreeAfter < block.number, "StakeNFT: Cannot withdraw at the moment.");
 
-        // enforce freeAfter to prevent collect during lock
-        require(position.freeAfter < block.number, "StakeNFT: The position is not ready to be collected!");
-
         // get values and update state
         (_positions[tokenID_], payout) = _collectEth(_shares, position);
 

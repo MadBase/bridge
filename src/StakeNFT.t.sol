@@ -2516,4 +2516,179 @@ contract StakeNFTTest is DSTest {
         setBlockNumber(block.number+11);
         user2.burn(tokenID);
     }
+
+    function testCollectAfterLockPosition() public {
+        (
+            StakeNFT stakeNFT,
+            MadTokenMock madToken,
+            ,
+            GovernanceAccount governance
+        ) = getFixtureData();
+        UserAccount user = newUserAccount(madToken, stakeNFT);
+
+        madToken.approve(address(stakeNFT), 1000);
+        uint256 tokenID = stakeNFT.mintTo(address(user), 1000, 0);
+
+        assertPosition(
+            getCurrentPosition(stakeNFT, tokenID),
+            StakeNFT.Position(1000, 1, 1, 0, 0)
+        );
+        assertEq(stakeNFT.balanceOf(address(user)), 1);
+        assertEq(stakeNFT.ownerOf(tokenID), address(user));
+
+        governance.lockPosition(address(user), tokenID, 800);
+
+        setBlockNumber(block.number + 2);
+
+        user.collectEth(tokenID);
+    }
+
+    function testLockWithdrawAfterLockPosition() public {
+        (
+            StakeNFT stakeNFT,
+            MadTokenMock madToken,
+            ,
+            GovernanceAccount governance
+        ) = getFixtureData();
+        UserAccount user = newUserAccount(madToken, stakeNFT);
+
+        madToken.approve(address(stakeNFT), 1000);
+        uint256 tokenID = stakeNFT.mintTo(address(user), 1000, 0);
+
+        assertPosition(
+            getCurrentPosition(stakeNFT, tokenID),
+            StakeNFT.Position(1000, 1, 1, 0, 0)
+        );
+        assertEq(stakeNFT.balanceOf(address(user)), 1);
+        assertEq(stakeNFT.ownerOf(tokenID), address(user));
+
+        governance.lockPosition(address(user), tokenID, 800);
+        user.lockWithdraw(tokenID, 850);
+
+        assertPosition(
+            getCurrentPosition(stakeNFT, tokenID),
+            StakeNFT.Position(1000, 800, 850, 0, 0)
+        );
+    }
+
+    function testFail_LockWithdrawAfterLockPosition() public {
+        (
+            StakeNFT stakeNFT,
+            MadTokenMock madToken,
+            ,
+            GovernanceAccount governance
+        ) = getFixtureData();
+        UserAccount user = newUserAccount(madToken, stakeNFT);
+
+        madToken.approve(address(stakeNFT), 1000);
+        uint256 tokenID = stakeNFT.mintTo(address(user), 1000, 0);
+
+        assertPosition(
+            getCurrentPosition(stakeNFT, tokenID),
+            StakeNFT.Position(1000, 1, 1, 0, 0)
+        );
+        assertEq(stakeNFT.balanceOf(address(user)), 1);
+        assertEq(stakeNFT.ownerOf(tokenID), address(user));
+
+        governance.lockPosition(address(user), tokenID, 800);
+        user.lockWithdraw(tokenID, 850);
+
+        setBlockNumber(block.number + 801);
+
+        user.collectEth(tokenID);
+    }
+
+    function testCollectAfterLockPosition_AndLater_BurnAfterLockedWithdraw() public {
+        (
+            StakeNFT stakeNFT,
+            MadTokenMock madToken,
+            ,
+            GovernanceAccount governance
+        ) = getFixtureData();
+        UserAccount user = newUserAccount(madToken, stakeNFT);
+
+        madToken.approve(address(stakeNFT), 1000);
+        uint256 tokenID = stakeNFT.mintTo(address(user), 1000, 0);
+
+        assertPosition(
+            getCurrentPosition(stakeNFT, tokenID),
+            StakeNFT.Position(1000, 1, 1, 0, 0)
+        );
+        assertEq(stakeNFT.balanceOf(address(user)), 1);
+        assertEq(stakeNFT.ownerOf(tokenID), address(user));
+
+        governance.lockPosition(address(user), tokenID, 850);
+        user.lockWithdraw(tokenID, 800);
+
+        setBlockNumber(block.number + 802);
+
+        user.collectEth(tokenID);
+
+        setBlockNumber(block.number + 51);
+
+        user.burn(tokenID);
+    }
+
+    function testCollectAfterLockPosition_AndLater_CollectAfterLockedWithdraw() public {
+        (
+            StakeNFT stakeNFT,
+            MadTokenMock madToken,
+            ,
+            GovernanceAccount governance
+        ) = getFixtureData();
+        UserAccount user = newUserAccount(madToken, stakeNFT);
+
+        madToken.approve(address(stakeNFT), 1000);
+        uint256 tokenID = stakeNFT.mintTo(address(user), 1000, 0);
+
+        assertPosition(
+            getCurrentPosition(stakeNFT, tokenID),
+            StakeNFT.Position(1000, 1, 1, 0, 0)
+        );
+        assertEq(stakeNFT.balanceOf(address(user)), 1);
+        assertEq(stakeNFT.ownerOf(tokenID), address(user));
+
+        governance.lockPosition(address(user), tokenID, 850);
+        user.lockWithdraw(tokenID, 800);
+
+        setBlockNumber(block.number + 801);
+
+        user.collectEth(tokenID);
+
+        setBlockNumber(block.number + 51);
+
+        user.collectEth(tokenID);
+    }
+
+    function testCollectAfterLockPosition_AndLater_CollectAndBurnAfterLockedWithdraw() public {
+        (
+            StakeNFT stakeNFT,
+            MadTokenMock madToken,
+            ,
+            GovernanceAccount governance
+        ) = getFixtureData();
+        UserAccount user = newUserAccount(madToken, stakeNFT);
+
+        madToken.approve(address(stakeNFT), 1000);
+        uint256 tokenID = stakeNFT.mintTo(address(user), 1000, 0);
+
+        assertPosition(
+            getCurrentPosition(stakeNFT, tokenID),
+            StakeNFT.Position(1000, 1, 1, 0, 0)
+        );
+        assertEq(stakeNFT.balanceOf(address(user)), 1);
+        assertEq(stakeNFT.ownerOf(tokenID), address(user));
+
+        governance.lockPosition(address(user), tokenID, 850);
+        user.lockWithdraw(tokenID, 800);
+
+        setBlockNumber(block.number + 801);
+
+        user.collectEth(tokenID);
+
+        setBlockNumber(block.number + 51);
+
+        user.collectEth(tokenID);
+        user.burn(tokenID);
+    }
 }
