@@ -149,7 +149,7 @@ contract ReentrantFiniteEthCollectorAccount is BaseMock {
     receive() external payable virtual override {
         if (_count < 2) {
             _count++;
-            collectEth(tokenID);
+            collectEth(1);
         } else {
             return;
         }
@@ -277,6 +277,25 @@ contract ReentrantLoopCollectEthERC721ReceiverAccount is BaseMock, IERC721Receiv
     }
 }
 
+contract AdminAccountReEntrant is BaseMock {
+    uint256 public _count = 0;
+
+    constructor() {}
+
+    function skimExcessEth(address to_) public returns(uint256 excess) {
+        return stakeNFT.skimExcessEth(to_);
+    }
+
+    receive() external payable virtual override {
+        if (_count < 2) {
+            _count++;
+            stakeNFT.skimExcessEth(address(this));
+        } else {
+            return;
+        }
+    }
+}
+
 contract StakeNFTHugeAccumulator is StakeNFT {
     uint256 public constant offsetToOverflow = 1_000000000000000000;
 
@@ -330,6 +349,28 @@ contract StakeNFTTest is DSTest {
         admin = new AdminAccount();
         madToken = new MadTokenMock(address(this));
         stakeNFT = new StakeNFTHugeAccumulator(
+            IERC20Transfer(address(madToken)),
+            address(admin),
+            address(governance)
+        );
+
+        admin.setTokens(madToken, stakeNFT);
+        governance.setTokens(madToken, stakeNFT);
+    }
+
+    function getFixtureDataAdminReEntrant()
+        internal
+        returns (
+            StakeNFT stakeNFT,
+            MadTokenMock madToken,
+            AdminAccountReEntrant admin,
+            GovernanceAccount governance
+        )
+    {
+        governance = new GovernanceAccount();
+        admin = new AdminAccountReEntrant();
+        madToken = new MadTokenMock(address(this));
+        stakeNFT = new StakeNFT(
             IERC20Transfer(address(madToken)),
             address(admin),
             address(governance)
@@ -2078,7 +2119,7 @@ contract StakeNFTTest is DSTest {
         payable(address(donator)).transfer(2000 ether);
 
         uint256 tokenID = user.mint(100);
-
+        setBlockNumber(block.number+2);
         donator.depositEth(1000 ether);
 
         user.collectEth(tokenID);
@@ -2086,32 +2127,32 @@ contract StakeNFTTest is DSTest {
         // it should not get here
     }
 
-    function testFail_ReentrantFiniteCollectEth() public {
+    function test_ReentrantFiniteCollectEth() public {
         (StakeNFT stakeNFT, MadTokenMock madToken, , ) = getFixtureData();
         UserAccount donator = newUserAccount(madToken, stakeNFT);
+        UserAccount honestUser = newUserAccount(madToken, stakeNFT);
         ReentrantFiniteEthCollectorAccount user = new ReentrantFiniteEthCollectorAccount();
         user.setTokens(madToken, stakeNFT);
 
         madToken.transfer(address(user), 100);
-        //madToken.transfer(address(donator), 210_000_000 * ONE_MADTOKEN );
+        madToken.transfer(address(honestUser), 100);
 
         user.approve(address(stakeNFT), 100);
-        //donator.approve(address(stakeNFT), 210_000_000 * ONE_MADTOKEN);
+        honestUser.approve(address(stakeNFT), 100);
 
-        //payable(address(user)).transfer(2000 ether);
         payable(address(donator)).transfer(2000 ether);
 
         uint256 tokenID = user.mint(100);
-
+        uint256 honestTokenID = honestUser.mint(100);
+        setBlockNumber(block.number+2);
         donator.depositEth(1000 ether);
-
-        user.collectEth(tokenID);
-
-        // it should not get here
-
-        //assertEq(payout, 1000 ether);
-
-        //assertEq(address(user).balance, 1000 ether);
+        // the result with re-entrance should be the same as calling collectEth only once
+        uint256 payout = user.collectEth(tokenID);
+        assertEq(payout, 500 ether);
+        assertEq(address(user).balance, 500 ether);
+        payout = honestUser.collectEth(honestTokenID);
+        assertEq(payout, 500 ether);
+        assertEq(address(honestUser).balance, 500 ether);
     }
 
     function testFail_ReentrantLoopBurn() public {
@@ -2130,7 +2171,7 @@ contract StakeNFTTest is DSTest {
         payable(address(donator)).transfer(2000 ether);
 
         uint256 tokenID = user.mint(100);
-
+        setBlockNumber(block.number+2);
         donator.depositEth(1000 ether);
 
         user.burn(tokenID);
@@ -2156,7 +2197,7 @@ contract StakeNFTTest is DSTest {
         uint256 tokenID = user.mint(100);
 
         donator.depositEth(1000 ether);
-
+        setBlockNumber(block.number+2);
         user.burn(tokenID);
 
         // it should not get here
@@ -2706,5 +2747,60 @@ contract StakeNFTTest is DSTest {
         assertReserveAndExcess(stakeNFT, 0, 0, 0, 0);
 
         assertEq(madToken.balanceOf(address(stakeNFT)), 0);
+    }
+
+    function test_ReentrantSkimExcessEth() public {
+        // transferring money before the contract is created
+        payable(address(0xf5a2fE45F4f1308502b1C136b9EF8af136141382)).transfer(100 ether);
+        (StakeNFT stakeNFT, MadTokenMock madToken, AdminAccountReEntrant admin, ) = getFixtureDataAdminReEntrant();
+        UserAccount donator = newUserAccount(madToken, stakeNFT);
+        UserAccount honestUser = newUserAccount(madToken, stakeNFT);
+
+        madToken.transfer(address(honestUser), 100);
+        honestUser.approve(address(stakeNFT), 100);
+        payable(address(donator)).transfer(2000 ether);
+
+        uint256 tokenID1 = honestUser.mint(50);
+        uint256 TokenID2 = honestUser.mint(50);
+        setBlockNumber(block.number+2);
+        donator.depositEth(1000 ether);
+
+        // calling with reentrancy should yield the same result as calling it normally
+        admin.skimExcessEth(address(admin));
+        assertEq(address(admin).balance, 100 ether);
+
+        uint256 payout = honestUser.collectEth(tokenID1);
+        assertEq(payout, 500 ether);
+        assertEq(address(honestUser).balance, 500 ether);
+        payout = honestUser.collectEth(TokenID2);
+        assertEq(payout, 500 ether);
+        assertEq(address(honestUser).balance, 1000 ether);
+
+    }
+
+    function testFail_ReentrantNoAdmin() public {
+        // transferring money before the contract is created
+        payable(address(0xf5a2fE45F4f1308502b1C136b9EF8af136141382)).transfer(100 ether);
+        (StakeNFT stakeNFT, MadTokenMock madToken, AdminAccount admin , ) = getFixtureData();
+        UserAccount donator = newUserAccount(madToken, stakeNFT);
+        UserAccount honestUser = newUserAccount(madToken, stakeNFT);
+        AdminAccountReEntrant user = new AdminAccountReEntrant();
+        user.setTokens(madToken, stakeNFT);
+
+        madToken.transfer(address(user), 100);
+        madToken.transfer(address(honestUser), 100);
+
+        user.approve(address(stakeNFT), 100);
+        honestUser.approve(address(stakeNFT), 100);
+
+        payable(address(donator)).transfer(2000 ether);
+
+        uint256 tokenID = user.mint(100);
+        uint256 honestTokenID = honestUser.mint(100);
+
+        setBlockNumber(block.number+2);
+        donator.depositEth(1000 ether);
+        admin.skimExcessEth(address(user));
+
     }
 }
