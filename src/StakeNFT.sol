@@ -71,8 +71,12 @@ contract StakeNFT is ERC721, MagicValue, Admin, Governance, CircuitBreaker, Atom
     // _positions tracks all staked positions based on tokenID
     mapping (uint256=>Position) _positions;
 
+    // state to keep track of the amount of Eth deposited and collected from the
+    // contract
     uint256 _reserveEth;
 
+    // state to keep track of the amount of MadTokens deposited and collected
+    // from the contract
     uint256 _reserveToken;
 
 
