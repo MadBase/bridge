@@ -26,7 +26,7 @@ contract StakeNFT is ERC721, MagicValue, Admin, Governance, CircuitBreaker, Atom
     // Position describes a staked position
     struct Position {
         // number of madToken
-        uint224 shares;
+        uint192 shares;
 
         // block number after which the position may be burned.
         // prevents double spend of voting weight
@@ -362,7 +362,7 @@ contract StakeNFT is ERC721, MagicValue, Admin, Governance, CircuitBreaker, Atom
         _shares = shares;
         _ethState = ethState;
         _tokenState = tokenState;
-        _positions[tokenID] = Position(uint224(amount_), 1, 1, ethState.accumulator, tokenState.accumulator);
+        _positions[tokenID] = Position(uint192(amount_), 1, 1, ethState.accumulator, tokenState.accumulator);
         _reserveToken += amount_;
         // invoke inherited method and return
         ERC721._mint(to_, tokenID);
