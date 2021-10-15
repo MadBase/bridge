@@ -917,7 +917,7 @@ contract StakeNFTTest is DSTest {
             debits += payout3;
         }
         {
-            //emit log_named_uint("Balance ETH: ", address(stakeNFT).balance);
+            emit log_named_uint("Balance ETH: ", address(stakeNFT).balance);
             (, uint256 slush) = stakeNFT.getEthAccumulator();
             assertEq(slush, (credits - debits) * 10**18);
             assertReserveAndExcessZero(stakeNFT, 30, (credits - debits));
