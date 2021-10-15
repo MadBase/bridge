@@ -263,6 +263,39 @@ contract MadByteTest is DSTest, Sigmoid {
         assertEq(token.getPoolBalance(), 2 ether);
     }
 
+    function testMintExpectedBondingCurvePoints() public {
+        (MadByte token1,,,,) = getFixtureData();
+        (MadByte token2,,,,) = getFixtureData();
+        (MadByte token3,,,,) = getFixtureData();
+
+        uint256 madBytes = token1.mint{value: 10_000 ether}(0);
+        assertEq(madBytes, 936764568799449143863271);
+        assertEq(token1.totalSupply(), madBytes);
+        assertEq(address(token1).balance, 10_000 ether);
+        assertEq(token1.getPoolBalance(), 2_500 ether);
+
+        // at 20k ether we have a nice rounding value for madbytes generated
+        madBytes = token1.mint{value: 10_000 ether}(0);
+        assertEq(madBytes, 1005000000000000000000000 - 936764568799449143863271);
+        assertEq(token1.totalSupply(), 1005000000000000000000000);
+        assertEq(address(token1).balance, 20_000 ether);
+        assertEq(token1.getPoolBalance(), 5_000 ether);
+
+        // the only nice value when minting happens when we mint 20k ether
+        madBytes = token2.mint{value: 20_000 ether}(0);
+        assertEq(madBytes, 1005000000000000000000000);
+        assertEq(token2.totalSupply(), madBytes);
+        assertEq(address(token2).balance, 20_000 ether);
+        assertEq(token2.getPoolBalance(), 5_000 ether);
+
+        madBytes = token3.mint{value: 25_000 ether}(0);
+        assertEq(madBytes, 1007899288252135716968558);
+        assertEq(token3.totalSupply(), madBytes);
+        assertEq(address(token3).balance, 25_000 ether);
+        assertEq(token3.getPoolBalance(), 6_250 ether);
+
+    }
+
     function testMintWithBillionsOfEthereum() public {
         ( MadByte token, , , , ) = getFixtureData();
         assertEq(token.totalSupply(), 0);
