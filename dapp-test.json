@@ -174,7 +174,7 @@
       "urls": ["src/StakeNFT.t.sol"]
     },
     "src/GovernanceManager.t.sol": {
-        "urls": ["GovernanceManager.t.sol"]
+        "urls": ["src/GovernanceManager.t.sol"]
     }
   },
   "settings": {
