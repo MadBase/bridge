@@ -241,6 +241,11 @@ contract MadByteTest is DSTest, Sigmoid {
         admin.setMinerSplit(100); // 100 = 10%, 1000 = 100%
     }
 
+    function testFail_SettingMinerSplitGreaterThanMadUnitOne() public {
+        (,AdminAccount admin,,,) = getFixtureData();
+        admin.setMinerSplit(1000);
+    }
+
     function testMint() public {
         (MadByte token,,,,) = getFixtureData();
 
