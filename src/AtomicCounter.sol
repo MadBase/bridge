@@ -4,10 +4,10 @@ pragma solidity ^0.8.0;
 
 abstract contract AtomicCounter {
 
-    // monoatimically increasing counter
+    // monotonically increasing counter
     uint256 _counter = 0;
-    
-    
+
+
     // _newTokenID increments the counter and returns the new value
     function _increment() internal returns (uint256 count) {
         count = _counter;
@@ -15,7 +15,7 @@ abstract contract AtomicCounter {
         _counter = count;
         return count;
     }
-    
+
     function _getCount() internal view returns (uint256) {
         return _counter;
     }

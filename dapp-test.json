@@ -147,13 +147,13 @@
       "urls": ["src/parsers/RCertParserLibrary.t.sol"]
     },
     "src/parsers/BClaimsParserLibrary.t.sol": {
-        "urls": ["src/parsers/BClaimsParserLibrary.t.sol"]
+      "urls": ["src/parsers/BClaimsParserLibrary.t.sol"]
     },
     "src/parsers/PClaimsParserLibrary.t.sol": {
-        "urls": ["src/parsers/PClaimsParserLibrary.t.sol"]
+      "urls": ["src/parsers/PClaimsParserLibrary.t.sol"]
     },
     "src/facets/MerkleProofLibrary.t.sol": {
-        "urls": ["src/facets/MerkleProofLibrary.t.sol"]
+      "urls": ["src/facets/MerkleProofLibrary.t.sol"]
     },
     "src/parsers/MerkleProofParserLibrary.t.sol": {
       "urls": ["src/parsers/MerkleProofParserLibrary.t.sol"]
@@ -162,13 +162,16 @@
       "urls": ["src/parsers/TXInPreImageParserLibrary.t.sol"]
     },
     "src/facets/AccusationMultipleProposalFacet.t.sol": {
-        "urls": ["src/facets/AccusationMultipleProposalFacet.t.sol"]
+      "urls": ["src/facets/AccusationMultipleProposalFacet.t.sol"]
     },
     "src/facets/AccusationInvalidTransactionConsumptionFacet.t.sol": {
       "urls": ["src/facets/AccusationInvalidTransactionConsumptionFacet.t.sol"]
     },
     "src/MadByte.t.sol": {
       "urls": ["src/MadByte.t.sol"]
+    },
+    "src/StakeNFT.t.sol": {
+      "urls": ["src/StakeNFT.t.sol"]
     }
   },
   "settings": {

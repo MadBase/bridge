@@ -14,7 +14,7 @@ abstract contract Governance {
     // onlyGovernance is a modifer that enforces a call
     // must be performed by the governance contract
     modifier onlyGovernance() {
-        require(msg.sender == getGovernance());
+        require(msg.sender == getGovernance(), "Action must be performed by the governance contract!");
         _;
     }
 
