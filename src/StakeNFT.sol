@@ -26,14 +26,14 @@ contract StakeNFT is ERC721, MagicValue, Admin, Governance, CircuitBreaker, Atom
     // Position describes a staked position
     struct Position {
         // number of madToken
-        uint192 shares;
+        uint224 shares;
 
         // block number after which the position may be burned.
         // prevents double spend of voting weight
         uint32 freeAfter;
 
         // block number after which the position may be collected or burned.
-        uint32 withdrawFreeAfter;
+        uint256 withdrawFreeAfter;
 
         // the last value of the ethState accumulator this account performed a
         // withdraw at
@@ -334,7 +334,7 @@ contract StakeNFT is ERC721, MagicValue, Admin, Governance, CircuitBreaker, Atom
     function _lockWithdraw(uint256 tokenID_, uint256 duration_) internal returns(uint256 shares) {
         require(_exists(tokenID_), "StakeNFT: Token ID doesn't exist!");
         Position memory p = _positions[tokenID_];
-        uint32 freeDur = uint32(block.number) + uint32(duration_);
+        uint256 freeDur = block.number + duration_;
         p.withdrawFreeAfter = freeDur > p.withdrawFreeAfter ? freeDur : p.withdrawFreeAfter;
         _positions[tokenID_] = p;
         return p.shares;
@@ -362,7 +362,7 @@ contract StakeNFT is ERC721, MagicValue, Admin, Governance, CircuitBreaker, Atom
         _shares = shares;
         _ethState = ethState;
         _tokenState = tokenState;
-        _positions[tokenID] = Position(uint192(amount_), 1, 1, ethState.accumulator, tokenState.accumulator);
+        _positions[tokenID] = Position(uint224(amount_), 1, 1, ethState.accumulator, tokenState.accumulator);
         _reserveToken += amount_;
         // invoke inherited method and return
         ERC721._mint(to_, tokenID);

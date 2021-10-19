@@ -412,7 +412,7 @@ contract StakeNFTTest is DSTest {
             uint256 accumulatorToken
         ) = stakeNFT.getPosition(tokenID);
         actual = StakeNFT.Position(
-            uint192(shares),
+            uint224(shares),
             uint32(freeAfter),
             uint32(withdrawFreeAfter),
             accumulatorEth,
@@ -1346,13 +1346,13 @@ contract StakeNFTTest is DSTest {
         uint256 tokenID1 = user1.mint(1000 * ONE_MADTOKEN);
         assertPosition(
             getCurrentPosition(stakeNFT, tokenID1),
-            StakeNFT.Position(uint192(1000 * ONE_MADTOKEN), 1, 1, 0, 0)
+            StakeNFT.Position(uint224(1000 * ONE_MADTOKEN), 1, 1, 0, 0)
         );
         assertReserveAndExcessZero(stakeNFT, 1000 * ONE_MADTOKEN, 0);
         uint256 tokenID2 = user2.mint(800 * ONE_MADTOKEN);
         assertPosition(
             getCurrentPosition(stakeNFT, tokenID2),
-            StakeNFT.Position(uint192(800 * ONE_MADTOKEN), 1, 1, 0, 0)
+            StakeNFT.Position(uint224(800 * ONE_MADTOKEN), 1, 1, 0, 0)
         );
         assertReserveAndExcessZero(stakeNFT, 1800 * ONE_MADTOKEN, 0);
 
@@ -1366,7 +1366,7 @@ contract StakeNFTTest is DSTest {
         uint256 tokenID3 = user2.mint(200 * ONE_MADTOKEN);
         assertPosition(
             getCurrentPosition(stakeNFT, tokenID3),
-            StakeNFT.Position(uint192(200 * ONE_MADTOKEN), 1, 1, 10**18, 10**18)
+            StakeNFT.Position(uint224(200 * ONE_MADTOKEN), 1, 1, 10**18, 10**18)
         );
         assertReserveAndExcessZero(stakeNFT, 3800 * ONE_MADTOKEN, 1800 ether);
 
@@ -1538,7 +1538,7 @@ contract StakeNFTTest is DSTest {
         uint256 tokenID1 = user1.mint(1000 * ONE_MADTOKEN);
         assertPosition(
             getCurrentPosition(stakeNFT, tokenID1),
-            StakeNFT.Position(uint192(1000 * ONE_MADTOKEN), 1, 1, 0, 0)
+            StakeNFT.Position(uint224(1000 * ONE_MADTOKEN), 1, 1, 0, 0)
         );
 
         user2.collectToken(tokenID1);
@@ -1556,7 +1556,7 @@ contract StakeNFTTest is DSTest {
         uint256 tokenID1 = user1.mint(1000 * ONE_MADTOKEN);
         assertPosition(
             getCurrentPosition(stakeNFT, tokenID1),
-            StakeNFT.Position(uint192(1000 * ONE_MADTOKEN), 1, 1, 0, 0)
+            StakeNFT.Position(uint224(1000 * ONE_MADTOKEN), 1, 1, 0, 0)
         );
 
         user2.collectEth(tokenID1);
@@ -1574,7 +1574,7 @@ contract StakeNFTTest is DSTest {
         uint256 tokenID1 = user1.mint(1000 * ONE_MADTOKEN);
         assertPosition(
             getCurrentPosition(stakeNFT, tokenID1),
-            StakeNFT.Position(uint192(1000 * ONE_MADTOKEN), 1, 1, 0, 0)
+            StakeNFT.Position(uint224(1000 * ONE_MADTOKEN), 1, 1, 0, 0)
         );
 
         user2.burn(tokenID1);
@@ -1613,7 +1613,7 @@ contract StakeNFTTest is DSTest {
             stakeNFTHugeAcc.getOffsetToOverflow();
         uint256 expectedAccumulatorETH = type(uint168).max -
             stakeNFTHugeAcc.getOffsetToOverflow();
-        uint192 user1Shares = 50;
+        uint224 user1Shares = 50;
         uint256 tokenID1 = user1.mint(user1Shares);
         assertPosition(
             getCurrentPosition(stakeNFTHugeAcc, tokenID1),
@@ -1638,7 +1638,7 @@ contract StakeNFTTest is DSTest {
             (deposit1 * stakeNFTHugeAcc.accumulatorScaleFactor()) /
             user1Shares;
 
-        uint192 user2Shares = 50;
+        uint224 user2Shares = 50;
         uint256 tokenID2 = user2.mint(user2Shares);
         assertPosition(
             getCurrentPosition(stakeNFTHugeAcc, tokenID2),
@@ -1708,7 +1708,7 @@ contract StakeNFTTest is DSTest {
             stakeNFTHugeAcc.getOffsetToOverflow();
         uint256 expectedAccumulatorETH = type(uint168).max -
             stakeNFTHugeAcc.getOffsetToOverflow();
-        uint192 user1Shares = 50;
+        uint224 user1Shares = 50;
         uint256 tokenID1 = user1.mint(user1Shares);
         assertPosition(
             getCurrentPosition(stakeNFTHugeAcc, tokenID1),
@@ -1732,7 +1732,7 @@ contract StakeNFTTest is DSTest {
             (deposit1 * stakeNFTHugeAcc.accumulatorScaleFactor()) /
             user1Shares;
         assertReserveAndExcessZero(stakeNFTHugeAcc, user1Shares + deposit1, 0);
-        uint192 user2Shares = 50;
+        uint224 user2Shares = 50;
         uint256 tokenID2 = user2.mint(user2Shares);
         assertPosition(
             getCurrentPosition(stakeNFTHugeAcc, tokenID2),
@@ -1809,7 +1809,7 @@ contract StakeNFTTest is DSTest {
             stakeNFTHugeAcc.getOffsetToOverflow();
         uint256 expectedAccumulatorETH = type(uint168).max -
             stakeNFTHugeAcc.getOffsetToOverflow();
-        uint192 user1Shares = 50;
+        uint224 user1Shares = 50;
         uint256 tokenID1 = user1.mint(user1Shares);
         assertPosition(
             getCurrentPosition(stakeNFTHugeAcc, tokenID1),
@@ -1834,7 +1834,7 @@ contract StakeNFTTest is DSTest {
             user1Shares;
         assertReserveAndExcessZero(stakeNFTHugeAcc, user1Shares, deposit1);
 
-        uint192 user2Shares = 50;
+        uint224 user2Shares = 50;
         uint256 tokenID2 = user2.mint(user2Shares);
         assertPosition(
             getCurrentPosition(stakeNFTHugeAcc, tokenID2),
@@ -1898,7 +1898,7 @@ contract StakeNFTTest is DSTest {
             stakeNFTHugeAcc.getOffsetToOverflow();
         uint256 expectedAccumulatorETH = type(uint168).max -
             stakeNFTHugeAcc.getOffsetToOverflow();
-        uint192 user1Shares = 50;
+        uint224 user1Shares = 50;
         uint256 tokenID1 = user1.mint(user1Shares);
         assertPosition(
             getCurrentPosition(stakeNFTHugeAcc, tokenID1),
@@ -1922,7 +1922,7 @@ contract StakeNFTTest is DSTest {
             (deposit1 * stakeNFTHugeAcc.accumulatorScaleFactor()) /
             user1Shares;
         assertReserveAndExcessZero(stakeNFTHugeAcc, user1Shares, deposit1);
-        uint192 user2Shares = 50;
+        uint224 user2Shares = 50;
         uint256 tokenID2 = user2.mint(user2Shares);
         assertPosition(
             getCurrentPosition(stakeNFTHugeAcc, tokenID2),
@@ -2355,7 +2355,7 @@ contract StakeNFTTest is DSTest {
         uint256 token1User1 = user1.mint(100 * ONE_MADTOKEN);
         assertPosition(
             getCurrentPosition(stakeNFT, token1User1),
-            StakeNFT.Position(uint192(100 * ONE_MADTOKEN), 1, 1, 0, 0)
+            StakeNFT.Position(uint224(100 * ONE_MADTOKEN), 1, 1, 0, 0)
         );
         assertEq(stakeNFT.balanceOf(address(user1)), 1);
         assertEq(stakeNFT.ownerOf(token1User1), address(user1));
@@ -2384,7 +2384,7 @@ contract StakeNFTTest is DSTest {
         uint256 token1User1 = user1.mint(100 * ONE_MADTOKEN);
         assertPosition(
             getCurrentPosition(stakeNFT, token1User1),
-            StakeNFT.Position(uint192(100 * ONE_MADTOKEN), 1, 1, 0, 0)
+            StakeNFT.Position(uint224(100 * ONE_MADTOKEN), 1, 1, 0, 0)
         );
         assertEq(stakeNFT.balanceOf(address(user1)), 1);
         assertEq(stakeNFT.ownerOf(token1User1), address(user1));
@@ -2415,7 +2415,7 @@ contract StakeNFTTest is DSTest {
         uint256 token1User1 = user1.mint(50 * ONE_MADTOKEN);
         assertPosition(
             getCurrentPosition(stakeNFT, token1User1),
-            StakeNFT.Position(uint192(50 * ONE_MADTOKEN), 1, 1, 0, 0)
+            StakeNFT.Position(uint224(50 * ONE_MADTOKEN), 1, 1, 0, 0)
         );
         assertEq(stakeNFT.balanceOf(address(user1)), 1);
         assertEq(stakeNFT.ownerOf(token1User1), address(user1));
@@ -2424,7 +2424,7 @@ contract StakeNFTTest is DSTest {
         uint256 token2User1 = user1.mint(50 * ONE_MADTOKEN);
         assertPosition(
             getCurrentPosition(stakeNFT, token2User1),
-            StakeNFT.Position(uint192(50 * ONE_MADTOKEN), 1, 1, 0, 0)
+            StakeNFT.Position(uint224(50 * ONE_MADTOKEN), 1, 1, 0, 0)
         );
         assertEq(stakeNFT.balanceOf(address(user1)), 2);
         assertEq(stakeNFT.ownerOf(token2User1), address(user1));
@@ -2458,7 +2458,7 @@ contract StakeNFTTest is DSTest {
         uint256 token1User1 = user1.mint(50 * ONE_MADTOKEN);
         assertPosition(
             getCurrentPosition(stakeNFT, token1User1),
-            StakeNFT.Position(uint192(50 * ONE_MADTOKEN), 1, 1, 0, 0)
+            StakeNFT.Position(uint224(50 * ONE_MADTOKEN), 1, 1, 0, 0)
         );
         assertEq(stakeNFT.balanceOf(address(user1)), 1);
         assertEq(stakeNFT.ownerOf(token1User1), address(user1));
@@ -2481,7 +2481,7 @@ contract StakeNFTTest is DSTest {
         uint256 token1User1 = user1.mint(50 * ONE_MADTOKEN);
         assertPosition(
             getCurrentPosition(stakeNFT, token1User1),
-            StakeNFT.Position(uint192(50 * ONE_MADTOKEN), 1, 1, 0, 0)
+            StakeNFT.Position(uint224(50 * ONE_MADTOKEN), 1, 1, 0, 0)
         );
         assertEq(stakeNFT.balanceOf(address(user1)), 1);
         assertEq(stakeNFT.ownerOf(token1User1), address(user1));
@@ -2489,7 +2489,7 @@ contract StakeNFTTest is DSTest {
         uint256 token2User1 = user1.mint(50 * ONE_MADTOKEN);
         assertPosition(
             getCurrentPosition(stakeNFT, token2User1),
-            StakeNFT.Position(uint192(50 * ONE_MADTOKEN), 1, 1, 0, 0)
+            StakeNFT.Position(uint224(50 * ONE_MADTOKEN), 1, 1, 0, 0)
         );
         assertEq(stakeNFT.balanceOf(address(user1)), 2);
         assertEq(stakeNFT.ownerOf(token2User1), address(user1));
@@ -2512,7 +2512,7 @@ contract StakeNFTTest is DSTest {
 
         assertPosition(
             getCurrentPosition(stakeNFT, tokenID),
-            StakeNFT.Position(uint192(100 * ONE_MADTOKEN), 1, 1, 0, 0)
+            StakeNFT.Position(uint224(100 * ONE_MADTOKEN), 1, 1, 0, 0)
         );
 
         user.lockWithdraw(tokenID, 10);
@@ -2532,7 +2532,7 @@ contract StakeNFTTest is DSTest {
 
         assertPosition(
             getCurrentPosition(stakeNFT, tokenID),
-            StakeNFT.Position(uint192(100 * ONE_MADTOKEN), 1, 1, 0, 0)
+            StakeNFT.Position(uint224(100 * ONE_MADTOKEN), 1, 1, 0, 0)
         );
 
         user.lockWithdraw(tokenID, 10);
@@ -2557,7 +2557,7 @@ contract StakeNFTTest is DSTest {
 
         assertPosition(
             getCurrentPosition(stakeNFT, tokenID),
-            StakeNFT.Position(uint192(100 * ONE_MADTOKEN), 1, 1, 0, 0)
+            StakeNFT.Position(uint224(100 * ONE_MADTOKEN), 1, 1, 0, 0)
         );
 
         user.lockWithdraw(tokenID, 10);
@@ -2577,7 +2577,7 @@ contract StakeNFTTest is DSTest {
 
         assertPosition(
             getCurrentPosition(stakeNFT, tokenID),
-            StakeNFT.Position(uint192(100 * ONE_MADTOKEN), 1, 1, 0, 0)
+            StakeNFT.Position(uint224(100 * ONE_MADTOKEN), 1, 1, 0, 0)
         );
 
         user.lockWithdraw(tokenID, 10);
@@ -2597,7 +2597,7 @@ contract StakeNFTTest is DSTest {
 
         assertPosition(
             getCurrentPosition(stakeNFT, tokenID),
-            StakeNFT.Position(uint192(100 * ONE_MADTOKEN), 1, 1, 0, 0)
+            StakeNFT.Position(uint224(100 * ONE_MADTOKEN), 1, 1, 0, 0)
         );
 
         user.lockWithdraw(tokenID, 10);
@@ -2857,7 +2857,7 @@ contract StakeNFTTest is DSTest {
         uint256 tokenID = user.mint(100 * ONE_MADTOKEN);
         assertPosition(
             getCurrentPosition(stakeNFT, tokenID),
-            StakeNFT.Position(uint192(100 * ONE_MADTOKEN), 1, 1, 0, 0)
+            StakeNFT.Position(uint224(100 * ONE_MADTOKEN), 1, 1, 0, 0)
         );
         assertEq(stakeNFT.ownerOf(tokenID), address(user));
         user.transferFrom(address(user), address(user2), tokenID);
@@ -2877,7 +2877,7 @@ contract StakeNFTTest is DSTest {
         uint256 tokenID = user.mint(100 * ONE_MADTOKEN);
         assertPosition(
             getCurrentPosition(stakeNFT, tokenID),
-            StakeNFT.Position(uint192(100 * ONE_MADTOKEN), 1, 1, 0, 0)
+            StakeNFT.Position(uint224(100 * ONE_MADTOKEN), 1, 1, 0, 0)
         );
         //Old user locks the position
         user.lockWithdraw(tokenID, 10);
@@ -2901,7 +2901,7 @@ contract StakeNFTTest is DSTest {
         uint256 tokenID = user.mint(100 * ONE_MADTOKEN);
         assertPosition(
             getCurrentPosition(stakeNFT, tokenID),
-            StakeNFT.Position(uint192(100 * ONE_MADTOKEN), 1, 1, 0, 0)
+            StakeNFT.Position(uint224(100 * ONE_MADTOKEN), 1, 1, 0, 0)
         );
         //Old user locks the position
         user.lockWithdraw(tokenID, 10);
@@ -2924,7 +2924,7 @@ contract StakeNFTTest is DSTest {
         uint256 tokenID = user.mint(100 * ONE_MADTOKEN);
         assertPosition(
             getCurrentPosition(stakeNFT, tokenID),
-            StakeNFT.Position(uint192(100 * ONE_MADTOKEN), 1, 1, 0, 0)
+            StakeNFT.Position(uint224(100 * ONE_MADTOKEN), 1, 1, 0, 0)
         );
         //Old user locks the position
         user.lockWithdraw(tokenID, 10);
@@ -2947,7 +2947,7 @@ contract StakeNFTTest is DSTest {
         uint256 tokenID = user.mint(100 * ONE_MADTOKEN);
         assertPosition(
             getCurrentPosition(stakeNFT, tokenID),
-            StakeNFT.Position(uint192(100 * ONE_MADTOKEN), 1, 1, 0, 0)
+            StakeNFT.Position(uint224(100 * ONE_MADTOKEN), 1, 1, 0, 0)
         );
         //Old user locks the position
         user.lockWithdraw(tokenID, 10);
