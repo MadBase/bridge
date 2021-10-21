@@ -65,6 +65,12 @@
     "src/interfaces/ValidatorsEvents.sol": {
       "urls": ["src/interfaces/ValidatorsEvents.sol"]
     },
+    "src/interfaces/ValidatorLocations.sol": {
+      "urls": ["src/interfaces/ValidatorLocations.sol"]
+    },
+    "src/facets/ValidatorLocationsFacet.sol": {
+      "urls": ["src/facets/ValidatorLocationsFacet.sol"]
+    },
     "src/interfaces/Token.sol": { "urls": ["src/interfaces/Token.sol"] },
     "src/interfaces/Participants.sol": {
       "urls": ["src/interfaces/Participants.sol"]
