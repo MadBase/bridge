@@ -6,9 +6,9 @@ import "./GovernanceMaxLock.sol";
 import "./interfaces/INFTStake.sol";
 
 abstract contract GovernanceStorage is AtomicCounter, GovernanceMaxLock {
-    
+
     struct Proposal {
-        bool notExecuted;
+        bool executed;
         address logic;
         uint256 voteCount;
         uint256 blockEndVote;
