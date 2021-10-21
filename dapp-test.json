@@ -24,6 +24,7 @@
     "src/Deposit.sol": { "urls": ["src/Deposit.sol"] },
     "src/ValidatorsDiamond.sol": { "urls": ["src/ValidatorsDiamond.sol"] },
     "src/QueueLibrary.t.sol": { "urls": ["src/QueueLibrary.t.sol"] },
+    "src/facets/ValidatorLocationsLibrary.t.sol": { "urls": ["src/facets/ValidatorLocationsLibrary.t.sol"] },
     "src/Experiment.t.sol": { "urls": ["src/Experiment.t.sol"] },
     "src/migrate/MigrateSnapshotsFacet.sol": {
       "urls": ["src/migrate/MigrateSnapshotsFacet.sol"]
