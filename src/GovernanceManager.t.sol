@@ -99,37 +99,6 @@ contract MockProposalChangeGovernanceManagerStorageStake is GovernanceProposal, 
     }
 }
 
-contract MockProposalStorageConflict1 is GovernanceProposal, DSTest {
-
-    uint256 mySpecialInt = 0;
-
-    function execute() public override virtual returns(bool) {
-        return _execute();
-    }
-
-    function _execute() internal override virtual returns(bool) {
-        mySpecialInt++;
-        emit log_named_uint("My Special Int", mySpecialInt);
-        return true;
-    }
-}
-
-contract MockProposalStorageConflict2 is GovernanceProposal, DSTest {
-
-    address superAddress = 0x3A1148FE01e3c4721D93fe8A36c2b5C29109B6ae;
-
-    function execute() public override virtual returns(bool) {
-        return _execute();
-    }
-
-    function _execute() internal override virtual returns(bool) {
-        assertEq(superAddress, 0x3A1148FE01e3c4721D93fe8A36c2b5C29109B6ae);
-        require(superAddress == 0x3A1148FE01e3c4721D93fe8A36c2b5C29109B6ae, "The Targets addresses are different!");
-        emit log_named_address("My superAddress", superAddress);
-        return true;
-    }
-}
-
 abstract contract BaseMock {
     StakeNFT public stakeNFT;
     MadTokenMock public madToken;
@@ -935,52 +904,4 @@ contract GovernanceManagerTest is DSTest {
         governanceManager.execute(proposalID2);
         assertEq(governanceManager.getStakeTokenAddress(), address(0x0));
     }
-
-    // function test_StorageCollisionBetweenProposals() public {
-    //     (
-    //         StakeNFT stakeNFT,
-    //         MinerStake minerStake,
-    //         MadTokenMock madToken,
-    //         AdminAccount admin,
-    //         GovernanceManager governanceManager
-    //     ) = getFixtureData();
-
-    //     MockProposalStorageConflict1 logic1 = new MockProposalStorageConflict1();
-    //     MockProposalStorageConflict2 logic2 = new MockProposalStorageConflict2();
-    //     uint256 proposalID1 = governanceManager.propose(address(logic1));
-    //     assertProposal(
-    //         governanceManager.getProposal(proposalID1),
-    //         GovernanceStorage.Proposal(
-    //             false,
-    //             address(logic1),
-    //             0,
-    //             172800
-    //         )
-    //     );
-    //     assertTrue(!governanceManager.isProposalExecuted(proposalID1));
-
-    //     uint256 proposalID2 = governanceManager.propose(address(logic2));
-    //     assertProposal(
-    //         governanceManager.getProposal(proposalID2),
-    //         GovernanceStorage.Proposal(
-    //             false,
-    //             address(logic2),
-    //             0,
-    //             172800
-    //         )
-    //     );
-    //     assertTrue(!governanceManager.isProposalExecuted(proposalID2));
-    //     setBlockNumber(block.number + 1);
-    //     UserAccount user1 = newUserAccount(madToken, stakeNFT, governanceManager);
-    //     madToken.approve(address(stakeNFT), 220_000_000 * 10**18);
-    //     uint256 tokenID = stakeNFT.mintTo(address(user1), 112_200_000 * 10**18, 1);
-    //     user1.voteAsStaker(proposalID1, tokenID);
-    //     user1.voteAsStaker(proposalID2, tokenID);
-
-    //     governanceManager.execute(proposalID1);
-    //     assertTrue(governanceManager.isProposalExecuted(proposalID1));
-
-    //     governanceManager.execute(proposalID2);
-    //     assertTrue(governanceManager.isProposalExecuted(proposalID2));
-    // }
 }
