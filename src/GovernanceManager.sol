@@ -45,7 +45,7 @@ contract GovernanceManager is GovernanceStorage {
         require(proposal.executed == false, "GovernanceManager: This proposal has been executed already");
         proposal.executed = true;
         _proposals[proposalID_] = proposal;
-        (bool success, ) = proposal.logic.delegatecall(abi.encodeWithSignature("execute()"));
+        (bool success, ) = proposal.logic.delegatecall(abi.encodeWithSignature("execute(address)", proposal.logic));
         require(success, "GovernanceManager: CALL FAILED to proposal execute()");
     }
 

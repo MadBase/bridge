@@ -175,6 +175,9 @@
     },
     "src/GovernanceManager.t.sol": {
         "urls": ["src/GovernanceManager.t.sol"]
+    },
+    "src/GovernanceProposeModifySnapshot.t.sol": {
+        "urls": ["src/GovernanceProposeModifySnapshot.t.sol"]
     }
   },
   "settings": {

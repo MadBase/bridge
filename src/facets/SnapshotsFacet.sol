@@ -43,7 +43,6 @@ contract SnapshotsFacet is AccessControlled, Constants, SnapshotsEvents, Stoppab
         return ChainStatusLibrary.epoch();
     }
 
-
     function getChainIdFromSnapshot(uint256 snapshotNumber) external view returns (uint32) {
         return SnapshotsLibrary.getChainIdFromSnapshot(snapshotNumber);
     }
@@ -67,4 +66,11 @@ contract SnapshotsFacet is AccessControlled, Constants, SnapshotsEvents, Stoppab
     function snapshot(bytes calldata _signatureGroup, bytes calldata _bclaims) external participantOrOperator returns (bool) {
         return SnapshotsLibrary.snapshot(_signatureGroup, _bclaims);
     }
+
+    function modifySnapshot(address _callback) external onlyGovernance returns (bool) {
+        (bool success, ) = _callback.delegatecall(abi.encodeWithSignature("_modifySnapshot()"));
+        require(success, "SnapshotsFacet: CALL FAILED!");
+        return success;
+    }
+
 }

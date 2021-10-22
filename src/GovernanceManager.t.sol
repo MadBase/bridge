@@ -49,7 +49,7 @@ contract MockGovernanceOnlyAction is Governance, DSTest {
 
 contract MockProposalLogic is GovernanceProposal, DSTest {
 
-    function execute() public override virtual returns(bool) {
+    function execute(address self) public override virtual returns(bool) {
         return _execute();
     }
 
@@ -65,7 +65,7 @@ contract MockProposalLogic is GovernanceProposal, DSTest {
 
 contract MockProposalLogicFailedLogic is GovernanceProposal, DSTest {
 
-    function execute() public override virtual returns(bool) {
+    function execute(address self) public override virtual returns(bool) {
         return _execute();
     }
 
@@ -76,7 +76,7 @@ contract MockProposalLogicFailedLogic is GovernanceProposal, DSTest {
 
 contract MockProposalChangeGovernanceManagerStorage is GovernanceProposal, DSTest {
 
-    function execute() public override virtual returns(bool) {
+    function execute(address self) public override virtual returns(bool) {
         return _execute();
     }
 
@@ -90,7 +90,7 @@ contract MockProposalChangeGovernanceManagerStorage is GovernanceProposal, DSTes
 
 contract MockProposalChangeGovernanceManagerStorageStake is GovernanceProposal, DSTest {
 
-    function execute() public override virtual returns(bool) {
+    function execute(address self) public override virtual returns(bool) {
         return _execute();
     }
 
@@ -103,7 +103,7 @@ contract MockProposalStorageConflict1 is GovernanceProposal, DSTest {
 
     uint256 mySpecialInt = 0;
 
-    function execute() public override virtual returns(bool) {
+    function execute(address self) public override virtual returns(bool) {
         return _execute();
     }
 
@@ -118,7 +118,7 @@ contract MockProposalStorageConflict2 is GovernanceProposal, DSTest {
 
     address superAddress = 0x3A1148FE01e3c4721D93fe8A36c2b5C29109B6ae;
 
-    function execute() public override virtual returns(bool) {
+    function execute(address self) public override virtual returns(bool) {
         return _execute();
     }
 

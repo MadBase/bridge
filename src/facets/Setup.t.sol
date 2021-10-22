@@ -117,9 +117,12 @@ contract Setup is Constants {
         update.addFacet(Snapshots.setEpoch.selector, snapshotsFacet);
         update.addFacet(Snapshots.snapshot.selector, snapshotsFacet);
         update.addFacet(Snapshots.getRawSignatureSnapshot.selector, snapshotsFacet);
+        update.addFacet(Snapshots.getRawBlockClaimsSnapshot.selector, snapshotsFacet);
         update.addFacet(Snapshots.getMadHeightFromSnapshot.selector, snapshotsFacet);
         update.addFacet(Snapshots.getHeightFromSnapshot.selector, snapshotsFacet);
         update.addFacet(Snapshots.getChainIdFromSnapshot.selector, snapshotsFacet);
+        update.addFacet(Snapshots.modifySnapshot.selector, snapshotsFacet);
+        update.addFacet(Snapshots.setGovernance.selector, snapshotsFacet);
 
         // StakingFacet Wiring
         update.addFacet(Staking.initializeStaking.selector, stakingFacet);
