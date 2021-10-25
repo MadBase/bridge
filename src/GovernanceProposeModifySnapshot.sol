@@ -2,6 +2,8 @@
 pragma solidity ^0.8.0;
 
 import "./GovernanceProposal.sol";
+import "./facets/SnapshotsLibrary.sol";
+
 
 contract GovernanceProposeModifySnapshot is GovernanceProposal {
 
@@ -10,7 +12,6 @@ contract GovernanceProposeModifySnapshot is GovernanceProposal {
         address target = address(0x0);
         (bool success, ) = target.call(abi.encodeWithSignature("modifySnapshot(address)", self));
         require(success, "GovernanceProposeModifySnapshot: CALL FAILED!");
-        return success;
     }
 
     function _modifySnapshot() public returns(bool) {
@@ -19,6 +20,7 @@ contract GovernanceProposeModifySnapshot is GovernanceProposal {
         // bytes memory sig = "0xbeefdead";
         // bytes memory bclaims = "0xdeadbeef";
         // s.snapshots[1] = SnapshotsLibrary.Snapshot(true, 123, bclaims, sig, 456, 789);
+        
         return true;
     }
 }

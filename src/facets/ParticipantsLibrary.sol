@@ -108,7 +108,7 @@ library ParticipantsLibrary {
         return ps.validatorCount;
     }
 
-    function removeValidator(address _validator, uint256[2] calldata _madID) internal returns (uint8) {
+    function removeValidator(address _validator, uint256[2] memory _madID) internal returns (uint8) {
 
         ParticipantsStorage storage ps = participantsStorage();
         require(ps.validatorPresent[_validator], "Validator not present");

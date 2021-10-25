@@ -45,8 +45,12 @@ contract ParticipantsFacet is AccessControlled, Constants, Participants, Stoppab
         ParticipantsLibrary.participantsStorage().validatorMaxCount = max;
     }
 
-    function removeValidator(address _validator, uint256[2] calldata _madID) external override returns (uint8) {
+    function removeValidator(address _validator, uint256[2] calldata _madID) external override onlyGovernance returns (uint8) {
         return ParticipantsLibrary.removeValidator(_validator, _madID);
+    }
+
+    function removeValidators(address[] memory _validators, uint256[][2] memory _madIDs) external override onlyGovernance returns (uint8) {
+        return ParticipantsLibrary.removeValidators(_validators, _madIDs);
     }
 
     function getValidatorPublicKey(address _validator) external view override returns (uint256[2] memory) {
