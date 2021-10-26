@@ -5,6 +5,9 @@ import "./GovernanceProposal.sol";
 
 contract GovernanceProposeRestartETHDKG is GovernanceProposal {
 
+    // PROPOSALS MUST NOT HAVE ANY STATE VARIABLE TO AVOID POTENTIAL STORAGE
+    // COLLISION!
+
     function execute(address self) public override returns(bool) {
         address target = address(0);
         (bool success, ) = target.call(abi.encodeWithSignature("restartETHDKG()"));

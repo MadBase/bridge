@@ -67,10 +67,4 @@ contract SnapshotsFacet is AccessControlled, Constants, SnapshotsEvents, Stoppab
         return SnapshotsLibrary.snapshot(_signatureGroup, _bclaims);
     }
 
-    function modifySnapshot(address _callback) external onlyGovernance returns (bool) {
-        (bool success, ) = _callback.delegatecall(abi.encodeWithSignature("_modifySnapshot()"));
-        require(success, "SnapshotsFacet: CALL FAILED!");
-        return success;
-    }
-
 }

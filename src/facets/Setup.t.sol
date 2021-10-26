@@ -13,6 +13,7 @@ import "./EthDKGSubmitDisputeFacet.sol";
 import "./ParticipantsFacet.sol";
 import "./SnapshotsFacet.sol";
 import "./StakingFacet.sol";
+import "./SudoFacet.sol";
 import "./AccusationMultipleProposalFacet.sol";
 import "./AccusationInvalidTransactionConsumptionFacet.sol";
 
@@ -29,6 +30,7 @@ import "../interfaces/Staking.sol";
 import "../interfaces/Token.sol";
 import "../interfaces/Validators.sol";
 import "../interfaces/Accusation.sol";
+import "../interfaces/Sudo.sol";
 
 contract Setup is Constants {
 
@@ -46,6 +48,7 @@ contract Setup is Constants {
     Snapshots snapshots;
     Staking staking;
     Validators validators;
+    Sudo sudo;
 
     function setUp() public virtual {
         setUp(address(new Token("STK", "MadNet Staking")));
@@ -70,6 +73,7 @@ contract Setup is Constants {
         staking = Staking(validatorsDiamond);
         validators = Validators(validatorsDiamond);
         accusation = Accusation(validatorsDiamond);
+        sudo = Sudo(validatorsDiamond);
 
         address ethDKGDiamond = registry.lookup(ETHDKG_CONTRACT);
         ethdkg = ETHDKG(ethDKGDiamond);
@@ -106,6 +110,7 @@ contract Setup is Constants {
         address participantsFacet = address(new ParticipantsFacet());
         address snapshotsFacet = address(new SnapshotsFacet());
         address stakingFacet = address(new StakingFacet());
+        address sudoFacet = address(new SudoFacet());
         address accusationMultipleProposalFacet = address(new AccusationMultipleProposalFacet());
         address accusationInvalidTransactionConsumptionFacet = address(new AccusationInvalidTransactionConsumptionFacet());
 
@@ -121,7 +126,6 @@ contract Setup is Constants {
         update.addFacet(Snapshots.getMadHeightFromSnapshot.selector, snapshotsFacet);
         update.addFacet(Snapshots.getHeightFromSnapshot.selector, snapshotsFacet);
         update.addFacet(Snapshots.getChainIdFromSnapshot.selector, snapshotsFacet);
-        update.addFacet(Snapshots.modifySnapshot.selector, snapshotsFacet);
         update.addFacet(Snapshots.setGovernance.selector, snapshotsFacet);
 
         // StakingFacet Wiring
@@ -159,6 +163,9 @@ contract Setup is Constants {
         update.addFacet(Participants.validatorCount.selector, participantsFacet);
         update.addFacet(Participants.getChainId.selector, participantsFacet);
         update.addFacet(Participants.setChainId.selector, participantsFacet);
+
+        // SudoFacet Wiring
+        update.addFacet(Sudo.modifyDiamondStorage.selector, sudoFacet);
 
         _registry.register(VALIDATORS_CONTRACT, diamond);
     }

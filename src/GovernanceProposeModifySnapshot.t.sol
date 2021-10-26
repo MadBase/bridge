@@ -87,12 +87,12 @@ contract GovernanceProposeModifySnapshot is GovernanceProposal {
 
     function execute(address self) public override returns(bool) {
         address target = 0xEAC31aabA7442B58Bd7A8431d1D3Db3Bf3262667;
-        (bool success, ) = target.call(abi.encodeWithSignature("modifySnapshot(address)", self));
+        (bool success, ) = target.call(abi.encodeWithSignature("modifyDiamondStorage(address)", self));
         require(success, "CALL FAILED");
         return success;
     }
 
-    function _modifySnapshot() public returns(bool) {
+    function callback() public override returns(bool) {
         SnapshotsLibrary.SnapshotsStorage storage s = SnapshotsLibrary.snapshotsStorage();
         ChainStatusLibrary.ChainStatusStorage storage cs = ChainStatusLibrary.chainStatusStorage();
         cs.epoch = 666;
@@ -105,20 +105,32 @@ contract GovernanceProposeModifySnapshot is GovernanceProposal {
 
 contract GovernanceProposeModifySnapshotCopy is GovernanceProposal {
 
+    // PROPOSALS MUST NOT HAVE ANY STATE VARIABLE TO AVOID POTENTIAL STORAGE
+    // COLLISION!
+
+    /// @dev function that is called when a proposal is executed. It's only
+    /// meant to be called by the Governance Manager contract. See the
+    /// GovernanceProposal.sol file fore more details.
     function execute(address self) public override returns(bool) {
-        // Replace the following line with the address of the Snapshot contract. E.g 0xEAC31aabA7442B58Bd7A8431d1D3Db3Bf3262667
         address target = 0xEAC31aabA7442B58Bd7A8431d1D3Db3Bf3262667;
-        (bool success, ) = target.call(abi.encodeWithSignature("modifySnapshot(address)", self));
+        (bool success, ) = target.call(abi.encodeWithSignature("modifyDiamondStorage(address)", self));
         require(success, "GovernanceProposeModifySnapshot: CALL FAILED!");
         return success;
     }
 
-    function _modifySnapshot() public returns(bool) {
-        SnapshotsLibrary.SnapshotsStorage storage s = SnapshotsLibrary.snapshotsStorage();
-        // We now have access to modify de Snapshot storage in whatever way we want. E.g:
-        // bytes memory sig = "0xbeefdead";
-        // bytes memory bclaims = "0xdeadbeef";
-        // s.snapshots[1] = SnapshotsLibrary.Snapshot(true, 123, bclaims, sig, 456, 789);
+    /// @dev function that is called back by another contract with DELEGATE CALL
+    /// rights! See the GovernanceProposal.sol file fore more details. PLACE THE
+    /// SNAPSHOT REPLACEMENT LOGIC IN HERE!
+    function callback() public override returns(bool) {
+        // This function is called back by the Validators Diamond. Inside this
+        // function, we have fully access to all the Validators Diamond Storage
+        // including the the snapshots mapping arbitrarily.
+        // Example:
+        //
+        //    SnapshotsLibrary.SnapshotsStorage storage s = SnapshotsLibrary.snapshotsStorage();
+        //    bytes memory sig = "0xbeefdead";
+        //    bytes memory bclaims = "0xdeadbeef";
+        //    s.snapshots[1] = SnapshotsLibrary.Snapshot(true, 123, bclaims, sig, 456, 789);
         return true;
     }
 }
@@ -347,6 +359,6 @@ contract GovernanceProposeModifySnapshotTest is DSTest, Setup {
     }
 
     function testFail_ExecuteProposalModifySnapshotWithoutPermission() public {
-        snapshots.modifySnapshot(address(this));
+        sudo.modifyDiamondStorage(address(this));
     }
 }

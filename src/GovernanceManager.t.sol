@@ -42,7 +42,7 @@ contract MockGovernanceOnlyAction is Governance, DSTest {
 
     function dummy() public onlyGovernance returns(bool){
         emit log("Oh god, I got executed!");
-        emit log_named_address("msg.sender in the dummy", msg.sender);
+        emit log_named_address("Dummy: msg.sender in the dummy", msg.sender);
         return true;
     }
 }
@@ -53,7 +53,7 @@ contract MockProposalLogic is GovernanceProposal, DSTest {
         return _execute();
     }
 
-    function _execute() internal override virtual returns(bool) {
+    function _execute() internal virtual returns(bool) {
         emit log_named_address("msg.sender", msg.sender);
         address _logic = 0x3A1148FE01e3c4721D93fe8A36c2b5C29109B6ae;
         (bool success, bytes memory data) = _logic.call(abi.encodeWithSignature("dummy()"));
@@ -69,7 +69,7 @@ contract MockProposalLogicFailedLogic is GovernanceProposal, DSTest {
         return _execute();
     }
 
-    function _execute() internal override virtual returns(bool) {
+    function _execute() internal virtual returns(bool) {
         revert("Proposal with failed logic!");
     }
 }
@@ -80,11 +80,50 @@ contract MockProposalChangeGovernanceManagerStorage is GovernanceProposal, DSTes
         return _execute();
     }
 
-    function _execute() internal override virtual returns(bool) {
+    function _execute() internal virtual returns(bool) {
         _votemap[1][address(_Stake)][1]=false;
         _MinerStake=INFTStake(address(0x0));
         _proposals[1] = GovernanceStorage.Proposal(false, address(0x0), 0, 666);
         _threshold=1;
+    }
+}
+
+contract MockProposalLogicWithAllowedProposals is GovernanceProposal, DSTest {
+
+    function execute(address self) public override virtual returns(bool) {
+        emit log_named_address("MockProposalLogicWithAllowedProposals: msg.sender", msg.sender);
+        // Address of the deployed MockProposalLogicWithOutAllowedProposals
+        // contract. This contract is a middle man that doesn't have governance
+        // powers. See the contract bellow.
+        address _logic = 0xbfFb01bB2DDb4EfA87cB78EeCB8115AFAe6d2032;
+        // giving the _logic address governance powers to call governance methods
+        allowedProposal = _logic;
+        (bool success, bytes memory data) = _logic.call(abi.encodeWithSignature("dummyNoDelegate()"));
+        require(success, "GovernanceManager: CALL FAILED to execute proposal");
+        emit log_named_bytes("Executed successful", data);
+        return success;
+    }
+}
+
+contract MockProposalLogicWithOutAllowedProposals is GovernanceProposal, DSTest {
+    function execute(address self) public override virtual returns(bool) {
+        emit log_named_address("MockProposalLogicWithAllowedProposals: msg.sender", msg.sender);
+        address _logic = 0xbfFb01bB2DDb4EfA87cB78EeCB8115AFAe6d2032;
+        (bool success, bytes memory data) = _logic.call(abi.encodeWithSignature("dummyNoDelegate()"));
+        require(success, "GovernanceManager: CALL FAILED to execute proposal");
+        emit log_named_bytes("Executed successful", data);
+        return success;
+    }
+}
+
+contract NoGovernanceDelegateCall is DSTest {
+    function dummyNoDelegate() public returns (bool){
+        emit log_named_address("NoGovernanceDelegateCall: msg.sender", msg.sender);
+        address _logic = 0x3A1148FE01e3c4721D93fe8A36c2b5C29109B6ae;
+        (bool success, bytes memory data) = _logic.call(abi.encodeWithSignature("dummy()"));
+        require(success, "GovernanceManager: CALL FAILED to execute proposal");
+        emit log_named_bytes("Executed successful", data);
+        return success;
     }
 }
 
@@ -94,39 +133,8 @@ contract MockProposalChangeGovernanceManagerStorageStake is GovernanceProposal, 
         return _execute();
     }
 
-    function _execute() internal override virtual returns(bool) {
+    function _execute() internal virtual returns(bool) {
         _Stake=INFTStake(address(0x0));
-    }
-}
-
-contract MockProposalStorageConflict1 is GovernanceProposal, DSTest {
-
-    uint256 mySpecialInt = 0;
-
-    function execute(address self) public override virtual returns(bool) {
-        return _execute();
-    }
-
-    function _execute() internal override virtual returns(bool) {
-        mySpecialInt++;
-        emit log_named_uint("My Special Int", mySpecialInt);
-        return true;
-    }
-}
-
-contract MockProposalStorageConflict2 is GovernanceProposal, DSTest {
-
-    address superAddress = 0x3A1148FE01e3c4721D93fe8A36c2b5C29109B6ae;
-
-    function execute(address self) public override virtual returns(bool) {
-        return _execute();
-    }
-
-    function _execute() internal override virtual returns(bool) {
-        assertEq(superAddress, 0x3A1148FE01e3c4721D93fe8A36c2b5C29109B6ae);
-        require(superAddress == 0x3A1148FE01e3c4721D93fe8A36c2b5C29109B6ae, "The Targets addresses are different!");
-        emit log_named_address("My superAddress", superAddress);
-        return true;
     }
 }
 
@@ -936,51 +944,86 @@ contract GovernanceManagerTest is DSTest {
         assertEq(governanceManager.getStakeTokenAddress(), address(0x0));
     }
 
-    // function test_StorageCollisionBetweenProposals() public {
-    //     (
-    //         StakeNFT stakeNFT,
-    //         MinerStake minerStake,
-    //         MadTokenMock madToken,
-    //         AdminAccount admin,
-    //         GovernanceManager governanceManager
-    //     ) = getFixtureData();
+    function testExecuteGovernanceAllowedProposal() public {
 
-    //     MockProposalStorageConflict1 logic1 = new MockProposalStorageConflict1();
-    //     MockProposalStorageConflict2 logic2 = new MockProposalStorageConflict2();
-    //     uint256 proposalID1 = governanceManager.propose(address(logic1));
-    //     assertProposal(
-    //         governanceManager.getProposal(proposalID1),
-    //         GovernanceStorage.Proposal(
-    //             false,
-    //             address(logic1),
-    //             0,
-    //             172800
-    //         )
-    //     );
-    //     assertTrue(!governanceManager.isProposalExecuted(proposalID1));
+        (
+            StakeNFT stakeNFT,
+            MinerStake minerStake,
+            MadTokenMock madToken,
+            AdminAccount admin,
+            GovernanceManager governanceManager
+        ) = getFixtureData();
 
-    //     uint256 proposalID2 = governanceManager.propose(address(logic2));
-    //     assertProposal(
-    //         governanceManager.getProposal(proposalID2),
-    //         GovernanceStorage.Proposal(
-    //             false,
-    //             address(logic2),
-    //             0,
-    //             172800
-    //         )
-    //     );
-    //     assertTrue(!governanceManager.isProposalExecuted(proposalID2));
-    //     setBlockNumber(block.number + 1);
-    //     UserAccount user1 = newUserAccount(madToken, stakeNFT, governanceManager);
-    //     madToken.approve(address(stakeNFT), 220_000_000 * 10**18);
-    //     uint256 tokenID = stakeNFT.mintTo(address(user1), 112_200_000 * 10**18, 1);
-    //     user1.voteAsStaker(proposalID1, tokenID);
-    //     user1.voteAsStaker(proposalID2, tokenID);
+        MockProposalLogicWithAllowedProposals logic = new MockProposalLogicWithAllowedProposals();
+        MockGovernanceOnlyAction dummy = new MockGovernanceOnlyAction(address(governanceManager));
+        emit log_named_address("Address dummy:", address(dummy));
+        NoGovernanceDelegateCall dummyDelegate = new NoGovernanceDelegateCall();
+        emit log_named_address("Address dummy delegate:", address(dummyDelegate));
+        uint256 proposalID = governanceManager.propose(address(logic));
+        assertProposal(
+            governanceManager.getProposal(proposalID),
+            GovernanceStorage.Proposal(
+                false,
+                address(logic),
+                0,
+                172800
+            )
+        );
+        assertTrue(!governanceManager.isProposalExecuted(proposalID));
+        // We can only vote after 1 block has passed from the proposal creation
+        setBlockNumber(block.number +1);
+        // voting threshold = 112_200_000 * 10**18 shares
+        UserAccount user1 = newUserAccount(madToken, stakeNFT, governanceManager);
+        emit log_named_address("Address:", address(user1));
+        madToken.approve(address(stakeNFT), 220_000_000 * 10**18);
+        uint256 tokenID = stakeNFT.mintTo(address(user1), 112_200_000 * 10**18, 1);
 
-    //     governanceManager.execute(proposalID1);
-    //     assertTrue(governanceManager.isProposalExecuted(proposalID1));
+        user1.voteAsStaker(proposalID, tokenID);
 
-    //     governanceManager.execute(proposalID2);
-    //     assertTrue(governanceManager.isProposalExecuted(proposalID2));
-    // }
+        assertEq(governanceManager.allowedProposal(), address(0x0));
+        governanceManager.execute(proposalID);
+        assertTrue(governanceManager.isProposalExecuted(proposalID));
+        assertEq(governanceManager.allowedProposal(), address(0x0));
+    }
+
+    function testFail_ExecuteGovernanceWithoutAllowedProposal() public {
+
+        (
+            StakeNFT stakeNFT,
+            MinerStake minerStake,
+            MadTokenMock madToken,
+            AdminAccount admin,
+            GovernanceManager governanceManager
+        ) = getFixtureData();
+
+        MockProposalLogicWithOutAllowedProposals logic = new MockProposalLogicWithOutAllowedProposals();
+        MockGovernanceOnlyAction dummy = new MockGovernanceOnlyAction(address(governanceManager));
+        emit log_named_address("Address dummy:", address(dummy));
+        NoGovernanceDelegateCall dummyDelegate = new NoGovernanceDelegateCall();
+        emit log_named_address("Address dummy delegate:", address(dummyDelegate));
+        uint256 proposalID = governanceManager.propose(address(logic));
+        assertProposal(
+            governanceManager.getProposal(proposalID),
+            GovernanceStorage.Proposal(
+                false,
+                address(logic),
+                0,
+                172800
+            )
+        );
+        assertTrue(!governanceManager.isProposalExecuted(proposalID));
+        // We can only vote after 1 block has passed from the proposal creation
+        setBlockNumber(block.number +1);
+        // voting threshold = 112_200_000 * 10**18 shares
+        UserAccount user1 = newUserAccount(madToken, stakeNFT, governanceManager);
+        emit log_named_address("Address:", address(user1));
+        madToken.approve(address(stakeNFT), 220_000_000 * 10**18);
+        uint256 tokenID = stakeNFT.mintTo(address(user1), 112_200_000 * 10**18, 1);
+
+        user1.voteAsStaker(proposalID, tokenID);
+
+        assertEq(governanceManager.allowedProposal(), address(0x0));
+        governanceManager.execute(proposalID);
+    }
+
 }

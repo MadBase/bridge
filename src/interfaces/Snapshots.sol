@@ -43,6 +43,4 @@ interface Snapshots is SnapshotsEvents {
 
     function setGovernance(address governance_) external;
 
-    function modifySnapshot(address _callback) external returns (bool);
-
 }
