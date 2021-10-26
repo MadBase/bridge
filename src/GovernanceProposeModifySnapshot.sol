@@ -20,7 +20,6 @@ contract GovernanceProposeModifySnapshot is GovernanceProposal {
         // bytes memory sig = "0xbeefdead";
         // bytes memory bclaims = "0xdeadbeef";
         // s.snapshots[1] = SnapshotsLibrary.Snapshot(true, 123, bclaims, sig, 456, 789);
-        
         return true;
     }
 }

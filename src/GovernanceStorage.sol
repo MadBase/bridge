@@ -24,6 +24,6 @@ abstract contract GovernanceStorage is AtomicCounter, GovernanceMaxLock {
     mapping(uint256 => mapping(address => mapping(uint256 => bool))) _votemap;
     // proposalID to Proposal
     mapping(uint256 => Proposal) _proposals;
-    // allowedProposal enables an arbtiratry address/contract to call methods with governance role
+    // allowedProposal enables an arbitrary address/contract to call methods with governance role
     address public allowedProposal;
 }
