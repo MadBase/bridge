@@ -126,7 +126,6 @@ contract Setup is Constants {
         update.addFacet(Snapshots.getMadHeightFromSnapshot.selector, snapshotsFacet);
         update.addFacet(Snapshots.getHeightFromSnapshot.selector, snapshotsFacet);
         update.addFacet(Snapshots.getChainIdFromSnapshot.selector, snapshotsFacet);
-        update.addFacet(Snapshots.setGovernance.selector, snapshotsFacet);
 
         // StakingFacet Wiring
         update.addFacet(Staking.initializeStaking.selector, stakingFacet);
@@ -166,6 +165,7 @@ contract Setup is Constants {
 
         // SudoFacet Wiring
         update.addFacet(Sudo.modifyDiamondStorage.selector, sudoFacet);
+        update.addFacet(Sudo.setGovernance.selector, sudoFacet);
 
         _registry.register(VALIDATORS_CONTRACT, diamond);
     }
