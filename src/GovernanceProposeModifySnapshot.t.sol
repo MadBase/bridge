@@ -86,7 +86,7 @@ contract UserAccount is BaseMock {
 contract GovernanceProposeModifySnapshot is GovernanceProposal {
 
     function execute(address self) public override returns(bool) {
-        address target = 0xEAC31aabA7442B58Bd7A8431d1D3Db3Bf3262667;
+        address target = 0xE9E697933260a720d42146268B2AAAfA4211DE1C;
         (bool success, ) = target.call(abi.encodeWithSignature("modifyDiamondStorage(address)", self));
         require(success, "CALL FAILED");
         return success;
@@ -112,7 +112,7 @@ contract GovernanceProposeModifySnapshotCopy is GovernanceProposal {
     /// meant to be called by the Governance Manager contract. See the
     /// GovernanceProposal.sol file fore more details.
     function execute(address self) public override returns(bool) {
-        address target = 0xEAC31aabA7442B58Bd7A8431d1D3Db3Bf3262667;
+        address target = 0xE9E697933260a720d42146268B2AAAfA4211DE1C;
         (bool success, ) = target.call(abi.encodeWithSignature("modifyDiamondStorage(address)", self));
         require(success, "GovernanceProposeModifySnapshot: CALL FAILED!");
         return success;

@@ -181,6 +181,9 @@
     },
     "src/GovernanceProposeEvictValidators.t.sol": {
         "urls": ["src/GovernanceProposeEvictValidators.t.sol"]
+    },
+    "src/GovernanceProposeRestartETHDKG.t.sol": {
+        "urls": ["src/GovernanceProposeRestartETHDKG.t.sol"]
     }
   },
   "settings": {
