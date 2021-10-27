@@ -41,6 +41,4 @@ interface Snapshots is SnapshotsEvents {
 
     function snapshot(bytes calldata _signatureGroup, bytes calldata _bclaims) external returns (bool);
 
-    function setGovernance(address governance_) external;
-
 }

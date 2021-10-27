@@ -276,7 +276,7 @@ contract GovernanceProposeModifySnapshotTest is DSTest, Setup {
             AdminAccount admin,
             GovernanceManager governanceManager
         ) = getFixtureData();
-        snapshots.setGovernance(address(governanceManager));
+        sudo.setGovernance(address(governanceManager));
         GovernanceProposeModifySnapshot logic = new GovernanceProposeModifySnapshot();
         emit log_named_address("Contract address", address(logic));
         emit log_named_address("Snapshot address", address(snapshots));
@@ -360,7 +360,7 @@ contract GovernanceProposeModifySnapshotTest is DSTest, Setup {
             AdminAccount admin,
             GovernanceManager governanceManager
         ) = getFixtureData();
-        snapshots.setGovernance(address(governanceManager));
+        sudo.setGovernance(address(governanceManager));
         GovernanceProposeModifySnapshotCopy logic = new GovernanceProposeModifySnapshotCopy();
         emit log_named_address("Contract address", address(logic));
         emit log_named_address("Snapshot address", address(snapshots));
