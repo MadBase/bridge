@@ -46,6 +46,7 @@ contract ParticipantsFacet is AccessControlled, Constants, Participants, Stoppab
     }
 
     function removeValidator(address _validator, uint256[2] calldata _madID) external override returns (uint8) {
+        require(msg.sender == _validator, "Only self removal supported");
         return ParticipantsLibrary.removeValidator(_validator, _madID);
     }
 

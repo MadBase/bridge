@@ -9,7 +9,7 @@ import "../QueueLibrary.sol";
 library ParticipantsLibrary {
 
     bytes32 constant STORAGE_LOCATION = keccak256("participants.storage");
-    
+
     event ValidatorCreated(address indexed validator, address indexed signer, uint256[2] madID);
     event ValidatorJoined(address indexed validator, uint256[2] madID);
     event ValidatorLeft(address indexed validator, uint256[2] pkHash);
@@ -108,11 +108,10 @@ library ParticipantsLibrary {
         return ps.validatorCount;
     }
 
-    function removeValidator(address _validator, uint256[2] calldata _madID) internal returns (uint8) {
+    function removeValidator(address _validator, uint256[2] memory _madID) internal returns (uint8) {
 
         ParticipantsStorage storage ps = participantsStorage();
         require(ps.validatorPresent[_validator], "Validator not present");
-        require(msg.sender == _validator, "Only self removal supported");
 
         uint256 index = ps.validatorIndex[_validator];
         uint256[2] memory publicKey = ps.validatorPublicKey[_validator];

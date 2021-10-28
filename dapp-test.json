@@ -179,6 +179,9 @@
     },
     "src/GovernanceProposeModifySnapshot.t.sol": {
         "urls": ["src/GovernanceProposeModifySnapshot.t.sol"]
+    },
+    "src/GovernanceProposeEvictValidators.t.sol": {
+        "urls": ["src/GovernanceProposeEvictValidators.t.sol"]
     }
   },
   "settings": {
