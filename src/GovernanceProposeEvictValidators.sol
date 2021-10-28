@@ -49,7 +49,6 @@ contract GovernanceProposeEvictValidators is GovernanceProposal {
     }
 
     function removeSetOfValidators() internal {
-        function removeSetOfValidators() internal {
         // todo: unstake the validators prior removal?
 
         // Change the variables _validatorX and _madIDX to match the addresses and
@@ -63,7 +62,6 @@ contract GovernanceProposeEvictValidators is GovernanceProposal {
         address _validator3 = address(0x2);
         uint256[2] memory _madID3 = [uint256(8), uint256(8)];
         ParticipantsLibrary.removeValidator(_validator3, _madID3);
-    }
     }
 
     function removeAllValidators() internal {
