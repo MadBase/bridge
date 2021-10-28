@@ -177,7 +177,7 @@ contract StakeNFT is ERC721, MagicValue, Admin, Governance, CircuitBreaker, Atom
     /// contract. This function will fail if the circuit breaker is tripped
     function lockPosition(address caller_, uint256 tokenID_, uint256 lockDuration_) public override withCB onlyGovernance returns(uint256 numberShares) {
         require(caller_ == ownerOf(tokenID_), "StakeNFT: Error, token doesn't exist or doesn't belong to the caller!");
-        require(lockDuration_ <= _maxGovernanceLock, "StakeNFT: Lock Duration is greater thant the amount allowed!");
+        require(lockDuration_ <= _maxGovernanceLock, "StakeNFT: Lock Duration is greater than the amount allowed!");
         return _lockPosition(tokenID_, lockDuration_);
     }
 
@@ -185,7 +185,7 @@ contract StakeNFT is ERC721, MagicValue, Admin, Governance, CircuitBreaker, Atom
     /// _maxGovernanceLock. This function will fail if the circuit breaker is tripped
     function lockWithdraw(uint256 tokenID_, uint256 lockDuration_) public withCB returns(uint256 numberShares) {
         require(msg.sender == ownerOf(tokenID_), "StakeNFT: Error, token doesn't exist or doesn't belong to the caller!");
-        require(lockDuration_ <= _maxGovernanceLock, "StakeNFT: Lock Duration is greater thant the amount allowed!");
+        require(lockDuration_ <= _maxGovernanceLock, "StakeNFT: Lock Duration is greater than the amount allowed!");
         return _lockWithdraw(tokenID_, lockDuration_);
     }
 

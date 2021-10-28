@@ -5,7 +5,7 @@ import "./GovernanceStorage.sol";
 
 abstract contract GovernanceProposal is GovernanceStorage {
     
-    function execute() public returns(bool) {
+    function execute() public virtual returns(bool) {
         return _execute();
     }
     
