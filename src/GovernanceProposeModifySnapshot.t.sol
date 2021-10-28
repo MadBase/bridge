@@ -59,6 +59,7 @@ contract Setup is Constants {
     Staking staking;
     Validators validators;
     Sudo sudo;
+    Sudo sudoETHDKG;
 
     function setUp() public virtual {
         setUp(address(new Token("STK", "MadNet Staking")));
@@ -87,6 +88,7 @@ contract Setup is Constants {
 
         address ethDKGDiamond = registry.lookup(ETHDKG_CONTRACT);
         ethdkg = ETHDKG(ethDKGDiamond);
+        sudoETHDKG = Sudo(ethDKGDiamond);
 
         // Initialize
         participants.initializeParticipants(registry);
@@ -194,6 +196,7 @@ contract Setup is Constants {
         address disputeFacet = address(new EthDKGSubmitDisputeFacet());
         address miscFacet = address(new EthDKGMiscFacet());
         address infoFacet = address(new EthDKGInformationFacet());
+        address sudoFacet = address(new SudoFacet());
 
         // Wiring facets
         update.addFacet(ETHDKG.Group_Accusation_GPKj.selector, accusationFacet);
@@ -213,6 +216,10 @@ contract Setup is Constants {
         update.addFacet(ETHDKG.master_public_key.selector, infoFacet);
         update.addFacet(ETHDKG.gpkj_submissions.selector, infoFacet);
         update.addFacet(ETHDKG.getPhaseLength.selector, infoFacet);
+
+        // SudoFacet Wiring
+        update.addFacet(Sudo.modifyDiamondStorage.selector, sudoFacet);
+        update.addFacet(Sudo.setGovernance.selector, sudoFacet);
 
         _registry.register(ETHDKG_CONTRACT, diamond);
     }
@@ -342,7 +349,7 @@ contract GovernanceProposeModifySnapshotCopy is GovernanceProposal {
 contract TryModifyStakeAfterStorage is GovernanceProposal {
 
     function execute(address self) public override returns(bool) {
-        address target = 0xEAC31aabA7442B58Bd7A8431d1D3Db3Bf3262667;
+        address target = 0xE9E697933260a720d42146268B2AAAfA4211DE1C;
         (bool success, ) = target.call(abi.encodeWithSignature("modifyDiamondStorage(address)", self));
         require(success, "CALL FAILED");
         return success;
@@ -358,18 +365,10 @@ contract TryModifyStakeAfterStorage is GovernanceProposal {
     }
 }
 
-// contract DoSomething {
-
-//     function something() public {
-//         StakeNFT stake = StakeNFT(address(0xB85bEA9a5a75c5Daf146dBab68B3a9661682c0b8));
-//         stake.lockPosition(address(0xd5D575E71245442009EE208E8DCEBFbcF958b8B6), 1, 10);
-//     }
-// }
-
 contract ModifyStakeAfterStorage is GovernanceProposal {
 
     function execute(address self) public override returns(bool) {
-        address target = 0xEAC31aabA7442B58Bd7A8431d1D3Db3Bf3262667;
+        address target = 0xE9E697933260a720d42146268B2AAAfA4211DE1C;
         allowedProposal = target;
         (bool success, ) = target.call(abi.encodeWithSignature("modifyDiamondStorage(address)", self));
         require(success, "CALL FAILED");
@@ -380,8 +379,8 @@ contract ModifyStakeAfterStorage is GovernanceProposal {
         // assume we update the diamond storage here
 
         // now we lock some staking position
-        StakeNFT stake = StakeNFT(address(0xB85bEA9a5a75c5Daf146dBab68B3a9661682c0b8));
-        stake.lockPosition(address(0xd5D575E71245442009EE208E8DCEBFbcF958b8B6), 1, 10);
+        StakeNFT stake = StakeNFT(address(0xe36D078E72C5BD2386d2bFB68573f0699B64c70C));
+        stake.lockPosition(address(0xF34003B00A3DbF6253Dd679F6BAe1c1e9992A7D1), 1, 10);
         return true;
     }
 }
@@ -389,16 +388,16 @@ contract ModifyStakeAfterStorage is GovernanceProposal {
 contract DoSomething {
 
     function something() public {
-        StakeNFT stake = StakeNFT(address(0xB85bEA9a5a75c5Daf146dBab68B3a9661682c0b8));
-        stake.lockPosition(address(0xF34003B00A3DbF6253Dd679F6BAe1c1e9992A7D1), 1, 10);
+        StakeNFT stake = StakeNFT(address(0xe36D078E72C5BD2386d2bFB68573f0699B64c70C));
+        stake.lockPosition(address(0x0aA3c032A48098855b3fA7410A33A120b34FB57D), 1, 10);
     }
 }
 
 contract ModifyStakeAfterStorageFromOutside is GovernanceProposal {
 
     function execute(address self) public override returns(bool) {
-        address target = 0xEAC31aabA7442B58Bd7A8431d1D3Db3Bf3262667;
-        allowedProposal = address(0x6b8E18793B5630b0d439F957f610B01219110940);
+        address target = 0xE9E697933260a720d42146268B2AAAfA4211DE1C;//0xEAC31aabA7442B58Bd7A8431d1D3Db3Bf3262667;
+        allowedProposal = address(0xd5D575E71245442009EE208E8DCEBFbcF958b8B6);
         (bool success, ) = target.call(abi.encodeWithSignature("modifyDiamondStorage(address)", self));
         require(success, "CALL FAILED");
         return success;
@@ -408,7 +407,7 @@ contract ModifyStakeAfterStorageFromOutside is GovernanceProposal {
         // assume we update the diamond storage here
 
         // now we lock some staking position
-        DoSomething x = DoSomething(address(0x6b8E18793B5630b0d439F957f610B01219110940));
+        DoSomething x = DoSomething(address(0xd5D575E71245442009EE208E8DCEBFbcF958b8B6));
         x.something();
 
         return true;
@@ -692,7 +691,7 @@ contract GovernanceProposeModifySnapshotTest is DSTest, Setup {
             GovernanceManager governanceManager
         ) = getFixtureData();
         sudo.setGovernance(address(governanceManager));
-        //emit log_named_address("stakeNFT", address(stakeNFT));
+        emit log_named_address("stakeNFT", address(stakeNFT));
 
         ModifyStakeAfterStorage logic = new ModifyStakeAfterStorage();
         uint256 proposalID = governanceManager.propose(address(logic));
@@ -710,7 +709,7 @@ contract GovernanceProposeModifySnapshotTest is DSTest, Setup {
         setBlockNumber(block.number +1);
         for (uint256 i =0; i < 10; i++){
             UserAccount user = newUserAccount(madToken, stakeNFT, governanceManager);
-            //emit log_named_address("user", address(user));
+            emit log_named_address("user", address(user));
             madToken.approve(address(stakeNFT), 11_220_000 * 10**18);
             uint256 tokenID = stakeNFT.mintTo(address(user), 11_220_000 * 10**18, 1);
             user.voteAsStaker(proposalID, tokenID);
