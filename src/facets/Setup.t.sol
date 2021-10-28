@@ -16,6 +16,7 @@ import "./StakingFacet.sol";
 import "./SudoFacet.sol";
 import "./AccusationMultipleProposalFacet.sol";
 import "./AccusationInvalidTransactionConsumptionFacet.sol";
+import "./ValidatorLocationsFacet.sol";
 
 import "../Constants.sol";
 import "../EthDKGDiamond.sol";
@@ -31,6 +32,7 @@ import "../interfaces/Token.sol";
 import "../interfaces/Validators.sol";
 import "../interfaces/Accusation.sol";
 import "../interfaces/Sudo.sol";
+import "../interfaces/ValidatorLocations.sol";
 
 contract Setup is Constants {
 
@@ -49,6 +51,7 @@ contract Setup is Constants {
     Staking staking;
     Validators validators;
     Sudo sudo;
+    ValidatorLocations validatorLocations;
 
     function setUp() public virtual {
         setUp(address(new Token("STK", "MadNet Staking")));
@@ -74,6 +77,7 @@ contract Setup is Constants {
         validators = Validators(validatorsDiamond);
         accusation = Accusation(validatorsDiamond);
         sudo = Sudo(validatorsDiamond);
+        validatorLocations = ValidatorLocations(validatorsDiamond);
 
         address ethDKGDiamond = registry.lookup(ETHDKG_CONTRACT);
         ethdkg = ETHDKG(ethDKGDiamond);
@@ -113,6 +117,7 @@ contract Setup is Constants {
         address sudoFacet = address(new SudoFacet());
         address accusationMultipleProposalFacet = address(new AccusationMultipleProposalFacet());
         address accusationInvalidTransactionConsumptionFacet = address(new AccusationInvalidTransactionConsumptionFacet());
+        address validatorLocationsFacet = address(new ValidatorLocationsFacet());
 
         // SnapshotFacet Wiring
         update.addFacet(Snapshots.initializeSnapshots.selector, snapshotsFacet);
@@ -162,6 +167,13 @@ contract Setup is Constants {
         update.addFacet(Participants.validatorCount.selector, participantsFacet);
         update.addFacet(Participants.getChainId.selector, participantsFacet);
         update.addFacet(Participants.setChainId.selector, participantsFacet);
+
+        // ValidatorLocations wiring
+        update.addFacet(ValidatorLocations.setMyLocation.selector, validatorLocationsFacet);
+        update.addFacet(ValidatorLocations.getMyLocation.selector, validatorLocationsFacet);
+        update.addFacet(ValidatorLocations.getLocations.selector, validatorLocationsFacet);
+        update.addFacet(ValidatorLocations.getLocation.selector, validatorLocationsFacet);
+
 
         // SudoFacet Wiring
         update.addFacet(Sudo.modifyDiamondStorage.selector, sudoFacet);
