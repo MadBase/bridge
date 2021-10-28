@@ -40,4 +40,5 @@ interface Snapshots is SnapshotsEvents {
     function getMadHeightFromSnapshot(uint256 snapshotNumber) external view returns (uint32);
 
     function snapshot(bytes calldata _signatureGroup, bytes calldata _bclaims) external returns (bool);
+
 }

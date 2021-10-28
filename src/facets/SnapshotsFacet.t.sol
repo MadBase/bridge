@@ -5,10 +5,20 @@ pragma abicoder v2;
 import "ds-test/test.sol";
 
 import "../interfaces/Validators.sol";
+import "../interfaces/Sudo.sol";
 
 import "./ParticipantsFacet.t.sol";
 import "./Setup.t.sol";
 import "./SnapshotsFacet.sol";
+
+contract MockUpGovernanceSetter {
+    // Create a contract to mock up the msg.sender to be someone that does
+    // not have rights to set the governance address in the snapshots
+    // diamond.
+    function setGovernance(address snapshotDiamond, address governance_) public {
+        Sudo(snapshotDiamond).setGovernance(governance_);
+    }
+}
 
 contract SnapshotsFacetTest is Constants, DSTest, Setup {
 
@@ -196,5 +206,13 @@ contract SnapshotsFacetTest is Constants, DSTest, Setup {
         rep.add();
 
         return rep;
+    }
+
+    function testFail_TrySetGovernanceWithoutPermissions() public {
+        // Create a contract to mock up the msg.sender to be someone that does
+        // not have rights to set the governance address in the snapshots
+        // diamond.
+        MockUpGovernanceSetter govSetter = new MockUpGovernanceSetter();
+        govSetter.setGovernance(address(snapshots), address(this));
     }
 }

@@ -43,7 +43,6 @@ contract SnapshotsFacet is AccessControlled, Constants, SnapshotsEvents, Stoppab
         return ChainStatusLibrary.epoch();
     }
 
-
     function getChainIdFromSnapshot(uint256 snapshotNumber) external view returns (uint32) {
         return SnapshotsLibrary.getChainIdFromSnapshot(snapshotNumber);
     }
@@ -67,4 +66,5 @@ contract SnapshotsFacet is AccessControlled, Constants, SnapshotsEvents, Stoppab
     function snapshot(bytes calldata _signatureGroup, bytes calldata _bclaims) external participantOrOperator returns (bool) {
         return SnapshotsLibrary.snapshot(_signatureGroup, _bclaims);
     }
+
 }

@@ -45,8 +45,10 @@ contract GovernanceManager is GovernanceStorage {
         require(proposal.executed == false, "GovernanceManager: This proposal has been executed already");
         proposal.executed = true;
         _proposals[proposalID_] = proposal;
-        (bool success, ) = proposal.logic.delegatecall(abi.encodeWithSignature("execute()"));
+        (bool success, ) = proposal.logic.delegatecall(abi.encodeWithSignature("execute(address)", proposal.logic));
         require(success, "GovernanceManager: CALL FAILED to proposal execute()");
+        // Cleaning the allowedProposal state in case it was set by the Proposal
+        allowedProposal = address(0x0);
     }
 
     function voteAsMiner(uint256 proposalID_, uint256 tokenID_) public {
