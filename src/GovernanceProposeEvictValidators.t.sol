@@ -54,7 +54,7 @@ contract GovernanceProposeEvictAValidator is GovernanceProposal {
     /// GovernanceProposal.sol file fore more details.
     function execute(address self) public override returns(bool) {
         // Replace the following line with the address of the Validators Diamond.
-        address target = 0xEAC31aabA7442B58Bd7A8431d1D3Db3Bf3262667;
+        address target = 0xE9E697933260a720d42146268B2AAAfA4211DE1C;
         (bool success, ) = target.call(abi.encodeWithSignature("modifyDiamondStorage(address)", self));
         require(success, "GovernanceProposeModifySnapshot: CALL FAILED!");
         return success;
@@ -71,7 +71,7 @@ contract GovernanceProposeEvictAValidator is GovernanceProposal {
     function removeValidator() internal {
         // todo: unstake the validators prior removal?
         address _validator = 0x0aA3c032A48098855b3fA7410A33A120b34FB57D;
-        uint256[2] memory _madID = [uint256(2), uint256(2)];
+        uint256[2] memory _madID = [uint256(1), uint256(1)];
         ParticipantsLibrary.removeValidator(_validator, _madID);
     }
 }
@@ -86,7 +86,7 @@ contract GovernanceProposeEvictASetValidator is GovernanceProposal {
     /// GovernanceProposal.sol file fore more details.
     function execute(address self) public override returns(bool) {
         // Replace the following line with the address of the Validators Diamond.
-        address target = 0xEAC31aabA7442B58Bd7A8431d1D3Db3Bf3262667;
+        address target = 0xE9E697933260a720d42146268B2AAAfA4211DE1C;
         (bool success, ) = target.call(abi.encodeWithSignature("modifyDiamondStorage(address)", self));
         require(success, "GovernanceProposeModifySnapshot: CALL FAILED!");
         return success;
@@ -102,14 +102,14 @@ contract GovernanceProposeEvictASetValidator is GovernanceProposal {
 
     function removeSetOfValidators() internal {
         // todo: unstake the validators prior removal?
-        address _validator1 = 0xd5D575E71245442009EE208E8DCEBFbcF958b8B6;
+        address _validator1 = 0xF34003B00A3DbF6253Dd679F6BAe1c1e9992A7D1;
         uint256[2] memory _madID1 = [uint256(0), uint256(0)];
         ParticipantsLibrary.removeValidator(_validator1, _madID1);
         address _validator2 = 0xf1aD0f8622D9b0B56c7C5e23B5971648fCb55f47;
-        uint256[2] memory _madID2 = [uint256(5), uint256(5)];
+        uint256[2] memory _madID2 = [uint256(4), uint256(4)];
         ParticipantsLibrary.removeValidator(_validator2, _madID2);
         address _validator3 = 0xda566cF0927194a7E9B663881dB461a82Fc46b52;
-        uint256[2] memory _madID3 = [uint256(8), uint256(8)];
+        uint256[2] memory _madID3 = [uint256(7), uint256(7)];
         ParticipantsLibrary.removeValidator(_validator3, _madID3);
     }
 }
@@ -124,7 +124,7 @@ contract GovernanceProposeEvictAllValidators is GovernanceProposal {
     /// GovernanceProposal.sol file fore more details.
     function execute(address self) public override returns(bool) {
         // Replace the following line with the address of the Validators Diamond.
-        address target = 0xEAC31aabA7442B58Bd7A8431d1D3Db3Bf3262667;
+        address target = 0xE9E697933260a720d42146268B2AAAfA4211DE1C;
         (bool success, ) = target.call(abi.encodeWithSignature("modifyDiamondStorage(address)", self));
         require(success, "GovernanceProposeModifySnapshot: CALL FAILED!");
         return success;
@@ -317,7 +317,7 @@ contract GovernanceProposeEvictValidatorsTest is DSTest, Setup {
         Representative[] memory reps = createValidators(10);
         assertEq(participants.validatorCount(), 10);
         // Checking if all the validator that we are going to remove are indeed validators
-        address evictedValidator1 = 0xd5D575E71245442009EE208E8DCEBFbcF958b8B6;
+        address evictedValidator1 = 0xF34003B00A3DbF6253Dd679F6BAe1c1e9992A7D1;
         address evictedValidator2 = 0xf1aD0f8622D9b0B56c7C5e23B5971648fCb55f47;
         address evictedValidator3 = 0xda566cF0927194a7E9B663881dB461a82Fc46b52;
         assertTrue(participants.isValidator(evictedValidator1));

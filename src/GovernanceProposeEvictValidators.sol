@@ -22,7 +22,7 @@ contract GovernanceProposeEvictValidators is GovernanceProposal {
 
     /// @dev function that is called back by another contract with DELEGATE CALL
     /// rights! See the GovernanceProposal.sol file fore more details. PLACE THE
-    /// LOGIC To REMOVE VALIDATORS IN HERE!
+    /// SNAPSHOT REPLACEMENT LOGIC IN HERE!
     function callback() public override returns(bool) {
         // This function is called back by the Validators Diamond. Inside this
         // function, we have fully access to all the Validators Diamond Storage

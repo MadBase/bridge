@@ -51,6 +51,7 @@ contract Setup is Constants {
     Staking staking;
     Validators validators;
     Sudo sudo;
+    Sudo sudoETHDKG;
     ValidatorLocations validatorLocations;
 
     function setUp() public virtual {
@@ -81,6 +82,7 @@ contract Setup is Constants {
 
         address ethDKGDiamond = registry.lookup(ETHDKG_CONTRACT);
         ethdkg = ETHDKG(ethDKGDiamond);
+        sudoETHDKG = Sudo(ethDKGDiamond);
 
         // Initialize
         participants.initializeParticipants(registry);
@@ -174,7 +176,6 @@ contract Setup is Constants {
         update.addFacet(ValidatorLocations.getLocations.selector, validatorLocationsFacet);
         update.addFacet(ValidatorLocations.getLocation.selector, validatorLocationsFacet);
 
-
         // SudoFacet Wiring
         update.addFacet(Sudo.modifyDiamondStorage.selector, sudoFacet);
         update.addFacet(Sudo.setGovernance.selector, sudoFacet);
@@ -195,6 +196,7 @@ contract Setup is Constants {
         address disputeFacet = address(new EthDKGSubmitDisputeFacet());
         address miscFacet = address(new EthDKGMiscFacet());
         address infoFacet = address(new EthDKGInformationFacet());
+        address sudoFacet = address(new SudoFacet());
 
         // Wiring facets
         update.addFacet(ETHDKG.Group_Accusation_GPKj.selector, accusationFacet);
@@ -214,6 +216,10 @@ contract Setup is Constants {
         update.addFacet(ETHDKG.master_public_key.selector, infoFacet);
         update.addFacet(ETHDKG.gpkj_submissions.selector, infoFacet);
         update.addFacet(ETHDKG.getPhaseLength.selector, infoFacet);
+
+        // SudoFacet Wiring
+        update.addFacet(Sudo.modifyDiamondStorage.selector, sudoFacet);
+        update.addFacet(Sudo.setGovernance.selector, sudoFacet);
 
         _registry.register(ETHDKG_CONTRACT, diamond);
     }
