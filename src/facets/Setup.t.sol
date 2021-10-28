@@ -16,6 +16,7 @@ import "./StakingFacet.sol";
 import "./SudoFacet.sol";
 import "./AccusationMultipleProposalFacet.sol";
 import "./AccusationInvalidTransactionConsumptionFacet.sol";
+import "./ValidatorLocationsFacet.sol";
 
 import "../Constants.sol";
 import "../EthDKGDiamond.sol";
@@ -115,6 +116,7 @@ contract Setup is Constants {
         address sudoFacet = address(new SudoFacet());
         address accusationMultipleProposalFacet = address(new AccusationMultipleProposalFacet());
         address accusationInvalidTransactionConsumptionFacet = address(new AccusationInvalidTransactionConsumptionFacet());
+        address validatorLocationsFacet = address(new ValidatorLocationsFacet());
 
         // SnapshotFacet Wiring
         update.addFacet(Snapshots.initializeSnapshots.selector, snapshotsFacet);

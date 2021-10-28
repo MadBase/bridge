@@ -11,77 +11,36 @@ import "./Governance.sol";
 import "./StakeNFT.sol";
 import "./interfaces/INFTStake.sol";
 import "./lib/openzeppelin/token/ERC20/ERC20.sol";
-import "./facets/Setup.t.sol";
-import "./facets/ParticipantsFacet.t.sol";
+import "./GovernanceProposeModifySnapshot.t.sol";
 import "./facets/ParticipantsLibrary.sol";
 
-uint256 constant ONE_MADTOKEN = 10**18;
 
-contract MadTokenMock is ERC20 {
-    constructor(address to_) ERC20("MadToken", "MAD") {
-        _mint(to_, 220000000 * ONE_MADTOKEN);
-    }
-}
+contract Representative {
 
-contract MinerStake is INFTStake {
+    Participants pf;
+    uint256[2] madID;
+    BasicERC20 token;
+    uint256 stakingAmount;
+    Staking staking;
 
-    StakeNFT stakeNFT;
+    constructor(Participants _pf, uint256[2] memory _madID, BasicERC20 _token, Staking _staking, uint256 _amount) {
+        madID[0] = _madID[0];
+        madID[1] = _madID[1];
 
-    constructor(StakeNFT stakeNFT_) {
-        stakeNFT = stakeNFT_;
-    }
-
-    function lockPosition(address caller_, uint256 tokenID_, uint256 lockDuration_) external override returns(uint256 numberShares) {
-        return stakeNFT.lockPosition(caller_, tokenID_, lockDuration_);
-    }
-
-    function mintTo(address to_, uint256 amount_, uint256 lockDuration_) public returns(uint256 tokenID) {
-        return stakeNFT.mintTo(to_, amount_, lockDuration_);
-    }
-}
-
-abstract contract BaseMock {
-    StakeNFT public stakeNFT;
-    MadTokenMock public madToken;
-    GovernanceManager public governanceManager;
-
-    function setTokens(MadTokenMock madToken_, StakeNFT stakeNFT_, GovernanceManager governanceManager_) public virtual {
-        stakeNFT = stakeNFT_;
-        madToken = madToken_;
-        governanceManager = governanceManager_;
+        pf = _pf;
+        token = _token;
+        staking = _staking;
+        stakingAmount = _amount;
     }
 
-    receive() external payable virtual {}
-}
-
-contract AdminAccount is BaseMock {
-    constructor() {}
-
-    function tripCB() public {
-        stakeNFT.tripCB();
+    function add() external returns (uint8) {
+        token.approve(address(staking), stakingAmount);
+        staking.lockStake(stakingAmount);
+        return pf.addValidator(address(this), madID);
     }
 
-    function setTokens(MadTokenMock madToken_, StakeNFT stakeNFT_, GovernanceManager governanceManager_) public override virtual {
-        stakeNFT = stakeNFT_;
-        madToken = madToken_;
-        governanceManager = governanceManager_;
-        setGovernance(address(governanceManager_));
-    }
-
-    function setGovernance(address governance_) public {
-        stakeNFT.setGovernance(governance_);
-    }
-}
-
-contract UserAccount is BaseMock {
-    constructor() {}
-
-    function voteAsMiner(uint256 proposalID_, uint256 tokenID_) public {
-        governanceManager.voteAsMiner(proposalID_, tokenID_);
-    }
-
-    function voteAsStaker(uint256 proposalID_, uint256 tokenID_) public {
-        governanceManager.voteAsStaker(proposalID_, tokenID_);
+    function remove() external returns (uint8) {
+        return pf.removeValidator(address(this), madID);
     }
 }
 

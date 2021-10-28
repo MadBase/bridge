@@ -40,7 +40,7 @@ contract MadByte is ERC20, Admin, Mutex, MagicEthTransfer, EthSafeTransfer, Sigm
     }
 
     function setMinerSplit(uint256 split_) public onlyAdmin {
-        require(split_ < madUnitOne);
+        require(split_ < madUnitOne, "MadByte: The split value should be less than the madUnitOne!");
         _minerSplit = split_;
     }
 
