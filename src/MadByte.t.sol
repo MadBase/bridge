@@ -1059,38 +1059,6 @@ contract MadByteTest is DSTest, Sigmoid {
         token.virtualMintDeposit(address(0x0), 100);
     }
 
-    function testMakeDepositTo() public {
-        ( MadByte token, , , , ) = getFixtureData();
-        address user = 0x00a329c0648769A73afAc7F9381E08FB43dBEA72;
-        uint256 madBytes = token.mint{value: 10 ether}(0);
-        emit log_named_uint("MadBytes minted", madBytes);
-        assertEq(token.balanceOf(address(this)), madBytes);
-
-        assertEq(token.getPoolBalance(), 2_500000000000000000);
-        uint256 depositID = token.depositTo(user, 100 * ONE_MB);
-        assertEq(token.getPoolBalance(), 2_500000000000000000);
-        assertEq(depositID, 1);
-        assertEq(token.balanceOf(address(this)), madBytes - 100 * ONE_MB);
-        assertEq(token.balanceOf(user), 0);
-        assertEq(token.balanceOf(address(token)), 100 * ONE_MB);
-        assertEq(token.getTotalMadBytesDeposited(), 100 * ONE_MB);
-        assertEq(token.getDeposit(depositID), 100 * ONE_MB);
-        (address depositOwner, ) = token.getDepositOwner(depositID);
-        assertEq(depositOwner, user);
-
-        assertEq(token.getPoolBalance(), 2_500000000000000000);
-        uint256 depositID2 = token.depositTo(user, 199 * ONE_MB);
-        assertEq(token.getPoolBalance(), 2_500000000000000000);
-        assertEq(depositID2, 2);
-        assertEq(token.balanceOf(address(this)), madBytes - 299 * ONE_MB);
-        assertEq(token.balanceOf(user), 0);
-        assertEq(token.balanceOf(address(token)), 299 * ONE_MB);
-        assertEq(token.getTotalMadBytesDeposited(), 299 * ONE_MB);
-        assertEq(token.getDeposit(depositID2), 199 * ONE_MB);
-        (address depositOwner2, ) = token.getDepositOwner(depositID2);
-        assertEq(depositOwner2, user);
-    }
-
     function testSingleDeposit() public {
         (MadByte token,,,,) = getFixtureData();
         assertEq(token.getPoolBalance(), 0);
