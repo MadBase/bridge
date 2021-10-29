@@ -30,9 +30,9 @@ contract MadByte is ERC20, Admin, Mutex, MagicEthTransfer, EthSafeTransfer, Sigm
     }
 
     // Monotonically increasing variable to track the MadBytes deposits.
-    uint256 _depositID;
+    uint256 _depositID = 0;
     // Total amount of MadBytes that were deposited in this contract.
-    uint256 _totalDeposited;
+    uint256 _totalDeposited = 0;
 
     // Tracks the amount of each deposit. Key is deposit id, value is amount
     // deposited.
@@ -102,23 +102,23 @@ contract MadByte is ERC20, Admin, Mutex, MagicEthTransfer, EthSafeTransfer, Sigm
         return _distribute();
     }
 
-    function deposit(uint256 amount_) public returns (bool) {
+    function deposit(uint256 amount_) public returns (uint256) {
         return _deposit(msg.sender, amount_);
     }
 
-    function depositTo(address to_, uint256 amount_) public returns (bool) {
+    function depositTo(address to_, uint256 amount_) public returns (uint256) {
         return _deposit(to_, amount_);
     }
 
-    function depositToBN(bytes32 to0_, bytes32 to1_, bytes32 to2_, bytes32 to3_, uint256 amount_) public returns (bool) {
+    function depositToBN(bytes32 to0_, bytes32 to1_, bytes32 to2_, bytes32 to3_, uint256 amount_) public returns (uint256) {
         return _depositBN(to0_, to1_, to2_, to3_, amount_);
     }
 
-    function virtualMintDeposit(address to_, uint256 amount_) public onlyAdmin returns (bool) {
+    function virtualMintDeposit(address to_, uint256 amount_) public onlyAdmin returns (uint256) {
         return _virtualDeposit(to_, amount_);
     }
 
-    function mintDeposit(address to_, uint256 amountMin_) public payable returns (bool) {
+    function mintDeposit(address to_, uint256 amountMin_) public payable returns (uint256) {
         return _mintDeposit(to_, amountMin_, msg.value);
     }
 
@@ -178,9 +178,9 @@ contract MadByte is ERC20, Admin, Mutex, MagicEthTransfer, EthSafeTransfer, Sigm
         return size > 0;
     }
 
-    function _deposit(address to_, uint256 amount_) internal returns (bool) {
+    function _deposit(address to_, uint256 amount_) internal returns (uint256) {
         require(!_isContract(to_), "MadByte: Contracts cannot make MadBytes deposits!");
-        require(transferFrom(msg.sender, address(this), amount_), "MadByte: Transfer failed!");
+        require(ERC20.transfer(address(this), amount_), "MadByte: Transfer failed!");
         // copying state to save gas
         uint256 depositID = _depositID + 1;
         _deposits[depositID] = amount_;
@@ -188,11 +188,11 @@ contract MadByte is ERC20, Admin, Mutex, MagicEthTransfer, EthSafeTransfer, Sigm
         _totalDeposited += amount_;
         _depositID = depositID;
         emit DepositReceived(depositID, to_, amount_);
-        return true;
+        return depositID;
     }
 
-    function _depositBN(bytes32 to0_, bytes32 to1_, bytes32 to2_, bytes32 to3_, uint256 amount_) internal returns (bool) {
-        require(transferFrom(msg.sender, address(this), amount_), "MadByte: Transfer failed!");
+    function _depositBN(bytes32 to0_, bytes32 to1_, bytes32 to2_, bytes32 to3_, uint256 amount_) internal returns (uint256) {
+        require(ERC20.transfer(address(this), amount_), "MadByte: Transfer failed!");
         // copying state to save gas
         uint256 depositID = _depositID + 1;
         _deposits[depositID] = amount_;
@@ -200,10 +200,10 @@ contract MadByte is ERC20, Admin, Mutex, MagicEthTransfer, EthSafeTransfer, Sigm
         _totalDeposited += amount_;
         _depositID = depositID;
         emit DepositReceivedBN(depositID, to0_, to1_, to2_, to3_, amount_);
-        return true;
+        return depositID;
     }
 
-    function _virtualDeposit(address to_, uint256 amount_) internal returns (bool) {
+    function _virtualDeposit(address to_, uint256 amount_) internal returns (uint256) {
         require(!_isContract(to_), "MadByte: Contracts cannot make MadBytes deposits!");
         // copying state to save gas
         uint256 depositID = _depositID + 1;
@@ -212,10 +212,10 @@ contract MadByte is ERC20, Admin, Mutex, MagicEthTransfer, EthSafeTransfer, Sigm
         _totalDeposited += amount_;
         _depositID = depositID;
         emit DepositReceived(depositID, to_, amount_);
-        return true;
+        return depositID;
     }
 
-    function _mintDeposit(address to_, uint256 minMB_, uint256 numEth_) internal returns (bool) {
+    function _mintDeposit(address to_, uint256 minMB_, uint256 numEth_) internal returns (uint256) {
         require(!_isContract(to_), "MadByte: Contracts cannot make MadBytes deposits!");
         require(numEth_ >= marketSpread, "MadByte: requires at least 4 WEI");
         numEth_ = numEth_/marketSpread;
@@ -227,7 +227,7 @@ contract MadByte is ERC20, Admin, Mutex, MagicEthTransfer, EthSafeTransfer, Sigm
         _totalDeposited += amount_;
         _depositID = depositID;
         emit DepositReceived(depositID, to_, amount_);
-        return true;
+        return depositID;
     }
 
     function _mint(address to_, uint256 numEth_, uint256 minMB_) internal returns(uint256 nuMB) {
