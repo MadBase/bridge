@@ -180,6 +180,7 @@ contract MadByte is ERC20, Admin, Mutex, MagicEthTransfer, EthSafeTransfer, Sigm
 
     function _deposit(address to_, uint256 amount_) internal returns (uint256) {
         require(!_isContract(to_), "MadByte: Contracts cannot make MadBytes deposits!");
+        require(amount_ > 0, "MadByte: The deposit amount must be greater than zero!");
         require(ERC20.transfer(address(this), amount_), "MadByte: Transfer failed!");
         // copying state to save gas
         uint256 depositID = _depositID + 1;
@@ -192,6 +193,7 @@ contract MadByte is ERC20, Admin, Mutex, MagicEthTransfer, EthSafeTransfer, Sigm
     }
 
     function _depositBN(bytes32 to0_, bytes32 to1_, bytes32 to2_, bytes32 to3_, uint256 amount_) internal returns (uint256) {
+        require(amount_ > 0, "MadByte: The deposit amount must be greater than zero!");
         require(ERC20.transfer(address(this), amount_), "MadByte: Transfer failed!");
         // copying state to save gas
         uint256 depositID = _depositID + 1;
@@ -205,6 +207,7 @@ contract MadByte is ERC20, Admin, Mutex, MagicEthTransfer, EthSafeTransfer, Sigm
 
     function _virtualDeposit(address to_, uint256 amount_) internal returns (uint256) {
         require(!_isContract(to_), "MadByte: Contracts cannot make MadBytes deposits!");
+        require(amount_ > 0, "MadByte: The deposit amount must be greater than zero!");
         // copying state to save gas
         uint256 depositID = _depositID + 1;
         _deposits[depositID] = amount_;

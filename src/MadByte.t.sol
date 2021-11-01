@@ -218,6 +218,23 @@ contract EOA_DoubleDeposit is DSTest {
     }
 }
 
+contract EOA_DepositZeroMadBytes is DSTest {
+    uint256 constant ONE_MB = 1*10**18;
+
+    uint256 public madBytes = 0;
+
+    constructor(MadByte token) payable {
+        // first deposit
+        // mint
+        madBytes = token.mint{value: 10 ether}(0);
+        emit log_named_uint("EOA MadBytes minted", madBytes);
+        emit log_named_address("EOA Msg sender", msg.sender);
+
+        // deposits
+        token.deposit(0 * ONE_MB);
+    }
+}
+
 contract MadByteTest is DSTest, Sigmoid {
 
     uint256 constant ONE_MB = 1*10**18;
@@ -1164,28 +1181,6 @@ contract MadByteTest is DSTest, Sigmoid {
         assertEqBNAddress(depositOwner2, user);
     }
 
-    function testDepositZeroMadBytes() public {
-        (MadByte token,,,,) = getFixtureData();
-        address user = address(0xd39f14dCd02B9fC8A11bd95604D3E3E12Fd938EE);
-        uint256 madBytes = token.mint{value: 10 ether}(0);
-        emit log_named_uint("EOA MadBytes minted", madBytes);
-        emit log_named_address("EOA Msg sender", msg.sender);
-        assertEq(token.balanceOf(address(this)), madBytes);
-
-        assertEq(token.getPoolBalance(), 2_500000000000000000);
-        // first deposit
-        uint256 depositID = token.depositTo(user, 0);
-        assertEq(token.getPoolBalance(), 2_500000000000000000);
-        assertEq(depositID, 1);
-        assertEq(token.balanceOf(user), 0);
-        assertEq(token.balanceOf(address(this)), madBytes);
-        assertEq(token.balanceOf(address(token)), 0);
-        assertEq(token.getTotalMadBytesDeposited(), 0);
-        assertEq(token.getDeposit(1), 0);
-        (address depositOwner, ) = token.getDepositOwner(1);
-        assertEq(depositOwner, user);
-    }
-
     function testVirtualMintDeposit() public {
         (MadByte token, AdminAccount admin,,,) = getFixtureData();
         address user = address(0xd39f14dCd02B9fC8A11bd95604D3E3E12Fd938EE);
@@ -1253,5 +1248,53 @@ contract MadByteTest is DSTest, Sigmoid {
 
     }
 
+    function testFail_DepositZeroMadBytes() public {
+        (MadByte token,,,,) = getFixtureData();
+        assertEq(token.getPoolBalance(), 0);
+        EOA_DepositZeroMadBytes user = new EOA_DepositZeroMadBytes{value: 10 ether}(token);
+    }
+
+    function testFail_DepositToZeroMadBytes() public {
+        (MadByte token,,,,) = getFixtureData();
+        address user = address(0xd39f14dCd02B9fC8A11bd95604D3E3E12Fd938EE);
+        uint256 madBytes = token.mint{value: 10 ether}(0);
+        emit log_named_uint("EOA MadBytes minted", madBytes);
+        emit log_named_address("EOA Msg sender", msg.sender);
+        assertEq(token.balanceOf(address(this)), madBytes);
+
+        assertEq(token.getPoolBalance(), 2_500000000000000000);
+        // first deposit
+        uint256 depositID = token.depositTo(user, 0);
+    }
+
+    function testFail_DepositToBNZeroMadBytes() public {
+        (MadByte token,,,,) = getFixtureData();
+        MadByte.BNAddress memory user = MadByte.BNAddress(bytes32("0x1"), bytes32("0x2"), bytes32("0x3"), bytes32("0x4"));
+        uint256 madBytes = token.mint{value: 10 ether}(0);
+        emit log_named_uint("EOA MadBytes minted", madBytes);
+        emit log_named_address("EOA Msg sender", msg.sender);
+        assertEq(token.balanceOf(address(this)), madBytes);
+
+        assertEq(token.getPoolBalance(), 2_500000000000000000);
+        uint256 depositID = token.depositToBN(user.to0, user.to1, user.to2, user.to3, 0 * ONE_MB);
+    }
+
+    function testFail_VirtualMintDepositZeroMadBytes() public {
+        (MadByte token, AdminAccount admin,,,) = getFixtureData();
+        address user = address(0xd39f14dCd02B9fC8A11bd95604D3E3E12Fd938EE);
+        uint256 madBytes = token.mint{value: 10 ether}(0);
+        assertEq(token.balanceOf(address(this)), madBytes);
+
+        assertEq(token.getPoolBalance(), 2_500000000000000000);
+        // first deposit
+        uint256 depositID = admin.virtualMintDeposit(user, 0 * ONE_MB);
+    }
+
+    function testFail_MintDepositZeroMadBytes() public {
+        (MadByte token,,,,) = getFixtureData();
+        address user = address(0xd39f14dCd02B9fC8A11bd95604D3E3E12Fd938EE);
+        assertEq(token.getPoolBalance(), 0);
+        uint256 depositID = token.mintDeposit{value: 0 ether}(user, 0);
+    }
 
 }
