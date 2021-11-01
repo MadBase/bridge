@@ -1080,10 +1080,10 @@ contract MadByteTest is DSTest, Sigmoid {
         (MadByte token,,,,) = getFixtureData();
         assertEq(token.getPoolBalance(), 0);
         EOA_SingleDeposit user = new EOA_SingleDeposit{value: 10 ether}(token);
-        assertEq(token.getPoolBalance(), 2_500000000000000000);
+        assertEq(token.totalSupply(), user.madBytes());
 
         assertEq(token.balanceOf(address(user)), user.madBytes());
-        assertEq(token.balanceOf(address(token)), 100 * ONE_MB);
+        assertEq(token.balanceOf(address(token)), 0);
         assertEq(token.getTotalMadBytesDeposited(), 100 * ONE_MB);
         assertEq(token.getDeposit(1), 100 * ONE_MB);
         (address depositOwner, ) = token.getDepositOwner(1);
@@ -1094,11 +1094,11 @@ contract MadByteTest is DSTest, Sigmoid {
         (MadByte token,,,,) = getFixtureData();
         assertEq(token.getPoolBalance(), 0);
         EOA_DoubleDeposit user = new EOA_DoubleDeposit{value: 10 ether}(token);
-        assertEq(token.getPoolBalance(), 2_500000000000000000);
+        assertEq(token.totalSupply(), user.madBytes());
 
         // first deposit
         assertEq(token.balanceOf(address(user)), user.madBytes());
-        assertEq(token.balanceOf(address(token)), 299 * ONE_MB);
+        assertEq(token.balanceOf(address(token)), 0);
         assertEq(token.getTotalMadBytesDeposited(), 299 * ONE_MB);
         assertEq(token.getDeposit(1), 100 * ONE_MB);
         (address depositOwner, ) = token.getDepositOwner(1);
@@ -1106,7 +1106,7 @@ contract MadByteTest is DSTest, Sigmoid {
 
         // second deposit
         assertEq(token.balanceOf(address(user)), user.madBytes());
-        assertEq(token.balanceOf(address(token)), 299 * ONE_MB);
+        assertEq(token.balanceOf(address(token)), 0);
         assertEq(token.getTotalMadBytesDeposited(), 299 * ONE_MB);
         assertEq(token.getDeposit(2), 199 * ONE_MB);
         (address depositOwner2, ) = token.getDepositOwner(2);
@@ -1121,27 +1121,26 @@ contract MadByteTest is DSTest, Sigmoid {
         emit log_named_address("EOA Msg sender", msg.sender);
         assertEq(token.balanceOf(address(this)), madBytes);
 
-        assertEq(token.getPoolBalance(), 2_500000000000000000);
+        assertEq(token.totalSupply(), madBytes);
         // first deposit
         uint256 depositID = token.depositTo(user, 100 * ONE_MB);
-        assertEq(token.getPoolBalance(), 2_500000000000000000);
+        assertEq(token.totalSupply(), madBytes - (100 * ONE_MB));
         assertEq(depositID, 1);
         assertEq(token.balanceOf(user), 0);
         assertEq(token.balanceOf(address(this)), madBytes - (100 * ONE_MB));
-        assertEq(token.balanceOf(address(token)), 100 * ONE_MB);
+        assertEq(token.balanceOf(address(token)), 0);
         assertEq(token.getTotalMadBytesDeposited(), 100 * ONE_MB);
         assertEq(token.getDeposit(1), 100 * ONE_MB);
         (address depositOwner, ) = token.getDepositOwner(1);
         assertEq(depositOwner, user);
 
-        assertEq(token.getPoolBalance(), 2_500000000000000000);
         // second deposit
         depositID = token.depositTo(user, 199 * ONE_MB);
-        assertEq(token.getPoolBalance(), 2_500000000000000000);
+        assertEq(token.totalSupply(), madBytes - (299 * ONE_MB));
         assertEq(depositID, 2);
         assertEq(token.balanceOf(user), 0);
         assertEq(token.balanceOf(address(this)), madBytes - (299 * ONE_MB));
-        assertEq(token.balanceOf(address(token)), 299 * ONE_MB);
+        assertEq(token.balanceOf(address(token)), 0);
         assertEq(token.getTotalMadBytesDeposited(), 299 * ONE_MB);
         assertEq(token.getDeposit(2), 199 * ONE_MB);
         (address depositOwner2, ) = token.getDepositOwner(2);
@@ -1150,31 +1149,31 @@ contract MadByteTest is DSTest, Sigmoid {
 
     function testDepositToBN() public {
         (MadByte token,,,,) = getFixtureData();
-        MadByte.BNAddress memory user = MadByte.BNAddress(bytes32("0x1"), bytes32("0x2"), bytes32("0x3"), bytes32("0x4"));
+        MadByte.BNAddress memory user = MadByte.BNAddress(0x1, 0x2, 0x3, 0x4);
         uint256 madBytes = token.mint{value: 10 ether}(0);
         emit log_named_uint("EOA MadBytes minted", madBytes);
         emit log_named_address("EOA Msg sender", msg.sender);
         assertEq(token.balanceOf(address(this)), madBytes);
 
-        assertEq(token.getPoolBalance(), 2_500000000000000000);
+        assertEq(token.totalSupply(), madBytes);
         // first deposit
         uint256 depositID = token.depositToBN(user.to0, user.to1, user.to2, user.to3, 100 * ONE_MB);
-        assertEq(token.getPoolBalance(), 2_500000000000000000);
+        assertEq(token.totalSupply(), madBytes - (100 * ONE_MB));
         assertEq(depositID, 1);
         assertEq(token.balanceOf(address(this)), madBytes - (100 * ONE_MB));
-        assertEq(token.balanceOf(address(token)), 100 * ONE_MB);
+        assertEq(token.balanceOf(address(token)), 0);
         assertEq(token.getTotalMadBytesDeposited(), 100 * ONE_MB);
         assertEq(token.getDeposit(1), 100 * ONE_MB);
         (, MadByte.BNAddress memory depositOwner) = token.getDepositOwner(1);
         assertEqBNAddress(depositOwner, user);
 
-        assertEq(token.getPoolBalance(), 2_500000000000000000);
+        assertEq(token.totalSupply(), madBytes - (100 * ONE_MB));
         // second deposit
         depositID = token.depositToBN(user.to0, user.to1, user.to2, user.to3, 199 * ONE_MB);
-        assertEq(token.getPoolBalance(), 2_500000000000000000);
+        assertEq(token.totalSupply(), madBytes - (299 * ONE_MB));
         assertEq(depositID, 2);
         assertEq(token.balanceOf(address(this)), madBytes - (299 * ONE_MB));
-        assertEq(token.balanceOf(address(token)), 299 * ONE_MB);
+        assertEq(token.balanceOf(address(token)), 0);
         assertEq(token.getTotalMadBytesDeposited(), 299 * ONE_MB);
         assertEq(token.getDeposit(2), 199 * ONE_MB);
         (, MadByte.BNAddress memory depositOwner2) = token.getDepositOwner(2);
@@ -1248,6 +1247,189 @@ contract MadByteTest is DSTest, Sigmoid {
 
     }
 
+    function testDistributeWithMadByteDeposit() public {
+        (
+            MadByte token,
+            ,
+            MadStakingAccount madStaking,
+            MinerStakingAccount minerStaking,
+            FoundationAccount foundation
+        ) = getFixtureData();
+
+        // assert balances
+        assertEq(address(madStaking).balance, 0);
+        assertEq(address(minerStaking).balance, 0);
+        assertEq(address(foundation).balance, 0);
+
+        // mint and transfer some tokens to the accounts
+        uint256 madBytes = token.mint{value: 4 ether}(0);
+        assertEq(399_028731704364116575, madBytes);
+        assertEq(token.totalSupply(), madBytes);
+        assertEq(address(token).balance, 4 ether);
+        assertEq(token.getPoolBalance(), 1 ether);
+
+        assertEq(token.MBtoEth(token.getPoolBalance(), token.totalSupply(), token.totalSupply()), token.getPoolBalance());
+
+        (uint256 foundationAmount, uint256 minerAmount, uint256 stakingAmount) = token.distribute();
+
+        assertEq(token.MBtoEth(token.getPoolBalance(), token.totalSupply(), token.totalSupply()), token.getPoolBalance());
+
+        // assert balances
+        assertEq(stakingAmount, 1495500000000000000);
+        assertEq(minerAmount, 1495500000000000000);
+        assertEq(foundationAmount, 9000000000000000);
+
+        assertEq(address(madStaking).balance, 1495500000000000000);
+        assertEq(address(minerStaking).balance, 1495500000000000000);
+        assertEq(address(foundation).balance, 9000000000000000);
+        assertEq(address(token).balance, 1 ether);
+        assertEq(token.getPoolBalance(), 1 ether);
+
+        // testing the distribute after depositing
+        address user = address(0xd39f14dCd02B9fC8A11bd95604D3E3E12Fd938EE);
+        uint256 expectedETH = token.MBtoEth(token.getPoolBalance(), token.totalSupply(), 100 * ONE_MB);
+        token.depositTo(user, 100 * ONE_MB);
+
+        (foundationAmount, minerAmount, stakingAmount) = token.distribute();
+
+        assertEq(token.MBtoEth(token.getPoolBalance(), token.totalSupply(), token.totalSupply()), token.getPoolBalance());
+        assertEq(stakingAmount+minerAmount+foundationAmount, expectedETH);
+        // assert balances
+        assertEq(stakingAmount, 124928529685685073);
+        assertEq(minerAmount, 124928529685685072);
+        assertEq(foundationAmount, 751826658088375);
+
+
+        expectedETH = token.MBtoEth(token.getPoolBalance(), token.totalSupply(), 199 * ONE_MB);
+        token.depositTo(user, 199 * ONE_MB);
+
+        (foundationAmount, minerAmount, stakingAmount) = token.distribute();
+
+        assertEq(token.MBtoEth(token.getPoolBalance(), token.totalSupply(), token.totalSupply()), token.getPoolBalance());
+        assertEq(stakingAmount+minerAmount+foundationAmount, expectedETH);
+        // assert balances
+        assertEq(stakingAmount, 248607411240336914);
+        assertEq(minerAmount, 248607411240336914);
+        assertEq(foundationAmount, 1496132866040141);
+    }
+
+    function testDistributeWithMadByteDepositBN() public {
+        (
+            MadByte token,
+            ,
+            MadStakingAccount madStaking,
+            MinerStakingAccount minerStaking,
+            FoundationAccount foundation
+        ) = getFixtureData();
+
+        // assert balances
+        assertEq(address(madStaking).balance, 0);
+        assertEq(address(minerStaking).balance, 0);
+        assertEq(address(foundation).balance, 0);
+
+        // mint and transfer some tokens to the accounts
+        uint256 madBytes = token.mint{value: 4 ether}(0);
+        assertEq(399_028731704364116575, madBytes);
+        assertEq(token.totalSupply(), madBytes);
+        assertEq(address(token).balance, 4 ether);
+        assertEq(token.getPoolBalance(), 1 ether);
+
+        assertEq(token.MBtoEth(token.getPoolBalance(), token.totalSupply(), token.totalSupply()), token.getPoolBalance());
+
+        (uint256 foundationAmount, uint256 minerAmount, uint256 stakingAmount) = token.distribute();
+
+        assertEq(token.MBtoEth(token.getPoolBalance(), token.totalSupply(), token.totalSupply()), token.getPoolBalance());
+
+        // assert balances
+        assertEq(stakingAmount, 1495500000000000000);
+        assertEq(minerAmount, 1495500000000000000);
+        assertEq(foundationAmount, 9000000000000000);
+
+        assertEq(address(madStaking).balance, 1495500000000000000);
+        assertEq(address(minerStaking).balance, 1495500000000000000);
+        assertEq(address(foundation).balance, 9000000000000000);
+        assertEq(address(token).balance, 1 ether);
+        assertEq(token.getPoolBalance(), 1 ether);
+
+        // testing the distribute after depositing
+        MadByte.BNAddress memory user = MadByte.BNAddress(0x1, 0x2, 0x3, 0x4);
+        uint256 expectedETH = token.MBtoEth(token.getPoolBalance(), token.totalSupply(), 100 * ONE_MB);
+        token.depositToBN(user.to0, user.to1, user.to2, user.to3, 100 * ONE_MB);
+
+        (foundationAmount, minerAmount, stakingAmount) = token.distribute();
+
+        assertEq(token.MBtoEth(token.getPoolBalance(), token.totalSupply(), token.totalSupply()), token.getPoolBalance());
+        assertEq(stakingAmount+minerAmount+foundationAmount, expectedETH);
+        // assert balances
+        assertEq(stakingAmount, 124928529685685073);
+        assertEq(minerAmount, 124928529685685072);
+        assertEq(foundationAmount, 751826658088375);
+
+
+        expectedETH = token.MBtoEth(token.getPoolBalance(), token.totalSupply(), 199 * ONE_MB);
+        token.depositToBN(user.to0, user.to1, user.to2, user.to3, 199 * ONE_MB);
+
+        (foundationAmount, minerAmount, stakingAmount) = token.distribute();
+
+        assertEq(token.MBtoEth(token.getPoolBalance(), token.totalSupply(), token.totalSupply()), token.getPoolBalance());
+        assertEq(stakingAmount+minerAmount+foundationAmount, expectedETH);
+        // assert balances
+        assertEq(stakingAmount, 248607411240336914);
+        assertEq(minerAmount, 248607411240336914);
+        assertEq(foundationAmount, 1496132866040141);
+    }
+
+    function testDistributeWithMintDeposit() public {
+        (MadByte token,,,,) = getFixtureData();
+        address user = address(0xd39f14dCd02B9fC8A11bd95604D3E3E12Fd938EE);
+        assertEq(token.getPoolBalance(), 0);
+        assertEq(token.totalSupply(), 0);
+        uint256 depositID = token.mintDeposit{value: 10 ether}(user, 0);
+        assertEq(token.getPoolBalance(), 0);
+        assertEq(token.totalSupply(), 0);
+        assertEq(depositID, 1);
+        assertEq(token.balanceOf(address(user)), 0);
+        assertEq(token.balanceOf(address(this)), 0);
+        assertEq(token.getTotalMadBytesDeposited(), token.getDeposit(1));
+        (address depositOwner, ) = token.getDepositOwner(depositID);
+        assertEq(depositOwner, user);
+
+        (uint256 foundationAmount, uint256 minerAmount, uint256 stakingAmount) = token.distribute();
+        assertEq(stakingAmount+minerAmount+foundationAmount, 10 ether);
+        // assert balances
+        assertEq(stakingAmount, 4985000000000000000);
+        assertEq(minerAmount, 4985000000000000000);
+        assertEq(foundationAmount, 30000000000000000);
+
+
+        uint256 depositID2 = token.mintDeposit{value: 10 ether}(user, 0);
+        assertEq(token.getPoolBalance(), 0);
+        assertEq(token.totalSupply(), 0);
+        assertEq(depositID2, 2);
+        assertEq(token.balanceOf(address(user)), 0);
+        assertEq(token.balanceOf(address(this)), 0);
+        assertEq(token.getTotalMadBytesDeposited(), token.getDeposit(1)+token.getDeposit(2));
+        (address depositOwner2, ) = token.getDepositOwner(depositID2);
+        assertEq(depositOwner2, user);
+
+        (foundationAmount, minerAmount, stakingAmount) = token.distribute();
+        assertEq(stakingAmount+minerAmount+foundationAmount, 10 ether);
+        // assert balances
+        assertEq(stakingAmount, 4985000000000000000);
+        assertEq(minerAmount, 4985000000000000000);
+        assertEq(foundationAmount, 30000000000000000);
+
+        assertEq(token.getDeposit(2), token.getDeposit(1));
+        emit log_named_uint("Amount deposit 1", token.getDeposit(1));
+        emit log_named_uint("Amount deposit 2", token.getDeposit(2));
+
+        // testing if we are getting the same amount of MB from the normal mint
+        uint256 madBytes = token.mint{value: 10 ether}(0);
+        assertEq(token.balanceOf(address(this)), madBytes);
+        assertEq(token.getDeposit(1), madBytes);
+
+    }
+
     function testFail_DepositZeroMadBytes() public {
         (MadByte token,,,,) = getFixtureData();
         assertEq(token.getPoolBalance(), 0);
@@ -1269,7 +1451,7 @@ contract MadByteTest is DSTest, Sigmoid {
 
     function testFail_DepositToBNZeroMadBytes() public {
         (MadByte token,,,,) = getFixtureData();
-        MadByte.BNAddress memory user = MadByte.BNAddress(bytes32("0x1"), bytes32("0x2"), bytes32("0x3"), bytes32("0x4"));
+        MadByte.BNAddress memory user = MadByte.BNAddress(0x1, 0x2, 0x3, 0x4);
         uint256 madBytes = token.mint{value: 10 ether}(0);
         emit log_named_uint("EOA MadBytes minted", madBytes);
         emit log_named_address("EOA Msg sender", msg.sender);
