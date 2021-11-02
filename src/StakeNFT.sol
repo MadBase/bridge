@@ -84,12 +84,12 @@ contract StakeNFT is ERC721, MagicValue, Admin, Governance, CircuitBreaker, Atom
         _MadToken = MadToken_;
     }
 
-    /// @dev tripCB opens the circuit breaker may only be called by an _admin
+    /// @dev tripCB opens the circuit breaker may only be called by _admin
     function tripCB() public override onlyAdmin {
         _tripCB();
     }
 
-    /// @dev sets the governance contract, must only be called by and _admin
+    /// @dev sets the governance contract, must only be called by _admin
     function setGovernance(address governance_) public override onlyAdmin {
         _setGovernance(governance_);
     }
