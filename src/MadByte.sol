@@ -17,10 +17,13 @@ contract MadByte is ERC20, Admin, Mutex, MagicEthTransfer, EthSafeTransfer, Sigm
 
     uint256 constant marketSpread = 4;
     uint256 constant madUnitOne = 1000;
-    uint256 constant protocolFee = 3;
 
     uint256 _poolBalance = 0;
-    uint256 _minerSplit = 500;
+
+    uint256 _minerStakingSplit = 333;
+    uint256 _madStakingSplit = 332;
+    uint256 _lpStakingSplit = 332;
+    uint256 _protocolFee = 3;
 
     // struct to define a BNAddress
     struct BNAddress {
@@ -49,11 +52,13 @@ contract MadByte is ERC20, Admin, Mutex, MagicEthTransfer, EthSafeTransfer, Sigm
 
     IMagicEthTransfer _madStaking;
     IMagicEthTransfer _minerStaking;
+    IMagicEthTransfer _lpStaking;
     IMagicEthTransfer _foundation;
 
-    constructor(address admin_, address madStaking_, address minerStaking_, address foundation_) ERC20("MadByte", "MB") Admin(admin_) Mutex() {
+    constructor(address admin_, address madStaking_, address minerStaking_, address lpStaking_, address foundation_) ERC20("MadByte", "MB") Admin(admin_) Mutex() {
         _madStaking = IMagicEthTransfer(madStaking_);
         _minerStaking = IMagicEthTransfer(minerStaking_);
+        _lpStaking = IMagicEthTransfer(lpStaking_);
         _foundation = IMagicEthTransfer(foundation_);
     }
 
@@ -72,11 +77,20 @@ contract MadByte is ERC20, Admin, Mutex, MagicEthTransfer, EthSafeTransfer, Sigm
         _foundation = IMagicEthTransfer(foundation_);
     }
 
-    /// @dev sets the percentage that will be divided between the miners and the
-    /// stakers, must only be called by and _admin
-    function setMinerSplit(uint256 split_) public onlyAdmin {
-        require(split_ < madUnitOne, "MadByte: The split value should be less than the madUnitOne!");
-        _minerSplit = split_;
+    /// @dev sets the liquidity provider contract, must only be called by
+    /// _admin.
+    function setLPStaking(address lpStaking_) public onlyAdmin {
+        _lpStaking = IMagicEthTransfer(lpStaking_);
+    }
+
+    /// @dev sets the percentage that will be divided between all the staking
+    /// contracts, must only be called by and _admin
+    function setSplits(uint256 minerStakingSplit_, uint256 madStakingSplit_, uint256 lpStakingSplit_, uint256 protocolFee_) public onlyAdmin {
+        require(minerStakingSplit_ + madStakingSplit_ + lpStakingSplit_ + protocolFee_ == madUnitOne, "MadByte: All the split values must sum to madUnitOne!");
+        _minerStakingSplit = minerStakingSplit_;
+        _madStakingSplit = madStakingSplit_;
+        _lpStakingSplit = lpStakingSplit_;
+        _protocolFee = protocolFee_;
     }
 
     /// Converts an amount of Madbytes in ether given a point in the bonding
@@ -129,8 +143,8 @@ contract MadByte is ERC20, Admin, Mutex, MagicEthTransfer, EthSafeTransfer, Sigm
     }
 
     /// Distributes the yields of the MadBytes sale to all stakeholders
-    /// (miners, stakers, foundation, etc).
-    function distribute() public returns(uint256 foundationAmount, uint256 minerAmount, uint256 stakingAmount) {
+    /// (miners, stakers, lp stakers, foundation, etc).
+    function distribute() public returns(uint256 minerAmount, uint256 stakingAmount, uint256 lpStakingAmount, uint256 foundationAmount) {
         return _distribute();
     }
 
@@ -241,7 +255,7 @@ contract MadByte is ERC20, Admin, Mutex, MagicEthTransfer, EthSafeTransfer, Sigm
     }
 
     /// Distributes the yields from the MadBytes minting to all stake holders.
-    function _distribute() internal withLock returns(uint256 foundationAmount, uint256 minerAmount, uint256 stakingAmount) {
+    function _distribute() internal withLock returns(uint256 minerAmount, uint256 stakingAmount, uint256 lpStakingAmount, uint256 foundationAmount) {
         // make a local copy to save gas
         uint256 poolBalance = _poolBalance;
 
@@ -249,24 +263,23 @@ contract MadByte is ERC20, Admin, Mutex, MagicEthTransfer, EthSafeTransfer, Sigm
         uint256 excess = address(this).balance - poolBalance;
 
         // take out protocolFee from excess and decrement excess
-        foundationAmount = (excess * protocolFee)/madUnitOne;
-        excess -= foundationAmount;
+        foundationAmount = (excess * _protocolFee)/madUnitOne;
 
-        // split remaining between miners and stakers
-        // first take out the miner cut but pass floor division
-        // losses into stakers
-        stakingAmount = excess - (excess * _minerSplit)/madUnitOne;
-        // then give miners the difference of the original and the
+        // split remaining between miners, stakers and lp stakers
+        stakingAmount = (excess * _madStakingSplit)/madUnitOne;
+        lpStakingAmount = (excess * _lpStakingSplit)/madUnitOne;
+        // then give miners the difference of the original and the sum of the
         // stakingAmount
-        minerAmount = excess - stakingAmount;
+        minerAmount = excess - (stakingAmount + lpStakingAmount + foundationAmount);
 
         _safeTransferEthWithMagic(_foundation, foundationAmount);
         _safeTransferEthWithMagic(_minerStaking, minerAmount);
         _safeTransferEthWithMagic(_madStaking, stakingAmount);
+        _safeTransferEthWithMagic(_lpStaking, lpStakingAmount);
         require(address(this).balance >= poolBalance);
 
         // invariants hold
-        return (foundationAmount, minerAmount, stakingAmount);
+        return (minerAmount, stakingAmount, lpStakingAmount, foundationAmount);
     }
 
     // Check if addr_ is EOA (Externally Owned Account) or a contract.
