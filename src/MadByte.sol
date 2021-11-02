@@ -15,11 +15,18 @@ contract MadByte is ERC20, Admin, Mutex, MagicEthTransfer, EthSafeTransfer, Sigm
     event DepositReceived(uint256 indexed depositID, address indexed depositor, uint256 amount);
     event DepositReceivedBN(uint256 indexed depositID, uint256 to0, uint256 to1, uint256 to2, uint256 to3, uint256 amount);
 
+    // multiply factor for the selling/minting bonding curve
     uint256 constant marketSpread = 4;
+
+    // Scaling factor to get the staking percentages
     uint256 constant madUnitOne = 1000;
 
+    // Balance in ether that is hold in the contract after minting and burning
     uint256 _poolBalance = 0;
 
+    // Value of the percentages that will send to each staking contract. Divide
+    // this value by madUnitOne = 1000 to get the corresponding percentages.
+    // These values must sum to 1000.
     uint256 _minerStakingSplit = 333;
     uint256 _madStakingSplit = 332;
     uint256 _lpStakingSplit = 332;
@@ -50,9 +57,11 @@ contract MadByte is ERC20, Admin, Mutex, MagicEthTransfer, EthSafeTransfer, Sigm
     // (4x bytes32) of owner of a deposit.
     mapping(uint256 => BNAddress) _depositorsBN;
 
+    // Staking contracts addresses
     IMagicEthTransfer _madStaking;
     IMagicEthTransfer _minerStaking;
     IMagicEthTransfer _lpStaking;
+    // Foundation contract address
     IMagicEthTransfer _foundation;
 
     constructor(address admin_, address madStaking_, address minerStaking_, address lpStaking_, address foundation_) ERC20("MadByte", "MB") Admin(admin_) Mutex() {
@@ -84,7 +93,7 @@ contract MadByte is ERC20, Admin, Mutex, MagicEthTransfer, EthSafeTransfer, Sigm
     }
 
     /// @dev sets the percentage that will be divided between all the staking
-    /// contracts, must only be called by and _admin
+    /// contracts, must only be called by _admin
     function setSplits(uint256 minerStakingSplit_, uint256 madStakingSplit_, uint256 lpStakingSplit_, uint256 protocolFee_) public onlyAdmin {
         require(minerStakingSplit_ + madStakingSplit_ + lpStakingSplit_ + protocolFee_ == madUnitOne, "MadByte: All the split values must sum to madUnitOne!");
         _minerStakingSplit = minerStakingSplit_;
