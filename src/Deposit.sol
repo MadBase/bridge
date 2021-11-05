@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT-open-group
 pragma solidity >= 0.5.15;
 
-import "ds-stop/stop.sol";
+import "lib/ds-stop/stop.sol";
 
 import "./diamonds/interfaces/Token.sol";
 import "./diamonds/interfaces/ValidatorsEvents.sol";
