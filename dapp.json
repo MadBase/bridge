@@ -1,93 +1,93 @@
 {
   "language": "Solidity",
   "sources": {
-    "src/EthDKGDiamond.sol": { "urls": ["src/EthDKGDiamond.sol"] },
+    "src/diamonds/EthDKGDiamond.sol": { "urls": ["src/diamonds/EthDKGDiamond.sol"] },
     "src/Registry.sol": { "urls": ["src/Registry.sol"] },
     "src/SimpleAuth.sol": { "urls": ["src/SimpleAuth.sol"] },
     "src/Token.sol": { "urls": ["src/Token.sol"] },
     "src/TokenMigrator.sol": { "urls": ["src/TokenMigrator.sol"] },
-    "src/Diamond.sol": { "urls": ["src/Diamond.sol"] },
+    "src/diamonds/Diamond.sol": { "urls": ["src/diamonds/Diamond.sol"] },
     "src/ERC165.sol": { "urls": ["src/ERC165.sol"] },
     "src/Crypto.sol": { "urls": ["src/Crypto.sol"] },
     "src/SafeMath.sol": { "urls": ["src/SafeMath.sol"] },
     "src/Constants.sol": { "urls": ["src/Constants.sol"] },
     "src/Deposit.sol": { "urls": ["src/Deposit.sol"] },
-    "src/ValidatorsDiamond.sol": { "urls": ["src/ValidatorsDiamond.sol"] },
-    "src/migrate/MigrateSnapshotsFacet.sol": {
-      "urls": ["src/migrate/MigrateSnapshotsFacet.sol"]
+    "src/diamonds/ValidatorsDiamond.sol": { "urls": ["src/diamonds/ValidatorsDiamond.sol"] },
+    "src/diamonds/migrate/MigrateSnapshotsFacet.sol": {
+      "urls": ["src/diamonds/migrate/MigrateSnapshotsFacet.sol"]
     },
-    "src/migrate/MigrateStakingFacet.sol": {
-      "urls": ["src/migrate/MigrateStakingFacet.sol"]
+    "src/diamonds/migrate/MigrateStakingFacet.sol": {
+      "urls": ["src/diamonds/migrate/MigrateStakingFacet.sol"]
     },
-    "src/migrate/MigrateParticipantsFacet.sol": {
-      "urls": ["src/migrate/MigrateParticipantsFacet.sol"]
+    "src/diamonds/migrate/MigrateParticipantsFacet.sol": {
+      "urls": ["src/diamonds/migrate/MigrateParticipantsFacet.sol"]
     },
-    "src/migrate/MigrateETHDKG.sol": {
-      "urls": ["src/migrate/MigrateETHDKG.sol"]
+    "src/diamonds/migrate/MigrateETHDKG.sol": {
+      "urls": ["src/diamonds/migrate/MigrateETHDKG.sol"]
     },
-    "src/facets/SnapshotsFacet.sol": {
-      "urls": ["src/facets/SnapshotsFacet.sol"]
+    "src/diamonds/facets/SnapshotsFacet.sol": {
+      "urls": ["src/diamonds/facets/SnapshotsFacet.sol"]
     },
-    "src/facets/StakingFacet.sol": { "urls": ["src/facets/StakingFacet.sol"] },
-    "src/facets/EthDKGInformationFacet.sol": {
-      "urls": ["src/facets/EthDKGInformationFacet.sol"]
+    "src/diamonds/facets/StakingFacet.sol": { "urls": ["src/diamonds/facets/StakingFacet.sol"] },
+    "src/diamonds/facets/EthDKGInformationFacet.sol": {
+      "urls": ["src/diamonds/facets/EthDKGInformationFacet.sol"]
     },
-    "src/facets/EthDKGInitializeFacet.sol": {
-      "urls": ["src/facets/EthDKGInitializeFacet.sol"]
+    "src/diamonds/facets/EthDKGInitializeFacet.sol": {
+      "urls": ["src/diamonds/facets/EthDKGInitializeFacet.sol"]
     },
-    "src/facets/EthDKGMiscFacet.sol": {
-      "urls": ["src/facets/EthDKGMiscFacet.sol"]
+    "src/diamonds/facets/EthDKGMiscFacet.sol": {
+      "urls": ["src/diamonds/facets/EthDKGMiscFacet.sol"]
     },
-    "src/facets/ParticipantsFacet.sol": {
-      "urls": ["src/facets/ParticipantsFacet.sol"]
+    "src/diamonds/facets/ParticipantsFacet.sol": {
+      "urls": ["src/diamonds/facets/ParticipantsFacet.sol"]
     },
-    "src/facets/EthDKGCompletionFacet.sol": {
-      "urls": ["src/facets/EthDKGCompletionFacet.sol"]
+    "src/diamonds/facets/EthDKGCompletionFacet.sol": {
+      "urls": ["src/diamonds/facets/EthDKGCompletionFacet.sol"]
     },
-    "src/facets/DiamondUpdateFacet.sol": {
-      "urls": ["src/facets/DiamondUpdateFacet.sol"]
+    "src/diamonds/facets/DiamondUpdateFacet.sol": {
+      "urls": ["src/diamonds/facets/DiamondUpdateFacet.sol"]
     },
-    "src/facets/EthDKGSubmitDisputeFacet.sol": {
-      "urls": ["src/facets/EthDKGSubmitDisputeFacet.sol"]
+    "src/diamonds/facets/EthDKGSubmitDisputeFacet.sol": {
+      "urls": ["src/diamonds/facets/EthDKGSubmitDisputeFacet.sol"]
     },
-    "src/facets/EthDKGSubmitMPKFacet.sol": {
-      "urls": ["src/facets/EthDKGSubmitMPKFacet.sol"]
+    "src/diamonds/facets/EthDKGSubmitMPKFacet.sol": {
+      "urls": ["src/diamonds/facets/EthDKGSubmitMPKFacet.sol"]
     },
-    "src/facets/EthDKGGroupAccusationFacet.sol": {
-      "urls": ["src/facets/EthDKGGroupAccusationFacet.sol"]
+    "src/diamonds/facets/EthDKGGroupAccusationFacet.sol": {
+      "urls": ["src/diamonds/facets/EthDKGGroupAccusationFacet.sol"]
     },
-    "src/interfaces/StakingEvents.sol": {
-      "urls": ["src/interfaces/StakingEvents.sol"]
+    "src/diamonds/interfaces/StakingEvents.sol": {
+      "urls": ["src/diamonds/interfaces/StakingEvents.sol"]
     },
-    "src/interfaces/Validators.sol": {
-      "urls": ["src/interfaces/Validators.sol"]
+    "src/diamonds/interfaces/Validators.sol": {
+      "urls": ["src/diamonds/interfaces/Validators.sol"]
     },
-    "src/interfaces/ValidatorsEvents.sol": {
-      "urls": ["src/interfaces/ValidatorsEvents.sol"]
+    "src/diamonds/interfaces/ValidatorsEvents.sol": {
+      "urls": ["src/diamonds/interfaces/ValidatorsEvents.sol"]
     },
-    "src/interfaces/ValidatorLocations.sol": {
-      "urls": ["src/interfaces/ValidatorLocations.sol"]
+    "src/diamonds/interfaces/ValidatorLocations.sol": {
+      "urls": ["src/diamonds/interfaces/ValidatorLocations.sol"]
     },
-    "src/facets/ValidatorLocationsFacet.sol": {
-      "urls": ["src/facets/ValidatorLocationsFacet.sol"]
+    "src/diamonds/facets/ValidatorLocationsFacet.sol": {
+      "urls": ["src/diamonds/facets/ValidatorLocationsFacet.sol"]
     },
-    "src/interfaces/Token.sol": { "urls": ["src/interfaces/Token.sol"] },
-    "src/interfaces/Participants.sol": {
-      "urls": ["src/interfaces/Participants.sol"]
+    "src/diamonds/interfaces/Token.sol": { "urls": ["src/diamonds/interfaces/Token.sol"] },
+    "src/diamonds/interfaces/Participants.sol": {
+      "urls": ["src/diamonds/interfaces/Participants.sol"]
     },
-    "src/interfaces/ETHDKGEvents.sol": {
-      "urls": ["src/interfaces/ETHDKGEvents.sol"]
+    "src/diamonds/interfaces/ETHDKGEvents.sol": {
+      "urls": ["src/diamonds/interfaces/ETHDKGEvents.sol"]
     },
-    "src/interfaces/SnapshotsEvents.sol": {
-      "urls": ["src/interfaces/SnapshotsEvents.sol"]
+    "src/diamonds/interfaces/SnapshotsEvents.sol": {
+      "urls": ["src/diamonds/interfaces/SnapshotsEvents.sol"]
     },
-    "src/interfaces/ETHDKG.sol": { "urls": ["src/interfaces/ETHDKG.sol"] },
-    "src/interfaces/Staking.sol": { "urls": ["src/interfaces/Staking.sol"] },
-    "src/interfaces/ParticipantsEvents.sol": {
-      "urls": ["src/interfaces/ParticipantsEvents.sol"]
+    "src/diamonds/interfaces/ETHDKG.sol": { "urls": ["src/diamonds/interfaces/ETHDKG.sol"] },
+    "src/diamonds/interfaces/Staking.sol": { "urls": ["src/diamonds/interfaces/Staking.sol"] },
+    "src/diamonds/interfaces/ParticipantsEvents.sol": {
+      "urls": ["src/diamonds/interfaces/ParticipantsEvents.sol"]
     },
-    "src/interfaces/Snapshots.sol": {
-      "urls": ["src/interfaces/Snapshots.sol"]
+    "src/diamonds/interfaces/Snapshots.sol": {
+      "urls": ["src/diamonds/interfaces/Snapshots.sol"]
     }
   },
   "settings": {

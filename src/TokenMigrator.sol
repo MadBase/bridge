@@ -5,7 +5,7 @@ import "./lib/ds-token/token.sol";
 
 import "./SafeMath.sol";
 import "./SimpleAuth.sol";
-import "./interfaces/Token.sol";
+import "./diamonds/interfaces/Token.sol";
 
 contract TokenMigratorEvents {
     event Started(address source, address destination, address who);

@@ -4,7 +4,7 @@ pragma abicoder v2;
 
 import "ds-test/test.sol";
 import "./RCertParserLibrary.sol";
-import "../facets/SnapshotsLibrary.sol";
+import "../diamonds/facets/SnapshotsLibrary.sol";
 
 contract RCertParserLibraryTest is DSTest {
     function exampleRCert() private pure returns (bytes memory) {

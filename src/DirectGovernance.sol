@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT-open-group
 pragma solidity >=0.5.15;
 
-import "./interfaces/Governor.sol";
+import "./diamonds/interfaces/Governor.sol";
 
 import "./SimpleAuth.sol";
 
