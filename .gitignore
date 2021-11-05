@@ -8,4 +8,4 @@
 **.DS_Store
 hevm.libs.*
 **/artifacts/**
-./outTests/*
+outTests/*
