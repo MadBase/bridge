@@ -1,204 +1,104 @@
 {
   "language": "Solidity",
   "sources": {
-    "src/diamonds/AccusationDiamond.sol": { "urls": ["src/diamonds/AccusationDiamond.sol"] },
-    "src/diamonds/EthDKGDiamond.sol": { "urls": ["src/diamonds/EthDKGDiamond.sol"] },
-    "src/CryptoLibrary.sol": { "urls": ["src/CryptoLibrary.sol"] },
-    "src/TokenMigrator.t.sol": { "urls": ["src/TokenMigrator.t.sol"] },
-    "src/Registry.sol": { "urls": ["src/Registry.sol"] },
-    "src/SignatureLibrary.sol": { "urls": ["src/SignatureLibrary.sol"] },
-    "src/SimpleAuth.sol": { "urls": ["src/SimpleAuth.sol"] },
-    "src/QueueLibrary.sol": { "urls": ["src/QueueLibrary.sol"] },
-    "src/Token.t.sol": { "urls": ["src/Token.t.sol"] },
-    "src/Token.sol": { "urls": ["src/Token.sol"] },
-    "src/CryptoLibrary.t.sol": { "urls": ["src/CryptoLibrary.t.sol"] },
-    "src/TokenMigrator.sol": { "urls": ["src/TokenMigrator.sol"] },
-    "src/diamonds/Diamond.sol": { "urls": ["src/diamonds/Diamond.sol"] },
-    "src/Registry.t.sol": { "urls": ["src/Registry.t.sol"] },
-    "src/ERC165.sol": { "urls": ["src/ERC165.sol"] },
-    "src/Crypto.sol": { "urls": ["src/Crypto.sol"] },
-    "src/Deposit.t.sol": { "urls": ["src/Deposit.t.sol"] },
-    "src/SafeMath.sol": { "urls": ["src/SafeMath.sol"] },
-    "src/Constants.sol": { "urls": ["src/Constants.sol"] },
-    "src/Deposit.sol": { "urls": ["src/Deposit.sol"] },
-    "src/diamonds/ValidatorsDiamond.sol": { "urls": ["src/diamonds/ValidatorsDiamond.sol"] },
-    "src/QueueLibrary.t.sol": { "urls": ["src/QueueLibrary.t.sol"] },
-    "src/diamonds/facets/ValidatorLocationsLibrary.t.sol": { "urls": ["src/diamonds/facets/ValidatorLocationsLibrary.t.sol"] },
-    "src/Experiment.t.sol": { "urls": ["src/Experiment.t.sol"] },
-    "src/diamonds/migrate/MigrateSnapshotsFacet.sol": {
-      "urls": ["src/diamonds/migrate/MigrateSnapshotsFacet.sol"]
+    "lib/ds-auth/auth.t.sol": { "urls": ["lib/ds-auth/auth.t.sol"] },
+    "lib/ds-math/math.t.sol": { "urls": ["lib/ds-math/math.t.sol"] },
+    "lib/ds-note/note.t.sol": { "urls": ["lib/ds-note/note.t.sol"] },
+    "lib/ds-stop/stop.t.sol": { "urls": ["lib/ds-stop/stop.t.sol"] },
+    "lib/ds-token/token.t.sol": { "urls": ["lib/ds-token/token.t.sol"] },
+    "tests/CryptoLibrary.t.sol": { "urls": ["tests/CryptoLibrary.t.sol"] },
+    "tests/Deposit.t.sol": { "urls": ["tests/Deposit.t.sol"] },
+    "tests/DirectGovernance.t.sol": { "urls": ["tests/DirectGovernance.t.sol"] },
+    "tests/QueueLibrary.t.sol": { "urls": ["tests/QueueLibrary.t.sol"] },
+    "tests/Registry.t.sol": { "urls": ["tests/Registry.t.sol"] },
+    "tests/Token.t.sol": { "urls": ["tests/Token.t.sol"] },
+    "tests/TokenMigrator.t.sol": { "urls": ["tests/TokenMigrator.t.sol"] },
+    "tests/diamonds/Setup.t.sol": {
+      "urls": ["tests/diamonds/Setup.t.sol"]
     },
-    "src/diamonds/migrate/MigrateETHDKG.t.sol": {
-      "urls": ["src/diamonds/migrate/MigrateETHDKG.t.sol"]
+    "tests/diamonds/facets/AccusationInvalidTransactionConsumptionFacet.t.sol": {
+      "urls": [
+        "tests/diamonds/facets/AccusationInvalidTransactionConsumptionFacet.t.sol"
+      ]
     },
-    "src/diamonds/migrate/MigrateStakingFacet.sol": {
-      "urls": ["src/diamonds/migrate/MigrateStakingFacet.sol"]
+    "tests/diamonds/facets/AccusationMultipleProposalFacet.t.sol": {
+      "urls": ["tests/diamonds/facets/AccusationMultipleProposalFacet.t.sol"]
     },
-    "src/diamonds/migrate/MigrateParticipantsFacet.sol": {
-      "urls": ["src/diamonds/migrate/MigrateParticipantsFacet.sol"]
+    "tests/diamonds/facets/EthDKG.t.sol": {
+      "urls": ["tests/diamonds/facets/EthDKG.t.sol"]
     },
-    "src/diamonds/migrate/MigrateSnapshotsFacet.t.sol": {
-      "urls": ["src/diamonds/migrate/MigrateSnapshotsFacet.t.sol"]
+    "tests/diamonds/facets/MerkleProofLibrary.t.sol": {
+      "urls": ["tests/diamonds/facets/MerkleProofLibrary.t.sol"]
     },
-    "src/diamonds/migrate/MigrateParticipantsFacet.t.sol": {
-      "urls": ["src/diamonds/migrate/MigrateParticipantsFacet.t.sol"]
+    "tests/diamonds/facets/ParticipantsFacet.t.sol": {
+      "urls": ["tests/diamonds/facets/ParticipantsFacet.t.sol"]
     },
-    "src/diamonds/migrate/MigrateETHDKG.sol": {
-      "urls": ["src/diamonds/migrate/MigrateETHDKG.sol"]
+    "tests/diamonds/facets/SnapshotsFacet.t.sol": {
+      "urls": ["tests/diamonds/facets/SnapshotsFacet.t.sol"]
     },
-    "src/diamonds/migrate/MigrateStakingFacet.t.sol": {
-      "urls": ["src/diamonds/migrate/MigrateStakingFacet.t.sol"]
+    "tests/diamonds/facets/StakingFacet.t.sol": {
+      "urls": ["tests/diamonds/facets/StakingFacet.t.sol"]
     },
-    "src/diamonds/facets/EthDKGLibrary.sol": {
-      "urls": ["src/diamonds/facets/EthDKGLibrary.sol"]
+    "tests/diamonds/facets/ValidatorLocationsLibrary.t.sol": {
+      "urls": ["tests/diamonds/facets/ValidatorLocationsLibrary.t.sol"]
     },
-    "src/diamonds/facets/StakingLibrary.sol": {
-      "urls": ["src/diamonds/facets/StakingLibrary.sol"]
+    "tests/diamonds/migrate/MigrateETHDKG.t.sol": {
+      "urls": ["tests/diamonds/migrate/MigrateETHDKG.t.sol"]
     },
-    "src/diamonds/facets/EthDKG.t.sol": { "urls": ["src/diamonds/facets/EthDKG.t.sol"] },
-    "src/diamonds/facets/DiamondStorageLibrary.sol": {
-      "urls": ["src/diamonds/facets/DiamondStorageLibrary.sol"]
+    "tests/diamonds/migrate/MigrateParticipantsFacet.t.sol": {
+      "urls": ["tests/diamonds/migrate/MigrateParticipantsFacet.t.sol"]
     },
-    "src/diamonds/facets/ParticipantsLibrary.sol": {
-      "urls": ["src/diamonds/facets/ParticipantsLibrary.sol"]
+    "tests/diamonds/migrate/MigrateSnapshotsFacet.t.sol": {
+      "urls": ["tests/diamonds/migrate/MigrateSnapshotsFacet.t.sol"]
     },
-    "src/diamonds/facets/SnapshotsFacet.sol": {
-      "urls": ["src/diamonds/facets/SnapshotsFacet.sol"]
+    "tests/diamonds/migrate/MigrateStakingFacet.t.sol": {
+      "urls": ["tests/diamonds/migrate/MigrateStakingFacet.t.sol"]
     },
-    "src/diamonds/facets/StakingFacet.sol": { "urls": ["src/diamonds/facets/StakingFacet.sol"] },
-    "src/diamonds/facets/EthDKGInformationFacet.sol": {
-      "urls": ["src/diamonds/facets/EthDKGInformationFacet.sol"]
+    "tests/parsers/BaseParserLibrary.t.sol": {
+      "urls": ["tests/parsers/BaseParserLibrary.t.sol"]
     },
-    "src/diamonds/facets/SnapshotsFacet.t.sol": {
-      "urls": ["src/diamonds/facets/SnapshotsFacet.t.sol"]
+    "tests/parsers/BClaimsParserLibrary.t.sol": {
+      "urls": ["tests/parsers/BClaimsParserLibrary.t.sol"]
     },
-    "src/diamonds/facets/AccessControlLibrary.sol": {
-      "urls": ["src/diamonds/facets/AccessControlLibrary.sol"]
+    "tests/parsers/MerkleProofParserLibrary.t.sol": {
+      "urls": ["tests/parsers/MerkleProofParserLibrary.t.sol"]
     },
-    "src/diamonds/facets/EthDKGInitializeFacet.sol": {
-      "urls": ["src/diamonds/facets/EthDKGInitializeFacet.sol"]
+    "tests/parsers/PClaimsParserLibrary.t.sol": {
+      "urls": ["tests/parsers/PClaimsParserLibrary.t.sol"]
     },
-    "src/diamonds/facets/EthDKGMiscFacet.sol": {
-      "urls": ["src/diamonds/facets/EthDKGMiscFacet.sol"]
+    "tests/parsers/RClaimsParserLibrary.t.sol": {
+      "urls": ["tests/parsers/RClaimsParserLibrary.t.sol"]
     },
-    "src/diamonds/facets/ParticipantsFacet.sol": {
-      "urls": ["src/diamonds/facets/ParticipantsFacet.sol"]
+    "tests/parsers/RCertParserLibrary.t.sol": {
+      "urls": ["tests/parsers/RCertParserLibrary.t.sol"]
     },
-    "src/diamonds/facets/EthDKGCompletionFacet.sol": {
-      "urls": ["src/diamonds/facets/EthDKGCompletionFacet.sol"]
+    "tests/parsers/TXInPreImageParserLibrary.t.sol": {
+      "urls": ["tests/parsers/TXInPreImageParserLibrary.t.sol"]
     },
-    "src/diamonds/facets/DiamondUpdateFacet.sol": {
-      "urls": ["src/diamonds/facets/DiamondUpdateFacet.sol"]
+    "tests/tokens/MadByte.t.sol": {
+      "urls": ["tests/tokens/MadByte.t.sol"]
     },
-    "src/diamonds/facets/EthDKGSubmitDisputeFacet.sol": {
-      "urls": ["src/diamonds/facets/EthDKGSubmitDisputeFacet.sol"]
+    "tests/tokens/StakeNFT.t.sol": {
+      "urls": ["tests/tokens/StakeNFT.t.sol"]
     },
-    "src/diamonds/facets/EthDKGSubmitMPKFacet.sol": {
-      "urls": ["src/diamonds/facets/EthDKGSubmitMPKFacet.sol"]
+    "tests/governance/GovernanceManager.t.sol": {
+      "urls": ["tests/governance/GovernanceManager.t.sol"]
     },
-    "src/diamonds/facets/SnapshotsLibrary.sol": {
-      "urls": ["src/diamonds/facets/SnapshotsLibrary.sol"]
+    "tests/governance/proposals/GovernanceProposeEvictValidators.t.sol": {
+      "urls": [
+        "tests/governance/proposals/GovernanceProposeEvictValidators.t.sol"
+      ]
     },
-    "src/diamonds/facets/Setup.t.sol": { "urls": ["src/diamonds/facets/Setup.t.sol"] },
-    "src/diamonds/facets/EthDKGGroupAccusationFacet.sol": {
-      "urls": ["src/diamonds/facets/EthDKGGroupAccusationFacet.sol"]
+    "tests/governance/proposals/GovernanceProposeModifySnapshot.t.sol": {
+      "urls": [
+        "tests/governance/proposals/GovernanceProposeModifySnapshot.t.sol"
+      ]
     },
-    "src/diamonds/facets/StopLibrary.sol": { "urls": ["src/diamonds/facets/StopLibrary.sol"] },
-    "src/diamonds/facets/StakingFacet.t.sol": {
-      "urls": ["src/diamonds/facets/StakingFacet.t.sol"]
-    },
-    "src/diamonds/facets/ParticipantsFacet.t.sol": {
-      "urls": ["src/diamonds/facets/ParticipantsFacet.t.sol"]
-    },
-    "src/diamonds/interfaces/StakingEvents.sol": {
-      "urls": ["src/diamonds/interfaces/StakingEvents.sol"]
-    },
-    "src/diamonds/interfaces/Validators.sol": {
-      "urls": ["src/diamonds/interfaces/Validators.sol"]
-    },
-    "src/diamonds/interfaces/ValidatorsEvents.sol": {
-      "urls": ["src/diamonds/interfaces/ValidatorsEvents.sol"]
-    },
-    "src/diamonds/interfaces/Token.sol": { "urls": ["src/diamonds/interfaces/Token.sol"] },
-    "src/diamonds/interfaces/Participants.sol": {
-      "urls": ["src/diamonds/interfaces/Participants.sol"]
-    },
-    "src/diamonds/interfaces/ETHDKGEvents.sol": {
-      "urls": ["src/diamonds/interfaces/ETHDKGEvents.sol"]
-    },
-    "src/diamonds/interfaces/SnapshotsEvents.sol": {
-      "urls": ["src/diamonds/interfaces/SnapshotsEvents.sol"]
-    },
-    "src/diamonds/interfaces/ETHDKG.sol": { "urls": ["src/diamonds/interfaces/ETHDKG.sol"] },
-    "src/diamonds/interfaces/Staking.sol": { "urls": ["src/diamonds/interfaces/Staking.sol"] },
-    "src/diamonds/interfaces/ParticipantsEvents.sol": {
-      "urls": ["src/diamonds/interfaces/ParticipantsEvents.sol"]
-    },
-    "src/diamonds/interfaces/Snapshots.sol": {
-      "urls": ["src/diamonds/interfaces/Snapshots.sol"]
-    },
-    "src/parsers/BaseParserLibrary.t.sol": {
-      "urls": ["src/parsers/BaseParserLibrary.t.sol"]
-    },
-    "src/parsers/RClaimsParserLibrary.t.sol": {
-      "urls": ["src/parsers/RClaimsParserLibrary.t.sol"]
-    },
-    "src/parsers/RCertParserLibrary.t.sol": {
-      "urls": ["src/parsers/RCertParserLibrary.t.sol"]
-    },
-    "src/parsers/BClaimsParserLibrary.t.sol": {
-      "urls": ["src/parsers/BClaimsParserLibrary.t.sol"]
-    },
-    "src/parsers/PClaimsParserLibrary.t.sol": {
-      "urls": ["src/parsers/PClaimsParserLibrary.t.sol"]
-    },
-    "src/diamonds/facets/MerkleProofLibrary.t.sol": {
-      "urls": ["src/diamonds/facets/MerkleProofLibrary.t.sol"]
-    },
-    "src/parsers/MerkleProofParserLibrary.t.sol": {
-      "urls": ["src/parsers/MerkleProofParserLibrary.t.sol"]
-    },
-    "src/parsers/TXInPreImageParserLibrary.t.sol": {
-      "urls": ["src/parsers/TXInPreImageParserLibrary.t.sol"]
-    },
-    "src/diamonds/facets/AccusationMultipleProposalFacet.t.sol": {
-      "urls": ["src/diamonds/facets/AccusationMultipleProposalFacet.t.sol"]
-    },
-    "src/diamonds/facets/AccusationInvalidTransactionConsumptionFacet.t.sol": {
-      "urls": ["src/diamonds/facets/AccusationInvalidTransactionConsumptionFacet.t.sol"]
-    },
-    "src/tokens/MadByte.t.sol": {
-      "urls": ["src/tokens/MadByte.t.sol"]
-    },
-    "src/tokens/StakeNFT.t.sol": {
-      "urls": ["src/tokens/StakeNFT.t.sol"]
-    },
-    "src/governance/GovernanceManager.t.sol": {
-        "urls": ["src/governance/GovernanceManager.t.sol"]
-    },
-    "src/governance/proposals/GovernanceProposeModifySnapshot.t.sol": {
-        "urls": ["src/governance/proposals/GovernanceProposeModifySnapshot.t.sol"]
-    },
-    "src/governance/proposals/GovernanceProposeEvictValidators.t.sol": {
-        "urls": ["src/governance/proposals/GovernanceProposeEvictValidators.t.sol"]
-    },
-    "src/governance/proposals/GovernanceProposeRestartETHDKG.t.sol": {
-        "urls": ["src/governance/proposals/GovernanceProposeRestartETHDKG.t.sol"]
+    "tests/governance/proposals/GovernanceProposeRestartETHDKG.t.sol": {
+      "urls": ["tests/governance/proposals/GovernanceProposeRestartETHDKG.t.sol"]
     }
   },
   "settings": {
-    "remappings": [
-      "ds-auth/=lib/ds-auth/src/",
-      "ds-auth=lib/ds-auth/src/index.sol",
-      "ds-test/=lib/ds-test/src/",
-      "ds-test=lib/ds-test/src/index.sol",
-      "ds-math/=lib/ds-math/src/",
-      "ds-math=lib/ds-math/src/index.sol",
-      "ds-stop/=lib/ds-stop/src/",
-      "ds-stop=lib/ds-stop/src/index.sol",
-      "ds-note/=lib/ds-stop/lib/ds-note/src/",
-      "ds-note=lib/ds-stop/lib/ds-note/src/index.sol"
-    ],
     "outputSelection": {
       "*": {
         "*": [

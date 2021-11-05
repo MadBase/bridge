@@ -13,29 +13,12 @@ instructions on how to install it.
 
 Note: You will need to install Nix in order to install the **dapp tools**.
 
-### Fetch all the required git submodules
-
-Before, building, deploying or testing the smart-contracts, you will need to
-fetch all the git submodules required by this project. In order to download all
-the required submodules, run the following command on the terminal at the root
-of this repository:
-
-```bash
-git submodule update --init --recursive
-```
-
-## Building, deploying and testing the smart contracts contracts
+## Building and testing the smart contracts
 
 To build the contracts run:
 
 ```bash
 make all
-```
-
-To deploy the smart contracts, run:
-
-```bash
-make deploy
 ```
 
 To run all the tests:
