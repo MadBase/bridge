@@ -17,8 +17,8 @@
 
 pragma solidity >=0.4.23;
 
-import "lib/ds-math/math.sol";
-import "lib/ds-auth/auth.sol";
+import "../ds-math/math.sol";
+import "../ds-auth/auth.sol";
 
 
 contract DSToken is DSMath, DSAuth {

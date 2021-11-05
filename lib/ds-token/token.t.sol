@@ -17,7 +17,7 @@
 
 pragma solidity >=0.4.23;
 
-import "lib/ds-test/test.sol";
+import "../ds-test/test.sol";
 
 import "./token.sol";
 
