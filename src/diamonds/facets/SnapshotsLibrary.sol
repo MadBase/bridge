@@ -96,54 +96,70 @@ library SnapshotsLibrary {
         ChainStatusLibrary.ChainStatusStorage storage cs = ChainStatusLibrary.chainStatusStorage();
         SnapshotsStorage storage ss = snapshotsStorage();
 
-        uint256[4] memory publicKey;
-        uint256[2] memory signature;
-        (publicKey, signature) = RCertParserLibrary.extractSigGroup(_signatureGroup, 0);
+        {
+            uint256[4] memory publicKey;
+            uint256[2] memory signature;
+            (publicKey, signature) = RCertParserLibrary.extractSigGroup(_signatureGroup, 0);
 
-        bytes memory blockHash = abi.encodePacked(keccak256(_bclaims));
+            bytes memory blockHash = abi.encodePacked(keccak256(_bclaims));
 
-        bool ok = CryptoLibrary.Verify(blockHash, signature, publicKey);
-        require(ok, "Signature verification failed");
+            require(CryptoLibrary.Verify(blockHash, signature, publicKey), "Signature verification failed");
+        }
 
         // Extract
-        uint32 chainId = extractUint32(_bclaims, 8);
-        uint32 height = extractUint32(_bclaims, 12);
+        uint32 madHeight = extractUint32(_bclaims, 12);
 
         // Store snapshot
-        Snapshot storage currentSnapshot = ss.snapshots[cs.epoch];
+        uint32 chainId = extractUint32(_bclaims, 8);
+        {
+            Snapshot storage currentSnapshot = ss.snapshots[cs.epoch];
 
-        currentSnapshot.saved = true;
-        currentSnapshot.rawBlockClaims = _bclaims;
-        currentSnapshot.rawSignature = _signatureGroup;
-        currentSnapshot.ethHeight = uint32(block.number);
-        currentSnapshot.madHeight = height;
-        currentSnapshot.chainId = chainId;
-
-        if (cs.epoch > 1) {
-            Snapshot memory previousSnapshot = ss.snapshots[cs.epoch-1];
-
-            require(
-                !previousSnapshot.saved || block.number >= previousSnapshot.ethHeight + ss.minEthSnapshotSize,
-                "snapshot heights too close in Ethereum"
-            );
-
-            require(
-                !previousSnapshot.saved || height >= previousSnapshot.madHeight + ss.minMadSnapshotSize,
-                "snapshot heights too close in MadNet"
-            );
-
+            currentSnapshot.saved = true;
+            currentSnapshot.rawBlockClaims = _bclaims;
+            currentSnapshot.rawSignature = _signatureGroup;
+            currentSnapshot.ethHeight = uint32(block.number);
+            currentSnapshot.madHeight = madHeight;
+            currentSnapshot.chainId = chainId;
         }
 
-        ParticipantsLibrary.ParticipantsStorage storage ps = ParticipantsLibrary.participantsStorage();
-        StakingLibrary.StakingStorage storage stakingS = StakingLibrary.stakingStorage();
+        uint ethBlocksSinceLastSnapshot = type(uint256).max;
+        {
+            Snapshot memory previousSnapshot = ss.snapshots[cs.epoch-1];
+            if (cs.epoch > 1) {
+                ethBlocksSinceLastSnapshot = block.number - previousSnapshot.ethHeight;
 
-        for (uint idx=0; idx<ps.validators.length; idx++) {
-            if (msg.sender==ps.validators[idx]) {
-                StakingLibrary.lockRewardFor(ps.validators[idx], stakingS.rewardAmount + stakingS.rewardBonus, cs.epoch+2);
-            } else {
-                StakingLibrary.lockRewardFor(ps.validators[idx], stakingS.rewardAmount, cs.epoch+2);
+                require(
+                    !previousSnapshot.saved || ethBlocksSinceLastSnapshot >= ss.minEthSnapshotSize,
+                    "snapshot heights too close in Ethereum"
+                );
+
+                require(
+                    !previousSnapshot.saved || madHeight - previousSnapshot.madHeight >= ss.minMadSnapshotSize,
+                    "snapshot heights too close in MadNet"
+                );
             }
         }
+
+        {
+            uint index = type(uint).max;
+            
+            ParticipantsLibrary.ParticipantsStorage storage ps = ParticipantsLibrary.participantsStorage();
+            {
+                StakingLibrary.StakingStorage storage stakingS = StakingLibrary.stakingStorage();
+                for (uint idx=0; idx<ps.validators.length; idx++) {
+                    if (msg.sender==ps.validators[idx]) {
+                        index = idx;
+                        StakingLibrary.lockRewardFor(ps.validators[idx], stakingS.rewardAmount + stakingS.rewardBonus, cs.epoch+2);
+                    } else {
+                        StakingLibrary.lockRewardFor(ps.validators[idx], stakingS.rewardAmount, cs.epoch+2);
+                    }
+                }
+            }
+            
+            require(index != type(uint).max, "unknown validator");
+            require(mayValidatorSnapshot(ps.validators.length, index, ethBlocksSinceLastSnapshot, _signatureGroup), "validator not among allowed");
+        }
+        
 
         bool reinitEthdkg;
         if (ss.validatorsChanged) {
@@ -151,11 +167,36 @@ library SnapshotsLibrary {
         }
         ss.validatorsChanged = false;
 
-        emit SnapshotTaken(chainId, cs.epoch, height, msg.sender, ss.validatorsChanged);
+        emit SnapshotTaken(chainId, cs.epoch, madHeight, msg.sender, ss.validatorsChanged);
 
         cs.epoch++;
 
         return reinitEthdkg;
     }
 
+    uint constant windowOpenInterval = 32; // TODO: add parameter to ss?
+    function mayValidatorSnapshot(uint numValidators, uint myIdx, uint blocksSinceInterval, bytes memory blsig) public pure returns (bool) {        
+        uint numValidatorsAllowed = (1 + blocksSinceInterval/windowOpenInterval);
+        if (numValidatorsAllowed < 1) {
+            return false;
+        } else if (numValidatorsAllowed >= numValidators) {
+		    return true;
+	    }
+        
+        uint rand;
+        require(blsig.length >= 32, "slicing out of range");
+        assembly {
+            rand := mload(add(blsig, 0x20)) // load underlying memory buffer as uint256, but skip first 32 bytes as these define the length
+        }
+
+        uint start = rand % numValidatorsAllowed;
+        uint end = start + numValidatorsAllowed%numValidators;
+        
+        if (end > start) {
+            return myIdx >= start && myIdx < end;
+        } else {
+            return myIdx >= start || myIdx < end;
+        }
+    }
+    
 }
