@@ -2,7 +2,7 @@
 pragma solidity ^0.8.0;
 
 
-interface IERC20Transfer {
+interface IERC20Transferable {
     function transferFrom(
         address sender,
         address recipient,

@@ -2,7 +2,7 @@
 pragma solidity ^0.8.0;
 
 
-interface IERC721Transfer {
+interface IERC721Transferable {
     function safeTransferFrom(
         address from,
         address to,

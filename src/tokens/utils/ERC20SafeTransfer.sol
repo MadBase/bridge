@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT-open-group
 pragma solidity ^0.8.0;
 
-import "../interfaces/IERC20Transfer.sol";
+import "../interfaces/IERC20Transferable.sol";
 
 
 abstract contract ERC20SafeTransfer {
@@ -10,7 +10,7 @@ abstract contract ERC20SafeTransfer {
     // by reverting on failure
     // this function will return without performing a call or reverting
     // if amount_ is zero
-    function _safeTransferFromERC20(IERC20Transfer contract_, address sender_, uint256 amount_) internal {
+    function _safeTransferFromERC20(IERC20Transferable contract_, address sender_, uint256 amount_) internal {
         if (amount_ == 0 ){
             return;
         }
@@ -23,7 +23,7 @@ abstract contract ERC20SafeTransfer {
     // by reverting on failure
     // this function will return without performing a call or reverting
     // if amount_ is zero
-    function _safeTransferERC20(IERC20Transfer contract_, address to_, uint256 amount_) internal {
+    function _safeTransferERC20(IERC20Transferable contract_, address to_, uint256 amount_) internal {
         if (amount_ == 0 ){
             return;
         }

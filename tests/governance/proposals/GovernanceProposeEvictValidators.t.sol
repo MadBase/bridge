@@ -167,12 +167,12 @@ contract GovernanceProposeEvictValidatorsTest is DSTest, Setup {
         AdminAccount adminMiner = new AdminAccount();
         madToken = new MadTokenMock(address(this));
         stakeNFT = new StakeNFT(
-            IERC20Transfer(address(madToken)),
+            IERC20Transferable(address(madToken)),
             address(admin),
             address(address(0x0))
         );
         minerStake = MinerStake(address (new StakeNFT(
-            IERC20Transfer(address(madToken)),
+            IERC20Transferable(address(madToken)),
             address(adminMiner),
             address(address(0x0))
         )));
