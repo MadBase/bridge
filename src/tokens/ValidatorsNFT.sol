@@ -37,7 +37,7 @@ abstract contract ValidatorsNFT is ERC721, MagicValue, Admin, Governance, Circui
 
     enum ValidatorState{
         QUEUED,
-        VALIDATOR,
+        VALIDATOR
     }
 
     // Position describes a staked position
