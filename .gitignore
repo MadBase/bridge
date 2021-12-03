@@ -11,4 +11,7 @@ hevm.libs.*
 outTests/*
 truffle_output/*
 
-./node_modules/**
+node_modules/*
+lib/*
+artifacts/*
+cache/*
