@@ -12,6 +12,7 @@ import "./utils/CircuitBreaker.sol";
 import "./utils/MagicValue.sol";
 import "./utils/AtomicCounter.sol";
 import "./interfaces/ICBOpener.sol";
+import "./interfaces/IERC721Transferable.sol";
 import "./interfaces/INFTStake.sol";
 
 contract StakeNFT is

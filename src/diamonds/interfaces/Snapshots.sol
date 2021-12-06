@@ -13,6 +13,10 @@ interface Snapshots is SnapshotsEvents {
 
     function minEthSnapshotSize() external view returns (uint256);
 
+    function setEthSnapshotWindow(uint256 _minSize) external;
+
+    function ethSnapshotWindow() external view returns (uint256);
+
     function setMinMadSnapshotSize(uint256 _minSize) external;
 
     function minMadSnapshotSize() external view returns (uint256);

@@ -27,6 +27,14 @@ contract SnapshotsFacet is AccessControlled, Constants, SnapshotsEvents, Stoppab
         return SnapshotsLibrary.snapshotsStorage().minEthSnapshotSize;
     }
 
+    function setEthSnapshotWindow(uint256 _size) external onlyOperator {
+        SnapshotsLibrary.snapshotsStorage().ethSnapshotWindow = _size;
+    }
+
+    function ethSnapshotWindow() external view returns (uint256) {
+        return SnapshotsLibrary.snapshotsStorage().ethSnapshotWindow;
+    }
+
     function setMinMadSnapshotSize(uint256 _minSize) external onlyOperator {
         SnapshotsLibrary.snapshotsStorage().minMadSnapshotSize = _minSize;
     }
