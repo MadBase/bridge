@@ -1,12 +1,12 @@
 import {HardhatUserConfig} from 'hardhat/types';
 import 'hardhat-deploy';
+import '@nomiclabs/hardhat-ethers';
 import 'hardhat-deploy-ethers';
-
-require("@nomiclabs/hardhat-waffle");
-require('@openzeppelin/hardhat-upgrades');
-//require('hardhat-deploy');
-//require("@nomiclabs/hardhat-ethers");
-require('hardhat-contract-sizer');
+//import 'hardhat-upgrades';
+import { task } from "hardhat/config";
+import '@typechain/hardhat'
+import '@nomiclabs/hardhat-waffle'
+import 'hardhat-contract-sizer';
 
 /**
  * @type import('hardhat/config').HardhatUserConfig
@@ -14,13 +14,13 @@ require('hardhat-contract-sizer');
 
 // This is a sample Hardhat task. To learn how to create your own go to
 // https://hardhat.org/guides/create-task.html
-/* task("accounts", "Prints the list of accounts", async (taskArgs, hre) => {
+task("accounts", "Prints the list of accounts", async (taskArgs, hre) => {
   const accounts = await hre.ethers.getSigners();
 
   for (const account of accounts) {
     console.log(account.address);
   }
-}); */
+});
 
 const config: HardhatUserConfig = {
   solidity: {
@@ -43,14 +43,14 @@ const config: HardhatUserConfig = {
     cache: "./cache",
     artifacts: "./artifacts"
   },
-  /* contractSizer: {
+  contractSizer: {
     alphaSort: true,
     disambiguatePaths: false,
     runOnCompile: true,
     // set `true` to raise exception when a contract
     // exceeds the 24KB limit, interrupting execution
     strict: true,
-  } */
+  }
 };
 
 
