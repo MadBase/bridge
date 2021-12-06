@@ -64,6 +64,4 @@ interface INFTStake {
     function getEthAccumulator() external view returns (uint256 accumulator, uint256 slush);
 
     function getTokenAccumulator() external view returns (uint256 accumulator, uint256 slush);
-
-    function getPositionShares(uint256 tokenID_) external view returns (uint256 shares);
 }

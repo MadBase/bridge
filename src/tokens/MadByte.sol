@@ -292,7 +292,7 @@ contract MadByte is ERC20, Admin, Mutex, MagicEthTransfer, EthSafeTransfer, Sigm
     }
 
     // Check if addr_ is EOA (Externally Owned Account) or a contract.
-    function _isContract(address addr_) internal returns (bool) {
+    function _isContract(address addr_) internal view returns (bool) {
         uint256 size;
         assembly{
             size := extcodesize(addr_)

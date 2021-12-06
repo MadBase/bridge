@@ -357,14 +357,6 @@ contract StakeNFT is
         accumulatorToken = p.accumulatorToken;
     }
 
-    /// gets the position struct given a tokenID. The tokenId must
-    /// exist.
-    function getPositionShares(uint256 tokenID_) public view returns (uint256 shares) {
-        require(_exists(tokenID_), "StakeNFT: Token ID doesn't exist!");
-        Position memory p = _positions[tokenID_];
-        shares = uint256(p.shares);
-    }
-
     /// gets the current value for the Eth accumulator
     function getEthAccumulator() external view returns (uint256 accumulator, uint256 slush) {
         accumulator = _ethState.accumulator;

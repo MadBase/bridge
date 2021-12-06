@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT-open-group
 pragma solidity ^0.8.0;
 
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "../interfaces/INFTStake.sol";
 import "../interfaces/IERC20Transferable.sol";
@@ -8,7 +9,7 @@ import "../interfaces/IERC721Transferable.sol";
 import "../utils/EthSafeTransfer.sol";
 import "../utils/ERC20SafeTransfer.sol";
 
-contract Validators is Initializable, UUPSUpgradeable, EthSafeTransfer, ERC20SafeTransfer {
+contract ValidatorPool is Initializable, UUPSUpgradeable, EthSafeTransfer, ERC20SafeTransfer {
     // _maxMintLock describes the maximum interval a Position may be locked
     // during a call to mintTo
     uint256 constant _maxMintLock = 1051200;
@@ -24,10 +25,7 @@ contract Validators is Initializable, UUPSUpgradeable, EthSafeTransfer, ERC20Saf
     INFTStake internal _stakeNFT;
     INFTStake internal _validatorsNFT;
     IERC20Transferable internal _madToken;
-
-    /// @custom:oz-upgrades-unsafe-allow constructor
-    // solhint-disable no-empty-blocks
-    constructor() initializer {}
+    uint256 internal _testVar;
 
     function initialize(
         INFTStake stakeNFT_,
@@ -41,7 +39,9 @@ contract Validators is Initializable, UUPSUpgradeable, EthSafeTransfer, ERC20Saf
     }
 
     // todo: onlyAdmin or onlyGovernance?
-    function _authorizeUpgrade(address newImplementation) internal onlyAdmin override {}
+    function _authorizeUpgrade(address newImplementation) internal onlyAdmin override {
+
+    }
 
     modifier onlyAdmin() {
         require(msg.sender == _getAdmin(), "Validators: requires admin privileges");
@@ -59,7 +59,7 @@ contract Validators is Initializable, UUPSUpgradeable, EthSafeTransfer, ERC20Saf
 
     }
 
-    function _registerValidator(address to_, uint256 stakerTokenID_)
+    /* function _registerValidator(address to_, uint256 stakerTokenID_)
         internal
         returns (
             uint256 validatorTokenID,
@@ -117,6 +117,6 @@ contract Validators is Initializable, UUPSUpgradeable, EthSafeTransfer, ERC20Saf
         _safeTransferERC20(_madToken, to_, payoutToken);
         _safeTransferEth(to_, payoutEth);
         return (stakeTokenID, payoutEth, payoutToken);
-    }
+    } */
 
 }
