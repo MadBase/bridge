@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: MIT-open-group
 pragma solidity ^0.8.0;
 
-import "../../../lib/openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "../interfaces/INFTStake.sol";
 import "../interfaces/IERC20Transferable.sol";
 import "../interfaces/IERC721Transferable.sol";
 import "../utils/EthSafeTransfer.sol";
 import "../utils/ERC20SafeTransfer.sol";
 
-contract Validators is UUPSUpgradeable, EthSafeTransfer, ERC20SafeTransfer {
+contract Validators is Initializable, UUPSUpgradeable, EthSafeTransfer, ERC20SafeTransfer {
     // _maxMintLock describes the maximum interval a Position may be locked
     // during a call to mintTo
     uint256 constant _maxMintLock = 1051200;

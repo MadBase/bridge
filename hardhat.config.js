@@ -1,5 +1,9 @@
 require("@nomiclabs/hardhat-waffle");
 require('@openzeppelin/hardhat-upgrades');
+require('hardhat-deploy');
+require("@nomiclabs/hardhat-ethers");
+require('hardhat-contract-sizer');
+
 /**
  * @type import('hardhat/config').HardhatUserConfig
  */
@@ -28,4 +32,12 @@ module.exports = {
     cache: "./cache",
     artifacts: "./artifacts"
   },
+  contractSizer: {
+    alphaSort: true,
+    disambiguatePaths: false,
+    runOnCompile: true,
+    // set `true` to raise exception when a contract
+    // exceeds the 24KB limit, interrupting execution
+    strict: true,
+  }
 };
