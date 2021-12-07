@@ -17,15 +17,13 @@ contract ValidatorPool is Initializable, UUPSUpgradeable, EthSafeTransfer, ERC20
     // Minimum amount to stake
     uint256 internal _minimumStake = 200000;
 
-    enum ValidatorState {
-        QUEUED,
-        VALIDATOR
-    }
 
     INFTStake internal _stakeNFT;
     INFTStake internal _validatorsNFT;
     IERC20Transferable internal _madToken;
     uint256 internal _testVar;
+
+    mapping(address => bool) validators;
 
     function initialize(
         INFTStake stakeNFT_,
@@ -55,11 +53,11 @@ contract ValidatorPool is Initializable, UUPSUpgradeable, EthSafeTransfer, ERC20
         _minimumStake = minimumStake_;
     }
 
-    function isValidator() public view {
-
+    function isValidator(address participant) public view returns(bool) {
+        return validators[participant];
     }
 
-    /* function _registerValidator(address to_, uint256 stakerTokenID_)
+    function _swapStakeNFTForValidatorNFT(address to_, uint256 stakerTokenID_)
         internal
         returns (
             uint256 validatorTokenID,
@@ -67,7 +65,7 @@ contract ValidatorPool is Initializable, UUPSUpgradeable, EthSafeTransfer, ERC20
             uint256 payoutToken
         )
     {
-        uint256 stakeShares = _stakeNFT.getPositionShares(stakerTokenID_);
+        (uint256 stakeShares,,,,) = _stakeNFT.getPosition(stakerTokenID_);
         require(
             stakeShares >= _minimumStake,
             "ValidatorStakeNFT: Error, the Stake position doesn't have enough founds!"
@@ -81,6 +79,7 @@ contract ValidatorPool is Initializable, UUPSUpgradeable, EthSafeTransfer, ERC20
         // We should approve the StakeNFT to transferFrom the tokens of this contract
         _madToken.approve(address(_validatorsNFT), stakeShares);
         validatorTokenID = _validatorsNFT.mint(stakeShares);
+        validators[to_] = true;
 
         // transfer back any profit that was available for the stakeNFT position by the
         // time that we burned it
@@ -89,9 +88,16 @@ contract ValidatorPool is Initializable, UUPSUpgradeable, EthSafeTransfer, ERC20
         return (validatorTokenID, payoutEth, payoutToken);
     }
 
+    // function collectProfits(uint256 validatorsNFT) external returns (int256 payoutEth, uint256 payoutToken)
+    // {
+    //     require(msg.sender == _owner(validatorsNFT));
+    //     payoutEth = validatorsNFT.collectEth();
+    //     _safeTransferERC20(_madToken, msg.sender, payoutToken);
+    //     _safeTransferEth(msg.sender, payoutEth);
+    // }
+
     // _burn performs the burn operation and invokes the inherited _burn method
-    function _unregisterValidator(
-        address from_,
+    function _swapValidatorNFTForStakeNFT(
         address to_,
         uint256 validatorTokenID_
     )
@@ -102,7 +108,7 @@ contract ValidatorPool is Initializable, UUPSUpgradeable, EthSafeTransfer, ERC20
             uint256 payoutToken
         )
     {
-        uint256 minerShares = _validatorsNFT.getPositionShares(validatorTokenID_);
+        (uint256 minerShares,,,,) = _validatorsNFT.getPosition(validatorTokenID_);
 
         IERC721Transferable(address(_validatorsNFT)).safeTransferFrom(msg.sender, address(this), validatorTokenID_);
         (payoutEth, payoutToken) = _validatorsNFT.burn(validatorTokenID_);
@@ -113,10 +119,11 @@ contract ValidatorPool is Initializable, UUPSUpgradeable, EthSafeTransfer, ERC20
         // Notice that we are not summing the shared to the payoutToken because
         // we will use this amount to mint a new NFT in the StakeNFt contract.
         stakeTokenID = _stakeNFT.mintTo(to_, minerShares, _maxMintLock);
+        validators[to_] = false;
         // transfer out all eth and tokens owed
         _safeTransferERC20(_madToken, to_, payoutToken);
         _safeTransferEth(to_, payoutEth);
         return (stakeTokenID, payoutEth, payoutToken);
-    } */
+    }
 
 }
