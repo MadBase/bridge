@@ -285,7 +285,7 @@ contract MadByte is ERC20, Admin, Mutex, MagicEthTransfer, EthSafeTransfer, Sigm
         _safeTransferEthWithMagic(_minerStaking, minerAmount);
         _safeTransferEthWithMagic(_madStaking, stakingAmount);
         _safeTransferEthWithMagic(_lpStaking, lpStakingAmount);
-        require(address(this).balance >= poolBalance);
+        require(address(this).balance >= poolBalance, "MadByte: Address balance should be always greater than the pool balance!");
 
         // invariants hold
         return (minerAmount, stakingAmount, lpStakingAmount, foundationAmount);

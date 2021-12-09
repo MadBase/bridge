@@ -50,6 +50,10 @@ interface INFTStake {
 
     function collectToken(uint256 tokenID_) external returns (uint256 payout);
 
+    function collectEthTo(address to_, uint256 tokenID_) external returns (uint256 payout);
+
+    function collectTokenTo(address to_, uint256 tokenID_) external returns (uint256 payout);
+
     function getPosition(uint256 tokenID_)
         external
         view
