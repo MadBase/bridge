@@ -21,9 +21,10 @@ contract ValidatorPool is Initializable, UUPSUpgradeable, EthSafeTransfer, ERC20
     INFTStake internal _stakeNFT;
     INFTStake internal _validatorsNFT;
     IERC20Transferable internal _madToken;
-    uint256 internal _testVar;
 
-    mapping(address => bool) validators;
+    // todo: lock writes to this variable once an ETHDKG has started
+    address[] public validators;
+    mapping(address=>uint256) indices;
 
     function initialize(
         INFTStake stakeNFT_,
@@ -53,6 +54,10 @@ contract ValidatorPool is Initializable, UUPSUpgradeable, EthSafeTransfer, ERC20
         _minimumStake = minimumStake_;
     }
 
+    function getValidatorsCount() public returns(uint256) {
+        return 10;
+    }
+
     function isValidator(address participant) public view returns(bool) {
         return validators[participant];
     }
@@ -79,13 +84,14 @@ contract ValidatorPool is Initializable, UUPSUpgradeable, EthSafeTransfer, ERC20
         // We should approve the StakeNFT to transferFrom the tokens of this contract
         _madToken.approve(address(_validatorsNFT), stakeShares);
         validatorTokenID = _validatorsNFT.mint(stakeShares);
-        validators[to_] = true;
+        validators.push(to_);
 
         // transfer back any profit that was available for the stakeNFT position by the
         // time that we burned it
         _safeTransferERC20(_madToken, to_, payoutToken);
         _safeTransferEth(to_, payoutEth);
         return (validatorTokenID, payoutEth, payoutToken);
+        //todo:emit an event when someone becomes a validator
     }
 
     // function collectProfits(uint256 validatorsNFT) external returns (int256 payoutEth, uint256 payoutToken)
@@ -119,6 +125,7 @@ contract ValidatorPool is Initializable, UUPSUpgradeable, EthSafeTransfer, ERC20
         // Notice that we are not summing the shared to the payoutToken because
         // we will use this amount to mint a new NFT in the StakeNFt contract.
         stakeTokenID = _stakeNFT.mintTo(to_, minerShares, _maxMintLock);
+        //todo: pop a value
         validators[to_] = false;
         // transfer out all eth and tokens owed
         _safeTransferERC20(_madToken, to_, payoutToken);
