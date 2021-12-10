@@ -62,10 +62,15 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
 
     enum Phase {
         RegistrationOpen,
+        RegistrationError,
         ShareDistribution,
+        ShareDistributionError,
         KeyShareSubmission,
+        KeyShareSubmissionError,
         MPKSubmission,
+        MPKSubmissionError,
         GPKJSubmission,
+        GPKJSubmissionError,
         Completed
     }
 
@@ -237,7 +242,7 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
             // Failed to meet minimum registration requirements; must restart
             // todo: should we open a window to accuse ppl that didn't register in the ETHDKG?
             if ( _phase != Phase.ShareDistribution) {
-                _phase = Phase.ShareDistribution;
+                _phase = Phase.ShareDistributionError;
                 emit InvalidETHDKGRound(_nonce, uint256(_phase), validatorCount - numParticipants);
                 //todo: keep this initialize here???
                 //todo: maybe initialize things in future?
@@ -275,32 +280,49 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
     }
 
     ///
-    function submitParticipantNotRegistered(address issuerAddress) external {
+    function submitParticipantNotRegistered(address[] calldata issuerAddresses) external {
         require(
             (_schedule.registrationEnds < block.number) && (block.number <= _schedule.shareDistributionEnds),
             "ETHDKG: Share distribution failed, contract is not in share distribution phase!"
         );
         require(
-            _validatorPool.isValidator(issuerAddress),
-            "validator not allowed"
+            _phase == Phase.RegistrationError,
+            "ETHDKG: should be in post-registration accusation phase!"
         );
-        // todo: should we only allow ppl participating on ETHDKG to accuse ?
-        Participant memory disputer = _participants[msg.sender];
 
-        require(
-            disputer.nonce == _nonce, "Dispute failed! Disputer is not participating in this ETHDKG round!"
-        );
+        for (uint i=0 ; i<issuerAddresses.length ; i++) {
+            require(
+                _validatorPool.isValidator(issuerAddresses[i]),
+                "validator not allowed"
+            );
+            Participant memory issuer = _participants[issuerAddresses[i]];
+            require(
+                issuer.nonce != _nonce, "Dispute failed! Issuer is participating in this ETHDKG round!"
+            );
+
+            // todo: ask Hunter if People will be allowed to stake more than the minimum amount of tokens to become validators!
+            // todo: minor fine: evict the guy!
+            // todo: in case the person is valid, the person sending the accusation should be punished?
+            // es.validators.minorFine(issuerAddress);
+        }       
+        // todo: should we only allow ppl participating on ETHDKG to accuse ? no.
+        // Participant memory disputer = _participants[msg.sender];
+
+        // require(
+        //     disputer.nonce == _nonce, "Dispute failed! Disputer is not participating in this ETHDKG round!"
+        // );
 
         // the issuer didn't participate in the register, so it doesn't have a Participant object with the latest nonce
-        Participant memory issuer = _participants[issuerAddress];
-        require(
-            issuer.nonce != _nonce, "Dispute failed! Issuer is participating in this ETHDKG round!"
-        );
+        // Participant memory issuer = _participants[issuerAddress];
+        // require(
+        //     issuer.nonce != _nonce, "Dispute failed! Issuer is participating in this ETHDKG round!"
+        // );
 
         // todo: ask Hunter if People will be allowed to stake more than the minimum amount of tokens to become validators!
         // todo: minor fine: evict the guy!
         // todo: in case the person is valid, the person sending the accusation should be punished?
         // es.validators.minorFine(issuerAddress);
+        //_phase = Phase.ShareDistribution;
     }
 
     ///
