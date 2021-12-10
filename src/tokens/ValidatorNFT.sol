@@ -64,40 +64,4 @@ contract ValidatorNFT is StakeNFT {
     {
         return _burn(msg.sender, to_, tokenID_);
     }
-
-    function collectEthTo(address to_, uint256 tokenID_) public returns (uint256 payout) {
-        address owner = ownerOf(tokenID_);
-        require(msg.sender == owner, "StakeNFT: Error sender is not the owner of the tokenID!");
-        Position memory position = _positions[tokenID_];
-        require(
-            _positions[tokenID_].withdrawFreeAfter < block.number,
-            "StakeNFT: Cannot withdraw at the moment."
-        );
-
-        // get values and update state
-        (_positions[tokenID_], payout) = _collectEth(_shares, position);
-        _reserveEth -= payout;
-        // perform transfer and return amount paid out
-        _safeTransferEth(to_, payout);
-        return payout;
-    }
-
-    /// collectToken returns all due MadToken allocations to caller. The
-    /// caller of this function must be the owner of the tokenID
-    function collectTokenTo(address to_, uint256 tokenID_) public returns (uint256 payout) {
-        address owner = ownerOf(tokenID_);
-        require(msg.sender == owner, "StakeNFT: Error sender is not the owner of the tokenID!");
-        Position memory position = _positions[tokenID_];
-        require(
-            position.withdrawFreeAfter < block.number,
-            "StakeNFT: Cannot withdraw at the moment."
-        );
-
-        // get values and update state
-        (_positions[tokenID_], payout) = _collectToken(_shares, position);
-        _reserveToken -= payout;
-        // perform transfer and return amount paid out
-        _safeTransferERC20(_MadToken, to_, payout);
-        return payout;
-    }
 }

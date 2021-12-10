@@ -87,28 +87,25 @@ contract ValidatorPool is Initializable, UUPSUpgradeable, EthSafeTransfer, ERC20
             "ValidatorStakeNFT: Error, the Stake position doesn't have enough founds!"
         );
         IERC721Transferable(address(_stakeNFT)).safeTransferFrom(msg.sender, address(this), stakerTokenID_);
+        (payoutEth, payoutToken) = _stakeNFT.burn(stakerTokenID_);
+
+        //Subtracting the shares from StakeNFT profit. The shares will be used to mint the new ValidatorPosition
+        payoutToken -= stakeShares;
+
+        // We should approve the StakeNFT to transferFrom the tokens of this contract
+        _madToken.approve(address(_validatorsNFT), stakeShares);
+        validatorTokenID = _validatorsNFT.mint(stakeShares);
+
+        _validators.push(to_);
+        _validatorsData[msg.sender] = ValidatorData(uint128(_validators.length-1), uint128(validatorTokenID));
+
+        // transfer back any profit that was available for the stakeNFT position by the
+        // time that we burned it
+        _safeTransferERC20(_madToken, to_, payoutToken);
+        _safeTransferEth(to_, payoutEth);
+        return (validatorTokenID, payoutEth, payoutToken);
+        //todo:emit an event when someone becomes a validator
     }
-
-    // function finishSwap() public {
-    //     (payoutEth, payoutToken) = _stakeNFT.burn(stakerTokenID_);
-
-    //     //Subtracting the shares from StakeNFT profit. The shares will be used to mint the new ValidatorPosition
-    //     payoutToken -= stakeShares;
-
-    //     // We should approve the StakeNFT to transferFrom the tokens of this contract
-    //     _madToken.approve(address(_validatorsNFT), stakeShares);
-    //     validatorTokenID = _validatorsNFT.mint(stakeShares);
-
-    //     _validators.push(to_);
-    //     _validatorsData[msg.sender] = ValidatorData(uint128(_validators.length-1), uint128(validatorTokenID));
-
-    //     // transfer back any profit that was available for the stakeNFT position by the
-    //     // time that we burned it
-    //     _safeTransferERC20(_madToken, to_, payoutToken);
-    //     _safeTransferEth(to_, payoutEth);
-    //     return (validatorTokenID, payoutEth, payoutToken);
-    //     //todo:emit an event when someone becomes a validator
-    // }
 
     function collectProfits() external returns (uint256 payoutEth, uint256 payoutToken)
     {
@@ -170,4 +167,9 @@ contract ValidatorPool is Initializable, UUPSUpgradeable, EthSafeTransfer, ERC20
 
     }
 
+    function initializeETHDKG() external {
+        // require(_ethdkg.isAccusationWindowOver(), "cannot init ETHDKG at the moment");
+
+        // _ethdkg._initializeState();
+    }
 }
