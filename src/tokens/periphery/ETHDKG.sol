@@ -92,7 +92,6 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
     uint256[4] internal _masterPublicKey;
     // Configurable settings
     uint256 internal _numParticipants;
-    uint256 internal _missingParticipants;
     uint256 internal _badParticipants;
     uint32 internal _confirmationLength;
     uint32 internal _phaseLength;
@@ -109,7 +108,7 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
         _initialMessage = abi.encodePacked("Cryptography is great");
         _phaseLength = 40;
         _numParticipants = 0;
-        _missingParticipants = 0;
+        _badParticipants = 0;
         _confirmationLength = 6;
         _minValidators = 4;
         _validatorPool = ValidatorPool(validatorPool);
@@ -134,13 +133,17 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
         _phaseLength = phaseLength;
     }
 
+    function _setNextPhase(Phase phase_) internal {
+        _phase = phase_;
+        // todo: should we add confirmation blocks? or +1?
+        _phaseStartBlock = block.number;
+        _numParticipants = 0;
+    }
+
     function _moveToNextPhase(Phase phase_, uint256 numValidators_, uint256 numParticipants_) internal returns(bool) {
         // if all validators have registered, we can proceed to the next phase
         if (numParticipants_ == numValidators_) {
-            _phase = phase_;
-            // todo: should we add confirmation blocks? or +1?
-            _phaseStartBlock = block.number;
-            _numParticipants = 0;
+            _setNextPhase(phase_);
             return true;
 
         } else {
@@ -166,7 +169,7 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
         _phaseStartBlock = block.number;
         _nonce++;
         _numParticipants = 0;
-        _missingParticipants = 0;
+        _badParticipants = 0;
         _phase = Phase.RegistrationOpen;
 
         delete _masterPublicKey;
@@ -227,7 +230,7 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
             "ETHDKG: cannot accuse on wrong phase"
         );
 
-        uint256 badParticipants = _missingParticipants;
+        uint256 badParticipants = _badParticipants;
 
         for (uint i=0 ; i<issuerAddresses.length ; i++) {
             require(
@@ -255,11 +258,11 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
         if (badParticipants + _numParticipants == _validatorPool.getValidatorsCount()) {
             _initializeState();
         } else {
-            _missingParticipants = badParticipants;
+            _badParticipants = badParticipants;
         }
     }
 
-    function distribute_shares(uint256[] memory encryptedShares, uint256[2][] memory commitments) external onlyValidator {
+    function distributeShares(uint256[] memory encryptedShares, uint256[2][] memory commitments) internal onlyValidator {
         require(_phase == Phase.ShareDistribution, "ETHDKG: cannot participate on this phase");
         Participant memory participant = _participants[msg.sender];
         require(
@@ -267,11 +270,8 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
             "ETHDKG: Share distribution failed, participant with invalid nonce!"
         );
         require(
-            _participants[msg.sender].phase == Phase.RegistrationOpen,
+            participant.phase == Phase.RegistrationOpen,
             "Participant already distributed shares this ETHDKG round"
-        );
-        require(
-            _missingParticipants == 0, "ETHDKG: there are bad participants in this round! ETHDKG should be restarted!"
         );
 
         uint256 numValidators = _validatorPool.getValidatorsCount();
@@ -317,7 +317,7 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
             "ETHDKG: cannot accuse on wrong phase"
         );
 
-        uint256 badParticipants = _missingParticipants;
+        uint256 badParticipants = _badParticipants;
 
         for (uint i=0 ; i<issuerAddresses.length ; i++) {
 
@@ -338,13 +338,8 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
             badParticipants++;
         }
 
-        // init ETHDKG if we find all the bad participants
-        if (badParticipants + _numParticipants == _validatorPool.getValidatorsCount()) {
-            //todo: _initializeState here? If so, we restritic the
-            //_initializeState();
-        } else {
-            _missingParticipants = badParticipants;
-        }
+        _badParticipants = badParticipants;
+
     }
 
     /// Someone sent bad shares
@@ -359,8 +354,14 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
     )
     public
     {
+        // We should allow accusation, even if some of the participants didn't participate
         require(
-            _phase == Phase.DisputeShareDistribution,
+            (_phase == Phase.DisputeShareDistribution && block.number <= _phaseStartBlock + _phaseLength) ||
+            (
+                _phase == Phase.ShareDistribution &&
+                (block.number > _phaseStartBlock + _phaseLength) &&
+                (block.number <= _phaseStartBlock + 2*_phaseLength)
+            ),
             "dispute failed (contract is not in dispute phase)"
         );
 
@@ -394,7 +395,6 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
 
         // Since all provided data is valid so far, we load the share and use the verified shared
         // key to decrypt the share for the disputer.
-        // todo: ask Chris!
         uint256 share;
         uint256 disputerIdx = disputerListIdx + 1;
         if (disputerListIdx < issuerListIdx) {
@@ -413,7 +413,7 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
         uint256[2] memory result = commitments[0];
         uint256[2] memory tmp = CryptoLibrary.bn128_multiply([commitments[1][0], commitments[1][1], x]);
         result = CryptoLibrary.bn128_add([result[0], result[1], tmp[0], tmp[1]]);
-        for (uint256 j = 2; j < commitments.length; j += 1) {
+        for (uint256 j = 2; j < commitments.length; j++) {
             x = mulmod(x, disputerIdx, CryptoLibrary.GROUP_ORDER);
             tmp = CryptoLibrary.bn128_multiply([commitments[j][0], commitments[j][1], x]);
             result = CryptoLibrary.bn128_add([result[0], result[1], tmp[0], tmp[1]]);
@@ -428,61 +428,52 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
         if (result[0] != tmp[0] || result[1] != tmp[1]) {
             _validatorPool.majorSlash(issuerAddress);
         } else {
-            // todo: maybe a minor fine? ask Hunter/Chris
             _validatorPool.majorSlash(msg.sender);
         }
         _badParticipants++;
     }
 
-    function submit_key_share(
+
+    function submitKeyShare(
         address issuerAddress,
         uint256[2] memory keyShareG1,
         uint256[2] memory keyShareG1CorrectnessProof,
         uint256[4] memory keyShareG2
     )
-    external
+    internal
     {
-        // if(_missingParticipants == 0 && ){
-
-        // }
-
+        // Only progress if all participants distributed their shares and no bad participant was
+        // found
         require(
-            (_schedule.disputeEnds < block.number) && (block.number <= _schedule.keyShareSubmissionEnds),
-            "key share submission failed (contract is not in key derivation phase)"
+            _phase == Phase.KeyShareSubmission ||
+            (
+                _phase == Phase.DisputeShareDistribution &&
+                block.number > _phaseStartBlock + _phaseLength &&
+                _badParticipants == 0
+            ),
+            "ETHDKG: cannot participate on key share submission phase"
         );
 
-        // Check current state; will only be run on first call
+        // Since we had a dispute stage prior this state we need to set global state in here
         if (_phase != Phase.KeyShareSubmission) {
-            // todo: check with Hunter if this is enough, or if this contract should track non-active validators and fine them
-            if (_counter.numShareDistributed != _validatorPool.getValidatorsCount()) {
-                // Restart process; If by now the number of Validators
-                // is not the same as the nodes that are participating in this ETHDKG round.
-                _initializeState();
-                return;
-            }
-            else {
-                // Everything is valid and we do not need to perform this check again
-                _phase = Phase.KeyShareSubmission;
-            }
+            _setNextPhase(Phase.KeyShareSubmission);
         }
-
-        Participant memory issuer = _participants[issuerAddress];
-        if (issuer.keyShares[0] != 0) {
-            return;
-        }
-
-        // With the above check, this can be removed;
-        // everyone has nonzero hashes
+        Participant memory participant = _participants[issuerAddress];
         require(
-            issuer.shareDistributionHashes != 0,
-            "key share submission failed (issuerAddress not qualified)"
+            participant.nonce == _nonce,
+            "ETHDKG: Key share submission failed, participant with invalid nonce!"
         );
+        require(
+            participant.phase == Phase.ShareDistribution,
+            "Participant already submitted key shares this ETHDKG round"
+        );
+
         require(
             CryptoLibrary.dleq_verify(
                 [CryptoLibrary.H1x, CryptoLibrary.H1y],
                 keyShareG1,
                 [CryptoLibrary.G1x, CryptoLibrary.G1y],
-                issuer.commitmentsFirstCoefficient,
+                participant.commitmentsFirstCoefficient,
                 keyShareG1CorrectnessProof
             ),
             "key share submission failed (invalid key share (G1))"
@@ -497,20 +488,68 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
             "key share submission failed (invalid key share (G2))"
         );
 
-        issuer.keyShares = keyShareG1;
-        _participants[issuerAddress] = issuer;
+        participant.keyShares = keyShareG1;
+        participant.phase = Phase.KeyShareSubmission;
+        _participants[issuerAddress] = participant;
+
+        uint256 numParticipants = _numParticipants + 1;
         emit KeyShareSubmission(issuerAddress, keyShareG1, keyShareG1CorrectnessProof, keyShareG2);
+
+        if (_moveToNextPhase(Phase.MPKSubmission, _validatorPool.getValidatorsCount(), numParticipants)) {
+            // todo: emit KeyShareSubmissionComplete(block.number)
+        }
+    }
+
+    //todo: need to fix implementation
+    function submitParticipantDidNotSubmitKeyShares(address[] issuerAddresses) external {
+        require(
+            _phase == Phase.KeyShareSubmission && (
+                block.number > _phaseStartBlock + _phaseLength &&
+                block.number <= _phaseStartBlock + 2*_phaseLength
+            ),
+            "ETHDKG: should be in post-KeyShareSubmission phase!"
+        );
+
+        uint256 badParticipants = _badParticipants;
+
+        for (uint i=0 ; i<issuerAddresses.length ; i++) {
+
+            Participant memory issuer = _participants[issuerAddresses[i]];
+            require(
+                issuer.nonce == _nonce, "Dispute failed! Issuer is not participating in this ETHDKG round!"
+            );
+
+            require(
+                issuer.phase != Phase.KeyShareSubmission, "Dispute failed! Issuer is not participating in this ETHDKG round!"
+            );
+
+            require(issuer.shareDistributionHashes == 0x0, "ETHDKG: it looks like the issuer distributed shares");
+            require(issuer.commitmentsFirstCoefficient[0] == 0 && issuer.commitmentsFirstCoefficient[1] == 0, "ETHDKG: it looks like the issuer had commitments");
+
+            // todo: the actual accusation with fine
+            // es.validators.minorFine(issuerAddress);
+            badParticipants++;
+        }
+
+        // init ETHDKG if we find all the bad participants
+        if (badParticipants + _numParticipants == _validatorPool.getValidatorsCount()) {
+            _initializeState();
+        } else {
+            _badParticipants = badParticipants;
+        }
+
     }
 
     function submit_master_public_key(
-        uint256[4] memory _master_public_key
+        uint256[4] memory masterPublicKey_
     )
     public returns (bool)
     {
         require(
-            (_schedule.keyShareSubmissionEnds < block.number) && (block.number <= _schedule.mpkSubmissionEnds),
-            "master key submission failed (contract is not in mpk derivation phase)"
+            _phase == Phase.MPKSubmission,
+            "ETHDKG: cannot participate on master public key submission phase"
         );
+
 
         // Check current state; will only be run on first call
         if (_phase != Phase.KeyShareSubmission) {
@@ -567,13 +606,13 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
         //         mpk_G1[0], mpk_G1[1],
         //         CryptoLibrary.H2xi, CryptoLibrary.H2x, CryptoLibrary.H2yi, CryptoLibrary.H2y,
         //         CryptoLibrary.H1x, CryptoLibrary.H1y,
-        //         _master_public_key[0], _master_public_key[1],
-        //         _master_public_key[2], _master_public_key[3]
+        //         masterPublicKey_[0], masterPublicKey_[1],
+        //         masterPublicKey_[2], masterPublicKey_[3]
         //     ]),
         //     "master key submission failed (pairing check failed)"
         // );
 
-        // es._masterPublicKey = _master_public_key;
+        // es._masterPublicKey = masterPublicKey_;
 
         return false;
     }
@@ -623,84 +662,6 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
         participant.gpkjSubmissions = gpkj;
         participant.initialSignatures = sig;
         _participants[msg.sender] = participant;
-    }
-
-    function Group_Accusation_GPKj(
-        uint256[] memory invArray,
-        uint256[] memory honestIndices,
-        uint256[] memory dishonestIndices
-    )
-    public
-    {
-        require(
-            (_schedule.gpkjSubmissionEnds < block.number) && (block.number <= _schedule.gpkjDisputeEnds),
-            "gpkj accusation failed (contract is not in gpkj accusation phase)"
-        );
-
-        uint256 numParticipants = _counter.numKeyShared;
-        uint256 k = numParticipants / 3;
-        uint256 threshold = 2*k;
-        if (2 == (numParticipants - 3*k)) {
-            threshold = threshold + 1;
-        }
-        // All indices are the *correct* indices; we subtract 1 to get the approprtiate stuff.
-        require(
-            honestIndices.length >= (threshold+1),
-            "Incorrect number of honest validators; exit"
-        );
-        require(
-            CryptoLibrary.checkIndices(honestIndices, dishonestIndices, numParticipants),
-            "honestIndices and dishonestIndices do not contain unique indices"
-        );
-
-        // Failure here should not result in loss of stake.
-        uint256[2][] memory sigs;
-        sigs = new uint256[2][](threshold+1);
-        uint256[] memory indices;
-        indices = new uint256[](threshold+1);
-        uint256 cur_idx;
-        address cur_addr;
-
-        require(
-            CryptoLibrary.checkInverses(invArray, numParticipants),
-            "invArray does not include correct inverses"
-        );
-        // Failure here should not result in loss of stake
-
-        // Construct signature array for honest _participants; use first t+1
-        // for (k = 0; k < (threshold+1); k++) {
-        //     cur_idx = honestIndices[k];
-        //     cur_addr = es.addresses[cur_idx-1];
-        //     sigs[k] = es.initial_signatures[cur_addr];
-        //     indices[k] = cur_idx;
-        // }
-        uint256[2] memory grpsig = CryptoLibrary.AggregateSignatures(sigs, indices, threshold, invArray);
-        require(
-            CryptoLibrary.Verify(_initialMessage, grpsig, _masterPublicKey),
-            "honestIndices failed to produce valid group signature"
-        );
-        // Failure above will not result in loss of stake.
-        // At this point, you have not accused anyone of malicious behavior.
-        // Asinine behavior does not necessitate stake burning.
-
-        // for (k = 0; k < dishonestIndices.length; k++) {
-        //     cur_idx = dishonestIndices[k];
-        //     cur_addr = es.addresses[cur_idx-1];
-        //     indices[threshold] = cur_idx;
-        //     sigs[threshold] = es.initial_signatures[cur_addr];
-        //     grpsig = CryptoLibrary.AggregateSignatures(sigs, indices, threshold, invArray);
-        //     // Either the group signature is invalid, implying the person
-        //     // is dishonest, or the signature is valid, implying whoever
-        //     // submitted the accusation is dishonest. Either way, someone
-        //     // is getting burned.
-        //     if (!CryptoLibrary.Verify(es._initialMessage, grpsig, es._masterPublicKey)) {
-        //         delete es.gpkj_submissions[cur_addr];
-        //         es.is_malicious[cur_addr] = true;
-        //     } else {
-        //         delete es.gpkj_submissions[msg.sender];
-        //         es.is_malicious[msg.sender] = true;
-        //     }
-        // }
     }
 
     // Perform Group accusation by computing gpkj*
