@@ -97,7 +97,7 @@ contract ValidatorPool is Initializable, UUPSUpgradeable, EthSafeTransfer, ERC20
         validatorTokenID = _validatorsNFT.mint(stakeShares);
 
         _validators.push(to_);
-        _validatorsData[msg.sender] = ValidatorData(uint128(_validators.length-1), uint128(validatorTokenID));
+        _validatorsData[msg.sender] = ValidatorData(uint128(_validators.length-1), uint128(validatorTokenID), State.Pending);
 
         // transfer back any profit that was available for the stakeNFT position by the
         // time that we burned it
