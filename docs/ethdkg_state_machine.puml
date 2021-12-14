@@ -1,0 +1,38 @@
+@startuml
+
+
+[*]     --> RegistrationOpen : initializeState()
+RegistrationOpen --> RegistrationOpen: register()
+RegistrationOpen --> ShareDistribution: register()
+RegistrationOpen --> AccuseMissingRegistration: timeout*
+
+AccuseMissingRegistration --> RegistrationOpen:submitParticipantNotRegistered()
+note on link : found all nodes\nthat didn't participate
+AccuseMissingRegistration --> AccuseMissingRegistration: submitParticipantNotRegistered()
+AccuseMissingRegistration --> [*]: timeout*
+note on link : Didn't find all nodes\nthat didn't participate
+
+ShareDistribution --> ShareDistribution: distributeShares()
+ShareDistribution --> DisputeShareDistribution: distributeShares()
+state "AccuseMissingShareDistribution\n Or DisputeShareDistribution"  as AccuseShareWindow
+
+ShareDistribution -->  AccuseShareWindow: timeout*
+
+AccuseShareWindow -->  AccuseShareWindow: submitDispute()
+AccuseShareWindow -->[*]: timeout*
+AccuseShareWindow -->  AccuseShareWindow: submitParticipantDidNotDistributeShares()
+
+DisputeShareDistribution --> DisputeShareDistribution: submitDispute()
+DisputeShareDistribution --> KeyShareSubmission:  timeout*
+KeyShareSubmission --> [*]:submitKeyShare() //an acussation happened
+KeyShareSubmission --> KeyShareSubmission: submitKeyShare()
+KeyShareSubmission --> MPKSubmission: submitKeyShare()
+
+KeyShareSubmission --> AccuseMissingKeyShareSubmission: timeout*
+AccuseMissingKeyShareSubmission --> AccuseMissingKeyShareSubmission: submitParticipantDidNotSubmitKeyShares()
+AccuseMissingKeyShareSubmission -->RegistrationOpen
+AccuseMissingKeyShareSubmission --> [*]: timeout*
+
+MPKSubmission --> SubmitGPKj: submitMasterPublicKey()
+
+@enduml

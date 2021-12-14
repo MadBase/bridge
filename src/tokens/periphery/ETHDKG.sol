@@ -540,7 +540,7 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
 
     }
 
-    function submit_master_public_key(
+    function submitMasterPublicKey(
         uint256[4] memory masterPublicKey_
     )
     public returns (bool)
@@ -617,7 +617,7 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
         return false;
     }
 
-    function Submit_GPKj(
+    function SubmitGPKj(
         uint256[4] memory gpkj,
         uint256[2] memory sig
     )
@@ -676,7 +676,7 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
     // via a pairing check.
     // If we have inequality, then the participant is malicious;
     // if we have equality, then the accusor is malicious.
-    function Group_Accusation_GPKj_Comp(
+    function GroupAccusationGPKjComp(
         uint256[][] memory encryptedShares,
         uint256[2][][] memory commitments,
         uint256 dishonest_list_idx,
@@ -833,7 +833,7 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
     // Successful_Completion should be called at the completion of the DKG algorithm.
     //
     // -- The bool returned indicates whether we should start over immediately.
-    function Successful_Completion() public returns (bool) {
+    function SuccessfulCompletion() public returns (bool) {
 
         require(
             (_schedule.gpkjDisputeEnds < block.number) && (block.number <= _schedule.dkgCompletionEnds),
