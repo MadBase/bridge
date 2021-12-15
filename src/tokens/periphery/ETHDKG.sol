@@ -12,6 +12,8 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
 
     event AddressRegistered(address account, uint256 index, uint256 nonce, uint256[2] publicKey);
 
+    event RegistrationComplete(uint256 blockNumber);
+
     event SharesDistributed(
         address account,
         uint256 index,
@@ -19,6 +21,8 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
         uint256[] encryptedShares,
         uint256[2][] commitments
     );
+
+    event ShareDistributionComplete(uint256 blockNumber);
 
     event KeyShareSubmitted(
         address account,
@@ -28,6 +32,12 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
         uint256[2] keyShareG1CorrectnessProof,
         uint256[4] keyShareG2
     );
+
+    event KeyShareSubmissionComplete(uint256 blockNumber);
+
+    event MPKSet(uint256 blockNumber);
+
+    event GPKJSubmissionComplete(uint256 blockNumber);
 
     event ValidatorMemberAdded(
         address account,
@@ -238,7 +248,7 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
                 numRegistered
             )
         ) {
-            // todo: emit RegistrationComplete(block.number)
+            emit RegistrationComplete(block.number);
         }
     }
 
@@ -339,7 +349,7 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
         );
 
         if (_moveToNextPhase(Phase.DisputeShareDistribution, numValidators, numParticipants)) {
-            // todo: emit ShareDistributionComplete(block.number)
+            emit ShareDistributionComplete(block.number);
         }
     }
 
@@ -560,7 +570,7 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
                 numParticipants
             )
         ) {
-            // todo: emit KeyShareSubmissionComplete(block.number)
+            emit KeyShareSubmissionComplete(block.number);
         }
     }
 
@@ -641,7 +651,8 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
         _masterPublicKey = masterPublicKey_;
 
         _setPhase(Phase.GPKJSubmission);
-        //todo: emit an event that MPK was sent
+        //todo: DONE emit an event that MPK was sent
+        emit MPKSet(block.number);
     }
 
     function submitGPKj(uint256[4] memory gpkj, uint256[2] memory sig) external onlyValidator {
@@ -697,7 +708,7 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
                 numParticipants
             )
         ) {
-            // todo: emit GPKJSubmissionComplete(block.number)
+            emit GPKJSubmissionComplete(block.number);
         }
     }
 
