@@ -7,6 +7,7 @@ import { task } from "hardhat/config";
 import '@typechain/hardhat'
 import '@nomiclabs/hardhat-waffle'
 import 'hardhat-contract-sizer';
+import "hardhat-gas-reporter";
 
 /**
  * @type import('hardhat/config').HardhatUserConfig
@@ -50,6 +51,10 @@ const config: HardhatUserConfig = {
     // set `true` to raise exception when a contract
     // exceeds the 24KB limit, interrupting execution
     strict: true,
+  },
+  gasReporter: {
+    currency: 'USD',
+    gasPrice: 50
   }
 };
 

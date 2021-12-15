@@ -620,7 +620,7 @@ contract StakeNFT is
         Accumulator memory state_
     ) internal pure returns (Accumulator memory) {
         state_.slush += (delta_ * _accumulatorScaleFactor);
-        //state_.slush = (state_.slush + delta_) * _accumulatorScaleFactor;
+
         if (shares_ > 0) {
             (state_.accumulator, state_.slush) = _slushSkim(
                 shares_,

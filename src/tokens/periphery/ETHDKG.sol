@@ -83,13 +83,13 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
         uint256[2] commitmentsFirstCoefficient;
         uint256[2] keyShares;
         uint256[4] gpkj;
-        uint256[2] initialSignature;
     }
 
     uint256 internal _nonce;
     uint256 internal _phaseStartBlock;
     Phase internal _phase;
     uint256[4] internal _masterPublicKey;
+    uint256[2] internal _mpkG1;
     // Configurable settings
     uint32 internal _numParticipants;
     uint32 internal _badParticipants;
@@ -97,16 +97,12 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
     uint32 internal _phaseLength;
     uint32 internal _minValidators;
     ValidatorPool internal _validatorPool;
-    bytes internal _initialMessage;
 
     mapping(address => Participant) internal _participants;
-
-    address[] internal _participantsOrdered;
 
     function initialize(address validatorPool) public initializer {
         _nonce = 0;
         _phaseStartBlock = 0;
-        _initialMessage = abi.encodePacked("Cryptography is great");
         _phaseLength = 40;
         _numParticipants = 0;
         _badParticipants = 0;
@@ -199,11 +195,10 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
         _nonce++;
         _numParticipants = 0;
         _badParticipants = 0;
+        _mpkG1 = [uint256(0), uint256(0)];
         _phase = Phase.RegistrationOpen;
 
         delete _masterPublicKey;
-
-        delete _participantsOrdered;
 
         emit RegistrationOpened(block.number, _nonce);
     }
@@ -234,11 +229,8 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
             distributedSharesHash: 0x0,
             commitmentsFirstCoefficient: [uint256(0), uint256(0)],
             keyShares: [uint256(0), uint256(0)],
-            gpkj: [uint256(0), uint256(0), uint256(0), uint256(0)],
-            initialSignature: [uint256(0), uint256(0)]
+            gpkj: [uint256(0), uint256(0), uint256(0), uint256(0)]
         });
-
-        _participantsOrdered.push(msg.sender);
 
         emit AddressRegistered(msg.sender, numRegistered, _nonce, publicKey);
         if (
@@ -327,9 +319,13 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
             require(commitments[k][0] != 0, "ETHDKG: Commitments shouldn't be zero");
         }
 
-        participant.distributedSharesHash = keccak256(
-            abi.encodePacked(encryptedShares, commitments)
+        bytes32 encryptedSharesHash = keccak256(
+            abi.encodePacked(encryptedShares)
         );
+        bytes32 commitmentsHash = keccak256(
+            abi.encodePacked(commitments)
+        );
+        participant.distributedSharesHash = keccak256(abi.encodePacked(encryptedSharesHash, commitmentsHash));
         require(
             participant.distributedSharesHash != 0x0,
             "ETHDKG: The hash of encryptedShares and commitments should be different from zero"
@@ -431,9 +427,15 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
             "Dispute failed! Invalid list indices for the issuer or for the disputer!"
         );
 
+        bytes32 encryptedSharesHash = keccak256(
+            abi.encodePacked(encryptedShares)
+        );
+        bytes32 commitmentsHash = keccak256(
+            abi.encodePacked(commitments)
+        );
         require(
             issuer.distributedSharesHash ==
-                keccak256(abi.encodePacked(encryptedShares, commitments)),
+                keccak256(abi.encodePacked(encryptedSharesHash, commitmentsHash)),
             "dispute failed (invalid replay of sharing transaction)"
         );
 
@@ -458,7 +460,6 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
             share = encryptedShares[disputerListIdx - 1];
         }
 
-        // uint256 decryption_key = uint256(keccak256(abi.encodePacked(sharedKey[0], disputerIdx)))
         share ^= uint256(keccak256(abi.encodePacked(sharedKey[0], disputerIdx)));
 
         // Verify the share for it's correctness using the polynomial defined by the commitments.
@@ -553,6 +554,9 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
         participant.phase = Phase.KeyShareSubmission;
         _participants[msg.sender] = participant;
 
+        uint256[2] memory mpkG1 = _mpkG1;
+        _mpkG1 = CryptoLibrary.bn128_add([mpkG1[0], mpkG1[1], participant.keyShares[0], participant.keyShares[1]]);
+
         uint256 numParticipants = _numParticipants + 1;
         emit KeyShareSubmitted(
             msg.sender,
@@ -619,15 +623,7 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
             _phase == Phase.MPKSubmission && block.number <= _phaseStartBlock + _phaseLength,
             "ETHDKG: cannot participate on master public key submission phase"
         );
-
-        uint256[2] memory mpkG1 = _participants[_participantsOrdered[0]].keyShares;
-        //todo: can we remove the ordered array? Ask chris
-        for (uint256 i = 1; i < _participantsOrdered.length; i++) {
-            Participant memory participant = _participants[_participantsOrdered[i]];
-            mpkG1 = CryptoLibrary.bn128_add(
-                [mpkG1[0], mpkG1[1], participant.keyShares[0], participant.keyShares[1]]
-            );
-        }
+        uint256[2] memory mpkG1 = _mpkG1;
         require(
             CryptoLibrary.bn128_check_pairing(
                 [
@@ -651,11 +647,10 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
         _masterPublicKey = masterPublicKey_;
 
         _setPhase(Phase.GPKJSubmission);
-        //todo: DONE emit an event that MPK was sent
         emit MPKSet(block.number);
     }
 
-    function submitGPKj(uint256[4] memory gpkj, uint256[2] memory sig) external onlyValidator {
+    function submitGPKj(uint256[4] memory gpkj) external onlyValidator {
         //todo: should we evict all validators if no one sent the master public key in time?
 
         require(
@@ -673,11 +668,6 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
             participant.phase == Phase.KeyShareSubmission,
             "Participant already submitted key shares this ETHDKG round"
         );
-        require(CryptoLibrary.bn128_is_on_curve(sig), "Invalid signature (not on curve)");
-        require(
-            CryptoLibrary.Verify(_initialMessage, sig, gpkj),
-            "GPKj submission failed (signature verification failed due to invalid gpkj)"
-        );
 
         require(
             gpkj[0] != 0 || gpkj[1] != 0 || gpkj[2] != 0 || gpkj[3] != 0,
@@ -685,7 +675,6 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
         );
 
         participant.gpkj = gpkj;
-        participant.initialSignature = sig;
         participant.phase = Phase.GPKJSubmission;
         _participants[msg.sender] = participant;
 
@@ -739,9 +728,7 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
                 issuer.gpkj[0] == 0 &&
                     issuer.gpkj[1] == 0 &&
                     issuer.gpkj[2] == 0 &&
-                    issuer.gpkj[3] == 0 &&
-                    issuer.initialSignature[0] == 0 &&
-                    issuer.initialSignature[1] == 0,
+                    issuer.gpkj[3] == 0,
                 "ETHDKG: it looks like the issuer distributed its GPKJ"
             );
 
@@ -766,7 +753,7 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
     // If we have inequality, then the participant is malicious;
     // if we have equality, then the accusor is malicious.
     function accuseParticipantSubmittedBadGPKj(
-        uint256[][] memory encryptedShares,
+        bytes32[] memory encryptedSharesHash,
         uint256[2][][] memory commitments,
         uint256 dishonestListIdx,
         address dishonestAddress
@@ -790,28 +777,23 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
         ////////////////////////////////////////////////////////////////////////
         // First, check length of things
         require(
-            (encryptedShares.length == numParticipants) && (commitments.length == numParticipants),
+            (encryptedSharesHash.length == numParticipants) && (commitments.length == numParticipants),
             "gpkj acc comp failed: invalid submission of arguments"
         );
 
         // Now, ensure subarrays are the correct length as well
         for (uint256 k = 0; k < numParticipants; k++) {
             require(
-                encryptedShares[k].length == numParticipants - 1,
-                "gpkj acc comp failed: invalid number of encrypted shares provided"
-            );
-            require(
                 commitments[k].length == threshold + 1,
                 "gpkj acc comp failed: invalid number of commitments provided"
             );
-        }
-
-        // // Ensure submissions are valid
-        for (uint256 k = 0; k < numParticipants; k++) {
-            Participant memory participant = _participants[_participantsOrdered[k]];
+            bytes32 commitmentsHash = keccak256(
+                abi.encodePacked(commitments[k])
+            );
+            Participant memory participant = _participants[_validatorPool.getValidator(k)];
             require(
                 participant.distributedSharesHash ==
-                    keccak256(abi.encodePacked(encryptedShares[k], commitments[k])),
+                    keccak256(abi.encodePacked(encryptedSharesHash[k], commitmentsHash)),
                 "gpkj acc comp failed: invalid shares or commitments"
             );
         }
@@ -928,7 +910,7 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
     // Successful_Completion should be called at the completion of the DKG algorithm.
     //
     // -- The bool returned indicates whether we should start over immediately.
-    function complete() external onlyValidator returns (bool) {
+    function complete() external onlyValidator {
         require(
             (_phase == Phase.DisputeGPKJSubmission &&
                 block.number > _phaseStartBlock + _phaseLength &&
@@ -990,35 +972,4 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
             threshold = threshold + 1;
         }
     }
-
-    // baseBlock = msg.block;
-    // if !dutchAuction && freeSlotsInValidatorPool{
-    //     emit StartDutchAuction();
-    // }
-
-    // event StartDutchAuction();
-    // uint256 basePrice = 2 ether;
-    // uint256 baseBlock;
-    // bool dutchAuction;
-    // function dutchAuctionPrice() view public returns(uint256){
-    //     uint256 price = 100*basePrice/(msg.block - baseBlock);
-    //     if snapshotEpoch == 0 {
-    //         return 0;
-    //     }
-    //     return price;
-    // }
-
-    // function dutchAuctionBid(uint256 StakeTokenNFT) payable external {
-    //     require(msg.value > price);
-    //     //become validator
-    //     //reset dutch auction
-    //     baseBlock = msg.block;
-    //     if freeSlotsInValidatorPool {
-    //         emit StartDutchAuction();
-    //     }
-    // }
-
-    // function validatorLeave() payable external {
-    //     emit StartDutchAuction();
-    // }
 }
