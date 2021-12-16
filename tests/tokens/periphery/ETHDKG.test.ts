@@ -74,7 +74,7 @@ const setupTest = deployments.createFixture(async ({deployments, getNamedAccount
     );
   }
 
-  let deployResultValidators = await deploy('ValidatorPool', {
+  let deployResultValidatorPool = await deploy('ValidatorPool', {
     //contract: "src/tokens/periphery/Validators.sol:Validators",
     from: admin,
     //args: [deployResultStakeNFT.address, deployResultValidatorNFT.address, deployResultMadByte.address],
@@ -83,14 +83,30 @@ const setupTest = deployments.createFixture(async ({deployments, getNamedAccount
     proxy: false,
     // gasLimit: 4000000,
   });
-  if (deployResultValidators.newlyDeployed && deployResultValidators.receipt) {
+  if (deployResultValidatorPool.newlyDeployed && deployResultValidatorPool.receipt) {
     console.log(
-      `ValidatorPool deployed at ${deployResultValidators.address} using ${deployResultValidators.receipt.gasUsed} gas`
+      `ValidatorPool deployed at ${deployResultValidatorPool.address} using ${deployResultValidatorPool.receipt.gasUsed} gas`
     );
+    const validatorPool = await ethers.getContractAt("ValidatorPool", deployResultValidatorPool.address, admin) // as ValidatorPool
+    await validatorPool.initialize(deployResultStakeNFT.address, deployResultValidatorNFT.address, deployResultMadByte.address)
   }
 
-  const ValidatorPool = await ethers.getContract("ValidatorPool", admin);
-  await ValidatorPool.initialize(deployResultStakeNFT.address, deployResultValidatorNFT.address, deployResultMadByte.address)
+  let deployResultETHDKG = await deploy('ETHDKG', {
+    //contract: "src/tokens/periphery/ETHDKG.sol:ETHDKG",
+    from: admin,
+    //args: [deployResultStakeNFT.address, deployResultValidatorNFT.address, deployResultMadByte.address],
+    args: [],
+    log: true,
+    proxy: false,
+    // gasLimit: 4000000,
+  });
+  if (deployResultETHDKG.newlyDeployed && deployResultETHDKG.receipt) {
+    console.log(
+      `ETHDKG deployed at ${deployResultETHDKG.address} using ${deployResultETHDKG.receipt.gasUsed} gas`
+    );
+    const ethdkg = await ethers.getContractAt("ETHDKG", deployResultETHDKG.address, admin) // as ETHDKG
+    await ethdkg.initialize(deployResultValidatorPool.address)
+  }
 
   console.log('finished core deployment')
 
@@ -98,8 +114,9 @@ const setupTest = deployments.createFixture(async ({deployments, getNamedAccount
     MadToken: await ethers.getContract("MadToken"),
     MadByte: await ethers.getContract("MadByte"),
     StakeNFT: await ethers.getContract("StakeNFT"),
-    ValidatorNFT: await ethers.getContract("ValidatorNFT"),
-    ValidatorPool: await ethers.getContract("ValidatorPool"),
+    ValidatorNFT: await ethers.getContract("ValidatorNFT"),//, deployResultValidatorNFT.address),
+    ValidatorPool: await ethers.getContract("ValidatorPool"),//, deployResultValidatorPool.address),
+    ETHDKG: await ethers.getContract("ETHDKG"),//, deployResultETHDKG.address),
     admin: {
       address: admin,
     }
@@ -107,7 +124,7 @@ const setupTest = deployments.createFixture(async ({deployments, getNamedAccount
 });
 
 
-describe("ValidatorPool", function () {
+describe("ETHDKG", function () {
 
   it("compiles", async function () {
     const {MadByte, admin} = await setupTest()

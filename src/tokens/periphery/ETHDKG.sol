@@ -427,15 +427,23 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
             "Dispute failed! Invalid list indices for the issuer or for the disputer!"
         );
 
-        bytes32 encryptedSharesHash = keccak256(
-            abi.encodePacked(encryptedShares)
-        );
-        bytes32 commitmentsHash = keccak256(
-            abi.encodePacked(commitments)
-        );
+        // stack too deep
+        // bytes32 encryptedSharesHash = keccak256(
+        //     abi.encodePacked(encryptedShares)
+        // );
+        // bytes32 commitmentsHash = keccak256(
+        //     abi.encodePacked(commitments)
+        // );
         require(
             issuer.distributedSharesHash ==
-                keccak256(abi.encodePacked(encryptedSharesHash, commitmentsHash)),
+                keccak256(abi.encodePacked(
+                    keccak256(
+                        abi.encodePacked(encryptedShares)
+                    ),
+                    keccak256(
+                        abi.encodePacked(commitments)
+                    )
+                )),
             "dispute failed (invalid replay of sharing transaction)"
         );
 

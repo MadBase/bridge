@@ -24,6 +24,11 @@ task("accounts", "Prints the list of accounts", async (taskArgs, hre) => {
 });
 
 const config: HardhatUserConfig = {
+  networks: {
+    hardhat: {
+      allowUnlimitedContractSize: true
+    }
+  },
   solidity: {
     compilers: [{
       version: "0.8.9",
@@ -50,7 +55,7 @@ const config: HardhatUserConfig = {
     runOnCompile: true,
     // set `true` to raise exception when a contract
     // exceeds the 24KB limit, interrupting execution
-    strict: true,
+    strict: false,
   },
   gasReporter: {
     currency: 'USD',
