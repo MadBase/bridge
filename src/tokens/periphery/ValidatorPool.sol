@@ -82,7 +82,7 @@ contract ValidatorPool is Initializable, UUPSUpgradeable, EthSafeTransfer, ERC20
     }
 
     function isValidator(address participant) public view returns(bool) {
-        _isValidator(participant);
+        return _isValidator(participant);
     }
 
     function _isValidator(address participant) internal view returns(bool) {

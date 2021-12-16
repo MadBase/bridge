@@ -35,7 +35,7 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
 
     event KeyShareSubmissionComplete(uint256 blockNumber);
 
-    event MPKSet(uint256 blockNumber);
+    event MPKSet(uint256 blockNumber, uint256 nonce, uint256[4] mpk);
 
     event GPKJSubmissionComplete(uint256 blockNumber);
 
@@ -655,7 +655,7 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
         _masterPublicKey = masterPublicKey_;
 
         _setPhase(Phase.GPKJSubmission);
-        emit MPKSet(block.number);
+        emit MPKSet(block.number, _nonce, masterPublicKey_);
     }
 
     function submitGPKj(uint256[4] memory gpkj) external onlyValidator {
