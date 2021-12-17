@@ -86,7 +86,7 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
     }
 
     uint256 internal _nonce;
-    uint256 internal _phaseStartBlock;
+    uint256 public _phaseStartBlock;
     Phase internal _phase;
     uint256[4] internal _masterPublicKey;
     uint256[2] internal _mpkG1;
@@ -94,7 +94,7 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
     uint32 internal _numParticipants;
     uint32 internal _badParticipants;
     uint32 internal _confirmationLength;
-    uint32 internal _phaseLength;
+    uint32 public _phaseLength;
     uint32 internal _minValidators;
     ValidatorPool internal _validatorPool;
 
@@ -923,7 +923,7 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
             (_phase == Phase.DisputeGPKJSubmission &&
                 block.number > _phaseStartBlock + _phaseLength &&
                 _badParticipants == 0),
-            "ETHDKG: cannot participate on key share submission phase"
+            "ETHDKG: cannot complete yet"
         );
 
         // Since we had a dispute stage prior this state we need to set global state in here
