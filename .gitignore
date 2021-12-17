@@ -16,3 +16,8 @@ lib/*
 artifacts/*
 cache/*
 typechain-types/*
+
+.env
+coverage
+coverage.json
+typechain

@@ -4,16 +4,19 @@
     "module": "commonjs",
     "strict": true,
     "esModuleInterop": true,
-    "moduleResolution": "node",
+    //"moduleResolution": "node",
     "forceConsistentCasingInFileNames": true,
     "outDir": "dist",
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+    "declaration": true,
   },
   "include": [
     "./deploy",
     "./tests",
     "./scripts",
-    "./typechain",
+    "./src/**/*",
+    "./typechain-types/**/*",
+    "**/*.ts",
   ],
   "files": ["./hardhat.config.ts"]
 }
