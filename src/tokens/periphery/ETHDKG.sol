@@ -93,7 +93,6 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
     // Configurable settings
     uint32 internal _numParticipants;
     uint32 internal _badParticipants;
-    uint32 internal _confirmationLength;
     uint32 public _phaseLength;
     uint32 internal _minValidators;
     ValidatorPool internal _validatorPool;
@@ -106,7 +105,6 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
         _phaseLength = 40;
         _numParticipants = 0;
         _badParticipants = 0;
-        _confirmationLength = 6;
         _minValidators = 4;
         _validatorPool = ValidatorPool(validatorPool);
         __UUPSUpgradeable_init();
@@ -136,10 +134,6 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
         _phaseLength = phaseLength_;
     }
 
-    function setConfirmationLength(uint32 confirmationLength_) external onlyAdmin {
-        _confirmationLength = confirmationLength_;
-    }
-
     function setMinNumberOfValidator(uint32 minValidators_) external onlyAdmin {
         _minValidators = minValidators_;
     }
@@ -158,7 +152,7 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
 
     function _setPhase(Phase phase_) internal {
         _phase = phase_;
-        // todo: Hunter should we add confirmation blocks? or +1?
+        // todo: add the confirmation here and change it to be a constant
         _phaseStartBlock = block.number;
         _numParticipants = 0;
     }
@@ -427,13 +421,6 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
             "Dispute failed! Invalid list indices for the issuer or for the disputer!"
         );
 
-        // stack too deep
-        // bytes32 encryptedSharesHash = keccak256(
-        //     abi.encodePacked(encryptedShares)
-        // );
-        // bytes32 commitmentsHash = keccak256(
-        //     abi.encodePacked(commitments)
-        // );
         require(
             issuer.distributedSharesHash ==
                 keccak256(abi.encodePacked(
@@ -761,6 +748,7 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
     // If we have inequality, then the participant is malicious;
     // if we have equality, then the accusor is malicious.
     function accuseParticipantSubmittedBadGPKj(
+        address[] memory validators,
         bytes32[] memory encryptedSharesHash,
         uint256[2][][] memory commitments,
         uint256 dishonestListIdx,
@@ -785,27 +773,36 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
         ////////////////////////////////////////////////////////////////////////
         // First, check length of things
         require(
-            (encryptedSharesHash.length == numParticipants) && (commitments.length == numParticipants),
+            (validators.length == numParticipants) && (encryptedSharesHash.length == numParticipants) && (commitments.length == numParticipants),
             "gpkj acc comp failed: invalid submission of arguments"
         );
-
-        // Now, ensure subarrays are the correct length as well
-        for (uint256 k = 0; k < numParticipants; k++) {
-            require(
-                commitments[k].length == threshold + 1,
-                "gpkj acc comp failed: invalid number of commitments provided"
-            );
-            bytes32 commitmentsHash = keccak256(
-                abi.encodePacked(commitments[k])
-            );
-            Participant memory participant = _participants[_validatorPool.getValidator(k)];
-            require(
-                participant.distributedSharesHash ==
-                    keccak256(abi.encodePacked(encryptedSharesHash[k], commitmentsHash)),
-                "gpkj acc comp failed: invalid shares or commitments"
-            );
+        {
+            uint256 bitMap = 0;
+            uint256 nonce = _nonce;
+            // Now, ensure subarrays are the correct length as well
+            for (uint256 k = 0; k < numParticipants; k++) {
+                require(
+                    commitments[k].length == threshold + 1,
+                    "gpkj acc comp failed: invalid number of commitments provided"
+                );
+                bytes32 commitmentsHash = keccak256(
+                    abi.encodePacked(commitments[k])
+                );
+                Participant memory participant = _participants[validators[k]];
+                require(
+                    participant.nonce == nonce &&
+                    participant.index <= type(uint8).max &&
+                    !_isBitSet(bitMap, uint8(participant.index)),
+                    "Invalid or duplicated participant address!"
+                );
+                require(
+                    participant.distributedSharesHash ==
+                        keccak256(abi.encodePacked(encryptedSharesHash[k], commitmentsHash)),
+                    "gpkj acc comp failed: invalid shares or commitments"
+                );
+                bitMap = _setBit(bitMap, uint8(participant.index));
+            }
         }
-
         Participant memory issuer = _participants[dishonestAddress];
 
         require(
@@ -979,5 +976,22 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
         if (remainder == 2) {
             threshold = threshold + 1;
         }
+    }
+
+    function _isBitSet(uint256 self, uint8 index) internal pure returns (bool) {
+        uint256 val;
+        // solhint-disable no-inline-assembly
+        assembly {
+            val := and(shr(index, self), 1)
+        }
+        return (val == 1);
+    }
+
+    function _setBit(uint256 self, uint8 index) internal pure returns (uint256) {
+        // solhint-disable no-inline-assembly
+        assembly {
+            self := or(shl(index, 1), self)
+        }
+        return (self);
     }
 }
