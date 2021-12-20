@@ -26,10 +26,11 @@ library SnapshotsLibrary {
 
     struct SnapshotsStorage {
         mapping(uint256 => Snapshot) snapshots;
-        bool validatorsChanged;     // i.e. when we do nextSnapshot will there be different validators?
-        uint256 minEthSnapshotSize;
-        uint256 minMadSnapshotSize;
-        uint256 ethSnapshotWindow;
+        bool validatorsChanged;            // i.e. when we do nextSnapshot will there be different validators?
+        uint256 minEthSnapshotSize;        // i.e. how many mad blocks between each snapshot (aka EpochLength)
+        uint256 minMadSnapshotSize;        // i.e. the bare minimum amount of eth blocks to have been passed between snapshots
+        uint256 snapshotDesperationDelay;  // i.e. after how many eth blocks of not having a snapshot will we start allowing more validators to make it
+        uint256 snapshotDesperationFactor; // i.e. how quickly more validators will be allowed to make a snapshot, once snapshotDesperationDelay has passed
     }
 
     function snapshotsStorage() internal pure returns (SnapshotsStorage storage ss) {
@@ -86,12 +87,13 @@ library SnapshotsLibrary {
 
         return snapshotDetail.madHeight;
     }
+    
+    event log(string _message, int _i);
 
     /// @notice Saves next snapshot
     /// @param _signatureGroup The signature
     /// @param _bclaims The claims being made about given block
     /// @return Flag whether we should kick off another round of key generation
-
     function snapshot(bytes calldata _signatureGroup, bytes calldata _bclaims) internal returns (bool) {
 
         ChainStatusLibrary.ChainStatusStorage storage cs = ChainStatusLibrary.chainStatusStorage();
@@ -123,7 +125,7 @@ library SnapshotsLibrary {
             currentSnapshot.chainId = chainId;
         }
 
-        uint ethBlocksSinceLastSnapshot = type(uint256).max;
+        uint ethBlocksSinceLastSnapshot;
         {
             Snapshot memory previousSnapshot = ss.snapshots[cs.epoch-1];
             if (cs.epoch > 1) {
@@ -142,23 +144,28 @@ library SnapshotsLibrary {
         }
 
         {
-            uint index = type(uint).max;
+            int index = -1;
             
             ParticipantsLibrary.ParticipantsStorage storage ps = ParticipantsLibrary.participantsStorage();
             {
                 StakingLibrary.StakingStorage storage stakingS = StakingLibrary.stakingStorage();
                 for (uint idx=0; idx<ps.validators.length; idx++) {
                     if (msg.sender==ps.validators[idx]) {
-                        index = idx;
+                        index = int(idx);
                         StakingLibrary.lockRewardFor(ps.validators[idx], stakingS.rewardAmount + stakingS.rewardBonus, cs.epoch+2);
                     } else {
                         StakingLibrary.lockRewardFor(ps.validators[idx], stakingS.rewardAmount, cs.epoch+2);
                     }
                 }
             }
-            
-            require(index != type(uint).max, "unknown validator");
-            require(mayValidatorSnapshot(ps.validators.length, index, ethBlocksSinceLastSnapshot, _signatureGroup), "validator not among allowed");
+            {
+                emit log("index", index);
+            }
+            require(index != -1, "unknown validator");
+            require(
+                mayValidatorSnapshot(int(ps.validators.length), index, int(ethBlocksSinceLastSnapshot)-int(ss.snapshotDesperationDelay), _signatureGroup, int(ss.snapshotDesperationFactor)),
+                string(abi.encodePacked("validator not among allowed ", int2str(index), ", ", int2str(int(ethBlocksSinceLastSnapshot)-int(ss.snapshotDesperationDelay)), ", ", int2str(int(ss.snapshotDesperationFactor))))
+            );
         }
         
 
@@ -175,14 +182,15 @@ library SnapshotsLibrary {
         return reinitEthdkg;
     }
 
-    uint constant windowOpenInterval = 32; // TODO: add parameter to ss?
-    function mayValidatorSnapshot(uint numValidators, uint myIdx, uint blocksSinceInterval, bytes memory blsig) public pure returns (bool) {        
-        uint numValidatorsAllowed = (1 + blocksSinceInterval/windowOpenInterval);
-        if (numValidatorsAllowed < 1) {
-            return false;
-        } else if (numValidatorsAllowed >= numValidators) {
-		    return true;
-	    }
+    function mayValidatorSnapshot(int numValidators, int myIdx, int blocksSinceDesperation, bytes memory blsig, int desperationFactor) public pure returns (bool) {        
+        int numValidatorsAllowed = 1;
+        
+        for (int i = blocksSinceDesperation; i > 0;) {
+            i -= desperationFactor/numValidatorsAllowed;
+            numValidatorsAllowed++;
+            
+            if (numValidatorsAllowed > numValidators/3) break;
+        }
         
         uint rand;
         require(blsig.length >= 32, "slicing out of range");
@@ -190,9 +198,8 @@ library SnapshotsLibrary {
             rand := mload(add(blsig, 0x20)) // load underlying memory buffer as uint256, but skip first 32 bytes as these define the length
         }
 
-        uint start = rand % numValidatorsAllowed;
-        uint end = start + numValidatorsAllowed%numValidators;
-        
+        int start = int(rand%uint(numValidators));
+        int end = (start + numValidatorsAllowed)%numValidators;
         if (end > start) {
             return myIdx >= start && myIdx < end;
         } else {
@@ -200,4 +207,61 @@ library SnapshotsLibrary {
         }
     }
     
+    
+    /////////////////////////////
+    function int2str(int a) public pure returns (string memory) {
+        if (a == 0) return "0";
+        bool neg = a < 0;
+        uint u = uint(neg ? -a : a);
+
+        uint len;
+        for (uint i = u; i != 0; i /= 10) len++;
+        if (neg) ++len;
+        
+        bytes memory b = new bytes(len);
+        uint j = len;
+        for (uint i = u; i != 0; i /= 10) {
+            b[--j] = bytes1(uint8(48 + i % 10));
+        }
+        if (neg) b[0] = '-';
+        
+        return string(b);
+    }
+
+    function uint2str(uint a) public pure returns (string memory) {
+        if (a == 0) return "0";
+
+        uint len;
+        for (uint i = a; i != 0; i /= 10) len++;
+        
+        bytes memory b = new bytes(len);
+        uint j = len;
+        for (uint i = a; i != 0; i /= 10) {
+            b[--j] = bytes1(uint8(48 + i % 10));
+        }
+        
+        return string(b);
+    }
+
+
+    function bytes2str(bytes memory a) public pure returns (string memory) {
+        uint len = 2 + a.length*2;
+        bytes memory b = new bytes(len);
+        b[0] = "0";
+        b[1] = "x";
+
+        uint j = 2;
+        for (uint i = 0; i < a.length; i++) {
+            uint8 u = uint8(a[i]);
+
+            uint8 x = u / 16;
+            b[j++] = bytes1(x + (x >= 10 ? 55 : 48));
+
+            x = u % 16;
+            b[j++] = bytes1(x + (x >= 10 ? 55 : 48));
+        }
+        
+        return string(b);
+    }
+
 }
