@@ -41,9 +41,9 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
 
     event ValidatorMemberAdded(
         address account,
+        uint256 index,
         uint256 nonce,
         uint256 epoch,
-        uint256 index,
         uint256 share0,
         uint256 share1,
         uint256 share2,
@@ -86,14 +86,14 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
     }
 
     uint256 internal _nonce;
-    uint256 public _phaseStartBlock;
-    Phase internal _phase;
+    uint256 internal _phaseStartBlock;
+    Phase internal _ethdkgPhase;
     uint256[4] internal _masterPublicKey;
     uint256[2] internal _mpkG1;
     // Configurable settings
     uint32 internal _numParticipants;
     uint32 internal _badParticipants;
-    uint32 public _phaseLength;
+    uint32 internal _phaseLength;
     uint32 internal _minValidators;
     ValidatorPool internal _validatorPool;
 
@@ -134,6 +134,10 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
         _phaseLength = phaseLength_;
     }
 
+    function setValidatorPoolAddress(address validatorPool) external onlyAdmin {
+        _validatorPool = ValidatorPool(validatorPool);
+    }
+
     function setMinNumberOfValidator(uint32 minValidators_) external onlyAdmin {
         _minValidators = minValidators_;
     }
@@ -146,12 +150,52 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
         return _isMasterPublicKeySet();
     }
 
+    function getNonce() public view returns (uint256) {
+        return _nonce;
+    }
+
+    function getPhaseStartBlock() public view returns (uint256) {
+        return _phaseStartBlock;
+    }
+
+    function getPhaseLength() public view returns (uint256) {
+        return _phaseLength;
+    }
+
+    function getETHDKGPhase() public view returns (Phase) {
+        return _ethdkgPhase;
+    }
+
+    function getNumParticipants() public view returns (uint256) {
+        return _numParticipants;
+    }
+
+    function getBadParticipants() public view returns (uint256) {
+        return _badParticipants;
+    }
+
+    function getMinValidators() public view returns (uint256) {
+        return _minValidators;
+    }
+
+    function getParticipantInternalState(address participant)
+        public
+        view
+        returns (Participant memory)
+    {
+        return _participants[participant];
+    }
+
+    function getMasterPublicKey() public view returns (uint256[4] memory) {
+        return _masterPublicKey;
+    }
+
     function initializeETHDKG() external onlyValidatorPool {
         _initializeETHDKG();
     }
 
     function _setPhase(Phase phase_) internal {
-        _phase = phase_;
+        _ethdkgPhase = phase_;
         // todo: add the confirmation here and change it to be a constant
         _phaseStartBlock = block.number;
         _numParticipants = 0;
@@ -190,7 +234,7 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
         _numParticipants = 0;
         _badParticipants = 0;
         _mpkG1 = [uint256(0), uint256(0)];
-        _phase = Phase.RegistrationOpen;
+        _ethdkgPhase = Phase.RegistrationOpen;
 
         delete _masterPublicKey;
 
@@ -199,7 +243,8 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
 
     function register(uint256[2] memory publicKey) external onlyValidator {
         require(
-            _phase == Phase.RegistrationOpen && block.number <= _phaseStartBlock + _phaseLength,
+            _ethdkgPhase == Phase.RegistrationOpen &&
+                block.number <= _phaseStartBlock + _phaseLength,
             "ETHDKG: Cannot register at the moment"
         );
         require(publicKey[0] != 0, "registration failed (public key[0] == 0)");
@@ -219,7 +264,7 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
             publicKey: publicKey,
             index: numRegistered,
             nonce: uint224(_nonce),
-            phase: _phase,
+            phase: _ethdkgPhase,
             distributedSharesHash: 0x0,
             commitmentsFirstCoefficient: [uint256(0), uint256(0)],
             keyShares: [uint256(0), uint256(0)],
@@ -241,7 +286,7 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
     ///
     function accuseParticipantNotRegistered(address[] memory dishonestAddresses) external {
         require(
-            _phase == Phase.RegistrationOpen &&
+            _ethdkgPhase == Phase.RegistrationOpen &&
                 ((block.number > _phaseStartBlock + _phaseLength) &&
                     (block.number <= _phaseStartBlock + 2 * _phaseLength)),
             "ETHDKG: should be in post-registration accusation phase!"
@@ -282,7 +327,8 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
         onlyValidator
     {
         require(
-            _phase == Phase.ShareDistribution && block.number <= _phaseStartBlock + _phaseLength,
+            _ethdkgPhase == Phase.ShareDistribution &&
+                block.number <= _phaseStartBlock + _phaseLength,
             "ETHDKG: cannot participate on this phase"
         );
         Participant memory participant = _participants[msg.sender];
@@ -313,13 +359,11 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
             require(commitments[k][0] != 0, "ETHDKG: Commitments shouldn't be zero");
         }
 
-        bytes32 encryptedSharesHash = keccak256(
-            abi.encodePacked(encryptedShares)
+        bytes32 encryptedSharesHash = keccak256(abi.encodePacked(encryptedShares));
+        bytes32 commitmentsHash = keccak256(abi.encodePacked(commitments));
+        participant.distributedSharesHash = keccak256(
+            abi.encodePacked(encryptedSharesHash, commitmentsHash)
         );
-        bytes32 commitmentsHash = keccak256(
-            abi.encodePacked(commitments)
-        );
-        participant.distributedSharesHash = keccak256(abi.encodePacked(encryptedSharesHash, commitmentsHash));
         require(
             participant.distributedSharesHash != 0x0,
             "ETHDKG: The hash of encryptedShares and commitments should be different from zero"
@@ -346,7 +390,7 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
     ///
     function accuseParticipantDidNotDistributeShares(address[] memory dishonestAddresses) external {
         require(
-            _phase == Phase.ShareDistribution &&
+            _ethdkgPhase == Phase.ShareDistribution &&
                 ((block.number > _phaseStartBlock + _phaseLength) &&
                     (block.number <= _phaseStartBlock + 2 * _phaseLength)),
             "ETHDKG: should be in post-ShareDistribution accusation phase!"
@@ -396,9 +440,9 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
     ) external {
         // We should allow accusation, even if some of the participants didn't participate
         require(
-            (_phase == Phase.DisputeShareDistribution &&
+            (_ethdkgPhase == Phase.DisputeShareDistribution &&
                 block.number <= _phaseStartBlock + _phaseLength) ||
-                (_phase == Phase.ShareDistribution &&
+                (_ethdkgPhase == Phase.ShareDistribution &&
                     (block.number > _phaseStartBlock + _phaseLength) &&
                     (block.number <= _phaseStartBlock + 2 * _phaseLength)),
             "dispute failed (contract is not in dispute phase)"
@@ -423,14 +467,12 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
 
         require(
             issuer.distributedSharesHash ==
-                keccak256(abi.encodePacked(
-                    keccak256(
-                        abi.encodePacked(encryptedShares)
-                    ),
-                    keccak256(
-                        abi.encodePacked(commitments)
+                keccak256(
+                    abi.encodePacked(
+                        keccak256(abi.encodePacked(encryptedShares)),
+                        keccak256(abi.encodePacked(commitments))
                     )
-                )),
+                ),
             "dispute failed (invalid replay of sharing transaction)"
         );
 
@@ -493,16 +535,16 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
         // Only progress if all participants distributed their shares and no bad participant was
         // found
         require(
-            (_phase == Phase.KeyShareSubmission &&
+            (_ethdkgPhase == Phase.KeyShareSubmission &&
                 block.number <= _phaseStartBlock + _phaseLength) ||
-                (_phase == Phase.DisputeShareDistribution &&
+                (_ethdkgPhase == Phase.DisputeShareDistribution &&
                     block.number > _phaseStartBlock + _phaseLength &&
                     _badParticipants == 0),
             "ETHDKG: cannot participate on key share submission phase"
         );
 
         // Since we had a dispute stage prior this state we need to set global state in here
-        if (_phase != Phase.KeyShareSubmission) {
+        if (_ethdkgPhase != Phase.KeyShareSubmission) {
             _setPhase(Phase.KeyShareSubmission);
         }
         Participant memory participant = _participants[msg.sender];
@@ -550,7 +592,9 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
         _participants[msg.sender] = participant;
 
         uint256[2] memory mpkG1 = _mpkG1;
-        _mpkG1 = CryptoLibrary.bn128_add([mpkG1[0], mpkG1[1], participant.keyShares[0], participant.keyShares[1]]);
+        _mpkG1 = CryptoLibrary.bn128_add(
+            [mpkG1[0], mpkG1[1], participant.keyShares[0], participant.keyShares[1]]
+        );
 
         uint256 numParticipants = _numParticipants + 1;
         emit KeyShareSubmitted(
@@ -575,7 +619,7 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
 
     function accuseParticipantDidNotSubmitKeyShares(address[] memory dishonestAddresses) external {
         require(
-            _phase == Phase.KeyShareSubmission &&
+            _ethdkgPhase == Phase.KeyShareSubmission &&
                 (block.number > _phaseStartBlock + _phaseLength &&
                     block.number <= _phaseStartBlock + 2 * _phaseLength),
             "ETHDKG: should be in post-KeyShareSubmission phase!"
@@ -615,7 +659,7 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
 
     function submitMasterPublicKey(uint256[4] memory masterPublicKey_) external returns (bool) {
         require(
-            _phase == Phase.MPKSubmission && block.number <= _phaseStartBlock + _phaseLength,
+            _ethdkgPhase == Phase.MPKSubmission && block.number <= _phaseStartBlock + _phaseLength,
             "ETHDKG: cannot participate on master public key submission phase"
         );
         uint256[2] memory mpkG1 = _mpkG1;
@@ -649,7 +693,7 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
         //todo: should we evict all validators if no one sent the master public key in time?
 
         require(
-            _phase == Phase.GPKJSubmission && block.number <= _phaseStartBlock + _phaseLength,
+            _ethdkgPhase == Phase.GPKJSubmission && block.number <= _phaseStartBlock + _phaseLength,
             "ETHDKG: Not in GPKJ submission phase"
         );
 
@@ -675,9 +719,9 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
 
         emit ValidatorMemberAdded(
             msg.sender,
+            participant.index,
             participant.nonce,
             1, //todo: es.validators.epoch(),
-            participant.index,
             participant.gpkj[0],
             participant.gpkj[1],
             participant.gpkj[2],
@@ -698,7 +742,7 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
 
     function accuseParticipantDidNotSubmitGPKJ(address[] memory dishonestAddresses) external {
         require(
-            _phase == Phase.GPKJSubmission &&
+            _ethdkgPhase == Phase.GPKJSubmission &&
                 (block.number > _phaseStartBlock + _phaseLength &&
                     block.number <= _phaseStartBlock + 2 * _phaseLength),
             "ETHDKG: should be in post-GPKJSubmission phase!"
@@ -756,9 +800,9 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
     ) external {
         // We should allow accusation, even if some of the participants didn't participate
         require(
-            (_phase == Phase.DisputeGPKJSubmission &&
+            (_ethdkgPhase == Phase.DisputeGPKJSubmission &&
                 block.number <= _phaseStartBlock + _phaseLength) ||
-                (_phase == Phase.GPKJSubmission &&
+                (_ethdkgPhase == Phase.GPKJSubmission &&
                     (block.number > _phaseStartBlock + _phaseLength) &&
                     (block.number <= _phaseStartBlock + 2 * _phaseLength)),
             "dispute failed (contract is not in GPKJ dispute phase)"
@@ -773,7 +817,9 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
         ////////////////////////////////////////////////////////////////////////
         // First, check length of things
         require(
-            (validators.length == numParticipants) && (encryptedSharesHash.length == numParticipants) && (commitments.length == numParticipants),
+            (validators.length == numParticipants) &&
+                (encryptedSharesHash.length == numParticipants) &&
+                (commitments.length == numParticipants),
             "gpkj acc comp failed: invalid submission of arguments"
         );
         {
@@ -785,14 +831,12 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
                     commitments[k].length == threshold + 1,
                     "gpkj acc comp failed: invalid number of commitments provided"
                 );
-                bytes32 commitmentsHash = keccak256(
-                    abi.encodePacked(commitments[k])
-                );
+                bytes32 commitmentsHash = keccak256(abi.encodePacked(commitments[k]));
                 Participant memory participant = _participants[validators[k]];
                 require(
                     participant.nonce == nonce &&
-                    participant.index <= type(uint8).max &&
-                    !_isBitSet(bitMap, uint8(participant.index)),
+                        participant.index <= type(uint8).max &&
+                        !_isBitSet(bitMap, uint8(participant.index)),
                     "Invalid or duplicated participant address!"
                 );
                 require(
@@ -917,7 +961,7 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
     // -- The bool returned indicates whether we should start over immediately.
     function complete() external onlyValidator {
         require(
-            (_phase == Phase.DisputeGPKJSubmission &&
+            (_ethdkgPhase == Phase.DisputeGPKJSubmission &&
                 block.number > _phaseStartBlock + _phaseLength &&
                 _badParticipants == 0),
             "ETHDKG: cannot complete yet"
