@@ -27,6 +27,7 @@ extension](https://hardhat.org/guides/shorthand.html):
 
 ```bash
 npm i -g hardhat-shorthand
+hardhat-completion install
 ```
 
 Now to compile the contracts, run:
