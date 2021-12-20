@@ -605,4 +605,75 @@ describe("ETHDKG", function () {
       expectedMadHeight
     );
   });
+
+  it("allows accusation of missing validators in ETHDKG registration", async function () {
+    const { ethdkg, validatorPool } = await getFixture();
+
+    const expectedNonce = 1;
+    const expectedEpoch = 1;
+    const expectedMadHeight = 1;
+
+    // add validators
+    await validatorPool.setETHDKG(ethdkg.address);
+    await addValidators(validatorPool, validators);
+
+    // start ETHDKG
+    await expect(validatorPool.initializeETHDKG())
+      .to.emit(ethdkg, "RegistrationOpened")
+      .withArgs(await ethers.provider.getBlockNumber()+1, 1);
+
+    // register validators 0 to 2. validator3 won't register
+    await registerValidators(ethdkg, validatorPool, validators.slice(0,3), expectedNonce);
+
+    // move to the end of RegistrationOpen phase
+    await skipPhase(ethdkg);
+
+    // now we can accuse the validator3 who did not participate.
+    // keep in mind that when all missing validators are reported,
+    // the ethdkg process will restart automatically and emit "RegistrationOpened" event
+    expect(await ethdkg.getBadParticipants()).to.equal(0)
+
+    await expect(ethdkg.accuseParticipantNotRegistered([validators[3].address]))
+    .to.emit(ethdkg, "RegistrationOpened")
+    .withArgs(await ethers.provider.getBlockNumber()+1, 2);
+
+    expect(await ethdkg.getBadParticipants()).to.equal(0)
+  });
+
+  it("allows accusation of missing validators in ETHDKG registration 2", async function () {
+    const { ethdkg, validatorPool } = await getFixture();
+
+    const expectedNonce = 1;
+    const expectedEpoch = 1;
+    const expectedMadHeight = 1;
+
+    // add validators
+    await validatorPool.setETHDKG(ethdkg.address);
+    await addValidators(validatorPool, validators);
+
+    // start ETHDKG
+    await expect(validatorPool.initializeETHDKG())
+      .to.emit(ethdkg, "RegistrationOpened")
+      .withArgs(await ethers.provider.getBlockNumber()+1, 1);
+
+    // register validators 0 to 1. validator2 and 3 won't register
+    await registerValidators(ethdkg, validatorPool, validators.slice(0,2), expectedNonce);
+
+    // move to the end of RegistrationOpen phase
+    await skipPhase(ethdkg);
+
+    // now we can accuse the validator2 and 3 who did not participate.
+    // keep in mind that when all missing validators are reported,
+    // the ethdkg process will restart automatically and emit "RegistrationOpened" event
+    expect(await ethdkg.getBadParticipants()).to.equal(0)
+
+    await ethdkg.accuseParticipantNotRegistered([validators[2].address])
+    expect(await ethdkg.getBadParticipants()).to.equal(1)
+
+    await expect(ethdkg.accuseParticipantNotRegistered([validators[3].address]))
+    .to.emit(ethdkg, "RegistrationOpened")
+    .withArgs(await ethers.provider.getBlockNumber()+1, 2);
+
+    expect(await ethdkg.getBadParticipants()).to.equal(0)
+  });
 });
