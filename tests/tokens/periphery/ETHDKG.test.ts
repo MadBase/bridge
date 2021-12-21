@@ -49,7 +49,7 @@ const getFixture = async () => {
   const MadToken = await ethers.getContractFactory("MadToken");
   const madToken = await MadToken.deploy("MadToken", "MAD");
   await madToken.deployed();
-  console.log(`MadToken deployed at ${madToken.address}`);
+  // console.log(`MadToken deployed at ${madToken.address}`);
 
   // MadByte
   const MadByte = await ethers.getContractFactory("MadByte");
@@ -61,7 +61,7 @@ const getFixture = async () => {
     PLACEHOLDER_ADDRESS
   );
   await madByte.deployed();
-  console.log(`MadByte deployed at ${madByte.address}`);
+  // console.log(`MadByte deployed at ${madByte.address}`);
 
   // StakeNFT
   const StakeNFT = await ethers.getContractFactory("StakeNFT");
@@ -73,7 +73,7 @@ const getFixture = async () => {
     PLACEHOLDER_ADDRESS
   );
   await stakeNFT.deployed();
-  console.log(`StakeNFT deployed at ${stakeNFT.address}`);
+  // console.log(`StakeNFT deployed at ${stakeNFT.address}`);
 
   // ValidatorNFT
   const ValidatorNFT = await ethers.getContractFactory("ValidatorNFT");
@@ -85,23 +85,23 @@ const getFixture = async () => {
     PLACEHOLDER_ADDRESS
   );
   await validatorNFT.deployed();
-  console.log(`ValidatorNFT deployed at ${validatorNFT.address}`);
+  // console.log(`ValidatorNFT deployed at ${validatorNFT.address}`);
 
   // ValidatorPool
   const ValidatorPool = await ethers.getContractFactory("ValidatorPoolMock");
   const validatorPool = await ValidatorPool.deploy();
   await validatorPool.deployed();
-  console.log(`ValidatorPool deployed at ${validatorPool.address}`);
+  // console.log(`ValidatorPool deployed at ${validatorPool.address}`);
 
   // ETHDKG
   const ETHDKG = await ethers.getContractFactory("ETHDKG");
   const ethdkg = await ETHDKG.deploy();
   await ethdkg.deployed();
-  console.log(`ETHDKG deployed at ${ethdkg.address}`);
+  // console.log(`ETHDKG deployed at ${ethdkg.address}`);
 
   await ethdkg.initialize(validatorPool.address);
 
-  console.log("finished core deployment");
+  // console.log("finished core deployment");
 
   return {
     madToken,
@@ -473,7 +473,7 @@ const submitMasterPublicKey = async (
       ethdkg
         .connect(await ethers.getSigner(validator.address))
         .submitMasterPublicKey(validator.mpk)
-    ).to.revertedWith(
+    ).to.be.revertedWith(
       "ETHDKG: cannot participate on master public key submission phase"
     );
   }
@@ -536,7 +536,7 @@ const completeETHDKG = async (
       ethdkg
         .connect(await ethers.getSigner(validator.address))
         .submitMasterPublicKey(validator.mpk)
-    ).to.revertedWith(
+    ).to.be.revertedWith(
       "ETHDKG: cannot participate on master public key submission phase"
     );
   }
@@ -606,12 +606,102 @@ describe("ETHDKG", function () {
     );
   });
 
+  it("does not let registrations before ETHDKG Registration is open", async function () {
+    const { ethdkg, validatorPool } = await getFixture();
+
+    // add validators
+    await validatorPool.setETHDKG(ethdkg.address);
+    await addValidators(validatorPool, validators);
+
+    // for this test, ETHDKG is not started
+
+    // register validator0
+    await expect(ethdkg
+      .connect(await ethers.getSigner(validators[0].address))
+      .register(validators[0].madNetPublicKey))
+      .to.be.revertedWith("ETHDKG: Cannot register at the moment")
+
+  });
+
+  it("does not let validators to register more than once", async function () {
+    const { ethdkg, validatorPool } = await getFixture();
+
+    // add validators
+    await validatorPool.setETHDKG(ethdkg.address);
+    await addValidators(validatorPool, validators);
+
+    // start ETHDKG
+    await expect(validatorPool.initializeETHDKG())
+      .to.emit(ethdkg, "RegistrationOpened")
+      .withArgs(await ethers.provider.getBlockNumber()+1, 1);
+
+    // register one validator
+    await expect(ethdkg
+      .connect(await ethers.getSigner(validators[0].address))
+      .register(validators[0].madNetPublicKey))
+      .to.emit(ethdkg, "AddressRegistered")
+
+    // register that same validator again
+    await expect(ethdkg
+      .connect(await ethers.getSigner(validators[0].address))
+      .register(validators[0].madNetPublicKey))
+      .to.be.revertedWith("Participant is already participating in this ETHDKG round")
+
+  });
+
+  it("does not let validators to register with an incorrect key", async function () {
+    const { ethdkg, validatorPool } = await getFixture();
+
+    // add validators
+    await validatorPool.setETHDKG(ethdkg.address);
+    await addValidators(validatorPool, validators);
+
+    // start ETHDKG
+    await expect(validatorPool.initializeETHDKG())
+      .to.emit(ethdkg, "RegistrationOpened")
+      .withArgs(await ethers.provider.getBlockNumber()+1, 1);
+
+    // register validator0 with invalid pubkey
+    const signer0 = await ethers.getSigner(validators[0].address)
+    await expect(ethdkg
+      .connect(signer0)
+      .register([BigNumber.from("0"), BigNumber.from("1")]))
+      .to.be.revertedWith("registration failed - pubKey0 invalid")
+
+    await expect(ethdkg
+      .connect(signer0)
+      .register([BigNumber.from("1"), BigNumber.from("0")]))
+      .to.be.revertedWith("registration failed - pubKey1 invalid")
+
+    await expect(ethdkg
+      .connect(signer0)
+      .register([BigNumber.from("1"), BigNumber.from("1")]))
+      .to.be.revertedWith("registration failed - public key not on elliptic curve")
+  });
+
+  it("does not let non-validators to register", async function () {
+    const { ethdkg, validatorPool } = await getFixture();
+
+    // add validator0 as validator
+    await validatorPool.setETHDKG(ethdkg.address);
+    await addValidators(validatorPool, validators);
+
+    // start ETHDKG
+    await expect(validatorPool.initializeETHDKG())
+      .to.emit(ethdkg, "RegistrationOpened")
+      .withArgs(await ethers.provider.getBlockNumber()+1, 1);
+
+    // register validator1, which is not a validator in ValidatorPool
+    await expect(ethdkg
+      .connect(await ethers.getSigner("0x26D3D8Ab74D62C26f1ACc220dA1646411c9880Ac"))
+      .register([BigNumber.from("0"), BigNumber.from("0")]))
+      .to.be.revertedWith("ETHDKG: Only validators allowed!")
+  });
+
   it("allows accusation of missing validators in ETHDKG registration", async function () {
     const { ethdkg, validatorPool } = await getFixture();
 
     const expectedNonce = 1;
-    const expectedEpoch = 1;
-    const expectedMadHeight = 1;
 
     // add validators
     await validatorPool.setETHDKG(ethdkg.address);
@@ -644,8 +734,6 @@ describe("ETHDKG", function () {
     const { ethdkg, validatorPool } = await getFixture();
 
     const expectedNonce = 1;
-    const expectedEpoch = 1;
-    const expectedMadHeight = 1;
 
     // add validators
     await validatorPool.setETHDKG(ethdkg.address);

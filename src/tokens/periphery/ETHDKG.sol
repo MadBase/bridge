@@ -247,12 +247,12 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
                 block.number <= _phaseStartBlock + _phaseLength,
             "ETHDKG: Cannot register at the moment"
         );
-        require(publicKey[0] != 0, "registration failed (public key[0] == 0)");
-        require(publicKey[1] != 0, "registration failed (public key[1] == 0)");
+        require(publicKey[0] != 0, "registration failed - pubKey0 invalid");
+        require(publicKey[1] != 0, "registration failed - pubKey1 invalid");
 
         require(
             CryptoLibrary.bn128_is_on_curve(publicKey),
-            "registration failed (public key not on elliptic curve)"
+            "registration failed - public key not on elliptic curve"
         );
         require(
             _participants[msg.sender].nonce < _nonce,
