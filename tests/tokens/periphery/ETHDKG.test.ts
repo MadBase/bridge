@@ -372,6 +372,9 @@ const registerValidators = async (
   expectedNonce: number
 ) => {
   for (let [index, validator] of validators.entries()) {
+    /*
+    let numParticipants = await ethdkg.connect(await ethers.getSigner(validator.address)).getNumParticipants()
+    */
     let tx = ethdkg
       .connect(await ethers.getSigner(validator.address))
       .register(validator.madNetPublicKey);
@@ -387,9 +390,15 @@ const registerValidators = async (
     // if all validators in the Pool participated in this round
     let numValidators = await validatorPool.getValidatorsCount();
     let numParticipants = await ethdkg.getNumParticipants();
+    /*
+      expect(await ethdkg.connect(await ethers.getSigner(validator.address)).getNumParticipants()).to.eq(participantNum + 1)
+    */
     if (numParticipants == numValidators) {
       let bn = await ethers.provider.getBlockNumber();
       await assertRegistrationComplete(receipt, bn);
+      /*
+      expect(await ethdkg.connect(await ethers.getSigner(validator.address)).getETHDKGPhase()).to.eq(participantNum + 1)
+      */
     }
   }
 };
@@ -698,7 +707,7 @@ describe("ETHDKG", function () {
       .to.be.revertedWith("ETHDKG: Only validators allowed!")
   });
 
-  it("allows accusation of missing validators in ETHDKG registration", async function () {
+  it("allows accusation of all missing validators after ETHDKG registration", async function () {
     const { ethdkg, validatorPool } = await getFixture();
 
     const expectedNonce = 1;
@@ -730,7 +739,7 @@ describe("ETHDKG", function () {
     expect(await ethdkg.getBadParticipants()).to.equal(0)
   });
 
-  it("allows accusation of missing validators in ETHDKG registration 2", async function () {
+  it("allows accusation of some missing validators after ETHDKG registration", async function () {
     const { ethdkg, validatorPool } = await getFixture();
 
     const expectedNonce = 1;
@@ -763,5 +772,85 @@ describe("ETHDKG", function () {
     .withArgs(await ethers.provider.getBlockNumber()+1, 2);
 
     expect(await ethdkg.getBadParticipants()).to.equal(0)
+  });
+
+  it("won't let not-registered accusations to take place while ETHDKG registration is open", async function () {
+    const { ethdkg, validatorPool } = await getFixture();
+
+    const expectedNonce = 1;
+
+    // add validators
+    await validatorPool.setETHDKG(ethdkg.address);
+    await addValidators(validatorPool, validators);
+
+    // start ETHDKG
+    await expect(validatorPool.initializeETHDKG())
+      .to.emit(ethdkg, "RegistrationOpened")
+      .withArgs(await ethers.provider.getBlockNumber()+1, 1);
+
+    // register validators 0 to 1. validator2 and 3 won't register
+    await registerValidators(ethdkg, validatorPool, validators.slice(0,2), expectedNonce);
+
+    await expect(ethdkg.accuseParticipantNotRegistered([validators[2].address]))
+    .to.be.revertedWith("ETHDKG: should be in post-registration accusation phase!")
+    
+    expect(await ethdkg.getBadParticipants()).to.equal(0)
+
+  });
+
+  it("2 of the users didn't participate and the phase has finished, other users try to go to next phase", async function () {
+    const { ethdkg, validatorPool } = await getFixture();
+
+    const expectedNonce = 1;
+
+    // add validators
+    await validatorPool.setETHDKG(ethdkg.address);
+    await addValidators(validatorPool, validators);
+
+    // start ETHDKG
+    await expect(validatorPool.initializeETHDKG())
+      .to.emit(ethdkg, "RegistrationOpened")
+      .withArgs(await ethers.provider.getBlockNumber()+1, 1);
+
+    // register validators 0 to 1. validator2 and 3 won't register
+    await registerValidators(ethdkg, validatorPool, validators.slice(0,2), expectedNonce);
+
+    // move to the end of RegistrationOpen phase
+    await skipPhase(ethdkg);
+
+    // move to the end of AccuseMissingRegistration phase
+    await skipPhase(ethdkg);
+
+    // validator0 should not be able to distribute shares
+    let signer0 = await ethers.getSigner(validators[0].address)
+    await expect(ethdkg.connect(signer0).distributeShares(validators[0].encryptedShares, validators[0].commitments))
+    .to.be.rejectedWith("ETHDKG: cannot participate on this phase")
+  });
+
+  it("should not allow validators who did not register in time to register on the accusation phase", async function () {
+    const { ethdkg, validatorPool } = await getFixture();
+
+    const expectedNonce = 1;
+
+    // add validators
+    await validatorPool.setETHDKG(ethdkg.address);
+    await addValidators(validatorPool, validators);
+
+    // start ETHDKG
+    await expect(validatorPool.initializeETHDKG())
+      .to.emit(ethdkg, "RegistrationOpened")
+      .withArgs(await ethers.provider.getBlockNumber()+1, 1);
+
+    // register validators 0 to 1. validator2 and 3 won't register
+    await registerValidators(ethdkg, validatorPool, validators.slice(0,2), expectedNonce);
+
+    // move to the end of RegistrationOpen phase
+    await skipPhase(ethdkg);
+
+    const signer2 = await ethers.getSigner(validators[2].address)
+    await expect(ethdkg
+      .connect(signer2)
+      .register(validators[2].madNetPublicKey))
+      .to.be.revertedWith("ETHDKG: Cannot register at the moment")
   });
 });
