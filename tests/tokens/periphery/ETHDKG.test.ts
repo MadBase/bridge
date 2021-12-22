@@ -783,7 +783,12 @@ describe("ETHDKG", function () {
     // the ethdkg process will restart automatically and emit "RegistrationOpened" event
     expect(await ethdkg.getBadParticipants()).to.equal(0);
 
-    await expect(ethdkg.accuseParticipantNotRegistered([validators[2].address, validators[3].address]))
+    await expect(
+      ethdkg.accuseParticipantNotRegistered([
+        validators[2].address,
+        validators[3].address,
+      ])
+    )
       .to.emit(ethdkg, "RegistrationOpened")
       .withArgs((await ethers.provider.getBlockNumber()) + 1, 2);
 
@@ -980,8 +985,11 @@ describe("ETHDKG", function () {
     await endCurrentPhase(ethdkg);
 
     // accuse a participant validator
-    await expect(ethdkg.accuseParticipantNotRegistered([validators[0].address]))
-      .to.be.rejectedWith("Dispute failed! Issuer is participating in this ETHDKG round!")
+    await expect(
+      ethdkg.accuseParticipantNotRegistered([validators[0].address])
+    ).to.be.rejectedWith(
+      "Dispute failed! Issuer is participating in this ETHDKG round!"
+    );
 
     expect(await ethdkg.getBadParticipants()).to.equal(0);
   });
@@ -1128,7 +1136,10 @@ describe("ETHDKG", function () {
     // handling this!
     let tx = await ethdkg
       .connect(await ethers.getSigner(validators[0].address))
-      .distributeShares([BigNumber.from("0"), BigNumber.from("0"), BigNumber.from("0")], validators[0].commitments);
+      .distributeShares(
+        [BigNumber.from("0"), BigNumber.from("0"), BigNumber.from("0")],
+        validators[0].commitments
+      );
     await assertEventSharesDistributed(
       tx,
       validators[0].address,
@@ -1137,9 +1148,204 @@ describe("ETHDKG", function () {
       [BigNumber.from("0"), BigNumber.from("0"), BigNumber.from("0")],
       validators[0].commitments
     );
-
   });
 
   //  MISSING DISTRIBUTE SHARES TESTS
+  it("allows accusation of all missing validators after distribute shares Phase", async function () {
+    const { ethdkg, validatorPool } = await getFixture();
 
+    const expectedNonce = 1;
+
+    // add validators
+    await validatorPool.setETHDKG(ethdkg.address);
+    await addValidators(validatorPool, validators);
+
+    // start ETHDKG
+    initializeETHDKG(ethdkg, validatorPool);
+
+    // register all validators
+    await registerValidators(ethdkg, validatorPool, validators, expectedNonce);
+
+    //Only validator 0 and 1 distributed shares
+    await distributeValidatorsShares(
+      ethdkg,
+      validatorPool,
+      validators.slice(0, 2),
+      expectedNonce
+    );
+
+    // move to the end of Distribute Share phase
+    await endCurrentPhase(ethdkg);
+
+    // now we can accuse the validator3 who did not participate.
+    // keep in mind that when all missing validators are reported,
+    // the ethdkg process will restart automatically and emit "RegistrationOpened" event
+    expect(await ethdkg.getBadParticipants()).to.equal(0);
+
+    await ethdkg.accuseParticipantDidNotDistributeShares([
+      validators[2].address,
+      validators[3].address,
+    ]);
+
+    expect(await ethdkg.getBadParticipants()).to.equal(2);
+
+    // move to the end of Distribute Share Dispute phase
+    await endCurrentPhase(ethdkg);
+
+    await expect(
+      ethdkg
+        .connect(await ethers.getSigner(validators[0].address))
+        .submitKeyShare(
+          validators[0].keyShareG1,
+          validators[0].keyShareG1CorrectnessProof,
+          validators[0].keyShareG2
+        )
+    ).to.be.revertedWith("ETHDKG: cannot participate on key share submission phase")
+  });
+
+  it("allows accusation of some missing validators after distribute shares Phase", async function () {
+    const { ethdkg, validatorPool } = await getFixture();
+
+    const expectedNonce = 1;
+
+    // add validators
+    await validatorPool.setETHDKG(ethdkg.address);
+    await addValidators(validatorPool, validators);
+
+    // start ETHDKG
+    initializeETHDKG(ethdkg, validatorPool);
+
+    // register all validators
+    await registerValidators(ethdkg, validatorPool, validators, expectedNonce);
+
+    //Only validator 0 and 1 distributed shares
+    await distributeValidatorsShares(
+      ethdkg,
+      validatorPool,
+      validators.slice(0, 2),
+      expectedNonce
+    );
+
+    // move to the end of Distribute Share phase
+    await endCurrentPhase(ethdkg);
+
+    // now we can accuse the validator2 and 3 who did not participate.
+    expect(await ethdkg.getBadParticipants()).to.equal(0);
+
+    await ethdkg.accuseParticipantDidNotDistributeShares([
+      validators[2].address,
+    ]);
+    expect(await ethdkg.getBadParticipants()).to.equal(1);
+
+    await ethdkg.accuseParticipantDidNotDistributeShares([
+      validators[3].address,
+    ]);
+    expect(await ethdkg.getBadParticipants()).to.equal(2);
+
+    // move to the end of Distribute Share Dispute phase
+    await endCurrentPhase(ethdkg);
+
+    // user tries to go to the next phase
+    await expect(
+      ethdkg
+        .connect(await ethers.getSigner(validators[0].address))
+        .submitKeyShare(
+          validators[0].keyShareG1,
+          validators[0].keyShareG1CorrectnessProof,
+          validators[0].keyShareG2
+        )
+    ).to.be.revertedWith("ETHDKG: cannot participate on key share submission phase")
+  });
+
+  it("do not allow validators to proceed to the next phase if not all validators distributed their shares", async function () {
+    const { ethdkg, validatorPool } = await getFixture();
+
+    const expectedNonce = 1;
+
+    // add validators
+    await validatorPool.setETHDKG(ethdkg.address);
+    await addValidators(validatorPool, validators);
+
+    // start ETHDKG
+    initializeETHDKG(ethdkg, validatorPool);
+
+    // register all validators
+    await registerValidators(ethdkg, validatorPool, validators, expectedNonce);
+
+    //Only validator 0 and 1 distributed shares
+    await distributeValidatorsShares(
+      ethdkg,
+      validatorPool,
+      validators.slice(0, 2),
+      expectedNonce
+    );
+
+    // move to the end of Distribute Share phase
+    await endCurrentPhase(ethdkg);
+
+    // move to the end of Distribute Share Dispute phase
+    await endCurrentPhase(ethdkg);
+
+    // valid user tries to go to the next phase
+    await expect(
+      ethdkg
+        .connect(await ethers.getSigner(validators[0].address))
+        .submitKeyShare(
+          validators[0].keyShareG1,
+          validators[0].keyShareG1CorrectnessProof,
+          validators[0].keyShareG2
+        )
+    ).to.be.revertedWith("ETHDKG: cannot participate on key share submission phase")
+
+    // non-participant user tries to go to the next phase
+    await expect(
+      ethdkg
+        .connect(await ethers.getSigner(validators[3].address))
+        .submitKeyShare(
+          validators[0].keyShareG1,
+          validators[0].keyShareG1CorrectnessProof,
+          validators[0].keyShareG2
+        )
+    ).to.be.revertedWith("ETHDKG: cannot participate on key share submission phase")
+  });
+
+  // MISSING REGISTRATION ACCUSATION TESTS
+
+  it("won't let not-distributed shares accusations to take place while ETHDKG Distribute Share Phase is open", async function () {
+    const { ethdkg, validatorPool } = await getFixture();
+
+    const expectedNonce = 1;
+
+    // add validators
+    await validatorPool.setETHDKG(ethdkg.address);
+    await addValidators(validatorPool, validators);
+
+    // start ETHDKG
+    initializeETHDKG(ethdkg, validatorPool);
+
+    // register all validators
+    await registerValidators(ethdkg, validatorPool, validators, expectedNonce);
+
+    //Only validator 0 and 1 distributed shares
+    await distributeValidatorsShares(
+      ethdkg,
+      validatorPool,
+      validators.slice(0, 2),
+      expectedNonce
+    );
+
+    await expect(ethdkg.accuseParticipantDidNotDistributeShares([
+      validators[2].address,
+    ])).to.be.revertedWith("ETHDKG: should be in post-ShareDistribution accusation phase!");
+
+  });
+
+  // it("should not allow validators who did not register in time to register on the accusation phase", async function () {
+  // });
+
+  // it("should not allow validators who did not register in time to distribute shares", async function () {
+  // });
+
+  // it("should not allow accusation of validators that registered in ETHDKG", async function () {
+  // });
 });
