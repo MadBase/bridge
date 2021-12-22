@@ -353,8 +353,9 @@ const assertEqKeyShareG2 = (
   assert(BigNumber.from(actualKeySharesG2[3]).eq(expectedKeySharesG2[3]));
 };
 
-const assertETHDKGPhase = async (ethdkg: ETHDKG, phase: Phase) => {
-  expect(await ethdkg.getETHDKGPhase()).to.eq(phase);
+const assertETHDKGPhase = async (ethdkg: ETHDKG, expectedPhase: Phase) => {
+  let actualPhase = await ethdkg.getETHDKGPhase();
+  assert(actualPhase === expectedPhase, "Incorrect Phase");
 };
 
 // Aux functions
@@ -369,7 +370,7 @@ const addValidators = async (
   }
 };
 
-const skipPhase = async (ethdkg: ETHDKG) => {
+const endCurrentPhase = async (ethdkg: ETHDKG) => {
   // advance enough blocks to timeout a phase
   let phaseStart = await ethdkg.getPhaseStartBlock();
   let phaseLength = await ethdkg.getPhaseLength();
@@ -475,24 +476,27 @@ const submitValidatorsKeyShares = async (
       );
     let bn = await ethers.provider.getBlockNumber();
     await assertEventKeyShareSubmitted(
-        tx,
-        validator.address,
-        index + 1,
-        expectedNonce,
-        validator.keyShareG1,
-        validator.keyShareG1CorrectnessProof,
-        validator.keyShareG2
-        );
-    // assertETHDKGPhase(ethdkg, Phase.KeyShareSubmission)
+      tx,
+      validator.address,
+      index + 1,
+      expectedNonce,
+      validator.keyShareG1,
+      validator.keyShareG1CorrectnessProof,
+      validator.keyShareG2
+    );
+    //
     // if all validators in the Pool participated in this round
     let numValidators = await validatorPool.getValidatorsCount();
+    if (numValidators.eq(1)) {
+      assertETHDKGPhase(ethdkg, Phase.KeyShareSubmission);
+    }
     let numParticipants = await ethdkg.getNumParticipants();
     if (numParticipantsBefore.add(1).eq(numValidators)) {
       await assertEventKeyShareSubmissionComplete(tx, bn);
       expect(await ethdkg.getNumParticipants()).to.eq(0);
       assertETHDKGPhase(ethdkg, Phase.MPKSubmission);
     } else {
-        expect(numParticipants).to.eq(numParticipantsBefore.add(1));
+      expect(numParticipants).to.eq(numParticipantsBefore.add(1));
     }
   }
 };
@@ -552,7 +556,7 @@ const submitValidatorsGPKJ = async (
       expect(await ethdkg.getNumParticipants()).to.eq(0);
       assertETHDKGPhase(ethdkg, Phase.DisputeGPKJSubmission);
     } else {
-        expect(numParticipants).to.eq(numParticipantsBefore.add(1));
+      expect(numParticipants).to.eq(numParticipantsBefore.add(1));
     }
   }
 };
@@ -618,8 +622,7 @@ describe("ETHDKG", function () {
     );
 
     // skipping the distribute shares accusation phase
-    await skipPhase(ethdkg);
-
+    await endCurrentPhase(ethdkg);
     assertETHDKGPhase(ethdkg, Phase.DisputeShareDistribution);
 
     // Submit the Key shares for all validators
@@ -643,7 +646,7 @@ describe("ETHDKG", function () {
     );
 
     // skipping the distribute shares accusation phase
-    await skipPhase(ethdkg);
+    await endCurrentPhase(ethdkg);
     assertETHDKGPhase(ethdkg, Phase.DisputeGPKJSubmission);
 
     // Complete ETHDKG
@@ -768,19 +771,19 @@ describe("ETHDKG", function () {
     await registerValidators(
       ethdkg,
       validatorPool,
-      validators.slice(0, 3),
+      validators.slice(0, 2),
       expectedNonce
     );
 
     // move to the end of RegistrationOpen phase
-    await skipPhase(ethdkg);
+    await endCurrentPhase(ethdkg);
 
     // now we can accuse the validator3 who did not participate.
     // keep in mind that when all missing validators are reported,
     // the ethdkg process will restart automatically and emit "RegistrationOpened" event
     expect(await ethdkg.getBadParticipants()).to.equal(0);
 
-    await expect(ethdkg.accuseParticipantNotRegistered([validators[3].address]))
+    await expect(ethdkg.accuseParticipantNotRegistered([validators[2].address, validators[3].address]))
       .to.emit(ethdkg, "RegistrationOpened")
       .withArgs((await ethers.provider.getBlockNumber()) + 1, 2);
 
@@ -808,7 +811,7 @@ describe("ETHDKG", function () {
     );
 
     // move to the end of RegistrationOpen phase
-    await skipPhase(ethdkg);
+    await endCurrentPhase(ethdkg);
 
     // now we can accuse the validator2 and 3 who did not participate.
     // keep in mind that when all missing validators are reported,
@@ -877,10 +880,7 @@ describe("ETHDKG", function () {
     );
 
     // move to the end of RegistrationOpen phase
-    await skipPhase(ethdkg);
-
-    // move to the end of AccuseMissingRegistration phase
-    await skipPhase(ethdkg);
+    await endCurrentPhase(ethdkg);
 
     // validator0 should not be able to distribute shares
     let signer0 = await ethers.getSigner(validators[0].address);
@@ -915,7 +915,7 @@ describe("ETHDKG", function () {
     );
 
     // move to the end of RegistrationOpen phase
-    await skipPhase(ethdkg);
+    await endCurrentPhase(ethdkg);
 
     const signer2 = await ethers.getSigner(validators[2].address);
     await expect(
@@ -943,7 +943,7 @@ describe("ETHDKG", function () {
     );
 
     // move to the end of RegistrationOpen phase
-    await skipPhase(ethdkg);
+    await endCurrentPhase(ethdkg);
 
     // validator2 should not be able to distribute shares
     let signer2 = await ethers.getSigner(validators[2].address);
@@ -977,7 +977,7 @@ describe("ETHDKG", function () {
     );
 
     // move to the end of RegistrationOpen phase
-    await skipPhase(ethdkg);
+    await endCurrentPhase(ethdkg);
 
     // accuse a participant validator
     await expect(ethdkg.accuseParticipantNotRegistered([validators[0].address]))
