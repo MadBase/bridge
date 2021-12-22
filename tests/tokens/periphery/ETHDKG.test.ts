@@ -380,6 +380,16 @@ const endCurrentPhase = async (ethdkg: ETHDKG) => {
   await mineBlocks(blocksToMine.toNumber());
 };
 
+const endCurrentAccusationPhase = async (ethdkg: ETHDKG) => {
+  // advance enough blocks to timeout a phase
+  let phaseStart = await ethdkg.getPhaseStartBlock();
+  let phaseLength = await ethdkg.getPhaseLength();
+  let bn = await ethers.provider.getBlockNumber();
+  let endBlock = phaseStart.add(phaseLength.mul(2));
+  let blocksToMine = endBlock.sub(bn);
+  await mineBlocks(blocksToMine.toNumber());
+};
+
 const initializeETHDKG = async (
   ethdkg: ETHDKG,
   validatorPool: ValidatorPoolMock
@@ -993,6 +1003,170 @@ describe("ETHDKG", function () {
 
     expect(await ethdkg.getBadParticipants()).to.equal(0);
   });
+
+  it("should not allow accusation of non-existent users in ETHDKG", async function () {
+    const { ethdkg, validatorPool } = await getFixture();
+    const expectedNonce = 1;
+
+    // add validators
+    await validatorPool.setETHDKG(ethdkg.address);
+    await addValidators(validatorPool, validators);
+
+    // start ETHDKG
+    initializeETHDKG(ethdkg, validatorPool);
+
+    // register validators 0 to 1. validator2 and 3 won't register
+    await registerValidators(
+      ethdkg,
+      validatorPool,
+      validators.slice(0, 2),
+      expectedNonce
+    );
+
+    // move to the end of RegistrationOpen phase
+    await endCurrentPhase(ethdkg);
+
+    // accuse a non-existent validator
+    await expect(ethdkg.accuseParticipantNotRegistered(["0x26D3D8Ab74D62C26f1ACc220dA1646411c9880Ac"]))
+      .to.be.rejectedWith("validator not allowed")
+
+    expect(await ethdkg.getBadParticipants()).to.equal(0);
+  });
+
+  it("should not allow accusations after the accusation window", async function () {
+    const { ethdkg, validatorPool } = await getFixture();
+    const expectedNonce = 1;
+
+    // add validators
+    await validatorPool.setETHDKG(ethdkg.address);
+    await addValidators(validatorPool, validators);
+
+    // start ETHDKG
+    initializeETHDKG(ethdkg, validatorPool);
+
+    // register validators 0 to 1. validator2 and 3 won't register
+    await registerValidators(
+      ethdkg,
+      validatorPool,
+      validators.slice(0, 2),
+      expectedNonce
+    );
+
+    // move to the end of RegistrationOpen phase
+    await endCurrentPhase(ethdkg);
+
+    // move to the end of RegistrationAccusation phase
+    await endCurrentAccusationPhase(ethdkg);
+
+    // accuse a non-participant validator
+    await expect(ethdkg.accuseParticipantNotRegistered([validators[2].address]))
+      .to.be.rejectedWith("ETHDKG: should be in post-registration accusation phase!")
+
+    expect(await ethdkg.getBadParticipants()).to.equal(0);
+  });
+
+  it("should not allow accusations of non-existent users along with existent users", async function () {
+    const { ethdkg, validatorPool } = await getFixture();
+    const expectedNonce = 1;
+
+    // add validators
+    await validatorPool.setETHDKG(ethdkg.address);
+    await addValidators(validatorPool, validators);
+
+    // start ETHDKG
+    initializeETHDKG(ethdkg, validatorPool);
+
+    // register validators 0 to 1. validator2 and 3 won't register
+    await registerValidators(
+      ethdkg,
+      validatorPool,
+      validators.slice(0, 2),
+      expectedNonce
+    );
+
+    // move to the end of RegistrationOpen phase
+    await endCurrentPhase(ethdkg);
+
+    // accuse a participant validator
+    await expect(ethdkg.accuseParticipantNotRegistered([validators[2].address, validators[3].address, "0x26D3D8Ab74D62C26f1ACc220dA1646411c9880Ac"]))
+      .to.be.rejectedWith("validator not allowed")
+
+    expect(await ethdkg.getBadParticipants()).to.equal(0);
+  });
+
+  it("should not move to distribute shares when not all validators have participated", async function () {
+    // Accuse 1 participant that didn't participate and wait the window to expire and try to go to the next phase after accusation
+
+    const { ethdkg, validatorPool } = await getFixture();
+    const expectedNonce = 1;
+
+    // add validators
+    await validatorPool.setETHDKG(ethdkg.address);
+    await addValidators(validatorPool, validators);
+
+    // start ETHDKG
+    initializeETHDKG(ethdkg, validatorPool);
+
+    // register validators 0 to 1. validator2 and 3 won't register
+    await registerValidators(
+      ethdkg,
+      validatorPool,
+      validators.slice(0, 2),
+      expectedNonce
+    );
+
+    // move to the end of RegistrationOpen phase
+    await endCurrentPhase(ethdkg);
+
+    // accuse a participant validator
+    await ethdkg.accuseParticipantNotRegistered([validators[2].address])
+
+    expect(await ethdkg.getBadParticipants()).to.equal(1);
+
+    // move to the end of RegistrationAccusation phase
+    await endCurrentAccusationPhase(ethdkg);
+
+    // try to move into Distribute Shares phase
+    await expect(ethdkg.connect(await ethers.getSigner(validators[0].address))
+      .distributeShares(validators[0].encryptedShares, validators[0].commitments))
+      .to.be.rejectedWith("ETHDKG: cannot participate on this phase")
+  });
+
+  /* it("should not move to distribute shares even when all non-participant validators have been accused", async function () {
+    const { ethdkg, validatorPool } = await getFixture();
+    const expectedNonce = 1;
+
+    // add validators
+    await validatorPool.setETHDKG(ethdkg.address);
+    await addValidators(validatorPool, validators);
+
+    // start ETHDKG
+    initializeETHDKG(ethdkg, validatorPool);
+
+    // register validators 0 to 1. validator2 and 3 won't register
+    await registerValidators(
+      ethdkg,
+      validatorPool,
+      validators.slice(0, 2),
+      expectedNonce
+    );
+
+    // move to the end of RegistrationOpen phase
+    await endCurrentPhase(ethdkg);
+
+    // accuse a participant validator
+    await ethdkg.accuseParticipantNotRegistered([validators[2].address])
+
+    expect(await ethdkg.getBadParticipants()).to.equal(1);
+
+    // move to the end of RegistrationAccusation phase
+    await endCurrentAccusationPhase(ethdkg);
+
+    // try to move into Distribute Shares phase
+    await expect(ethdkg.connect(await ethers.getSigner(validators[0].address))
+      .distributeShares(validators[0].encryptedShares, validators[0].commitments))
+      .to.be.rejectedWith("ETHDKG: cannot participate on this phase")
+  }); */
 
   // DISTRIBUTE SHARES TESTS
 
