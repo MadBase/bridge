@@ -939,7 +939,7 @@ describe("ETHDKG", function () {
     );
 
     // move to the end of RegistrationOpen phase
-    await skipPhase(ethdkg);
+    await endCurrentPhase(ethdkg);
 
     // validator2 should not be able to distribute shares
     let signer2 = await ethers.getSigner(validators[2].address);
@@ -973,7 +973,7 @@ describe("ETHDKG", function () {
     );
 
     // move to the end of RegistrationOpen phase
-    await skipPhase(ethdkg);
+    await endCurrentPhase(ethdkg);
 
     // accuse a participant validator
     await expect(ethdkg.accuseParticipantNotRegistered([validators[0].address]))
