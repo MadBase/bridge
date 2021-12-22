@@ -748,14 +748,14 @@ describe("ETHDKG", function () {
   it("does not let non-validators to register", async function () {
     const { ethdkg, validatorPool } = await getFixture();
 
-    // add validator0 as validator
+    // add validators
     await validatorPool.setETHDKG(ethdkg.address);
     await addValidators(validatorPool, validators);
 
     // start ETHDKG
     initializeETHDKG(ethdkg, validatorPool);
 
-    // register validator1, which is not a validator in ValidatorPool
+    // try to register with a non validator address
     await expect(
       ethdkg
         .connect(
@@ -1161,5 +1161,159 @@ describe("ETHDKG", function () {
   }); */
 
   // DISTRIBUTE SHARES TESTS
+
+  it("does not let distribute shares before Distribute Share Phase is open", async function () {
+    const { ethdkg, validatorPool } = await getFixture();
+
+    const expectedNonce = 1;
+
+    // add validators
+    await validatorPool.setETHDKG(ethdkg.address);
+    await addValidators(validatorPool, validators);
+
+    // start ETHDKG
+    initializeETHDKG(ethdkg, validatorPool);
+
+    // register only validator 0, so the registration phase hasn't finished yet
+    await registerValidators(
+      ethdkg,
+      validatorPool,
+      validators.slice(0, 1),
+      expectedNonce
+    );
+
+    // distribute shares before the time
+    await expect(
+      distributeValidatorsShares(
+        ethdkg,
+        validatorPool,
+        validators.slice(0, 1),
+        expectedNonce
+      )
+    ).to.be.rejectedWith("ETHDKG: cannot participate on this phase");
+  });
+
+  it("does not let non-validators to distribute shares", async function () {
+    const { ethdkg, validatorPool } = await getFixture();
+    const expectedNonce = 1;
+
+    await validatorPool.setETHDKG(ethdkg.address);
+    await addValidators(validatorPool, validators);
+
+    // start ETHDKG
+    initializeETHDKG(ethdkg, validatorPool);
+
+    // register all validators
+    await registerValidators(ethdkg, validatorPool, validators, expectedNonce);
+
+    // try to distribute shares with a non validator address
+    await expect(
+      ethdkg
+        .connect(
+          await ethers.getSigner("0x26D3D8Ab74D62C26f1ACc220dA1646411c9880Ac")
+        )
+        .distributeShares(
+          [BigNumber.from("0")],
+          [[BigNumber.from("0"), BigNumber.from("0")]]
+        )
+    ).to.be.revertedWith("ETHDKG: Only validators allowed!");
+  });
+
+  it("does not let validator to distribute shares more than once", async function () {
+    const { ethdkg, validatorPool } = await getFixture();
+
+    const expectedNonce = 1;
+
+    // add validators
+    await validatorPool.setETHDKG(ethdkg.address);
+    await addValidators(validatorPool, validators);
+
+    // start ETHDKG
+    initializeETHDKG(ethdkg, validatorPool);
+
+    // register all validators
+    await registerValidators(ethdkg, validatorPool, validators, expectedNonce);
+
+    await distributeValidatorsShares(
+      ethdkg,
+      validatorPool,
+      validators.slice(0, 1),
+      expectedNonce
+    );
+
+    // distribute shares before the time
+    await expect(
+      distributeValidatorsShares(
+        ethdkg,
+        validatorPool,
+        validators.slice(0, 1),
+        expectedNonce
+      )
+    ).to.be.rejectedWith(
+      "Participant already distributed shares this ETHDKG round"
+    );
+  });
+
+  it("does not let validator send empty commitments or encrypted shares", async function () {
+    const { ethdkg, validatorPool } = await getFixture();
+
+    const expectedNonce = 1;
+
+    // add validators
+    await validatorPool.setETHDKG(ethdkg.address);
+    await addValidators(validatorPool, validators);
+
+    // start ETHDKG
+    initializeETHDKG(ethdkg, validatorPool);
+
+    // register all validators
+    await registerValidators(ethdkg, validatorPool, validators, expectedNonce);
+
+    // distribute shares with empty data
+    await expect(
+      ethdkg
+        .connect(await ethers.getSigner(validators[0].address))
+        .distributeShares([BigNumber.from("0")], validators[0].commitments)
+    ).to.be.rejectedWith(
+      "share distribution failed, invalid number of encrypted shares provided"
+    );
+
+    await expect(
+      ethdkg
+        .connect(await ethers.getSigner(validators[0].address))
+        .distributeShares(validators[0].encryptedShares, [
+          [BigNumber.from("0"), BigNumber.from("0")],
+        ])
+    ).to.be.rejectedWith(
+      "key sharing failed, invalid number of commitments provided"
+    );
+
+    await expect(
+      ethdkg
+        .connect(await ethers.getSigner(validators[0].address))
+        .distributeShares(validators[0].encryptedShares, [
+          [BigNumber.from("0"), BigNumber.from("0")],
+          [BigNumber.from("0"), BigNumber.from("0")],
+          [BigNumber.from("0"), BigNumber.from("0")],
+        ])
+    ).to.be.rejectedWith("key sharing failed commitment not on elliptic curve");
+
+    // the user can send empty encrypted shares on this phase, the accusation window will be
+    // handling this!
+    let tx = await ethdkg
+      .connect(await ethers.getSigner(validators[0].address))
+      .distributeShares([BigNumber.from("0"), BigNumber.from("0"), BigNumber.from("0")], validators[0].commitments);
+    await assertEventSharesDistributed(
+      tx,
+      validators[0].address,
+      1,
+      expectedNonce,
+      [BigNumber.from("0"), BigNumber.from("0"), BigNumber.from("0")],
+      validators[0].commitments
+    );
+
+  });
+
+  //  MISSING DISTRIBUTE SHARES TESTS
 
 });
