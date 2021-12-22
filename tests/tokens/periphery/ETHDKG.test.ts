@@ -919,4 +919,66 @@ describe("ETHDKG", function () {
     ).to.be.revertedWith("ETHDKG: Cannot register at the moment");
   });
 
+  it("should not allow validators who did not register in time to distribute shares", async function () {
+    const { ethdkg, validatorPool } = await getFixture();
+    const expectedNonce = 1;
+
+    // add validators
+    await validatorPool.setETHDKG(ethdkg.address);
+    await addValidators(validatorPool, validators);
+
+    // start ETHDKG
+    initializeETHDKG(ethdkg, validatorPool);
+
+    // register validators 0 to 1. validator2 and 3 won't register
+    await registerValidators(
+      ethdkg,
+      validatorPool,
+      validators.slice(0, 2),
+      expectedNonce
+    );
+
+    // move to the end of RegistrationOpen phase
+    await skipPhase(ethdkg);
+
+    // validator2 should not be able to distribute shares
+    let signer2 = await ethers.getSigner(validators[2].address);
+    await expect(
+      ethdkg
+        .connect(signer2)
+        .distributeShares(
+          validators[0].encryptedShares,
+          validators[0].commitments
+        )
+    ).to.be.rejectedWith("ETHDKG: cannot participate on this phase");
+  });
+
+  it("should not allow accusation of validators that registered in ETHDKG", async function () {
+    const { ethdkg, validatorPool } = await getFixture();
+    const expectedNonce = 1;
+
+    // add validators
+    await validatorPool.setETHDKG(ethdkg.address);
+    await addValidators(validatorPool, validators);
+
+    // start ETHDKG
+    initializeETHDKG(ethdkg, validatorPool);
+
+    // register validators 0 to 1. validator2 and 3 won't register
+    await registerValidators(
+      ethdkg,
+      validatorPool,
+      validators.slice(0, 2),
+      expectedNonce
+    );
+
+    // move to the end of RegistrationOpen phase
+    await skipPhase(ethdkg);
+
+    // accuse a participant validator
+    await expect(ethdkg.accuseParticipantNotRegistered([validators[0].address]))
+      .to.be.rejectedWith("Dispute failed! Issuer is participating in this ETHDKG round!")
+
+    expect(await ethdkg.getBadParticipants()).to.equal(0);
+  });
 });
