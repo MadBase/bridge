@@ -308,17 +308,17 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
             // todo: minor fine: evict the guy!
             // todo: reward caller for taking this awesome action
             // todo: should we receive an address to send the reward to?
-            // es.validators.minorFine(dishonestAddresses[i], msg.sender);
+            _validatorPool.minorSlash(dishonestAddresses[i]);
             // we cannot accuse someone twice
 
             badParticipants++;
         }
 
+        _badParticipants = badParticipants;
+
         // init ETHDKG if we find all the bad participants
-        if (badParticipants + _numParticipants == _validatorPool.getValidatorsCount()) {
+        if (_numParticipants == _validatorPool.getValidatorsCount() && _numParticipants >= _minValidators) {
             _initializeETHDKG();
-        } else {
-            _badParticipants = badParticipants;
         }
     }
 

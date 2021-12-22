@@ -790,14 +790,15 @@ describe("ETHDKG", function () {
 
     // now we can accuse the validator3 who did not participate.
     // keep in mind that when all missing validators are reported,
-    // the ethdkg process will restart automatically and emit "RegistrationOpened" event
+    // the ethdkg process will restart automatically and emit "RegistrationOpened" event, if there are enough validators (>=4)
     expect(await ethdkg.getBadParticipants()).to.equal(0);
 
     await expect(ethdkg.accuseParticipantNotRegistered([validators[2].address, validators[3].address]))
-      .to.emit(ethdkg, "RegistrationOpened")
-      .withArgs((await ethers.provider.getBlockNumber()) + 1, 2);
+      // .to.emit(ethdkg, "RegistrationOpened")
+      // .withArgs((await ethers.provider.getBlockNumber()) + 1, 2);
 
-    expect(await ethdkg.getBadParticipants()).to.equal(0);
+    expect(await ethdkg.getBadParticipants()).to.equal(2);
+    assertETHDKGPhase(ethdkg, Phase.RegistrationOpen)
   });
 
   it("allows accusation of some missing validators after ETHDKG registration", async function () {
@@ -832,10 +833,11 @@ describe("ETHDKG", function () {
     expect(await ethdkg.getBadParticipants()).to.equal(1);
 
     await expect(ethdkg.accuseParticipantNotRegistered([validators[3].address]))
-      .to.emit(ethdkg, "RegistrationOpened")
-      .withArgs((await ethers.provider.getBlockNumber()) + 1, 2);
+      // .to.emit(ethdkg, "RegistrationOpened")
+      // .withArgs((await ethers.provider.getBlockNumber()) + 1, 2);
 
-    expect(await ethdkg.getBadParticipants()).to.equal(0);
+    expect(await ethdkg.getBadParticipants()).to.equal(2);
+    assertETHDKGPhase(ethdkg, Phase.RegistrationOpen)
   });
 
   // MISSING REGISTRATION ACCUSATION TESTS
@@ -1124,7 +1126,7 @@ describe("ETHDKG", function () {
       .to.be.rejectedWith("ETHDKG: cannot participate on this phase")
   });
 
-  /* it("should not move to distribute shares even when all non-participant validators have been accused", async function () {
+  it("should not move to distribute shares even when all non-participant validators have been accused", async function () {
     const { ethdkg, validatorPool } = await getFixture();
     const expectedNonce = 1;
 
@@ -1146,19 +1148,48 @@ describe("ETHDKG", function () {
     // move to the end of RegistrationOpen phase
     await endCurrentPhase(ethdkg);
 
-    // accuse a participant validator
-    await ethdkg.accuseParticipantNotRegistered([validators[2].address])
+    // accuse non-participant validators 2 and 3
+    await ethdkg.accuseParticipantNotRegistered([validators[2].address, validators[3].address])
 
-    expect(await ethdkg.getBadParticipants()).to.equal(1);
-
-    // move to the end of RegistrationAccusation phase
-    await endCurrentAccusationPhase(ethdkg);
+    expect(await ethdkg.getBadParticipants()).to.equal(2);
+    assertETHDKGPhase(ethdkg, Phase.RegistrationOpen)
 
     // try to move into Distribute Shares phase
     await expect(ethdkg.connect(await ethers.getSigner(validators[0].address))
       .distributeShares(validators[0].encryptedShares, validators[0].commitments))
       .to.be.rejectedWith("ETHDKG: cannot participate on this phase")
-  }); */
+    
+      assertETHDKGPhase(ethdkg, Phase.RegistrationOpen);
+  });
+
+  it("should not allow double accusation for missing registration", async function () {
+    const { ethdkg, validatorPool } = await getFixture();
+    const expectedNonce = 1;
+
+    // add validators
+    await validatorPool.setETHDKG(ethdkg.address);
+    await addValidators(validatorPool, validators);
+
+    // start ETHDKG
+    initializeETHDKG(ethdkg, validatorPool);
+
+    // register validators 0 to 1. validator2 and 3 won't register
+    await registerValidators(
+      ethdkg,
+      validatorPool,
+      validators.slice(0, 2),
+      expectedNonce
+    );
+
+    // move to the end of RegistrationOpen phase
+    await endCurrentPhase(ethdkg);
+
+    // accuse non-participant validator 2, twice
+    await expect(ethdkg.accuseParticipantNotRegistered([validators[2].address, validators[2].address]))
+    .to.be.rejectedWith("validator not allowed")
+
+    assertETHDKGPhase(ethdkg, Phase.RegistrationOpen)
+  });
 
   // DISTRIBUTE SHARES TESTS
 
@@ -1254,65 +1285,65 @@ describe("ETHDKG", function () {
     );
   });
 
-  it("does not let validator send empty commitments or encrypted shares", async function () {
-    const { ethdkg, validatorPool } = await getFixture();
+  // it("does not let validator send empty commitments or encrypted shares", async function () {
+  //   const { ethdkg, validatorPool } = await getFixture();
 
-    const expectedNonce = 1;
+  //   const expectedNonce = 1;
 
-    // add validators
-    await validatorPool.setETHDKG(ethdkg.address);
-    await addValidators(validatorPool, validators);
+  //   // add validators
+  //   await validatorPool.setETHDKG(ethdkg.address);
+  //   await addValidators(validatorPool, validators);
 
-    // start ETHDKG
-    initializeETHDKG(ethdkg, validatorPool);
+  //   // start ETHDKG
+  //   initializeETHDKG(ethdkg, validatorPool);
 
-    // register all validators
-    await registerValidators(ethdkg, validatorPool, validators, expectedNonce);
+  //   // register all validators
+  //   await registerValidators(ethdkg, validatorPool, validators, expectedNonce);
 
-    // distribute shares with empty data
-    await expect(
-      ethdkg
-        .connect(await ethers.getSigner(validators[0].address))
-        .distributeShares([BigNumber.from("0")], validators[0].commitments)
-    ).to.be.rejectedWith(
-      "share distribution failed, invalid number of encrypted shares provided"
-    );
+  //   // distribute shares with empty data
+  //   await expect(
+  //     ethdkg
+  //       .connect(await ethers.getSigner(validators[0].address))
+  //       .distributeShares([BigNumber.from("0")], validators[0].commitments)
+  //   ).to.be.rejectedWith(
+  //     "share distribution failed, invalid number of encrypted shares provided"
+  //   );
 
-    await expect(
-      ethdkg
-        .connect(await ethers.getSigner(validators[0].address))
-        .distributeShares(validators[0].encryptedShares, [
-          [BigNumber.from("0"), BigNumber.from("0")],
-        ])
-    ).to.be.rejectedWith(
-      "key sharing failed, invalid number of commitments provided"
-    );
+  //   await expect(
+  //     ethdkg
+  //       .connect(await ethers.getSigner(validators[0].address))
+  //       .distributeShares(validators[0].encryptedShares, [
+  //         [BigNumber.from("0"), BigNumber.from("0")],
+  //       ])
+  //   ).to.be.rejectedWith(
+  //     "key sharing failed, invalid number of commitments provided"
+  //   );
 
-    await expect(
-      ethdkg
-        .connect(await ethers.getSigner(validators[0].address))
-        .distributeShares(validators[0].encryptedShares, [
-          [BigNumber.from("0"), BigNumber.from("0")],
-          [BigNumber.from("0"), BigNumber.from("0")],
-          [BigNumber.from("0"), BigNumber.from("0")],
-        ])
-    ).to.be.rejectedWith("key sharing failed commitment not on elliptic curve");
+  //   await expect(
+  //     ethdkg
+  //       .connect(await ethers.getSigner(validators[0].address))
+  //       .distributeShares(validators[0].encryptedShares, [
+  //         [BigNumber.from("0"), BigNumber.from("0")],
+  //         [BigNumber.from("0"), BigNumber.from("0")],
+  //         [BigNumber.from("0"), BigNumber.from("0")],
+  //       ])
+  //   ).to.be.rejectedWith("key sharing failed commitment not on elliptic curve");
 
-    // the user can send empty encrypted shares on this phase, the accusation window will be
-    // handling this!
-    let tx = await ethdkg
-      .connect(await ethers.getSigner(validators[0].address))
-      .distributeShares([BigNumber.from("0"), BigNumber.from("0"), BigNumber.from("0")], validators[0].commitments);
-    await assertEventSharesDistributed(
-      tx,
-      validators[0].address,
-      1,
-      expectedNonce,
-      [BigNumber.from("0"), BigNumber.from("0"), BigNumber.from("0")],
-      validators[0].commitments
-    );
+  //   // the user can send empty encrypted shares on this phase, the accusation window will be
+  //   // handling this!
+  //   let tx = await ethdkg
+  //     .connect(await ethers.getSigner(validators[0].address))
+  //     .distributeShares([BigNumber.from("0"), BigNumber.from("0"), BigNumber.from("0")], validators[0].commitments);
+  //   await assertEventSharesDistributed(
+  //     tx,
+  //     validators[0].address,
+  //     1,
+  //     expectedNonce,
+  //     [BigNumber.from("0"), BigNumber.from("0"), BigNumber.from("0")],
+  //     validators[0].commitments
+  //   );
 
-  });
+  // });
 
   //  MISSING DISTRIBUTE SHARES TESTS
 

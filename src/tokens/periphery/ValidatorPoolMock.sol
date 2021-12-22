@@ -67,4 +67,12 @@ contract ValidatorPoolMock is Initializable, UUPSUpgradeable {
         require(index < _validators.length, "Index out boundaries!");
         return _validators[index];
     }
+
+    function minorSlash(address validator) public {
+        ValidatorData memory vd = _validatorsData[validator];
+        require(vd.tokenID != 0, "ValidatorPool: invalid validator");
+        _validators[vd.index] = _validators[_validators.length-1];
+        _validatorsData[_validators[vd.index]].index = vd.index;
+        _validators.pop();
+    }
 }
