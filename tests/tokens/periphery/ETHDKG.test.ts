@@ -656,6 +656,8 @@ describe("ETHDKG", function () {
     );
   });
 
+  // REGISTRATION OPEN TESTS
+
   it("does not let registrations before ETHDKG Registration is open", async function () {
     const { ethdkg, validatorPool } = await getFixture();
 
@@ -823,6 +825,8 @@ describe("ETHDKG", function () {
     expect(await ethdkg.getBadParticipants()).to.equal(0);
   });
 
+  // MISSING REGISTRATION ACCUSATION TESTS
+
   it("won't let not-registered accusations to take place while ETHDKG registration is open", async function () {
     const { ethdkg, validatorPool } = await getFixture();
 
@@ -981,4 +985,7 @@ describe("ETHDKG", function () {
 
     expect(await ethdkg.getBadParticipants()).to.equal(0);
   });
+
+  // DISTRIBUTE SHARES TESTS
+
 });
