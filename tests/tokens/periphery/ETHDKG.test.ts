@@ -629,7 +629,7 @@ const completeETHDKG = async (
   }
 };
 
-const startFromDistributeShares = async (
+const startAtDistributeShares = async (
   validators: ValidatorRawData[]
 ): Promise<[ETHDKG, ValidatorPoolMock, number]> => {
   const { ethdkg, validatorPool } = await getFixture();
@@ -650,7 +650,7 @@ const startFromDistributeShares = async (
 const startAtSubmitKeyShares = async (
   validators: ValidatorRawData[]
 ): Promise<[ETHDKG, ValidatorPoolMock, number]> => {
-  let [ethdkg, validatorPool, expectedNonce] = await startFromDistributeShares(
+  let [ethdkg, validatorPool, expectedNonce] = await startAtDistributeShares(
     validators
   );
   // distribute shares for all validators
@@ -666,7 +666,7 @@ const startAtSubmitKeyShares = async (
   return [ethdkg, validatorPool, expectedNonce];
 };
 
-const startFromGPKJ = async (
+const startAtGPKJ = async (
   validators: ValidatorRawData[]
 ): Promise<[ETHDKG, ValidatorPoolMock, number]> => {
   let [ethdkg, validatorPool, expectedNonce] = await startAtSubmitKeyShares(
@@ -691,7 +691,7 @@ const completeETHDKGRound = async (
   validators: ValidatorRawData[]
 ): Promise<[ETHDKG, ValidatorPoolMock, number, number, number]> => {
 
-  let [ethdkg, validatorPool, expectedNonce] = await startFromGPKJ(validators);
+  let [ethdkg, validatorPool, expectedNonce] = await startAtGPKJ(validators);
   const expectedEpoch = 1;
   const expectedMadHeight = 1;
   // Submit GPKj for all validators
@@ -1335,7 +1335,7 @@ describe("ETHDKG", function () {
 
     it("does not let non-validators to distribute shares", async function () {
       let [ethdkg, validatorPool, expectedNonce] =
-        await startFromDistributeShares(validators4);
+        await startAtDistributeShares(validators4);
 
       // try to distribute shares with a non validator address
       await expect(
@@ -1352,7 +1352,7 @@ describe("ETHDKG", function () {
 
     it("does not let validator to distribute shares more than once", async function () {
       let [ethdkg, validatorPool, expectedNonce] =
-        await startFromDistributeShares(validators4);
+        await startAtDistributeShares(validators4);
 
       await distributeValidatorsShares(
         ethdkg,
@@ -1376,7 +1376,7 @@ describe("ETHDKG", function () {
 
     it("does not let validator send empty commitments or encrypted shares", async function () {
       let [ethdkg, validatorPool, expectedNonce] =
-        await startFromDistributeShares(validators4);
+        await startAtDistributeShares(validators4);
 
       // distribute shares with empty data
       await expect(
@@ -1431,7 +1431,7 @@ describe("ETHDKG", function () {
   describe("Missing distribute share accusation", () => {
     it("allows accusation of all missing validators after distribute shares Phase", async function () {
       let [ethdkg, validatorPool, expectedNonce] =
-        await startFromDistributeShares(validators4);
+        await startAtDistributeShares(validators4);
 
       //Only validator 0 and 1 distributed shares
       await distributeValidatorsShares(
@@ -1474,7 +1474,7 @@ describe("ETHDKG", function () {
 
     it("allows accusation of some missing validators after distribute shares Phase", async function () {
       let [ethdkg, validatorPool, expectedNonce] =
-        await startFromDistributeShares(validators4);
+        await startAtDistributeShares(validators4);
 
       //Only validator 0 and 1 distributed shares
       await distributeValidatorsShares(
@@ -1519,7 +1519,7 @@ describe("ETHDKG", function () {
 
     it("do not allow validators to proceed to the next phase if not all validators distributed their shares", async function () {
       let [ethdkg, validatorPool, expectedNonce] =
-        await startFromDistributeShares(validators4);
+        await startAtDistributeShares(validators4);
 
       //Only validator 0 and 1 distributed shares
       await distributeValidatorsShares(
@@ -1553,7 +1553,7 @@ describe("ETHDKG", function () {
 
     it("won't let not-distributed shares accusations to take place while ETHDKG Distribute Share Phase is open", async function () {
       let [ethdkg, validatorPool, expectedNonce] =
-        await startFromDistributeShares(validators4);
+        await startAtDistributeShares(validators4);
 
       //Only validator 0 and 1 distributed shares
       await distributeValidatorsShares(
@@ -1572,7 +1572,7 @@ describe("ETHDKG", function () {
 
     it("should not allow validators who did not distributed shares in time to distribute on the accusation phase", async function () {
       let [ethdkg, validatorPool, expectedNonce] =
-        await startFromDistributeShares(validators4);
+        await startAtDistributeShares(validators4);
 
       //Only validator 0 and 1 distributed shares
       await distributeValidatorsShares(
@@ -1597,7 +1597,7 @@ describe("ETHDKG", function () {
 
     it("should not allow validators who did not distributed shares in time to submit Key shares", async function () {
       let [ethdkg, validatorPool, expectedNonce] =
-        await startFromDistributeShares(validators4);
+        await startAtDistributeShares(validators4);
 
       //Only validator 0 and 1 distributed shares
       await distributeValidatorsShares(
@@ -1642,7 +1642,7 @@ describe("ETHDKG", function () {
 
     it("should not allow accusation of not distributing shares of validators that distributed shares", async function () {
       let [ethdkg, validatorPool, expectedNonce] =
-        await startFromDistributeShares(validators4);
+        await startAtDistributeShares(validators4);
 
       //Only validator 0 and 1 distributed shares
       await distributeValidatorsShares(
@@ -1669,7 +1669,7 @@ describe("ETHDKG", function () {
 
     it("should not allow accusation of not distributing shares for non-validators", async function () {
       let [ethdkg, validatorPool, expectedNonce] =
-        await startFromDistributeShares(validators4);
+        await startAtDistributeShares(validators4);
 
       //Only validator 0 and 1 distributed shares
       await distributeValidatorsShares(
@@ -1698,7 +1698,7 @@ describe("ETHDKG", function () {
 
     it("should not allow not distributed shares accusations after accusation window has finished", async function () {
       let [ethdkg, validatorPool, expectedNonce] =
-        await startFromDistributeShares(validators4);
+        await startAtDistributeShares(validators4);
 
       //Only validator 0 and 1 distributed shares
       await distributeValidatorsShares(
@@ -1729,7 +1729,7 @@ describe("ETHDKG", function () {
   describe("Submit Key share", () => {
 
     it("should not allow submission of key shares when not in KeyShareSubmission phase", async () => {
-      let [ethdkg, validatorPool, expectedNonce] = await startFromDistributeShares(
+      let [ethdkg, validatorPool, expectedNonce] = await startAtDistributeShares(
         validators4
       );
       // distribute shares for all validators
