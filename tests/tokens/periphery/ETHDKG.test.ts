@@ -660,26 +660,39 @@ const startAtSubmitKeyShares = async (
     validators,
     expectedNonce
   );
+  
   // skipping the distribute shares accusation phase
   await endCurrentPhase(ethdkg);
   await assertETHDKGPhase(ethdkg, Phase.DisputeShareDistribution);
   return [ethdkg, validatorPool, expectedNonce];
 };
 
-const startAtGPKJ = async (
+const startAtMPKSubmission = async (
   validators: ValidatorRawData[]
 ): Promise<[ETHDKG, ValidatorPoolMock, number]> => {
   let [ethdkg, validatorPool, expectedNonce] = await startAtSubmitKeyShares(
     validators
   );
-  // Submit the Key shares for all validators
+  // distribute shares for all validators
   await submitValidatorsKeyShares(
     ethdkg,
     validatorPool,
     validators,
     expectedNonce
   );
+
   await waitNextPhaseStartDelay(ethdkg);
+  await assertETHDKGPhase(ethdkg, Phase.MPKSubmission);
+  return [ethdkg, validatorPool, expectedNonce];
+};
+
+const startAtGPKJ = async (
+  validators: ValidatorRawData[]
+): Promise<[ETHDKG, ValidatorPoolMock, number]> => {
+  let [ethdkg, validatorPool, expectedNonce] = await startAtMPKSubmission(
+    validators
+  );
+
   // Submit the Master Public key
   await submitMasterPublicKey(ethdkg, validators, expectedNonce);
   await waitNextPhaseStartDelay(ethdkg);
@@ -1850,4 +1863,62 @@ describe("ETHDKG", function () {
         .to.be.rejectedWith("key share submission failed invalid key share G2")
     });
   });
+
+  describe("Submit Master Public Key", () => {
+
+    it("should not allow submission of master public key when not in MPKSubmission phase", async () => {
+      let [ethdkg, validatorPool, expectedNonce] = await startAtSubmitKeyShares(
+        validators4
+      );
+      // distribute shares for all but 1 validators
+      await submitValidatorsKeyShares(
+        ethdkg,
+        validatorPool,
+        validators4.slice(0,3),
+        expectedNonce
+      );
+    
+      await assertETHDKGPhase(ethdkg, Phase.KeyShareSubmission)
+      await waitNextPhaseStartDelay(ethdkg)
+      await assertETHDKGPhase(ethdkg, Phase.KeyShareSubmission)
+
+      await expect(ethdkg.connect(await ethers.getSigner(validators4[3].address)).submitMasterPublicKey(validators4[3].mpk))
+      .to.be.rejectedWith("ETHDKG: cannot participate on master public key submission phase")
+
+    })
+    
+    it("should allow submission of master public key by a non-validator", async () => {
+      let [ethdkg, validatorPool, expectedNonce] = await startAtMPKSubmission(
+        validators4
+      );
+
+      // non-validator user tries to submit the Master Public key
+      const validator11 = "0x23EA3Bad9115d436190851cF4C49C1032fA7579A";
+      const val11MPK: [BigNumberish, BigNumberish, BigNumberish, BigNumberish] = validators4[0].mpk
+
+      const tx = await ethdkg.connect(await ethers.getSigner(validator11)).submitMasterPublicKey(val11MPK)
+
+      await assertEventMPKSet(tx, expectedNonce, val11MPK);
+    })
+
+    it("should not allow submission of master public key more than once", async () => {
+      let [ethdkg, validatorPool, expectedNonce] = await startAtMPKSubmission(
+        validators4
+      );
+
+      // non-validator user tries to submit the Master Public key
+      const validator11 = "0x23EA3Bad9115d436190851cF4C49C1032fA7579A";
+      // the following key shares are random
+      const val11MPK: [BigNumberish, BigNumberish, BigNumberish, BigNumberish] = validators4[0].mpk
+
+      const tx = await ethdkg.connect(await ethers.getSigner(validator11)).submitMasterPublicKey(val11MPK)
+
+      await assertEventMPKSet(tx, expectedNonce, val11MPK);
+    })
+
+  })
+
+  describe("Accuse participant of not submitting key shares", () => {
+    
+  })
 });
