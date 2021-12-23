@@ -18,7 +18,6 @@ contract ValidatorPool is Initializable, UUPSUpgradeable, EthSafeTransfer, ERC20
     // during a call to mintTo
     uint256 public constant MAX_MINT_LOCK = 1051200;
 
-
     struct ValidatorData {
         uint128 index;
         uint128 tokenID;
@@ -187,18 +186,24 @@ contract ValidatorPool is Initializable, UUPSUpgradeable, EthSafeTransfer, ERC20
     }
 
     // todo: replace modifier
+    // todo: should we receive an address to send the reward to?
+    // todo: emit an event
+    // todo: add balance checks in the ETHDKG accusation unit tests
     function majorSlash(address participant) public onlyAdmin {
 
     }
 
     // todo: replace modifier
+    // todo: reward caller for taking this awesome action
+    // todo: should we receive an address to send the reward to?
+    // todo: emit an event
     function minorSlash(address participant) public onlyAdmin {
 
     }
 
     function initializeETHDKG() external {
+        //todo: require that ETHDKG is not running
         // require(_ethdkg.isAccusationWindowOver(), "cannot init ETHDKG at the moment");
-
         // _ethdkg._initializeState();
     }
 

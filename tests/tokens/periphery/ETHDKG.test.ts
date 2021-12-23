@@ -822,7 +822,7 @@ describe("ETHDKG", function () {
 
       await expect(ethdkg.accuseParticipantNotRegistered([validators4[2].address, validators4[3].address]))
 
-      expect(await ethdkg.getBadParticipants()).to.equal(0);
+      expect(await ethdkg.getBadParticipants()).to.equal(2);
       await assertETHDKGPhase(ethdkg, Phase.RegistrationOpen)
     });
 
@@ -855,11 +855,11 @@ describe("ETHDKG", function () {
       expect(await ethdkg.getBadParticipants()).to.equal(0);
 
       await ethdkg.accuseParticipantNotRegistered([validators4[2].address]);
-      expect(await ethdkg.getBadParticipants()).to.equal(0);
+      expect(await ethdkg.getBadParticipants()).to.equal(1);
 
       await ethdkg.accuseParticipantNotRegistered([validators4[3].address])
 
-      expect(await ethdkg.getBadParticipants()).to.equal(0);
+      expect(await ethdkg.getBadParticipants()).to.equal(2);
       await assertETHDKGPhase(ethdkg, Phase.RegistrationOpen)
     });
 
@@ -1138,7 +1138,7 @@ describe("ETHDKG", function () {
       // accuse a non-registered validator
       await ethdkg.accuseParticipantNotRegistered([validators4[2].address])
 
-      expect(await ethdkg.getBadParticipants()).to.equal(0);
+      expect(await ethdkg.getBadParticipants()).to.equal(1);
 
       // move to the end of RegistrationAccusation phase
       await endCurrentAccusationPhase(ethdkg);
@@ -1185,7 +1185,7 @@ describe("ETHDKG", function () {
       .to.emit(ethdkg, "RegistrationComplete")
       .withArgs((await ethers.provider.getBlockNumber()) + 1)
 
-      expect(await ethdkg.getBadParticipants()).to.equal(0);
+      expect(await ethdkg.getBadParticipants()).to.equal(1);
       await waitNextPhaseStartDelay(ethdkg)
       await assertETHDKGPhase(ethdkg, Phase.ShareDistribution)
 

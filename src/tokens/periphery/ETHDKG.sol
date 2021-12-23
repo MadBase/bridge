@@ -303,6 +303,7 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
             "ETHDKG: should be in post-registration accusation phase!"
         );
 
+        uint32 badParticipants = _badParticipants;
         for (uint256 i = 0; i < dishonestAddresses.length; i++) {
             require(_validatorPool.isValidator(dishonestAddresses[i]), "validator not allowed");
 
@@ -314,15 +315,15 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
                 "Dispute failed! Issuer is participating in this ETHDKG round!"
             );
 
-            // todo: reward caller for taking this awesome action
-            // todo: should we receive an address to send the reward to?
-            // this also makes sure we cannot accuse someone twice because
-            // a minor fine will be enough to evict the validator from the pool
+            // this makes sure we cannot accuse someone twice because a minor fine will be enough to
+            // evict the validator from the pool
             _validatorPool.minorSlash(dishonestAddresses[i]);
+            badParticipants++;
         }
 
         uint256 numParticipants = _numParticipants;
         uint256 validatorCount = _validatorPool.getValidatorsCount();
+        _badParticipants = badParticipants;
 
         // init ETHDKG if all missing participants are found
         if (numParticipants == validatorCount &&
@@ -436,8 +437,7 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
                 "ETHDKG: it looks like the issuer had commitments"
             );
 
-            // todo: the actual accusation with fine
-            // es.validators.minorFine(issuerAddress);
+            _validatorPool.minorSlash(dishonestAddresses[i]);
             badParticipants++;
         }
 
@@ -662,16 +662,15 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
                 "ETHDKG: it looks like the issuer submitted the key shares"
             );
 
-            // todo: the actual accusation with fine
-            // es.validators.minorFine(issuerAddress);
+            // evict the validator that didn't submit his shares
+            _validatorPool.minorSlash(dishonestAddresses[i]);
             badParticipants++;
         }
-
-        // init ETHDKG if we find all the bad participants
-        if (badParticipants + _numParticipants == _validatorPool.getValidatorsCount()) {
+        _badParticipants = badParticipants;
+        uint256 numParticipants = _numParticipants;
+        // init ETHDKG if we find all the bad participants and we are above the num of min validators
+        if (numParticipants == _validatorPool.getValidatorsCount() && numParticipants >= _minValidators ) {
             _initializeETHDKG();
-        } else {
-            _badParticipants = badParticipants;
         }
     }
 
@@ -793,8 +792,7 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
                 "ETHDKG: it looks like the issuer distributed its GPKJ"
             );
 
-            // todo: the actual accusation with fine
-            // es.validators.minorFine(issuerAddress);
+            _validatorPool.minorSlash(dishonestAddresses[i]);
             badParticipants++;
         }
 
