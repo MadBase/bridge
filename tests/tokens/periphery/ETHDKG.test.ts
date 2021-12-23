@@ -868,8 +868,8 @@ describe("ETHDKG", function () {
       ).to.be.revertedWith(
         "ETHDKG: should be in post-registration accusation phase!"
       );
-
       expect(await ethdkg.getBadParticipants()).to.equal(0);
+      await assertETHDKGPhase(ethdkg, Phase.RegistrationOpen)
     });
 
     it("should not allow validators to proceed to next phase if 2 out of 4 did not register and the phase has finished", async function () {
@@ -1129,7 +1129,7 @@ describe("ETHDKG", function () {
       await assertETHDKGPhase(ethdkg, Phase.RegistrationOpen)
     });
 
-    it("should not move to ShareDistribution phase even when all non-participant validators have been accused and #validators < _minValidators", async function () {
+    it("should move to ShareDistribution phase when all non-participant validators have been accused and #validators >= _minValidators", async function () {
       const { ethdkg, validatorPool } = await getFixture();
       const expectedNonce = 1;
 
@@ -1348,7 +1348,6 @@ describe("ETHDKG", function () {
         validators4[0].commitments
       );
     });
-  });
 
   describe("Missing distribute share accusation", () => {
     it("allows accusation of all missing validators after distribute shares Phase", async function () {

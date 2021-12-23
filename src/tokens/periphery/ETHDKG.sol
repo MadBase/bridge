@@ -303,7 +303,6 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
             "ETHDKG: should be in post-registration accusation phase!"
         );
 
-        uint32 badParticipants = _badParticipants;
         for (uint256 i = 0; i < dishonestAddresses.length; i++) {
             require(_validatorPool.isValidator(dishonestAddresses[i]), "validator not allowed");
 
@@ -320,17 +319,21 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
             // this also makes sure we cannot accuse someone twice because
             // a minor fine will be enough to evict the validator from the pool
             _validatorPool.minorSlash(dishonestAddresses[i]);
-            badParticipants++;
         }
 
         uint256 numParticipants = _numParticipants;
+        uint256 validatorCount = _validatorPool.getValidatorsCount();
 
         // init ETHDKG if all missing participants are found
-        if (numParticipants == _validatorPool.getValidatorsCount() &&
-            numParticipants >= _minValidators) {
-            _initializeETHDKG();
-        } else {
-            _badParticipants = badParticipants;
+        if (numParticipants == validatorCount &&
+            numParticipants >= _minValidators &&
+            _moveToNextPhase(
+                Phase.ShareDistribution,
+                validatorCount,
+                numParticipants
+            )
+        ) {
+            emit RegistrationComplete(block.number);
         }
     }
 
