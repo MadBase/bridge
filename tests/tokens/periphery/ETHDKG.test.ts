@@ -604,6 +604,28 @@ const completeETHDKG = async (
   }
 };
 
+const jumpToDistributeShares = async(
+  validators: ValidatorRawData[]
+): Promise<[ETHDKG, ValidatorPoolMock, number]> => {
+  const { ethdkg, validatorPool } = await getFixture();
+  const expectedNonce = 1;
+  // add validators
+  await validatorPool.setETHDKG(ethdkg.address);
+  await addValidators(validatorPool, validators);
+
+  // start ETHDKG
+  await initializeETHDKG(ethdkg, validatorPool);
+
+  // register all validators
+  await registerValidators(ethdkg, validatorPool, validators, expectedNonce);
+  await waitNextPhaseStartDelay(ethdkg)
+  return [
+    ethdkg,
+    validatorPool,
+    expectedNonce
+  ]
+}
+
 describe("ETHDKG", function () {
   describe("Happy Path", () => {
     it("completes happy path", async function () {
@@ -1135,10 +1157,6 @@ describe("ETHDKG", function () {
 
       // validator 11
       const validator11 = "0x23EA3Bad9115d436190851cF4C49C1032fA7579A"
-      const val11PubKey: [BigNumberish, BigNumberish] = [
-        BigNumber.from("0x02f93caf648144fa3ccef06aca392428f55d1a9b3facf243f5e31833b73e4636"),
-        BigNumber.from("0x00b1d35606573488d204c305aa082d7b65fc761385fb9faed4ac172ef6fdd7ac")
-      ]
 
       // add validators
       await validatorPool.setETHDKG(ethdkg.address);
@@ -1242,17 +1260,7 @@ describe("ETHDKG", function () {
     });
 
     it("does not let non-validators to distribute shares", async function () {
-      const { ethdkg, validatorPool } = await getFixture();
-      const expectedNonce = 1;
-
-      await validatorPool.setETHDKG(ethdkg.address);
-      await addValidators(validatorPool, validators4);
-
-      // start ETHDKG
-      await initializeETHDKG(ethdkg, validatorPool);
-
-      // register all validators
-      await registerValidators(ethdkg, validatorPool, validators4, expectedNonce);
+      let [ethdkg, validatorPool, expectedNonce] = await jumpToDistributeShares(validators4)
 
       // try to distribute shares with a non validator address
       await expect(
@@ -1268,20 +1276,7 @@ describe("ETHDKG", function () {
     });
 
     it("does not let validator to distribute shares more than once", async function () {
-      const { ethdkg, validatorPool } = await getFixture();
-
-      const expectedNonce = 1;
-
-      // add validators
-      await validatorPool.setETHDKG(ethdkg.address);
-      await addValidators(validatorPool, validators4);
-
-      // start ETHDKG
-      await initializeETHDKG(ethdkg, validatorPool);
-
-      // register all validators
-      await registerValidators(ethdkg, validatorPool, validators4, expectedNonce);
-      await waitNextPhaseStartDelay(ethdkg)
+      let [ethdkg, validatorPool, expectedNonce] = await jumpToDistributeShares(validators4)
 
       await distributeValidatorsShares(
         ethdkg,
@@ -1304,20 +1299,7 @@ describe("ETHDKG", function () {
     });
 
     it("does not let validator send empty commitments or encrypted shares", async function () {
-      const { ethdkg, validatorPool } = await getFixture();
-
-      const expectedNonce = 1;
-
-      // add validators
-      await validatorPool.setETHDKG(ethdkg.address);
-      await addValidators(validatorPool, validators4);
-
-      // start ETHDKG
-      await initializeETHDKG(ethdkg, validatorPool);
-
-      // register all validators
-      await registerValidators(ethdkg, validatorPool, validators4, expectedNonce);
-      await waitNextPhaseStartDelay(ethdkg)
+      let [ethdkg, validatorPool, expectedNonce] = await jumpToDistributeShares(validators4)
 
       // distribute shares with empty data
       await expect(
@@ -1366,20 +1348,7 @@ describe("ETHDKG", function () {
 
   describe("Missing distribute share accusation", () => {
     it("allows accusation of all missing validators after distribute shares Phase", async function () {
-      const { ethdkg, validatorPool } = await getFixture();
-
-      const expectedNonce = 1;
-
-      // add validators
-      await validatorPool.setETHDKG(ethdkg.address);
-      await addValidators(validatorPool, validators4);
-
-      // start ETHDKG
-      initializeETHDKG(ethdkg, validatorPool);
-
-      // register all validators
-      await registerValidators(ethdkg, validatorPool, validators4, expectedNonce);
-      await waitNextPhaseStartDelay(ethdkg)
+      let [ethdkg, validatorPool, expectedNonce] = await jumpToDistributeShares(validators4)
 
       //Only validator 0 and 1 distributed shares
       await distributeValidatorsShares(
@@ -1402,7 +1371,7 @@ describe("ETHDKG", function () {
         validators4[3].address,
       ]);
 
-      expect(await ethdkg.getBadParticipants()).to.equal(2);
+      await expect(await ethdkg.getBadParticipants()).to.equal(2);
 
       // move to the end of Distribute Share Dispute phase
       await endCurrentPhase(ethdkg);
@@ -1419,20 +1388,7 @@ describe("ETHDKG", function () {
     });
 
     it("allows accusation of some missing validators after distribute shares Phase", async function () {
-      const { ethdkg, validatorPool } = await getFixture();
-
-      const expectedNonce = 1;
-
-      // add validators
-      await validatorPool.setETHDKG(ethdkg.address);
-      await addValidators(validatorPool, validators4);
-
-      // start ETHDKG
-      initializeETHDKG(ethdkg, validatorPool);
-
-      // register all validators
-      await registerValidators(ethdkg, validatorPool, validators4, expectedNonce);
-      await waitNextPhaseStartDelay(ethdkg)
+      let [ethdkg, validatorPool, expectedNonce] = await jumpToDistributeShares(validators4)
 
       //Only validator 0 and 1 distributed shares
       await distributeValidatorsShares(
@@ -1474,20 +1430,7 @@ describe("ETHDKG", function () {
     });
 
     it("do not allow validators to proceed to the next phase if not all validators distributed their shares", async function () {
-      const { ethdkg, validatorPool } = await getFixture();
-
-      const expectedNonce = 1;
-
-      // add validators
-      await validatorPool.setETHDKG(ethdkg.address);
-      await addValidators(validatorPool, validators4);
-
-      // start ETHDKG
-      initializeETHDKG(ethdkg, validatorPool);
-
-      // register all validators
-      await registerValidators(ethdkg, validatorPool, validators4, expectedNonce);
-      await waitNextPhaseStartDelay(ethdkg)
+      let [ethdkg, validatorPool, expectedNonce] = await jumpToDistributeShares(validators4)
 
       //Only validator 0 and 1 distributed shares
       await distributeValidatorsShares(
@@ -1518,20 +1461,7 @@ describe("ETHDKG", function () {
     // MISSING REGISTRATION ACCUSATION TESTS
 
     it("won't let not-distributed shares accusations to take place while ETHDKG Distribute Share Phase is open", async function () {
-      const { ethdkg, validatorPool } = await getFixture();
-
-      const expectedNonce = 1;
-
-      // add validators
-      await validatorPool.setETHDKG(ethdkg.address);
-      await addValidators(validatorPool, validators4);
-
-      // start ETHDKG
-      initializeETHDKG(ethdkg, validatorPool);
-
-      // register all validators
-      await registerValidators(ethdkg, validatorPool, validators4, expectedNonce);
-      await waitNextPhaseStartDelay(ethdkg)
+      let [ethdkg, validatorPool, expectedNonce] = await jumpToDistributeShares(validators4)
 
       //Only validator 0 and 1 distributed shares
       await distributeValidatorsShares(
@@ -1548,20 +1478,7 @@ describe("ETHDKG", function () {
     });
 
     it("should not allow validators who did not distributed shares in time to distribute on the accusation phase", async function () {
-      const { ethdkg, validatorPool } = await getFixture();
-
-      const expectedNonce = 1;
-
-      // add validators
-      await validatorPool.setETHDKG(ethdkg.address);
-      await addValidators(validatorPool, validators4);
-
-      // start ETHDKG
-      initializeETHDKG(ethdkg, validatorPool);
-
-      // register all validators
-      await registerValidators(ethdkg, validatorPool, validators4, expectedNonce);
-      await waitNextPhaseStartDelay(ethdkg)
+      let [ethdkg, validatorPool, expectedNonce] = await jumpToDistributeShares(validators4)
 
       //Only validator 0 and 1 distributed shares
       await distributeValidatorsShares(
@@ -1585,20 +1502,7 @@ describe("ETHDKG", function () {
     });
 
     it("should not allow validators who did not distributed shares in time to submit Key shares", async function () {
-      const { ethdkg, validatorPool } = await getFixture();
-
-      const expectedNonce = 1;
-
-      // add validators
-      await validatorPool.setETHDKG(ethdkg.address);
-      await addValidators(validatorPool, validators4);
-
-      // start ETHDKG
-      initializeETHDKG(ethdkg, validatorPool);
-
-      // register all validators
-      await registerValidators(ethdkg, validatorPool, validators4, expectedNonce);
-      await waitNextPhaseStartDelay(ethdkg)
+      let [ethdkg, validatorPool, expectedNonce] = await jumpToDistributeShares(validators4)
 
       //Only validator 0 and 1 distributed shares
       await distributeValidatorsShares(
@@ -1638,20 +1542,7 @@ describe("ETHDKG", function () {
     });
 
     it("should not allow accusation of not distributing shares of validators that distributed shares", async function () {
-      const { ethdkg, validatorPool } = await getFixture();
-
-      const expectedNonce = 1;
-
-      // add validators
-      await validatorPool.setETHDKG(ethdkg.address);
-      await addValidators(validatorPool, validators4);
-
-      // start ETHDKG
-      initializeETHDKG(ethdkg, validatorPool);
-
-      // register all validators
-      await registerValidators(ethdkg, validatorPool, validators4, expectedNonce);
-      await waitNextPhaseStartDelay(ethdkg)
+      let [ethdkg, validatorPool, expectedNonce] = await jumpToDistributeShares(validators4)
 
       //Only validator 0 and 1 distributed shares
       await distributeValidatorsShares(
@@ -1677,20 +1568,7 @@ describe("ETHDKG", function () {
     });
 
     it("should not allow accusation of not distributing shares for non-validators", async function () {
-      const { ethdkg, validatorPool } = await getFixture();
-
-      const expectedNonce = 1;
-
-      // add validators
-      await validatorPool.setETHDKG(ethdkg.address);
-      await addValidators(validatorPool, validators4);
-
-      // start ETHDKG
-      initializeETHDKG(ethdkg, validatorPool);
-
-      // register all validators
-      await registerValidators(ethdkg, validatorPool, validators4, expectedNonce);
-      await waitNextPhaseStartDelay(ethdkg)
+      let [ethdkg, validatorPool, expectedNonce] = await jumpToDistributeShares(validators4)
 
       //Only validator 0 and 1 distributed shares
       await distributeValidatorsShares(
@@ -1716,20 +1594,7 @@ describe("ETHDKG", function () {
     });
 
     it("should not allow not distributed shares accusations after accusation window has finished", async function () {
-      const { ethdkg, validatorPool } = await getFixture();
-
-      const expectedNonce = 1;
-
-      // add validators
-      await validatorPool.setETHDKG(ethdkg.address);
-      await addValidators(validatorPool, validators4);
-
-      // start ETHDKG
-      initializeETHDKG(ethdkg, validatorPool);
-
-      // register all validators
-      await registerValidators(ethdkg, validatorPool, validators4, expectedNonce);
-      await waitNextPhaseStartDelay(ethdkg)
+      let [ethdkg, validatorPool, expectedNonce] = await jumpToDistributeShares(validators4)
 
       //Only validator 0 and 1 distributed shares
       await distributeValidatorsShares(
