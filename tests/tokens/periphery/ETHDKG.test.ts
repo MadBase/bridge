@@ -1097,7 +1097,7 @@ describe("ETHDKG", function () {
         ethdkg.accuseParticipantNotRegistered([
           "0x26D3D8Ab74D62C26f1ACc220dA1646411c9880Ac",
         ])
-      ).to.be.rejectedWith("validator not allowed");
+      ).to.be.rejectedWith("Dishonest Address is not a validator at the moment!");
 
       expect(await ethdkg.getBadParticipants()).to.equal(0);
     });
@@ -1166,7 +1166,7 @@ describe("ETHDKG", function () {
           validators4[3].address,
           "0x26D3D8Ab74D62C26f1ACc220dA1646411c9880Ac",
         ])
-      ).to.be.rejectedWith("validator not allowed");
+      ).to.be.rejectedWith("Dishonest Address is not a validator at the moment!");
 
       expect(await ethdkg.getBadParticipants()).to.equal(0);
     });
@@ -1295,7 +1295,7 @@ describe("ETHDKG", function () {
           validators4[2].address,
           validators4[2].address,
         ])
-      ).to.be.rejectedWith("validator not allowed");
+      ).to.be.rejectedWith("Dishonest Address is not a validator at the moment!");
 
       await assertETHDKGPhase(ethdkg, Phase.RegistrationOpen);
     });
@@ -1690,7 +1690,7 @@ describe("ETHDKG", function () {
           "0x26D3D8Ab74D62C26f1ACc220dA1646411c9880Ac",
         ])
       ).to.be.revertedWith(
-        "Dispute failed! Issuer is not participating in this ETHDKG round!"
+        "Dishonest Address is not a validator at the moment!"
       );
 
       expect(await ethdkg.getBadParticipants()).to.equal(0);
@@ -1722,6 +1722,63 @@ describe("ETHDKG", function () {
         "ETHDKG: should be in post-ShareDistribution accusation phase!"
       );
     });
+
+    it("should not allow accusing a user that distributed the shares in the middle of the ones that did not", async function () {
+      let [ethdkg, validatorPool, expectedNonce] =
+        await startAtDistributeShares(validators4);
+
+      //Only validator 0 and 1 distributed shares
+      await distributeValidatorsShares(
+        ethdkg,
+        validatorPool,
+        validators4.slice(0, 2),
+        expectedNonce
+      );
+
+      // move to the end of Distribute Share phase
+      await endCurrentPhase(ethdkg);
+
+      expect(await ethdkg.getBadParticipants()).to.equal(0);
+
+      await expect(
+        ethdkg.accuseParticipantDidNotDistributeShares([validators4[2].address, validators4[3].address, validators4[0].address])
+      ).to.be.revertedWith(
+        "Dispute failed! Issuer distributed its share in this ETHDKG round!"
+      );
+
+      expect(await ethdkg.getBadParticipants()).to.equal(0);
+    });
+
+    it("should not allow double accusation of a user that did not shared his shares", async function () {
+      let [ethdkg, validatorPool, expectedNonce] =
+        await startAtDistributeShares(validators4);
+
+      //Only validator 0 and 1 distributed shares
+      await distributeValidatorsShares(
+        ethdkg,
+        validatorPool,
+        validators4.slice(0, 2),
+        expectedNonce
+      );
+
+      // move to the end of Distribute Share phase
+      await endCurrentPhase(ethdkg);
+
+      expect(await ethdkg.getBadParticipants()).to.equal(0);
+
+      await expect(
+        ethdkg.accuseParticipantDidNotDistributeShares([validators4[2].address])
+      )
+
+      await expect(
+        ethdkg.accuseParticipantDidNotDistributeShares([validators4[2].address])
+      ).to.be.revertedWith(
+        "Dishonest Address is not a validator at the moment!"
+      );
+
+      expect(await ethdkg.getBadParticipants()).to.equal(1);
+    });
+
   });
 
   describe("Distribute bad shares accusation", () => {});
@@ -1739,7 +1796,7 @@ describe("ETHDKG", function () {
         validators4,
         expectedNonce
       );
-      
+
       await expect(submitValidatorsKeyShares(
         ethdkg,
         validatorPool,
@@ -1767,7 +1824,7 @@ describe("ETHDKG", function () {
       let [ethdkg, validatorPool, expectedNonce] = await startAtSubmitKeyShares(
         validators4
       );
-      
+
       // a non-validator tries to submit the Key shares
       const validator11 = "0x23EA3Bad9115d436190851cF4C49C1032fA7579A";
       // the following key shares are random
@@ -1820,7 +1877,7 @@ describe("ETHDKG", function () {
       let [ethdkg, validatorPool, expectedNonce] = await startAtSubmitKeyShares(
         validators4
       );
-      
+
       // Submit empty Key shares for all validators
       await expect(ethdkg
       .connect(await ethers.getSigner(validators4[0].address))
