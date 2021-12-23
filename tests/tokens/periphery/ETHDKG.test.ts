@@ -30,6 +30,19 @@ export interface ValidatorRawData {
   gpkj: [BigNumberish, BigNumberish, BigNumberish, BigNumberish];
 }
 
+/**
+ * Shuffles array in place. ES6 version
+ * https://stackoverflow.com/questions/6274339/how-can-i-shuffle-an-array/6274381#6274381
+ * @param {Array} a items An array containing the items.
+ */
+function shuffle(a: ValidatorRawData[]) {
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
 const mineBlocks = async (nBlocks: number) => {
   while (nBlocks > 0) {
     nBlocks--;
@@ -408,20 +421,24 @@ const registerValidators = async (
   validators: ValidatorRawData[],
   expectedNonce: number
 ) => {
-  for (let [index, validator] of validators.entries()) {
+  validators = shuffle(validators);
+  for (let validator of validators) {
     let numParticipantsBefore = await ethdkg.getNumParticipants();
     let tx = ethdkg
       .connect(await ethers.getSigner(validator.address))
       .register(validator.madNetPublicKey);
+    let receipt = await tx;
+    let participant = await ethdkg.getParticipantInternalState(
+      validator.address
+    );
     expect(tx)
       .to.emit(ethdkg, "AddressRegistered")
       .withArgs(
         validator.address,
-        index + 1,
+        participant.index,
         expectedNonce,
         validator.madNetPublicKey
       );
-    let receipt = await tx;
     let numValidators = await validatorPool.getValidatorsCount();
     let numParticipants = await ethdkg.getNumParticipants();
     // if all validators in the Pool participated in this round
@@ -441,15 +458,19 @@ const distributeValidatorsShares = async (
   validators: ValidatorRawData[],
   expectedNonce: number
 ) => {
-  for (let [index, validator] of validators.entries()) {
+  validators = shuffle(validators);
+  for (let validator of validators) {
     let numParticipantsBefore = await ethdkg.getNumParticipants();
     let tx = await ethdkg
       .connect(await ethers.getSigner(validator.address))
       .distributeShares(validator.encryptedShares, validator.commitments);
+    let participant = await ethdkg.getParticipantInternalState(
+        validator.address
+    );
     await assertEventSharesDistributed(
       tx,
       validator.address,
-      index + 1,
+      participant.index,
       expectedNonce,
       validator.encryptedShares,
       validator.commitments
@@ -473,7 +494,8 @@ const submitValidatorsKeyShares = async (
   validators: ValidatorRawData[],
   expectedNonce: number
 ) => {
-  for (let [index, validator] of validators.entries()) {
+  validators = shuffle(validators);
+  for (let validator of validators) {
     let numParticipantsBefore = await ethdkg.getNumParticipants();
     let tx = await ethdkg
       .connect(await ethers.getSigner(validator.address))
@@ -482,10 +504,13 @@ const submitValidatorsKeyShares = async (
         validator.keyShareG1CorrectnessProof,
         validator.keyShareG2
       );
+    let participant = await ethdkg.getParticipantInternalState(
+        validator.address
+    );
     await assertEventKeyShareSubmitted(
       tx,
       validator.address,
-      index + 1,
+      participant.index,
       expectedNonce,
       validator.keyShareG1,
       validator.keyShareG1CorrectnessProof,
@@ -518,7 +543,7 @@ const submitMasterPublicKey = async (
   let tx = await ethdkg
     .connect(await ethers.getSigner(validators[index].address))
     .submitMasterPublicKey(validators[index].mpk);
-  await assertEventMPKSet(tx, expectedNonce, validators4[index].mpk);
+  await assertEventMPKSet(tx, expectedNonce, validators[index].mpk);
   expect(await ethdkg.getNumParticipants()).to.eq(0);
   await assertETHDKGPhase(ethdkg, Phase.GPKJSubmission);
   // The other validators should fail
@@ -540,15 +565,19 @@ const submitValidatorsGPKJ = async (
   expectedNonce: number,
   expectedEpoch: number
 ) => {
-  for (let [index, validator] of validators.entries()) {
+  validators = shuffle(validators);
+  for (let validator of validators) {
     let numParticipantsBefore = await ethdkg.getNumParticipants();
     let tx = await ethdkg
       .connect(await ethers.getSigner(validator.address))
       .submitGPKj(validator.gpkj);
+    let participant = await ethdkg.getParticipantInternalState(
+        validator.address
+    );
     await assertEventValidatorMemberAdded(
       tx,
       validator.address,
-      index + 1,
+      participant.index,
       expectedNonce,
       expectedEpoch,
       validator.gpkj
@@ -658,75 +687,51 @@ const startFromGPKJ = async (
   return [ethdkg, validatorPool, expectedNonce];
 };
 
+const completeETHDKGRound = async (
+  validators: ValidatorRawData[]
+): Promise<[ETHDKG, ValidatorPoolMock, number, number, number]> => {
+
+  let [ethdkg, validatorPool, expectedNonce] = await startFromGPKJ(validators);
+  const expectedEpoch = 1;
+  const expectedMadHeight = 1;
+  // Submit GPKj for all validators
+  await submitValidatorsGPKJ(
+    ethdkg,
+    validatorPool,
+    validators,
+    expectedNonce,
+    expectedEpoch
+  );
+
+  // skipping the distribute shares accusation phase
+  await endCurrentPhase(ethdkg);
+  await assertETHDKGPhase(ethdkg, Phase.DisputeGPKJSubmission);
+
+  // Complete ETHDKG
+  await completeETHDKG(
+    ethdkg,
+    validators,
+    expectedNonce,
+    expectedEpoch,
+    expectedMadHeight
+  );
+  return [
+    ethdkg,
+    validatorPool,
+    expectedNonce,
+    expectedEpoch,
+    expectedMadHeight,
+  ];
+};
+
 describe("ETHDKG", function () {
   describe("Happy Path", () => {
-    it("completes happy path", async function () {
-      const { ethdkg, validatorPool } = await getFixture();
+    it("completes happy path with 4 validators", async function () {
+      await completeETHDKGRound(validators4)
+    });
 
-      const expectedNonce = 1;
-      const expectedEpoch = 1;
-      const expectedMadHeight = 1;
-
-      // add validators
-      await validatorPool.setETHDKG(ethdkg.address);
-      await addValidators(validatorPool, validators4);
-
-      // start ETHDKG
-      await initializeETHDKG(ethdkg, validatorPool);
-
-      // register all validators
-      await registerValidators(
-        ethdkg,
-        validatorPool,
-        validators4,
-        expectedNonce
-      );
-      await waitNextPhaseStartDelay(ethdkg);
-      // distribute shares for all validators
-      await distributeValidatorsShares(
-        ethdkg,
-        validatorPool,
-        validators4,
-        expectedNonce
-      );
-      // skipping the distribute shares accusation phase
-      await endCurrentPhase(ethdkg);
-      await assertETHDKGPhase(ethdkg, Phase.DisputeShareDistribution);
-
-      // Submit the Key shares for all validators
-      await submitValidatorsKeyShares(
-        ethdkg,
-        validatorPool,
-        validators4,
-        expectedNonce
-      );
-
-      await waitNextPhaseStartDelay(ethdkg);
-      // Submit the Master Public key
-      await submitMasterPublicKey(ethdkg, validators4, expectedNonce);
-
-      await waitNextPhaseStartDelay(ethdkg);
-      // Submit GPKj for all validators
-      await submitValidatorsGPKJ(
-        ethdkg,
-        validatorPool,
-        validators4,
-        expectedNonce,
-        expectedEpoch
-      );
-
-      // skipping the distribute shares accusation phase
-      await endCurrentPhase(ethdkg);
-      await assertETHDKGPhase(ethdkg, Phase.DisputeGPKJSubmission);
-
-      // Complete ETHDKG
-      await completeETHDKG(
-        ethdkg,
-        validators4,
-        expectedNonce,
-        expectedEpoch,
-        expectedMadHeight
-      );
+    it("completes happy path with 10 validators", async function () {
+      await completeETHDKGRound(validators10)
     });
   });
 
@@ -1329,9 +1334,8 @@ describe("ETHDKG", function () {
     });
 
     it("does not let non-validators to distribute shares", async function () {
-      let [ethdkg, validatorPool, expectedNonce] = await startFromDistributeShares(
-        validators4
-      );
+      let [ethdkg, validatorPool, expectedNonce] =
+        await startFromDistributeShares(validators4);
 
       // try to distribute shares with a non validator address
       await expect(
@@ -1347,9 +1351,8 @@ describe("ETHDKG", function () {
     });
 
     it("does not let validator to distribute shares more than once", async function () {
-      let [ethdkg, validatorPool, expectedNonce] = await startFromDistributeShares(
-        validators4
-      );
+      let [ethdkg, validatorPool, expectedNonce] =
+        await startFromDistributeShares(validators4);
 
       await distributeValidatorsShares(
         ethdkg,
@@ -1372,9 +1375,8 @@ describe("ETHDKG", function () {
     });
 
     it("does not let validator send empty commitments or encrypted shares", async function () {
-      let [ethdkg, validatorPool, expectedNonce] = await startFromDistributeShares(
-        validators4
-      );
+      let [ethdkg, validatorPool, expectedNonce] =
+        await startFromDistributeShares(validators4);
 
       // distribute shares with empty data
       await expect(
@@ -1428,9 +1430,8 @@ describe("ETHDKG", function () {
 
   describe("Missing distribute share accusation", () => {
     it("allows accusation of all missing validators after distribute shares Phase", async function () {
-      let [ethdkg, validatorPool, expectedNonce] = await startFromDistributeShares(
-        validators4
-      );
+      let [ethdkg, validatorPool, expectedNonce] =
+        await startFromDistributeShares(validators4);
 
       //Only validator 0 and 1 distributed shares
       await distributeValidatorsShares(
@@ -1472,9 +1473,8 @@ describe("ETHDKG", function () {
     });
 
     it("allows accusation of some missing validators after distribute shares Phase", async function () {
-      let [ethdkg, validatorPool, expectedNonce] = await startFromDistributeShares(
-        validators4
-      );
+      let [ethdkg, validatorPool, expectedNonce] =
+        await startFromDistributeShares(validators4);
 
       //Only validator 0 and 1 distributed shares
       await distributeValidatorsShares(
@@ -1518,9 +1518,8 @@ describe("ETHDKG", function () {
     });
 
     it("do not allow validators to proceed to the next phase if not all validators distributed their shares", async function () {
-      let [ethdkg, validatorPool, expectedNonce] = await startFromDistributeShares(
-        validators4
-      );
+      let [ethdkg, validatorPool, expectedNonce] =
+        await startFromDistributeShares(validators4);
 
       //Only validator 0 and 1 distributed shares
       await distributeValidatorsShares(
@@ -1553,9 +1552,8 @@ describe("ETHDKG", function () {
     // MISSING REGISTRATION ACCUSATION TESTS
 
     it("won't let not-distributed shares accusations to take place while ETHDKG Distribute Share Phase is open", async function () {
-      let [ethdkg, validatorPool, expectedNonce] = await startFromDistributeShares(
-        validators4
-      );
+      let [ethdkg, validatorPool, expectedNonce] =
+        await startFromDistributeShares(validators4);
 
       //Only validator 0 and 1 distributed shares
       await distributeValidatorsShares(
@@ -1573,9 +1571,8 @@ describe("ETHDKG", function () {
     });
 
     it("should not allow validators who did not distributed shares in time to distribute on the accusation phase", async function () {
-      let [ethdkg, validatorPool, expectedNonce] = await startFromDistributeShares(
-        validators4
-      );
+      let [ethdkg, validatorPool, expectedNonce] =
+        await startFromDistributeShares(validators4);
 
       //Only validator 0 and 1 distributed shares
       await distributeValidatorsShares(
@@ -1599,9 +1596,8 @@ describe("ETHDKG", function () {
     });
 
     it("should not allow validators who did not distributed shares in time to submit Key shares", async function () {
-      let [ethdkg, validatorPool, expectedNonce] = await startFromDistributeShares(
-        validators4
-      );
+      let [ethdkg, validatorPool, expectedNonce] =
+        await startFromDistributeShares(validators4);
 
       //Only validator 0 and 1 distributed shares
       await distributeValidatorsShares(
@@ -1645,9 +1641,8 @@ describe("ETHDKG", function () {
     });
 
     it("should not allow accusation of not distributing shares of validators that distributed shares", async function () {
-      let [ethdkg, validatorPool, expectedNonce] = await startFromDistributeShares(
-        validators4
-      );
+      let [ethdkg, validatorPool, expectedNonce] =
+        await startFromDistributeShares(validators4);
 
       //Only validator 0 and 1 distributed shares
       await distributeValidatorsShares(
@@ -1673,9 +1668,8 @@ describe("ETHDKG", function () {
     });
 
     it("should not allow accusation of not distributing shares for non-validators", async function () {
-      let [ethdkg, validatorPool, expectedNonce] = await startFromDistributeShares(
-        validators4
-      );
+      let [ethdkg, validatorPool, expectedNonce] =
+        await startFromDistributeShares(validators4);
 
       //Only validator 0 and 1 distributed shares
       await distributeValidatorsShares(
@@ -1703,9 +1697,8 @@ describe("ETHDKG", function () {
     });
 
     it("should not allow not distributed shares accusations after accusation window has finished", async function () {
-      let [ethdkg, validatorPool, expectedNonce] = await startFromDistributeShares(
-        validators4
-      );
+      let [ethdkg, validatorPool, expectedNonce] =
+        await startFromDistributeShares(validators4);
 
       //Only validator 0 and 1 distributed shares
       await distributeValidatorsShares(
