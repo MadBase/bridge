@@ -306,7 +306,10 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
 
         uint32 badParticipants = _badParticipants;
         for (uint256 i = 0; i < dishonestAddresses.length; i++) {
-            require(_validatorPool.isValidator(dishonestAddresses[i]), "validator not allowed");
+            require(
+                _validatorPool.isValidator(dishonestAddresses[i]),
+                "Dishonest Address is not a validator at the moment!"
+            );
 
             // check if the issuer didn't participate in the registration phase,
             // so it doesn't have a Participant object with the latest nonce
@@ -327,13 +330,10 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
         _badParticipants = badParticipants;
 
         // init ETHDKG if all missing participants are found
-        if (numParticipants == validatorCount &&
+        if (
+            numParticipants == validatorCount &&
             numParticipants >= _minValidators &&
-            _moveToNextPhase(
-                Phase.ShareDistribution,
-                validatorCount,
-                numParticipants
-            )
+            _moveToNextPhase(Phase.ShareDistribution, validatorCount, numParticipants)
         ) {
             emit RegistrationComplete(block.number);
         }
@@ -417,6 +417,10 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
         uint32 badParticipants = _badParticipants;
 
         for (uint256 i = 0; i < dishonestAddresses.length; i++) {
+            require(
+                _validatorPool.isValidator(dishonestAddresses[i]),
+                "Dishonest Address is not a validator at the moment!"
+            );
             Participant memory issuer = _participants[dishonestAddresses[i]];
             require(
                 issuer.nonce == _nonce,
@@ -649,6 +653,11 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
         uint32 badParticipants = _badParticipants;
 
         for (uint256 i = 0; i < dishonestAddresses.length; i++) {
+            require(
+                _validatorPool.isValidator(dishonestAddresses[i]),
+                "Dishonest Address is not a validator at the moment!"
+            );
+
             Participant memory issuer = _participants[dishonestAddresses[i]];
             require(
                 issuer.nonce == _nonce,
@@ -672,7 +681,10 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
         _badParticipants = badParticipants;
         uint256 numParticipants = _numParticipants;
         // init ETHDKG if we find all the bad participants and we are above the num of min validators
-        if (numParticipants == _validatorPool.getValidatorsCount() && numParticipants >= _minValidators ) {
+        if (
+            numParticipants == _validatorPool.getValidatorsCount() &&
+            numParticipants >= _minValidators
+        ) {
             _initializeETHDKG();
         }
     }
@@ -681,8 +693,8 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
         //todo: should we reward ppl here?
         require(
             _ethdkgPhase == Phase.MPKSubmission &&
-            block.number > _phaseStartBlock &&
-            block.number <= _phaseStartBlock + _phaseLength,
+                block.number > _phaseStartBlock &&
+                block.number <= _phaseStartBlock + _phaseLength,
             "ETHDKG: cannot participate on master public key submission phase"
         );
         uint256[2] memory mpkG1 = _mpkG1;
@@ -717,8 +729,8 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
 
         require(
             _ethdkgPhase == Phase.GPKJSubmission &&
-            block.number > _phaseStartBlock &&
-            block.number <= _phaseStartBlock + _phaseLength,
+                block.number > _phaseStartBlock &&
+                block.number <= _phaseStartBlock + _phaseLength,
             "ETHDKG: Not in GPKJ submission phase"
         );
 
@@ -776,6 +788,10 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
         uint32 badParticipants = _badParticipants;
 
         for (uint256 i = 0; i < dishonestAddresses.length; i++) {
+            require(
+                _validatorPool.isValidator(dishonestAddresses[i]),
+                "Dishonest Address is not a validator at the moment!"
+            );
             Participant memory issuer = _participants[dishonestAddresses[i]];
             require(
                 issuer.nonce == _nonce,
