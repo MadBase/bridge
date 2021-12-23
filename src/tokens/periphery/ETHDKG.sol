@@ -293,7 +293,6 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
         );
 
         uint32 badParticipants = _badParticipants;
-
         for (uint256 i = 0; i < dishonestAddresses.length; i++) {
             require(_validatorPool.isValidator(dishonestAddresses[i]), "validator not allowed");
 
@@ -305,17 +304,19 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
                 "Dispute failed! Issuer is participating in this ETHDKG round!"
             );
 
-            // todo: minor fine: evict the guy!
             // todo: reward caller for taking this awesome action
             // todo: should we receive an address to send the reward to?
-            // es.validators.minorFine(dishonestAddresses[i], msg.sender);
-            // we cannot accuse someone twice
-
+            // this also makes sure we cannot accuse someone twice because
+            // a minor fine will be enough to evict the validator from the pool
+            _validatorPool.minorSlash(dishonestAddresses[i]);
             badParticipants++;
         }
 
-        // init ETHDKG if we find all the bad participants
-        if (badParticipants + _numParticipants == _validatorPool.getValidatorsCount()) {
+        uint256 numParticipants = _numParticipants;
+
+        // init ETHDKG if all missing participants are found
+        if (numParticipants == _validatorPool.getValidatorsCount() &&
+            numParticipants >= _minValidators) {
             _initializeETHDKG();
         } else {
             _badParticipants = badParticipants;
@@ -345,16 +346,16 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
         uint256 threshold = _getThreshold(numValidators);
         require(
             encryptedShares.length == numValidators - 1,
-            "share distribution failed (invalid number of encrypted shares provided)"
+            "share distribution failed, invalid number of encrypted shares provided"
         );
         require(
             commitments.length == threshold + 1,
-            "key sharing failed (invalid number of commitments provided)"
+            "key sharing failed, invalid number of commitments provided"
         );
         for (uint256 k = 0; k <= threshold; k++) {
             require(
                 CryptoLibrary.bn128_is_on_curve(commitments[k]),
-                "key sharing failed (commitment not on elliptic curve)"
+                "key sharing failed commitment not on elliptic curve"
             );
             require(commitments[k][0] != 0, "ETHDKG: Commitments shouldn't be zero");
         }

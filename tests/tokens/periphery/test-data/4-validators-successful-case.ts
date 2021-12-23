@@ -1,6 +1,6 @@
 import { ValidatorRawData } from "../ETHDKG.test";
 
-export const validators: ValidatorRawData[] = [
+export const validators4: ValidatorRawData[] = [
   {
     address: "0x9AC1c9afBAec85278679fF75Ef109217f26b1417",
     madNetPublicKey: [
