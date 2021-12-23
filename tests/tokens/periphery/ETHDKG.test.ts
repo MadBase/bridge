@@ -800,7 +800,7 @@ describe("ETHDKG", function () {
 
       await expect(ethdkg.accuseParticipantNotRegistered([validators4[2].address, validators4[3].address]))
 
-      expect(await ethdkg.getBadParticipants()).to.equal(2);
+      expect(await ethdkg.getBadParticipants()).to.equal(0);
       await assertETHDKGPhase(ethdkg, Phase.RegistrationOpen)
     });
 
@@ -833,11 +833,11 @@ describe("ETHDKG", function () {
       expect(await ethdkg.getBadParticipants()).to.equal(0);
 
       await ethdkg.accuseParticipantNotRegistered([validators4[2].address]);
-      expect(await ethdkg.getBadParticipants()).to.equal(1);
+      expect(await ethdkg.getBadParticipants()).to.equal(0);
 
       await ethdkg.accuseParticipantNotRegistered([validators4[3].address])
 
-      expect(await ethdkg.getBadParticipants()).to.equal(2);
+      expect(await ethdkg.getBadParticipants()).to.equal(0);
       await assertETHDKGPhase(ethdkg, Phase.RegistrationOpen)
     });
 
@@ -1116,7 +1116,7 @@ describe("ETHDKG", function () {
       // accuse a non-registered validator
       await ethdkg.accuseParticipantNotRegistered([validators4[2].address])
 
-      expect(await ethdkg.getBadParticipants()).to.equal(1);
+      expect(await ethdkg.getBadParticipants()).to.equal(0);
 
       // move to the end of RegistrationAccusation phase
       await endCurrentAccusationPhase(ethdkg);
@@ -1133,36 +1133,50 @@ describe("ETHDKG", function () {
       const { ethdkg, validatorPool } = await getFixture();
       const expectedNonce = 1;
 
+      // validator 11
+      const validator11 = "0x23EA3Bad9115d436190851cF4C49C1032fA7579A"
+      const val11PubKey: [BigNumberish, BigNumberish] = [
+        BigNumber.from("0x02f93caf648144fa3ccef06aca392428f55d1a9b3facf243f5e31833b73e4636"),
+        BigNumber.from("0x00b1d35606573488d204c305aa082d7b65fc761385fb9faed4ac172ef6fdd7ac")
+      ]
+
       // add validators
       await validatorPool.setETHDKG(ethdkg.address);
-      await addValidators(validatorPool, validators4);
+      await addValidators(validatorPool, validators10);
+
+      // add validator 11
+      await validatorPool.addValidator(validator11);
+      expect(await validatorPool.isValidator(validator11)).to.equal(true);
 
       // start ETHDKG
       await initializeETHDKG(ethdkg, validatorPool);
 
-      // register validators 0 to 1. validator2 and 3 won't register
+      // register all 10 validators
       await registerValidators(
         ethdkg,
         validatorPool,
-        validators4.slice(0, 2),
+        validators10,
         expectedNonce
       );
 
       // move to the end of RegistrationOpen phase
       await endCurrentPhase(ethdkg);
 
-      // accuse non-participant validators 2 and 3
-      await ethdkg.accuseParticipantNotRegistered([validators4[2].address, validators4[3].address])
+      // accuse non-participant validator 11
+      await expect(ethdkg.accuseParticipantNotRegistered([validator11]))
+      .to.emit(ethdkg, "RegistrationComplete")
+      .withArgs((await ethers.provider.getBlockNumber()) + 1)
 
-      expect(await ethdkg.getBadParticipants()).to.equal(2);
-      await assertETHDKGPhase(ethdkg, Phase.RegistrationOpen)
+      expect(await ethdkg.getBadParticipants()).to.equal(0);
+      await waitNextPhaseStartDelay(ethdkg)
+      await assertETHDKGPhase(ethdkg, Phase.ShareDistribution)
 
-      // try to move into Distribute Shares phase
-      await expect(ethdkg.connect(await ethers.getSigner(validators4[0].address))
-        .distributeShares(validators4[0].encryptedShares, validators4[0].commitments))
-        .to.be.rejectedWith("ETHDKG: cannot participate on this phase")
+      // try distributing shares
+      await expect(ethdkg.connect(await ethers.getSigner(validators10[0].address))
+      .distributeShares(validators10[0].encryptedShares, validators10[0].commitments))
+      .to.emit(ethdkg, "SharesDistributed")
 
-      await assertETHDKGPhase(ethdkg, Phase.RegistrationOpen);
+      await assertETHDKGPhase(ethdkg, Phase.ShareDistribution);
     });
 
     it("should not allow double accusation for missing registration", async function () {
@@ -1348,6 +1362,7 @@ describe("ETHDKG", function () {
         validators4[0].commitments
       );
     });
+  });
 
   describe("Missing distribute share accusation", () => {
     it("allows accusation of all missing validators after distribute shares Phase", async function () {
