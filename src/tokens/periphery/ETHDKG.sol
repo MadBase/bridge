@@ -234,6 +234,7 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
     }
 
     function _initializeETHDKG() internal {
+        //todo: should we reward ppl here?
         require(
             _validatorPool.getValidatorsCount() >= _minValidators,
             "ETHDKG: Minimum number of validators staked not met!"
@@ -482,6 +483,8 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
             "Dispute failed! Invalid list indices for the issuer or for the disputer!"
         );
 
+        // todo: ask Chris, why is this avoiding replay of sharing transaction since the info is
+        // public
         require(
             issuer.distributedSharesHash ==
                 keccak256(
@@ -490,7 +493,7 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
                         keccak256(abi.encodePacked(commitments))
                     )
                 ),
-            "dispute failed (invalid replay of sharing transaction)"
+            "dispute failed, invalid replay of sharing transaction"
         );
 
         require(
@@ -501,7 +504,7 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
                 sharedKey,
                 sharedKeyCorrectnessProof
             ),
-            "dispute failed (invalid shared key or proof)"
+            "dispute failed, invalid shared key or proof"
         );
 
         // Since all provided data is valid so far, we load the share and use the verified shared
@@ -583,7 +586,7 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
                 participant.commitmentsFirstCoefficient,
                 keyShareG1CorrectnessProof
             ),
-            "key share submission failed (invalid key share (G1))"
+            "key share submission failed invalid key share G1"
         );
         require(
             CryptoLibrary.bn128_check_pairing(
@@ -602,7 +605,7 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
                     keyShareG2[3]
                 ]
             ),
-            "key share submission failed (invalid key share (G2))"
+            "key share submission failed invalid key share G2"
         );
 
         participant.keyShares = keyShareG1;
@@ -674,7 +677,8 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
         }
     }
 
-    function submitMasterPublicKey(uint256[4] memory masterPublicKey_) external returns (bool) {
+    function submitMasterPublicKey(uint256[4] memory masterPublicKey_) external {
+        //todo: should we reward ppl here?
         require(
             _ethdkgPhase == Phase.MPKSubmission &&
             block.number > _phaseStartBlock &&
@@ -978,9 +982,8 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
     }
 
     // Successful_Completion should be called at the completion of the DKG algorithm.
-    //
-    // -- The bool returned indicates whether we should start over immediately.
     function complete() external onlyValidator {
+        //todo: should we reward ppl here?
         require(
             (_ethdkgPhase == Phase.DisputeGPKJSubmission &&
                 block.number > _phaseStartBlock + _phaseLength &&
