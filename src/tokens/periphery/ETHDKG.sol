@@ -715,7 +715,7 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
                     masterPublicKey_[3]
                 ]
             ),
-            "master key submission failed (pairing check failed)"
+            "master key submission pairing check failed"
         );
 
         _masterPublicKey = masterPublicKey_;

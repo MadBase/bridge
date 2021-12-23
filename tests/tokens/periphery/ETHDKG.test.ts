@@ -1965,17 +1965,31 @@ describe("ETHDKG", function () {
 
       // non-validator user tries to submit the Master Public key
       const validator11 = "0x23EA3Bad9115d436190851cF4C49C1032fA7579A";
-      // the following key shares are random
       const val11MPK: [BigNumberish, BigNumberish, BigNumberish, BigNumberish] = validators4[0].mpk
 
       const tx = await ethdkg.connect(await ethers.getSigner(validator11)).submitMasterPublicKey(val11MPK)
 
       await assertEventMPKSet(tx, expectedNonce, val11MPK);
+
+      await expect(ethdkg.connect(await ethers.getSigner(validator11)).submitMasterPublicKey(val11MPK))
+      .to.be.revertedWith("ETHDKG: cannot participate on master public key submission phase")
+    })
+
+    it("should not allow submission of empty master public key", async () => {
+      let [ethdkg, validatorPool, expectedNonce] = await startAtMPKSubmission(
+        validators4
+      );
+
+      // empty MPK
+      const mpk: [BigNumberish, BigNumberish, BigNumberish, BigNumberish] = ["0", "0", "0", "0"] 
+
+      await expect(ethdkg.connect(await ethers.getSigner(validators4[0].address)).submitMasterPublicKey(mpk))
+      .to.be.revertedWith("master key submission pairing check failed")
     })
 
   })
 
   describe("Accuse participant of not submitting key shares", () => {
-    
+
   })
 });
