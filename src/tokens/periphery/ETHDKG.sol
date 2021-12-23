@@ -742,7 +742,7 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
         );
         require(
             participant.phase == Phase.KeyShareSubmission,
-            "Participant already submitted key shares this ETHDKG round"
+            "Participant already submitted GPKj this ETHDKG round"
         );
 
         require(
