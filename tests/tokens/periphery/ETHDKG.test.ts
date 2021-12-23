@@ -660,7 +660,7 @@ const startAtSubmitKeyShares = async (
     validators,
     expectedNonce
   );
-  
+
   // skipping the distribute shares accusation phase
   await endCurrentPhase(ethdkg);
   await assertETHDKGPhase(ethdkg, Phase.DisputeShareDistribution);
@@ -1762,7 +1762,7 @@ describe("ETHDKG", function () {
       expect(await ethdkg.getBadParticipants()).to.equal(0);
     });
 
-    it("should not allow double accusation of a user that did not shared his shares", async function () {
+    it("should not allow double accusation of a user that did not share his shares", async function () {
       let [ethdkg, validatorPool, expectedNonce] =
         await startAtDistributeShares(validators4);
 
@@ -1934,7 +1934,7 @@ describe("ETHDKG", function () {
         validators4.slice(0,3),
         expectedNonce
       );
-    
+
       await assertETHDKGPhase(ethdkg, Phase.KeyShareSubmission)
       await waitNextPhaseStartDelay(ethdkg)
       await assertETHDKGPhase(ethdkg, Phase.KeyShareSubmission)
@@ -1943,7 +1943,7 @@ describe("ETHDKG", function () {
       .to.be.rejectedWith("ETHDKG: cannot participate on master public key submission phase")
 
     })
-    
+
     it("should allow submission of master public key by a non-validator", async () => {
       let [ethdkg, validatorPool, expectedNonce] = await startAtMPKSubmission(
         validators4
@@ -1981,7 +1981,7 @@ describe("ETHDKG", function () {
       );
 
       // empty MPK
-      const mpk: [BigNumberish, BigNumberish, BigNumberish, BigNumberish] = ["0", "0", "0", "0"] 
+      const mpk: [BigNumberish, BigNumberish, BigNumberish, BigNumberish] = ["0", "0", "0", "0"]
 
       await expect(ethdkg.connect(await ethers.getSigner(validators4[0].address)).submitMasterPublicKey(mpk))
       .to.be.revertedWith("master key submission pairing check failed")
@@ -1990,8 +1990,162 @@ describe("ETHDKG", function () {
   })
 
   describe("Accuse participant of not submitting key shares", () => {
+    it("allows accusation of all missing validators after Key share phase", async function () {
+      let [ethdkg, validatorPool, expectedNonce] = await startAtSubmitKeyShares(
+        validators4
+      );
 
-  })
+      // distribute shares only for validators 0 and 1
+      await submitValidatorsKeyShares(
+        ethdkg,
+        validatorPool,
+        validators4.slice(0, 2),
+        expectedNonce
+      );
+
+      // move to the end of Key Share phase
+      await endCurrentPhase(ethdkg);
+
+      await expect(await ethdkg.getBadParticipants()).to.equal(0);
+      await ethdkg.accuseParticipantDidNotSubmitKeyShares([
+        validators4[2].address,
+        validators4[3].address,
+      ]);
+
+      await expect(await ethdkg.getBadParticipants()).to.equal(2);
+      // move to the end of Key Share Accusation phase
+      await endCurrentPhase(ethdkg);
+
+      await expect(
+        ethdkg
+          .connect(await ethers.getSigner(validators4[0].address))
+          .submitMasterPublicKey(validators4[0].mpk)
+      ).to.be.revertedWith(
+        "ETHDKG: cannot participate on master public key submission phase"
+      );
+    });
+
+    it("allows accusation of some missing validators after Key share phase", async function () {
+      let [ethdkg, validatorPool, expectedNonce] = await startAtSubmitKeyShares(
+        validators4
+      );
+
+      // distribute shares only for validators 0 and 1
+      await submitValidatorsKeyShares(
+        ethdkg,
+        validatorPool,
+        validators4.slice(0, 2),
+        expectedNonce
+      );
+
+      // move to the end of Key Share phase
+      await endCurrentPhase(ethdkg);
+
+      await expect(await ethdkg.getBadParticipants()).to.equal(0);
+      await ethdkg.accuseParticipantDidNotSubmitKeyShares([
+        validators4[2].address,
+      ]);
+      await expect(await ethdkg.getBadParticipants()).to.equal(1);
+      await ethdkg.accuseParticipantDidNotSubmitKeyShares([
+        validators4[3].address,
+      ]);
+      await expect(await ethdkg.getBadParticipants()).to.equal(2);
+
+      // move to the end of Key Share Accusation phase
+      await endCurrentPhase(ethdkg);
+
+      await expect(
+        ethdkg
+          .connect(await ethers.getSigner(validators4[0].address))
+          .submitMasterPublicKey(validators4[0].mpk)
+      ).to.be.revertedWith(
+        "ETHDKG: cannot participate on master public key submission phase"
+      );
+    });
+
+    it("do not allow validators to proceed to the next phase if not all validators submitted their key shares", async function () {
+      let [ethdkg, validatorPool, expectedNonce] = await startAtSubmitKeyShares(
+        validators4
+      );
+
+      // distribute shares only for validators 0 and 1
+      await submitValidatorsKeyShares(
+        ethdkg,
+        validatorPool,
+        validators4.slice(0, 2),
+        expectedNonce
+      );
+
+      // move to the end of Key Share phase
+      await endCurrentPhase(ethdkg);
+
+      await expect(
+        ethdkg
+          .connect(await ethers.getSigner(validators4[0].address))
+          .submitMasterPublicKey(validators4[0].mpk)
+      ).to.be.revertedWith(
+        "ETHDKG: cannot participate on master public key submission phase"
+      );
+    });
+
+    it("won't let not-distributed shares accusations to take place while ETHDKG Distribute Share Phase is open", async function () {
+      let [ethdkg, validatorPool, expectedNonce] = await startAtSubmitKeyShares(
+        validators4
+      );
+
+      // distribute shares only for validators 0 and 1
+      await submitValidatorsKeyShares(
+        ethdkg,
+        validatorPool,
+        validators4.slice(0, 2),
+        expectedNonce
+      );
+
+      await expect(
+        ethdkg.accuseParticipantDidNotSubmitKeyShares([validators4[2].address])
+      ).to.be.revertedWith(
+        "ETHDKG: should be in post-KeyShareSubmission phase!"
+      );
+    });
+
+    it("should not allow validators who did not submit key shares in time to submit on the accusation phase", async function () {
+      let [ethdkg, validatorPool, expectedNonce] = await startAtSubmitKeyShares(
+        validators4
+      );
+
+      // distribute shares only for validators 0 and 1
+      await submitValidatorsKeyShares(
+        ethdkg,
+        validatorPool,
+        validators4.slice(0, 2),
+        expectedNonce
+      );
+
+      // move to the end of Key Share Accusation phase
+      await endCurrentPhase(ethdkg);
+
+      expect(
+        ethdkg
+          .connect(await ethers.getSigner(validators4[2].address))
+          .submitKeyShare(
+            validators4[2].keyShareG1,
+            validators4[2].keyShareG1CorrectnessProof,
+            validators4[2].keyShareG2
+          )
+      ).to.revertedWith(
+        "ETHDKG: cannot participate on key share submission phase"
+      );
+
+      // non-participant user tries to go to the next phase
+      await expect(
+        ethdkg
+          .connect(await ethers.getSigner(validators4[3].address))
+          .submitMasterPublicKey(validators4[3].mpk)
+      ).to.be.revertedWith(
+        "ETHDKG: cannot participate on master public key submission phase"
+      );
+    });
+  });
 
   describe("GPKj submission", () => {
 

@@ -329,7 +329,8 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
         uint256 validatorCount = _validatorPool.getValidatorsCount();
         _badParticipants = badParticipants;
 
-        // init ETHDKG if all missing participants are found
+        // move to ShareDistribution phase if all missing participants are found,
+        // and if there are enough validators to proceed with ETHDKG (>= _minValidators)
         if (
             numParticipants == validatorCount &&
             numParticipants >= _minValidators &&
