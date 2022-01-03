@@ -456,7 +456,7 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
                 (_ethdkgPhase == Phase.ShareDistribution &&
                     (block.number > _phaseStartBlock + _phaseLength) &&
                     (block.number <= _phaseStartBlock + 2 * _phaseLength)),
-            "dispute failed (contract is not in dispute phase)"
+            "Dispute failed! Contract is not in dispute phase"
         );
 
         Participant memory issuer = _participants[issuerAddress];
