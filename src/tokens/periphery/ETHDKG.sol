@@ -476,8 +476,6 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
             "Dispute failed! Invalid list indices for the issuer or for the disputer!"
         );
 
-        // todo: ask Chris, why is this avoiding replay of sharing transaction since the info is
-        // public
         require(
             issuer.distributedSharesHash ==
                 keccak256(
@@ -486,7 +484,7 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
                         keccak256(abi.encodePacked(commitments))
                     )
                 ),
-            "dispute failed, invalid replay of sharing transaction"
+            "dispute failed, submitted commitments and encrypted shares don't match!"
         );
 
         require(
@@ -655,7 +653,7 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
 
             require(
                 issuer.phase != Phase.KeyShareSubmission,
-                "Dispute failed! Issuer is not participating in this ETHDKG round!"
+                "Dispute failed! Issuer submitted its key shares in this ETHDKG round!"
             );
 
             require(
