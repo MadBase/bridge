@@ -1,4 +1,4 @@
-import { ValidatorRawData } from "../ETHDKG.test";
+import { ValidatorRawData } from "../setup";
 
 export const validators4: ValidatorRawData[] = [
   {

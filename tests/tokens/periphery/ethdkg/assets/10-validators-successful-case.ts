@@ -1,4 +1,4 @@
-import { ValidatorRawData } from "../ETHDKG.test";
+import { ValidatorRawData } from "../setup";
 
 export const validators10: ValidatorRawData[] = [
   {
@@ -599,7 +599,7 @@ export const validators10: ValidatorRawData[] = [
     ],
   },
 
-  /* 
+  /*
   {
     address: "0x23EA3Bad9115d436190851cF4C49C1032fA7579A",
     madNetPublicKey: [
