@@ -10,3 +10,14 @@ hevm.libs.*
 **/artifacts/**
 outTests/*
 truffle_output/*
+
+node_modules/*
+lib/*
+artifacts/*
+cache/*
+typechain-types/*
+
+.env
+coverage
+coverage.json
+typechain
