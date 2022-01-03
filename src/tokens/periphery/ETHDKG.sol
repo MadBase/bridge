@@ -781,7 +781,7 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
 
             require(
                 issuer.phase != Phase.GPKJSubmission,
-                "Dispute failed! Issuer is not participating in this ETHDKG round!"
+                "Dispute failed! Issuer did participate in this GPKj submission!"
             );
 
             // todo: being paranoic, check if we need this or if it's expensive
@@ -827,7 +827,7 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
                 (_ethdkgPhase == Phase.GPKJSubmission &&
                     (block.number > _phaseStartBlock + _phaseLength) &&
                     (block.number <= _phaseStartBlock + 2 * _phaseLength)),
-            "dispute failed (contract is not in GPKJ dispute phase)"
+            "ETHDKG: should be in post-GPKJSubmission phase!"
         );
 
         // n is total _participants;
