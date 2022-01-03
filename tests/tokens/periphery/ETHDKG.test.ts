@@ -2146,6 +2146,94 @@ describe("ETHDKG", function () {
         "ETHDKG: cannot participate on master public key submission phase"
       );
     });
+
+    it("should not allow accusation of not submitting key shares of validators submitted their key shares", async function () {
+      let [ethdkg, validatorPool, expectedNonce] = await startAtSubmitKeyShares(
+        validators4
+      );
+
+      // distribute shares only for validators 0 and 1
+      await submitValidatorsKeyShares(
+        ethdkg,
+        validatorPool,
+        validators4.slice(0, 2),
+        expectedNonce
+      );
+
+      // move to the end of Key Share Accusation phase
+      await endCurrentPhase(ethdkg);
+
+      await expect(await ethdkg.getBadParticipants()).to.equal(0);
+
+      await expect(
+        ethdkg.accuseParticipantDidNotSubmitKeyShares([validators4[0].address])
+      ).to.be.revertedWith(
+        "Dispute failed! Issuer submitted its key shares in this ETHDKG round!"
+      );
+
+      await expect(await ethdkg.getBadParticipants()).to.equal(0);
+
+    });
+
+    it("should not allow accusation of not submitting key shares for non-validators", async function () {
+      let [ethdkg, validatorPool, expectedNonce] = await startAtSubmitKeyShares(
+        validators4
+      );
+
+      // distribute shares only for validators 0 and 1
+      await submitValidatorsKeyShares(
+        ethdkg,
+        validatorPool,
+        validators4.slice(0, 2),
+        expectedNonce
+      );
+
+      // move to the end of Key Share Accusation phase
+      await endCurrentPhase(ethdkg);
+
+      await expect(await ethdkg.getBadParticipants()).to.equal(0);
+
+      // try to accuse a non validator
+      await expect(
+        ethdkg.accuseParticipantDidNotSubmitKeyShares([
+          "0x23EA3Bad9115d436190851cF4C49C1032fA7579A",
+        ])
+      ).to.be.revertedWith(
+        "Dishonest Address is not a validator at the moment!"
+      );
+
+      await expect(await ethdkg.getBadParticipants()).to.equal(0);
+    });
+
+    it("should not allow not submitted key shares accusations after accusation window has finished", async function () {
+      let [ethdkg, validatorPool, expectedNonce] = await startAtSubmitKeyShares(
+        validators4
+      );
+
+      // distribute shares only for validators 0 and 1
+      await submitValidatorsKeyShares(
+        ethdkg,
+        validatorPool,
+        validators4.slice(0, 2),
+        expectedNonce
+      );
+
+      // move to the end of Key Share phase
+      await endCurrentPhase(ethdkg);
+
+      // move to the end of Key Share Accusation phase
+      await endCurrentPhase(ethdkg);
+
+      await expect(
+        ethdkg.accuseParticipantDidNotSubmitKeyShares([validators4[2].address])
+      ).to.be.revertedWith(
+        "ETHDKG: should be in post-KeyShareSubmission phase!"
+      );
+
+      await expect(await ethdkg.getBadParticipants()).to.equal(0);
+    });
+
+
   });
 
   describe("GPKj submission", () => {
