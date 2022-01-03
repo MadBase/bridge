@@ -9,8 +9,6 @@ RegistrationOpen --> RegistrationOpen: register()
 RegistrationOpen --> ShareDistribution: register()
 RegistrationOpen --> AccuseMissingRegistration: timeout*
 
-AccuseMissingRegistration --> RegistrationOpen:accuseParticipantNotRegistered()
-note on link : found all nodes\nthat didn't participate
 AccuseMissingRegistration --> AccuseMissingRegistration: accuseParticipantNotRegistered()
 AccuseMissingRegistration --> end1: timeout*
 note on link : Didn't find all nodes\nthat didn't participate
@@ -33,7 +31,6 @@ KeyShareSubmission --> MPKSubmission: submitKeyShare()
 
 KeyShareSubmission --> AccuseMissingKeyShareSubmission: timeout*
 AccuseMissingKeyShareSubmission --> AccuseMissingKeyShareSubmission: accuseParticipantDidNotSubmitKeyShares()
-AccuseMissingKeyShareSubmission -->RegistrationOpen
 AccuseMissingKeyShareSubmission --> end1: timeout*
 
 MPKSubmission --> SubmitGPKj: submitMasterPublicKey()

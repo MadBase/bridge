@@ -1258,14 +1258,15 @@ describe("ETHDKG", function () {
       // move to the end of RegistrationOpen phase
       await endCurrentPhase(ethdkg);
 
+      expect(await ethdkg.getBadParticipants()).to.equal(0);
       // accuse non-participant validator 11
-      await expect(ethdkg.accuseParticipantNotRegistered([validator11]))
-        .to.emit(ethdkg, "RegistrationComplete")
-        .withArgs((await ethers.provider.getBlockNumber()) + 1);
+      await ethdkg.accuseParticipantNotRegistered([validator11]);
 
       expect(await ethdkg.getBadParticipants()).to.equal(1);
-      await waitNextPhaseStartDelay(ethdkg);
-      await assertETHDKGPhase(ethdkg, Phase.ShareDistribution);
+
+      // move to the end of MissingRegistrationAccusation phase
+      await endCurrentPhase(ethdkg);
+      await assertETHDKGPhase(ethdkg, Phase.RegistrationOpen);
 
       // try distributing shares
       await expect(
@@ -1275,9 +1276,9 @@ describe("ETHDKG", function () {
             validators10[0].encryptedShares,
             validators10[0].commitments
           )
-      ).to.emit(ethdkg, "SharesDistributed");
+      ).to.be.revertedWith("ETHDKG: cannot participate on this phase");
 
-      await assertETHDKGPhase(ethdkg, Phase.ShareDistribution);
+      await assertETHDKGPhase(ethdkg, Phase.RegistrationOpen);
     });
 
     it("should not allow double accusation for missing registration", async function () {

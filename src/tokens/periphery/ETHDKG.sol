@@ -324,20 +324,8 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
             _validatorPool.minorSlash(dishonestAddresses[i]);
             badParticipants++;
         }
-
-        uint256 numParticipants = _numParticipants;
-        uint256 validatorCount = _validatorPool.getValidatorsCount();
         _badParticipants = badParticipants;
 
-        // move to ShareDistribution phase if all missing participants are found,
-        // and if there are enough validators to proceed with ETHDKG (>= _minValidators)
-        if (
-            numParticipants == validatorCount &&
-            numParticipants >= _minValidators &&
-            _moveToNextPhase(Phase.ShareDistribution, validatorCount, numParticipants)
-        ) {
-            emit RegistrationComplete(block.number);
-        }
     }
 
     function distributeShares(uint256[] memory encryptedShares, uint256[2][] memory commitments)
@@ -680,14 +668,6 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
             badParticipants++;
         }
         _badParticipants = badParticipants;
-        uint256 numParticipants = _numParticipants;
-        // init ETHDKG if we find all the bad participants and we are above the num of min validators
-        if (
-            numParticipants == _validatorPool.getValidatorsCount() &&
-            numParticipants >= _minValidators
-        ) {
-            _initializeETHDKG();
-        }
     }
 
     function submitMasterPublicKey(uint256[4] memory masterPublicKey_) external {
