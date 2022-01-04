@@ -69,10 +69,31 @@ contract ValidatorPoolMock is Initializable, UUPSUpgradeable {
     }
 
     function minorSlash(address validator) public {
+        _removeValidator(validator);
+    }
+
+    function majorSlash(address validator) public {
+        _removeValidator(validator);
+    }
+
+    function removeValidator(address validator) public {
+        _removeValidator(validator);
+    }
+
+    function removeAllValidators() public {
+        while (_validators.length > 0) {
+            delete _validatorsData[_validators[_validators.length-1]];
+            _validators.pop();
+        }
+    }
+
+    function _removeValidator(address validator) internal {
         ValidatorData memory vd = _validatorsData[validator];
         require(vd.tokenID != 0, "ValidatorPool: invalid validator");
-        _validators[vd.index] = _validators[_validators.length-1];
-        _validatorsData[_validators[vd.index]].index = vd.index;
+        address lastValidator = _validators[_validators.length-1];
+        _validators[vd.index] = lastValidator;
+        _validatorsData[lastValidator].index = vd.index;
         _validators.pop();
+        delete _validatorsData[validator];
     }
 }
