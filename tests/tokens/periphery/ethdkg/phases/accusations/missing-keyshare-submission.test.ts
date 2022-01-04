@@ -243,4 +243,56 @@ describe("Accuse participant of not submitting key shares", () => {
 
     await expect(await ethdkg.getBadParticipants()).to.equal(0);
   });
+
+  it("should not allow accusing a user that submitted the key shares in the middle of the ones that did not", async function () {
+    let [ethdkg, validatorPool, expectedNonce] = await startAtSubmitKeyShares(
+      validators4
+    );
+
+    // distribute shares only for validators 0 and 1
+    await submitValidatorsKeyShares(
+      ethdkg,
+      validatorPool,
+      validators4.slice(0, 2),
+      expectedNonce
+    );
+
+    // move to the end of Key Share phase
+    await endCurrentPhase(ethdkg);
+
+    await expect(
+      ethdkg.accuseParticipantDidNotSubmitKeyShares([validators4[2].address, validators4[0].address])
+    ).to.be.revertedWith("Dispute failed! Issuer submitted its key shares in this ETHDKG round!");
+
+    await expect(await ethdkg.getBadParticipants()).to.equal(0);
+  });
+
+  it("should not allow double accusation of a user that did not submit his key shares", async function () {
+    let [ethdkg, validatorPool, expectedNonce] = await startAtSubmitKeyShares(
+      validators4
+    );
+
+    // distribute shares only for validators 0 and 1
+    await submitValidatorsKeyShares(
+      ethdkg,
+      validatorPool,
+      validators4.slice(0, 2),
+      expectedNonce
+    );
+
+    // move to the end of Key Share phase
+    await endCurrentPhase(ethdkg);
+
+    await ethdkg.accuseParticipantDidNotSubmitKeyShares([validators4[2].address])
+
+    await expect(await ethdkg.getBadParticipants()).to.equal(1);
+
+    await expect(
+      ethdkg.accuseParticipantDidNotSubmitKeyShares([validators4[2].address])
+    ).to.be.revertedWith("Dishonest Address is not a validator at the moment!");
+
+    await expect(await ethdkg.getBadParticipants()).to.equal(1);
+
+  });
+
 });
