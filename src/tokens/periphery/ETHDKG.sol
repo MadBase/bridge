@@ -440,7 +440,7 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
 
     /// Someone sent bad shares
     function accuseParticipantDistributedBadShares(
-        address issuerAddress,
+        address dishonestAddress,
         uint256 issuerListIdx,
         uint256 disputerListIdx,
         uint256[] memory encryptedShares,
@@ -459,7 +459,9 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
             "Dispute failed! Contract is not in dispute phase"
         );
 
-        Participant memory issuer = _participants[issuerAddress];
+        require(_validatorPool.isValidator(dishonestAddress), "Dishonest Address is not a validator at the moment!");
+
+        Participant memory issuer = _participants[dishonestAddress];
         Participant memory disputer = _participants[msg.sender];
 
         require(
@@ -525,13 +527,13 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
         }
 
         // Then the result is compared to the point in G1 corresponding to the decrypted share.
-        // In this case, either the shared value is invalid, so the issuerAddress
+        // In this case, either the shared value is invalid, so the dishonestAddress
         // should be burned; otherwise, the share is valid, and whoever
         // submitted this accusation should be burned. In any case, someone
         // will have his stake burned.
         tmp = CryptoLibrary.bn128_multiply([CryptoLibrary.G1x, CryptoLibrary.G1y, share]);
         if (result[0] != tmp[0] || result[1] != tmp[1]) {
-            _validatorPool.majorSlash(issuerAddress);
+            _validatorPool.majorSlash(dishonestAddress);
         } else {
             _validatorPool.majorSlash(msg.sender);
         }
@@ -827,6 +829,9 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
                     (block.number <= _phaseStartBlock + 2 * _phaseLength)),
             "ETHDKG: should be in post-GPKJSubmission phase!"
         );
+
+        require(_validatorPool.isValidator(dishonestAddress), "Dishonest Address is not a validator at the moment!");
+
 
         // n is total _participants;
         // t is threshold, so that t+1 is BFT majority.

@@ -1,6 +1,7 @@
 import { validators4 } from "./assets/4-validators-successful-case";
 import { validators10 } from "./assets/10-validators-successful-case";
-import { completeETHDKGRound, expect } from "./setup";
+import { completeETHDKGRound, expect, registerValidators } from "./setup";
+
 
 describe("Complete an ETHDKG Round and change validators", () => {
   it("completes ETHDKG with 10 validators then change to 4 validators", async function () {
@@ -17,10 +18,8 @@ describe("Complete an ETHDKG Round and change validators", () => {
     let [ethdkg, validatorPool, , expectedNonce] = await completeETHDKGRound(
       validators10
     );
-    await validatorPool.removeAllValidators();
-    [, , expectedNonce] = await completeETHDKGRound(validators4, {ethdkg, validatorPool});
 
+    await expect(registerValidators(ethdkg, validatorPool, validators10, expectedNonce))
+    .to.be.revertedWith("ETHDKG: Cannot register at the moment")
   });
-
-
 });

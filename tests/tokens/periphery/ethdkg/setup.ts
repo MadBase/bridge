@@ -1,12 +1,11 @@
-import { expect } from "../../../chai-setup";
+import { expect, assert } from "../../../chai-setup";
 import { ethers, network } from "hardhat";
 import { BigNumber, BigNumberish, ContractTransaction } from "ethers";
-import { assert } from "chai";
 import { ETHDKG, ValidatorPoolMock } from "../../../../typechain-types";
 
 export const PLACEHOLDER_ADDRESS = "0x0000000000000000000000000000000000000000";
 
-export { expect } from "../../../chai-setup";
+export { expect, assert } from "../../../chai-setup";
 
 export enum Phase {
   RegistrationOpen,
