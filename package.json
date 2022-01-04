@@ -2,7 +2,7 @@
   "name": "bridge",
   "scripts": {
     "test": "hardhat test",
-    "test:parallel": "npx mocha --require hardhat/register --recursive --parallel --exit --timeout 60000 --extension ts tests/"
+    "test:parallel": "npx mocha --require hardhat/register --recursive --parallel --exit --timeout 60000 --jobs 8 --full-trace --extension ts tests/"
   },
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "^2.0.3",

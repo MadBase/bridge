@@ -6,7 +6,7 @@ import { ETHDKG, ValidatorPoolMock } from "../../../../typechain-types";
 
 export const PLACEHOLDER_ADDRESS = "0x0000000000000000000000000000000000000000";
 
-export {expect} from "../../../chai-setup";
+export { expect } from "../../../chai-setup";
 
 export enum Phase {
   RegistrationOpen,
