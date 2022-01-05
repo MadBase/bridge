@@ -6,6 +6,8 @@ import "./StakingLibrary.sol";
 
 import "../../QueueLibrary.sol";
 
+import "../interfaces/ETHDKG.sol";
+
 library ParticipantsLibrary {
 
     bytes32 constant STORAGE_LOCATION = keccak256("participants.storage");
@@ -25,6 +27,7 @@ library ParticipantsLibrary {
         bool validatorsChanged;
         uint256 minimumStake;
         QueueLibrary.Queue queue;
+        ETHDKG ethdkgDiamond;
     }
 
     function participantsStorage() internal pure returns (ParticipantsStorage storage ps) {

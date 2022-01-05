@@ -3,6 +3,7 @@ pragma solidity >=0.6.4;
 pragma abicoder v2;
 
 import "../interfaces/Participants.sol";
+import "../interfaces/ETHDKG.sol";
 
 import "./AccessControlLibrary.sol";
 import "./ChainStatusLibrary.sol";
@@ -17,6 +18,11 @@ contract ParticipantsFacet is AccessControlled, Constants, Participants, Stoppab
 
     function initializeParticipants(Registry registry) external onlyOwner override {
         require(address(registry) != address(0), "nil registry address");
+        
+        address ethdkgAddr = registry.lookup(ETHDKG_CONTRACT);
+        require(ethdkgAddr != address(0), "missing ethdkg address");
+
+        ParticipantsLibrary.participantsStorage().ethdkgDiamond = ETHDKG(ethdkgAddr);
     }
 
     function confirmValidators() external override returns (bool) {

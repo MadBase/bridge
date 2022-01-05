@@ -4,6 +4,7 @@ pragma abicoder v2;
 
 import "./ChainStatusLibrary.sol";
 import "./ParticipantsLibrary.sol";
+import "./EthDKGLibrary.sol";
 import "./StakingLibrary.sol";
 import "../../parsers/RCertParserLibrary.sol";
 
@@ -88,8 +89,6 @@ library SnapshotsLibrary {
         return snapshotDetail.madHeight;
     }
     
-    event log(string _message, int _i);
-
     /// @notice Saves next snapshot
     /// @param _signatureGroup The signature
     /// @param _bclaims The claims being made about given block
@@ -128,8 +127,8 @@ library SnapshotsLibrary {
         uint ethBlocksSinceLastSnapshot;
         {
             Snapshot memory previousSnapshot = ss.snapshots[cs.epoch-1];
+            ethBlocksSinceLastSnapshot = block.number - previousSnapshot.ethHeight;
             if (cs.epoch > 1) {
-                ethBlocksSinceLastSnapshot = block.number - previousSnapshot.ethHeight;
 
                 require(
                     !previousSnapshot.saved || ethBlocksSinceLastSnapshot >= ss.minEthSnapshotSize,
@@ -144,27 +143,21 @@ library SnapshotsLibrary {
         }
 
         {
-            int index = -1;
-            
             ParticipantsLibrary.ParticipantsStorage storage ps = ParticipantsLibrary.participantsStorage();
             {
                 StakingLibrary.StakingStorage storage stakingS = StakingLibrary.stakingStorage();
                 for (uint idx=0; idx<ps.validators.length; idx++) {
                     if (msg.sender==ps.validators[idx]) {
-                        index = int(idx);
                         StakingLibrary.lockRewardFor(ps.validators[idx], stakingS.rewardAmount + stakingS.rewardBonus, cs.epoch+2);
                     } else {
                         StakingLibrary.lockRewardFor(ps.validators[idx], stakingS.rewardAmount, cs.epoch+2);
                     }
                 }
             }
-            {
-                emit log("index", index);
-            }
-            require(index != -1, "unknown validator");
+
             require(
-                mayValidatorSnapshot(int(ps.validators.length), index, int(ethBlocksSinceLastSnapshot)-int(ss.snapshotDesperationDelay), _signatureGroup, int(ss.snapshotDesperationFactor)),
-                string(abi.encodePacked("validator not among allowed ", int2str(index), ", ", int2str(int(ethBlocksSinceLastSnapshot)-int(ss.snapshotDesperationDelay)), ", ", int2str(int(ss.snapshotDesperationFactor))))
+                mayValidatorSnapshot(int(ps.ethdkgDiamond.numberOfRegistrations()), int(ps.ethdkgDiamond.validatorIndex(msg.sender)), int(ethBlocksSinceLastSnapshot)-int(ss.snapshotDesperationDelay), keccak256(_bclaims), int(ss.snapshotDesperationFactor)),
+                string(abi.encodePacked("validator not among allowed ", int2str(int(ethBlocksSinceLastSnapshot)-int(ss.snapshotDesperationDelay)), ", ", int2str(int(ss.snapshotDesperationFactor))))
             );
         }
         
@@ -182,7 +175,7 @@ library SnapshotsLibrary {
         return reinitEthdkg;
     }
 
-    function mayValidatorSnapshot(int numValidators, int myIdx, int blocksSinceDesperation, bytes memory blsig, int desperationFactor) public pure returns (bool) {        
+    function mayValidatorSnapshot(int numValidators, int myIdx, int blocksSinceDesperation, bytes32 blsig, int desperationFactor) public pure returns (bool) {        
         int numValidatorsAllowed = 1;
         
         for (int i = blocksSinceDesperation; i > 0;) {
@@ -192,18 +185,18 @@ library SnapshotsLibrary {
             if (numValidatorsAllowed > numValidators/3) break;
         }
         
-        uint rand;
-        require(blsig.length >= 32, "slicing out of range");
-        assembly {
-            rand := mload(add(blsig, 0x20)) // load underlying memory buffer as uint256, but skip first 32 bytes as these define the length
-        }
-
-        int start = int(rand%uint(numValidators));
-        int end = (start + numValidatorsAllowed)%numValidators;
+        uint rand = uint(blsig);
+        int start = int(rand % uint(numValidators));
+        int end = (start + numValidatorsAllowed) % numValidators;
+        
         if (end > start) {
-            return myIdx >= start && myIdx < end;
+            bool ret = myIdx >= start && myIdx < end;
+            if (!ret) revert(string(abi.encodePacked(int2str(numValidators), ", ", int2str(myIdx), ", ", int2str(blocksSinceDesperation), ", ", bytes2str(abi.encodePacked(blsig)), int2str(desperationFactor), ", ", int2str(start), ", ", int2str(end))));
+            return ret;
         } else {
-            return myIdx >= start || myIdx < end;
+            bool ret = myIdx >= start || myIdx < end;
+            if (!ret) revert(string(abi.encodePacked(int2str(numValidators), ", ", int2str(myIdx), ", ", int2str(blocksSinceDesperation), ", ", bytes2str(abi.encodePacked(blsig)), int2str(desperationFactor), ", ", int2str(start), ", ", int2str(end))));
+            return ret;
         }
     }
     
@@ -223,7 +216,7 @@ library SnapshotsLibrary {
         for (uint i = u; i != 0; i /= 10) {
             b[--j] = bytes1(uint8(48 + i % 10));
         }
-        if (neg) b[0] = '-';
+        if (neg) b[0] = "-";
         
         return string(b);
     }

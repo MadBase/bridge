@@ -54,6 +54,13 @@ contract EthDKGInformationFacet is Constants {
     function addresses(uint256 idx) external view returns (address) {
         return EthDKGLibrary.ethDKGStorage().addresses[idx];
     }
+    
+    function validatorIndex(address addr) public view returns (uint256) {
+        EthDKGLibrary.EthDKGStorage storage s = EthDKGLibrary.ethDKGStorage();
+        uint256 index = s.indices[addr];
+        require(s.addresses[index] == addr, "not a validator"); // check needed because index 0 can mean either the first validator, or an invalid validator
+        return index;
+    }
 
     function publicKeys(address addr, uint256 idx) external view returns (uint256) {
         return EthDKGLibrary.ethDKGStorage().public_keys[addr][idx];

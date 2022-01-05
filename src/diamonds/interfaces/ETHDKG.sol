@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT-open-group
+    // SPDX-License-Identifier: MIT-open-group
 pragma solidity >=0.5.15;
 pragma abicoder v2;
 
@@ -35,6 +35,8 @@ interface ETHDKG is ETHDKGEvents {
     function initializeEthDKG(Registry) external;
 
     function addresses(uint256 idx) external view returns (address);
+    
+    function validatorIndex(address addr) external view returns (uint256);
 
     function publicKeys(address addr, uint256 idx) external view returns (uint256);
 
