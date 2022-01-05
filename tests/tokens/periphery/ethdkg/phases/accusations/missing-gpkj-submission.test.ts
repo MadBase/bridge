@@ -8,6 +8,7 @@ import {
   startAtGPKJ,
   submitValidatorsGPKJ,
   expect,
+  getValidatorEthAccount,
 } from "../../setup";
 
 describe("Accuse participant of not submitting GPKj", () => {
@@ -35,7 +36,7 @@ describe("Accuse participant of not submitting GPKj", () => {
     // should not allow to finish ethdkg
     await endCurrentPhase(ethdkg);
     await expect(
-      ethdkg.connect(await ethers.getSigner(validators4[0].address)).complete()
+      ethdkg.connect(await getValidatorEthAccount(validators4[0].address)).complete()
     ).to.be.revertedWith("ETHDKG: cannot complete yet");
   });
 
@@ -88,7 +89,7 @@ describe("Accuse participant of not submitting GPKj", () => {
 
     // should not allow to finish ethdkg
     await expect(
-      ethdkg.connect(await ethers.getSigner(validators4[0].address)).complete()
+      ethdkg.connect(await getValidatorEthAccount(validators4[0].address)).complete()
     ).to.be.revertedWith("ETHDKG: cannot complete yet");
 
     await assertETHDKGPhase(ethdkg, Phase.GPKJSubmission);
@@ -148,7 +149,7 @@ describe("Accuse participant of not submitting GPKj", () => {
 
     // should not allow finishing ethdkg
     await expect(
-      ethdkg.connect(await ethers.getSigner(validators4[1].address)).complete()
+      ethdkg.connect(await getValidatorEthAccount(validators4[1].address)).complete()
     ).to.be.revertedWith("ETHDKG: cannot complete yet");
 
     await assertETHDKGPhase(ethdkg, Phase.GPKJSubmission);

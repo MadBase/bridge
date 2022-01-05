@@ -5,6 +5,7 @@ import {
   assertEventValidatorSetCompleted,
   endCurrentPhase,
   expect,
+  getValidatorEthAccount,
   Phase,
   PLACEHOLDER_ADDRESS,
   startAtGPKJ,
@@ -25,7 +26,7 @@ describe("ETHDKG Completion", () => {
     );
 
     await expect(
-      ethdkg.connect(await ethers.getSigner(validators4[0].address)).complete()
+      ethdkg.connect(await getValidatorEthAccount(validators4[0].address)).complete()
     ).to.be.revertedWith("ETHDKG: cannot complete yet");
 
     await assertETHDKGPhase(ethdkg, Phase.DisputeGPKJSubmission);
@@ -33,7 +34,7 @@ describe("ETHDKG Completion", () => {
     await assertETHDKGPhase(ethdkg, Phase.DisputeGPKJSubmission);
 
     let tx = await ethdkg
-      .connect(await ethers.getSigner(validators4[0].address))
+      .connect(await getValidatorEthAccount(validators4[0].address))
       .complete();
 
     await assertEventValidatorSetCompleted(
@@ -60,7 +61,7 @@ describe("ETHDKG Completion", () => {
     );
 
     await expect(
-      ethdkg.connect(await ethers.getSigner(validators4[0].address)).complete()
+      ethdkg.connect(await getValidatorEthAccount(validators4[0].address)).complete()
     ).to.be.revertedWith("ETHDKG: cannot complete yet");
 
     await assertETHDKGPhase(ethdkg, Phase.DisputeGPKJSubmission);
@@ -71,7 +72,7 @@ describe("ETHDKG Completion", () => {
     await expect(
       ethdkg
         .connect(
-          await ethers.getSigner("0x26D3D8Ab74D62C26f1ACc220dA1646411c9880Ac")
+          await getValidatorEthAccount("0x26D3D8Ab74D62C26f1ACc220dA1646411c9880Ac")
         )
         .complete()
     ).to.be.revertedWith("ETHDKG: Only validators allowed!");
@@ -90,7 +91,7 @@ describe("ETHDKG Completion", () => {
     );
 
     await expect(
-      ethdkg.connect(await ethers.getSigner(validators4[0].address)).complete()
+      ethdkg.connect(await getValidatorEthAccount(validators4[0].address)).complete()
     ).to.be.revertedWith("ETHDKG: cannot complete yet");
 
     await assertETHDKGPhase(ethdkg, Phase.DisputeGPKJSubmission);
@@ -98,7 +99,7 @@ describe("ETHDKG Completion", () => {
     await assertETHDKGPhase(ethdkg, Phase.DisputeGPKJSubmission);
 
     let tx = await ethdkg
-      .connect(await ethers.getSigner(validators4[0].address))
+      .connect(await getValidatorEthAccount(validators4[0].address))
       .complete();
 
     await assertEventValidatorSetCompleted(
@@ -113,7 +114,7 @@ describe("ETHDKG Completion", () => {
 
     // try completing again
     await expect(
-      ethdkg.connect(await ethers.getSigner(validators4[0].address)).complete()
+      ethdkg.connect(await getValidatorEthAccount(validators4[0].address)).complete()
     ).to.be.revertedWith("ETHDKG: cannot complete yet");
   });
 
@@ -130,7 +131,7 @@ describe("ETHDKG Completion", () => {
     );
 
     await expect(
-      ethdkg.connect(await ethers.getSigner(validators4[0].address)).complete()
+      ethdkg.connect(await getValidatorEthAccount(validators4[0].address)).complete()
     ).to.be.revertedWith("ETHDKG: cannot complete yet");
 
     await assertETHDKGPhase(ethdkg, Phase.DisputeGPKJSubmission);
@@ -138,7 +139,7 @@ describe("ETHDKG Completion", () => {
     await assertETHDKGPhase(ethdkg, Phase.DisputeGPKJSubmission);
 
     let tx = await ethdkg
-      .connect(await ethers.getSigner(validators4[0].address))
+      .connect(await getValidatorEthAccount(validators4[0].address))
       .complete();
 
     await assertEventValidatorSetCompleted(
@@ -154,13 +155,13 @@ describe("ETHDKG Completion", () => {
     // try participating in previous phases
     await expect(
       ethdkg
-        .connect(await ethers.getSigner(validators4[0].address))
+        .connect(await getValidatorEthAccount(validators4[0].address))
         .register(validators4[0].madNetPublicKey)
     ).to.be.revertedWith("ETHDKG: Cannot register at the moment");
 
     await expect(
       ethdkg
-        .connect(await ethers.getSigner(validators4[0].address))
+        .connect(await getValidatorEthAccount(validators4[0].address))
         .accuseParticipantNotRegistered([])
     ).to.be.revertedWith(
       "ETHDKG: should be in post-registration accusation phase!"
@@ -168,7 +169,7 @@ describe("ETHDKG Completion", () => {
 
     await expect(
       ethdkg
-        .connect(await ethers.getSigner(validators4[0].address))
+        .connect(await getValidatorEthAccount(validators4[0].address))
         .distributeShares(
           validators4[0].encryptedShares,
           validators4[0].commitments
@@ -177,7 +178,7 @@ describe("ETHDKG Completion", () => {
 
     await expect(
       ethdkg
-        .connect(await ethers.getSigner(validators4[0].address))
+        .connect(await getValidatorEthAccount(validators4[0].address))
         .accuseParticipantDidNotDistributeShares([])
     ).to.be.revertedWith(
       "ETHDKG: should be in post-ShareDistribution accusation phase!"
@@ -185,7 +186,7 @@ describe("ETHDKG Completion", () => {
 
     await expect(
       ethdkg
-        .connect(await ethers.getSigner(validators4[0].address))
+        .connect(await getValidatorEthAccount(validators4[0].address))
         .accuseParticipantDistributedBadShares(
           PLACEHOLDER_ADDRESS,
           0,
@@ -202,7 +203,7 @@ describe("ETHDKG Completion", () => {
 
     await expect(
       ethdkg
-        .connect(await ethers.getSigner(validators4[0].address))
+        .connect(await getValidatorEthAccount(validators4[0].address))
         .submitKeyShare(
           validators4[0].keyShareG1,
           validators4[0].keyShareG1CorrectnessProof,
@@ -214,13 +215,13 @@ describe("ETHDKG Completion", () => {
 
     await expect(
       ethdkg
-        .connect(await ethers.getSigner(validators4[0].address))
+        .connect(await getValidatorEthAccount(validators4[0].address))
         .accuseParticipantDidNotSubmitKeyShares([])
     ).to.be.revertedWith("ETHDKG: should be in post-KeyShareSubmission phase!");
 
     await expect(
       ethdkg
-        .connect(await ethers.getSigner(validators4[0].address))
+        .connect(await getValidatorEthAccount(validators4[0].address))
         .submitMasterPublicKey([0, 0, 0, 0])
     ).to.be.revertedWith(
       "ETHDKG: cannot participate on master public key submission phase"
@@ -228,19 +229,19 @@ describe("ETHDKG Completion", () => {
 
     await expect(
       ethdkg
-        .connect(await ethers.getSigner(validators4[0].address))
+        .connect(await getValidatorEthAccount(validators4[0].address))
         .submitGPKj([0, 0, 0, 0])
     ).to.be.revertedWith("ETHDKG: Not in GPKJ submission phase");
 
     await expect(
       ethdkg
-        .connect(await ethers.getSigner(validators4[0].address))
+        .connect(await getValidatorEthAccount(validators4[0].address))
         .accuseParticipantDidNotSubmitGPKJ([])
     ).to.be.revertedWith("ETHDKG: should be in post-GPKJSubmission phase!");
 
     await expect(
       ethdkg
-        .connect(await ethers.getSigner(validators4[0].address))
+        .connect(await getValidatorEthAccount(validators4[0].address))
         .accuseParticipantSubmittedBadGPKj(
           [],
           [],
@@ -251,7 +252,7 @@ describe("ETHDKG Completion", () => {
     ).to.be.revertedWith("ETHDKG: should be in post-GPKJSubmission phase!");
 
     await expect(
-      ethdkg.connect(await ethers.getSigner(validators4[0].address)).complete()
+      ethdkg.connect(await getValidatorEthAccount(validators4[0].address)).complete()
     ).to.be.revertedWith("ETHDKG: cannot complete yet");
   });
 });

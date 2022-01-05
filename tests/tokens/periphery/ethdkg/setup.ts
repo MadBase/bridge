@@ -1,6 +1,12 @@
 import { expect, assert } from "../../../chai-setup";
 import { ethers, network } from "hardhat";
-import { BigNumber, BigNumberish, ContractTransaction } from "ethers";
+import {
+  BigNumber,
+  BigNumberish,
+  ContractTransaction,
+  Signer,
+  Wallet,
+} from "ethers";
 import { ETHDKG, ValidatorPoolMock } from "../../../../typechain-types";
 
 export const PLACEHOLDER_ADDRESS = "0x0000000000000000000000000000000000000000";
@@ -19,6 +25,7 @@ export enum Phase {
 }
 
 export interface ValidatorRawData {
+  privateKey?: string;
   address: string;
   madNetPublicKey: [BigNumberish, BigNumberish];
   encryptedShares: BigNumberish[];
@@ -28,6 +35,8 @@ export interface ValidatorRawData {
   keyShareG2: [BigNumberish, BigNumberish, BigNumberish, BigNumberish];
   mpk: [BigNumberish, BigNumberish, BigNumberish, BigNumberish];
   gpkj: [BigNumberish, BigNumberish, BigNumberish, BigNumberish];
+  sharedKey?: [BigNumberish, BigNumberish];
+  sharedKeyProof?: [BigNumberish, BigNumberish];
 }
 
 /**
@@ -61,6 +70,28 @@ export const getBlockByNumber = async () => {
 
 export const getPendingTransactions = async () => {
   return await network.provider.send("eth_pendingTransactions");
+};
+
+export const getValidatorEthAccount = async (
+  validator: ValidatorRawData | string
+): Promise<Signer> => {
+  if (typeof validator === "string") {
+    return ethers.getSigner(validator);
+  } else {
+    let balance = await ethers.provider.getBalance(validator.address);
+    if (balance.eq(0)) {
+      await (
+        await ethers.getSigner("0x546F99F244b7B58B855330AE0E2BC1b30b41302F")
+      ).sendTransaction({
+        to: validator.address,
+        value: ethers.utils.parseEther("10"),
+      });
+    }
+    if (typeof validator.privateKey !== "undefined") {
+      return new Wallet(validator.privateKey, ethers.provider);
+    }
+    return ethers.getSigner(validator.address);
+  }
 };
 
 export const getFixture = async () => {
@@ -430,7 +461,7 @@ export const registerValidators = async (
   for (let validator of validators) {
     let numParticipantsBefore = await ethdkg.getNumParticipants();
     let tx = ethdkg
-      .connect(await ethers.getSigner(validator.address))
+      .connect(await getValidatorEthAccount(validator))
       .register(validator.madNetPublicKey);
     let receipt = await tx;
     let participant = await ethdkg.getParticipantInternalState(
@@ -439,7 +470,7 @@ export const registerValidators = async (
     expect(tx)
       .to.emit(ethdkg, "AddressRegistered")
       .withArgs(
-        validator.address,
+        ethers.utils.getAddress(validator.address),
         participant.index,
         expectedNonce,
         validator.madNetPublicKey
@@ -467,14 +498,14 @@ export const distributeValidatorsShares = async (
   for (let validator of validators) {
     let numParticipantsBefore = await ethdkg.getNumParticipants();
     let tx = await ethdkg
-      .connect(await ethers.getSigner(validator.address))
+      .connect(await getValidatorEthAccount(validator))
       .distributeShares(validator.encryptedShares, validator.commitments);
     let participant = await ethdkg.getParticipantInternalState(
       validator.address
     );
     await assertEventSharesDistributed(
       tx,
-      validator.address,
+      ethers.utils.getAddress(validator.address),
       participant.index,
       expectedNonce,
       validator.encryptedShares,
@@ -503,7 +534,7 @@ export const submitValidatorsKeyShares = async (
   for (let validator of validators) {
     let numParticipantsBefore = await ethdkg.getNumParticipants();
     let tx = await ethdkg
-      .connect(await ethers.getSigner(validator.address))
+      .connect(await getValidatorEthAccount(validator))
       .submitKeyShare(
         validator.keyShareG1,
         validator.keyShareG1CorrectnessProof,
@@ -514,7 +545,7 @@ export const submitValidatorsKeyShares = async (
     );
     await assertEventKeyShareSubmitted(
       tx,
-      validator.address,
+      ethers.utils.getAddress(validator.address),
       participant.index,
       expectedNonce,
       validator.keyShareG1,
@@ -546,7 +577,7 @@ export const submitMasterPublicKey = async (
   // choose an random validator from the list to send the mpk
   var index = Math.floor(Math.random() * validators.length);
   let tx = await ethdkg
-    .connect(await ethers.getSigner(validators[index].address))
+    .connect(await getValidatorEthAccount(validators[index]))
     .submitMasterPublicKey(validators[index].mpk);
   await assertEventMPKSet(tx, expectedNonce, validators[index].mpk);
   expect(await ethdkg.getNumParticipants()).to.eq(0);
@@ -555,7 +586,7 @@ export const submitMasterPublicKey = async (
   for (let validator of validators) {
     await expect(
       ethdkg
-        .connect(await ethers.getSigner(validator.address))
+        .connect(await getValidatorEthAccount(validator))
         .submitMasterPublicKey(validator.mpk)
     ).to.be.revertedWith(
       "ETHDKG: cannot participate on master public key submission phase"
@@ -574,14 +605,14 @@ export const submitValidatorsGPKJ = async (
   for (let validator of validators) {
     let numParticipantsBefore = await ethdkg.getNumParticipants();
     let tx = await ethdkg
-      .connect(await ethers.getSigner(validator.address))
+      .connect(await getValidatorEthAccount(validator))
       .submitGPKj(validator.gpkj);
     let participant = await ethdkg.getParticipantInternalState(
       validator.address
     );
     await assertEventValidatorMemberAdded(
       tx,
-      validator.address,
+      ethers.utils.getAddress(validator.address),
       participant.index,
       expectedNonce,
       expectedEpoch,
@@ -610,7 +641,7 @@ export const completeETHDKG = async (
   // choose an random validator from the list to send the mpk
   var index = Math.floor(Math.random() * validators.length);
   let tx = await ethdkg
-    .connect(await ethers.getSigner(validators[index].address))
+    .connect(await getValidatorEthAccount(validators[index]))
     .complete();
   await assertEventValidatorSetCompleted(
     tx,
@@ -626,7 +657,7 @@ export const completeETHDKG = async (
   for (let validator of validators) {
     await expect(
       ethdkg
-        .connect(await ethers.getSigner(validator.address))
+        .connect(await getValidatorEthAccount(validator))
         .submitMasterPublicKey(validator.mpk)
     ).to.be.revertedWith(
       "ETHDKG: cannot participate on master public key submission phase"
@@ -647,7 +678,6 @@ export const startAtDistributeShares = async (
   // start ETHDKG
   await initializeETHDKG(ethdkg, validatorPool);
   const expectedNonce = (await ethdkg.getNonce()).toNumber();
-
   // register all validators
   await registerValidators(ethdkg, validatorPool, validators, expectedNonce);
   await waitNextPhaseStartDelay(ethdkg);

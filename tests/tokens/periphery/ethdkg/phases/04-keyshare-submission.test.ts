@@ -8,6 +8,7 @@ import {
   startAtSubmitKeyShares,
   waitNextPhaseStartDelay,
   expect,
+  getValidatorEthAccount,
 } from "../setup";
 
 describe("Submit Key share", () => {
@@ -78,7 +79,7 @@ describe("Submit Key share", () => {
     ];
     await expect(
       ethdkg
-        .connect(await ethers.getSigner(validator11))
+        .connect(await getValidatorEthAccount(validator11))
         .submitKeyShare(
           val11KeyShareG1,
           val11KeyShareG1CorrectnessProof,
@@ -119,13 +120,13 @@ describe("Submit Key share", () => {
     // Submit empty Key shares for all validators
     await expect(
       ethdkg
-        .connect(await ethers.getSigner(validators4[0].address))
+        .connect(await getValidatorEthAccount(validators4[0].address))
         .submitKeyShare(["0", "0"], ["0", "0"], ["0", "0", "0", "0"])
     ).to.be.rejectedWith("key share submission failed invalid key share G1");
 
     await expect(
       ethdkg
-        .connect(await ethers.getSigner(validators4[0].address))
+        .connect(await getValidatorEthAccount(validators4[0].address))
         .submitKeyShare(
           validators4[0].keyShareG1,
           ["0", "0"],
@@ -135,7 +136,7 @@ describe("Submit Key share", () => {
 
     await expect(
       ethdkg
-        .connect(await ethers.getSigner(validators4[0].address))
+        .connect(await getValidatorEthAccount(validators4[0].address))
         .submitKeyShare(
           validators4[0].keyShareG1,
           validators4[0].keyShareG1CorrectnessProof,

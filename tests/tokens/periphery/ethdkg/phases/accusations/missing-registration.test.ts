@@ -11,6 +11,7 @@ import {
   Phase,
   endCurrentAccusationPhase,
   expect,
+  getValidatorEthAccount,
 } from "../../setup";
 
 describe("Missing registration Accusation", () => {
@@ -146,7 +147,7 @@ describe("Missing registration Accusation", () => {
     await endCurrentPhase(ethdkg);
 
     // validator0 should not be able to distribute shares
-    let signer0 = await ethers.getSigner(validators4[0].address);
+    let signer0 = await getValidatorEthAccount(validators4[0].address);
     await expect(
       ethdkg
         .connect(signer0)
@@ -180,7 +181,7 @@ describe("Missing registration Accusation", () => {
     // move to the end of RegistrationOpen phase
     await endCurrentPhase(ethdkg);
 
-    const signer2 = await ethers.getSigner(validators4[2].address);
+    const signer2 = await getValidatorEthAccount(validators4[2].address);
     await expect(
       ethdkg.connect(signer2).register(validators4[2].madNetPublicKey)
     ).to.be.revertedWith("ETHDKG: Cannot register at the moment");
@@ -209,7 +210,7 @@ describe("Missing registration Accusation", () => {
     await endCurrentPhase(ethdkg);
 
     // validator2 should not be able to distribute shares
-    let signer2 = await ethers.getSigner(validators4[2].address);
+    let signer2 = await getValidatorEthAccount(validators4[2].address);
     await expect(
       ethdkg
         .connect(signer2)
@@ -388,7 +389,7 @@ describe("Missing registration Accusation", () => {
     // try to move into Distribute Shares phase
     await expect(
       ethdkg
-        .connect(await ethers.getSigner(validators4[0].address))
+        .connect(await getValidatorEthAccount(validators4[0].address))
         .distributeShares(
           validators4[0].encryptedShares,
           validators4[0].commitments
@@ -440,7 +441,7 @@ describe("Missing registration Accusation", () => {
     // try distributing shares
     await expect(
       ethdkg
-        .connect(await ethers.getSigner(validators10[0].address))
+        .connect(await getValidatorEthAccount(validators10[0].address))
         .distributeShares(
           validators10[0].encryptedShares,
           validators10[0].commitments

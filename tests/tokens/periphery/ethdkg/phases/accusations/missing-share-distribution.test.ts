@@ -6,6 +6,7 @@ import {
   distributeValidatorsShares,
   startAtDistributeShares,
   expect,
+  getValidatorEthAccount,
 } from "../../setup";
 
 describe("Missing distribute share accusation", () => {
@@ -42,7 +43,7 @@ describe("Missing distribute share accusation", () => {
 
     await expect(
       ethdkg
-        .connect(await ethers.getSigner(validators4[0].address))
+        .connect(await getValidatorEthAccount(validators4[0].address))
         .submitKeyShare(
           validators4[0].keyShareG1,
           validators4[0].keyShareG1CorrectnessProof,
@@ -88,7 +89,7 @@ describe("Missing distribute share accusation", () => {
     // user tries to go to the next phase
     await expect(
       ethdkg
-        .connect(await ethers.getSigner(validators4[0].address))
+        .connect(await getValidatorEthAccount(validators4[0].address))
         .submitKeyShare(
           validators4[0].keyShareG1,
           validators4[0].keyShareG1CorrectnessProof,
@@ -121,7 +122,7 @@ describe("Missing distribute share accusation", () => {
     // valid user tries to go to the next phase
     await expect(
       ethdkg
-        .connect(await ethers.getSigner(validators4[0].address))
+        .connect(await getValidatorEthAccount(validators4[0].address))
         .submitKeyShare(
           validators4[0].keyShareG1,
           validators4[0].keyShareG1CorrectnessProof,
@@ -172,7 +173,7 @@ describe("Missing distribute share accusation", () => {
 
     await expect(
       ethdkg
-        .connect(await ethers.getSigner(validators4[2].address))
+        .connect(await getValidatorEthAccount(validators4[2].address))
         .distributeShares(
           validators4[2].encryptedShares,
           validators4[2].commitments
@@ -202,7 +203,7 @@ describe("Missing distribute share accusation", () => {
     // valid user tries to go to the next phase
     await expect(
       ethdkg
-        .connect(await ethers.getSigner(validators4[0].address))
+        .connect(await getValidatorEthAccount(validators4[0].address))
         .submitKeyShare(
           validators4[0].keyShareG1,
           validators4[0].keyShareG1CorrectnessProof,
@@ -215,7 +216,7 @@ describe("Missing distribute share accusation", () => {
     // non-participant user tries to go to the next phase
     await expect(
       ethdkg
-        .connect(await ethers.getSigner(validators4[3].address))
+        .connect(await getValidatorEthAccount(validators4[3].address))
         .submitKeyShare(
           validators4[0].keyShareG1,
           validators4[0].keyShareG1CorrectnessProof,

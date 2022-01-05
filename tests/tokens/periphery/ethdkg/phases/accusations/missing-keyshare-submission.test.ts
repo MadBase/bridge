@@ -6,6 +6,7 @@ import {
   startAtSubmitKeyShares,
   expect,
   endCurrentAccusationPhase,
+  getValidatorEthAccount,
 } from "../../setup";
 
 describe("Accuse participant of not submitting key shares", () => {
@@ -37,7 +38,7 @@ describe("Accuse participant of not submitting key shares", () => {
 
     await expect(
       ethdkg
-        .connect(await ethers.getSigner(validators4[0].address))
+        .connect(await getValidatorEthAccount(validators4[0].address))
         .submitMasterPublicKey(validators4[0].mpk)
     ).to.be.revertedWith(
       "ETHDKG: cannot participate on master public key submission phase"
@@ -75,7 +76,7 @@ describe("Accuse participant of not submitting key shares", () => {
 
     await expect(
       ethdkg
-        .connect(await ethers.getSigner(validators4[0].address))
+        .connect(await getValidatorEthAccount(validators4[0].address))
         .submitMasterPublicKey(validators4[0].mpk)
     ).to.be.revertedWith(
       "ETHDKG: cannot participate on master public key submission phase"
@@ -100,7 +101,7 @@ describe("Accuse participant of not submitting key shares", () => {
 
     await expect(
       ethdkg
-        .connect(await ethers.getSigner(validators4[0].address))
+        .connect(await getValidatorEthAccount(validators4[0].address))
         .submitMasterPublicKey(validators4[0].mpk)
     ).to.be.revertedWith(
       "ETHDKG: cannot participate on master public key submission phase"
@@ -143,7 +144,7 @@ describe("Accuse participant of not submitting key shares", () => {
 
     expect(
       ethdkg
-        .connect(await ethers.getSigner(validators4[2].address))
+        .connect(await getValidatorEthAccount(validators4[2].address))
         .submitKeyShare(
           validators4[2].keyShareG1,
           validators4[2].keyShareG1CorrectnessProof,
@@ -156,7 +157,7 @@ describe("Accuse participant of not submitting key shares", () => {
     // non-participant user tries to go to the next phase
     await expect(
       ethdkg
-        .connect(await ethers.getSigner(validators4[3].address))
+        .connect(await getValidatorEthAccount(validators4[3].address))
         .submitMasterPublicKey(validators4[3].mpk)
     ).to.be.revertedWith(
       "ETHDKG: cannot participate on master public key submission phase"

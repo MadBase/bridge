@@ -59,7 +59,7 @@ const config: HardhatUserConfig = {
           // address: 0x546F99F244b7B58B855330AE0E2BC1b30b41302F
           // admin & validator4
           privateKey: "0x6aea45ee1273170fb525da34015e4f20ba39fe792f486ba74020bcacc9badfc1",
-          balance: "10000000000000000000000", // 10000 eth
+          balance: "1000000000000000000000000", // 1000000 eth
         },
         {
           // address: 0x9AC1c9afBAec85278679fF75Ef109217f26b1417
