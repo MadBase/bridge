@@ -426,7 +426,7 @@ export const registerValidators = async (
   validators: ValidatorRawData[],
   expectedNonce: number
 ) => {
-  validators = shuffle(validators);
+  //validators = shuffle(validators);
   for (let validator of validators) {
     let numParticipantsBefore = await ethdkg.getNumParticipants();
     let tx = ethdkg
@@ -463,7 +463,7 @@ export const distributeValidatorsShares = async (
   validators: ValidatorRawData[],
   expectedNonce: number
 ) => {
-  validators = shuffle(validators);
+  //validators = shuffle(validators);
   for (let validator of validators) {
     let numParticipantsBefore = await ethdkg.getNumParticipants();
     let tx = await ethdkg
@@ -499,7 +499,7 @@ export const submitValidatorsKeyShares = async (
   validators: ValidatorRawData[],
   expectedNonce: number
 ) => {
-  validators = shuffle(validators);
+  //validators = shuffle(validators);
   for (let validator of validators) {
     let numParticipantsBefore = await ethdkg.getNumParticipants();
     let tx = await ethdkg
@@ -570,7 +570,7 @@ export const submitValidatorsGPKJ = async (
   expectedNonce: number,
   expectedEpoch: number
 ) => {
-  validators = shuffle(validators);
+  //validators = shuffle(validators);
   for (let validator of validators) {
     let numParticipantsBefore = await ethdkg.getNumParticipants();
     let tx = await ethdkg
