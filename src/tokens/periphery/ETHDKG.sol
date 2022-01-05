@@ -447,7 +447,7 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
         uint256[2][] memory commitments,
         uint256[2] memory sharedKey,
         uint256[2] memory sharedKeyCorrectnessProof
-    ) external {
+    ) external onlyValidator {
         // We should allow accusation, even if some of the participants didn't participate
         require(
             (_ethdkgPhase == Phase.DisputeShareDistribution &&
@@ -822,7 +822,7 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
         uint256[2][][] memory commitments,
         uint256 dishonestListIdx,
         address dishonestAddress
-    ) external {
+    ) external onlyValidator {
         // We should allow accusation, even if some of the participants didn't participate
         require(
             (_ethdkgPhase == Phase.DisputeGPKJSubmission &&
@@ -836,6 +836,24 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
 
         require(_validatorPool.isValidator(dishonestAddress), "Dishonest Address is not a validator at the moment!");
 
+        Participant memory issuer = _participants[dishonestAddress];
+        Participant memory disputer = _participants[msg.sender];
+
+        require(
+            issuer.nonce == _nonce && issuer.phase == Phase.GPKJSubmission,
+            "ETHDKG: Issuer didn't submit his GPKJ for this round!"
+        );
+
+        require(
+            disputer.nonce == _nonce && disputer.phase == Phase.GPKJSubmission,
+            "ETHDKG: Disputer didn't submit his GPKJ for this round!"
+        );
+
+        // Ensure address submissions are correct; this will be converted to loop later
+        require(
+            dishonestListIdx == issuer.index,
+            "gpkj acc comp failed: dishonest index does not match dishonest address"
+        );
 
         // n is total _participants;
         // t is threshold, so that t+1 is BFT majority.
@@ -876,18 +894,7 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
                 bitMap = _setBit(bitMap, uint8(participant.index));
             }
         }
-        Participant memory issuer = _participants[dishonestAddress];
-
-        require(
-            issuer.nonce == _nonce && issuer.phase == Phase.GPKJSubmission,
-            "ETHDKG: Participant didn't submit his GPKJ for this round!"
-        );
-
-        // Ensure address submissions are correct; this will be converted to loop later
-        require(
-            dishonestListIdx == issuer.index,
-            "gpkj acc comp failed: dishonest index does not match dishonest address"
-        );
+        
         ////////////////////////////////////////////////////////////////////////
         // End initial check
 

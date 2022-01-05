@@ -16,7 +16,7 @@ import {
   completeETHDKG,
 } from "../setup";
 
-describe("Distribute bad shares accusation", () => {
+describe("Dispute bad shares", () => {
 
   it("should not allow accusations before time", async function () {
     let [ethdkg, validatorPool, expectedNonce] = await startAtDistributeShares(
@@ -26,7 +26,7 @@ describe("Distribute bad shares accusation", () => {
     await assertETHDKGPhase(ethdkg, Phase.ShareDistribution);
 
     // try accusing bad shares
-    await expect(ethdkg.accuseParticipantDistributedBadShares(PLACEHOLDER_ADDRESS, 0, 0, [], [[0,0]], [0,0], [0,0]))
+    await expect(ethdkg.connect(await ethers.getSigner(validators4[0].address)).accuseParticipantDistributedBadShares(PLACEHOLDER_ADDRESS, 0, 0, [], [[0,0]], [0,0], [0,0]))
     .to.be.revertedWith("Dispute failed! Contract is not in dispute phase")
   });
 
@@ -35,14 +35,10 @@ describe("Distribute bad shares accusation", () => {
       validators4
     );
 
-    // try accusing bad shares
-    await expect(ethdkg.accuseParticipantDistributedBadShares(PLACEHOLDER_ADDRESS, 0, 0, [], [[0,0]], [0,0], [0,0]))
-    .to.be.revertedWith("Dispute failed! Contract is not in dispute phase")
-    
     await assertETHDKGPhase(ethdkg, Phase.ShareDistribution);
 
     // try accusing bad shares
-    await expect(ethdkg.accuseParticipantDistributedBadShares(PLACEHOLDER_ADDRESS, 0, 0, [], [[0,0]], [0,0], [0,0]))
+    await expect(ethdkg.connect(await ethers.getSigner(validators4[0].address)).accuseParticipantDistributedBadShares(PLACEHOLDER_ADDRESS, 0, 0, [], [[0,0]], [0,0], [0,0]))
     .to.be.revertedWith("Dispute failed! Contract is not in dispute phase")
 
     // distribute shares
@@ -62,14 +58,14 @@ describe("Distribute bad shares accusation", () => {
     await submitValidatorsKeyShares(ethdkg, validatorPool, validators4, expectedNonce)
 
     // try accusing bad shares
-    await expect(ethdkg.accuseParticipantDistributedBadShares(PLACEHOLDER_ADDRESS, 0, 0, [], [[0,0]], [0,0], [0,0]))
+    await expect(ethdkg.connect(await ethers.getSigner(validators4[0].address)).accuseParticipantDistributedBadShares(PLACEHOLDER_ADDRESS, 0, 0, [], [[0,0]], [0,0], [0,0]))
     .to.be.revertedWith("Dispute failed! Contract is not in dispute phase")
 
     //await endCurrentPhase(ethdkg)
     await assertETHDKGPhase(ethdkg, Phase.MPKSubmission);
 
     // try accusing bad shares
-    await expect(ethdkg.accuseParticipantDistributedBadShares(PLACEHOLDER_ADDRESS, 0, 0, [], [[0,0]], [0,0], [0,0]))
+    await expect(ethdkg.connect(await ethers.getSigner(validators4[0].address)).accuseParticipantDistributedBadShares(PLACEHOLDER_ADDRESS, 0, 0, [], [[0,0]], [0,0], [0,0]))
     .to.be.revertedWith("Dispute failed! Contract is not in dispute phase")
 
     // submit MPK
@@ -79,7 +75,7 @@ describe("Distribute bad shares accusation", () => {
     await assertETHDKGPhase(ethdkg, Phase.GPKJSubmission);
 
     // try accusing bad shares
-    await expect(ethdkg.accuseParticipantDistributedBadShares(PLACEHOLDER_ADDRESS, 0, 0, [], [[0,0]], [0,0], [0,0]))
+    await expect(ethdkg.connect(await ethers.getSigner(validators4[0].address)).accuseParticipantDistributedBadShares(PLACEHOLDER_ADDRESS, 0, 0, [], [[0,0]], [0,0], [0,0]))
     .to.be.revertedWith("Dispute failed! Contract is not in dispute phase")
     
     // submit GPKj
@@ -88,13 +84,13 @@ describe("Distribute bad shares accusation", () => {
     await assertETHDKGPhase(ethdkg, Phase.DisputeGPKJSubmission)
 
     // try accusing bad shares
-    await expect(ethdkg.accuseParticipantDistributedBadShares(PLACEHOLDER_ADDRESS, 0, 0, [], [[0,0]], [0,0], [0,0]))
+    await expect(ethdkg.connect(await ethers.getSigner(validators4[0].address)).accuseParticipantDistributedBadShares(PLACEHOLDER_ADDRESS, 0, 0, [], [[0,0]], [0,0], [0,0]))
     .to.be.revertedWith("Dispute failed! Contract is not in dispute phase")
 
     await endCurrentPhase(ethdkg)
 
     // try accusing bad shares
-    await expect(ethdkg.accuseParticipantDistributedBadShares(PLACEHOLDER_ADDRESS, 0, 0, [], [[0,0]], [0,0], [0,0]))
+    await expect(ethdkg.connect(await ethers.getSigner(validators4[0].address)).accuseParticipantDistributedBadShares(PLACEHOLDER_ADDRESS, 0, 0, [], [[0,0]], [0,0], [0,0]))
     .to.be.revertedWith("Dispute failed! Contract is not in dispute phase")
 
     // complete ethdkg
@@ -103,7 +99,7 @@ describe("Distribute bad shares accusation", () => {
     await assertETHDKGPhase(ethdkg, Phase.Completion)
 
     // try accusing bad shares
-    await expect(ethdkg.accuseParticipantDistributedBadShares(PLACEHOLDER_ADDRESS, 0, 0, [], [[0,0]], [0,0], [0,0]))
+    await expect(ethdkg.connect(await ethers.getSigner(validators4[0].address)).accuseParticipantDistributedBadShares(PLACEHOLDER_ADDRESS, 0, 0, [], [[0,0]], [0,0], [0,0]))
     .to.be.revertedWith("Dispute failed! Contract is not in dispute phase")
   });
 
@@ -130,7 +126,7 @@ describe("Distribute bad shares accusation", () => {
     .to.be.revertedWith("Dispute failed! Issuer did not distribute shares!")
   });
 
-  it("should not allow accusation of a non-participating validator", async function () {
+  it("should not allow accusation from a non-participating validator", async function () {
     let [ethdkg, validatorPool, expectedNonce] = await startAtDistributeShares(
       validators4
     );
