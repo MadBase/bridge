@@ -10,6 +10,7 @@ import {
   startAtMPKSubmission,
   assertEventMPKSet,
   expect,
+  getValidatorEthAccount,
 } from "../setup";
 
 describe("Submit Master Public Key", () => {
@@ -31,7 +32,7 @@ describe("Submit Master Public Key", () => {
 
     await expect(
       ethdkg
-        .connect(await ethers.getSigner(validators4[3].address))
+        .connect(await getValidatorEthAccount(validators4[3].address))
         .submitMasterPublicKey(validators4[3].mpk)
     ).to.be.rejectedWith(
       "ETHDKG: cannot participate on master public key submission phase"
@@ -49,7 +50,7 @@ describe("Submit Master Public Key", () => {
       validators4[0].mpk;
 
     const tx = await ethdkg
-      .connect(await ethers.getSigner(validator11))
+      .connect(await getValidatorEthAccount(validator11))
       .submitMasterPublicKey(val11MPK);
 
     await assertEventMPKSet(tx, expectedNonce, val11MPK);
@@ -66,14 +67,14 @@ describe("Submit Master Public Key", () => {
       validators4[0].mpk;
 
     const tx = await ethdkg
-      .connect(await ethers.getSigner(validator11))
+      .connect(await getValidatorEthAccount(validator11))
       .submitMasterPublicKey(val11MPK);
 
     await assertEventMPKSet(tx, expectedNonce, val11MPK);
 
     await expect(
       ethdkg
-        .connect(await ethers.getSigner(validator11))
+        .connect(await getValidatorEthAccount(validator11))
         .submitMasterPublicKey(val11MPK)
     ).to.be.revertedWith(
       "ETHDKG: cannot participate on master public key submission phase"
@@ -95,7 +96,7 @@ describe("Submit Master Public Key", () => {
 
     await expect(
       ethdkg
-        .connect(await ethers.getSigner(validators4[0].address))
+        .connect(await getValidatorEthAccount(validators4[0].address))
         .submitMasterPublicKey(mpk)
     ).to.be.revertedWith("master key submission pairing check failed");
   });

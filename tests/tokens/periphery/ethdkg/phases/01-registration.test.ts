@@ -6,6 +6,7 @@ import {
   addValidators,
   initializeETHDKG,
   expect,
+  getValidatorEthAccount,
 } from "../setup";
 
 describe("Registration Open", () => {
@@ -20,7 +21,7 @@ describe("Registration Open", () => {
     // register validator0
     await expect(
       ethdkg
-        .connect(await ethers.getSigner(validators4[0].address))
+        .connect(await getValidatorEthAccount(validators4[0].address))
         .register(validators4[0].madNetPublicKey)
     ).to.be.revertedWith("ETHDKG: Cannot register at the moment");
   });
@@ -36,14 +37,14 @@ describe("Registration Open", () => {
     // register one validator
     await expect(
       ethdkg
-        .connect(await ethers.getSigner(validators4[0].address))
+        .connect(await getValidatorEthAccount(validators4[0].address))
         .register(validators4[0].madNetPublicKey)
     ).to.emit(ethdkg, "AddressRegistered");
 
     // register that same validator again
     await expect(
       ethdkg
-        .connect(await ethers.getSigner(validators4[0].address))
+        .connect(await getValidatorEthAccount(validators4[0].address))
         .register(validators4[0].madNetPublicKey)
     ).to.be.revertedWith(
       "Participant is already participating in this ETHDKG round"
@@ -61,7 +62,7 @@ describe("Registration Open", () => {
     await initializeETHDKG(ethdkg, validatorPool);
 
     // register validator0 with invalid pubkey
-    const signer0 = await ethers.getSigner(validators4[0].address);
+    const signer0 = await getValidatorEthAccount(validators4[0].address);
     await expect(
       ethdkg
         .connect(signer0)
@@ -97,7 +98,7 @@ describe("Registration Open", () => {
     await expect(
       ethdkg
         .connect(
-          await ethers.getSigner("0x26D3D8Ab74D62C26f1ACc220dA1646411c9880Ac")
+          await getValidatorEthAccount("0x26D3D8Ab74D62C26f1ACc220dA1646411c9880Ac")
         )
         .register([BigNumber.from("0"), BigNumber.from("0")])
     ).to.be.revertedWith("ETHDKG: Only validators allowed!");

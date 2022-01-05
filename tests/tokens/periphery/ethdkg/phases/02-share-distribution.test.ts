@@ -10,6 +10,7 @@ import {
   distributeValidatorsShares,
   startAtDistributeShares,
   expect,
+  getValidatorEthAccount,
 } from "../setup";
 
 describe("Distribute Shares", () => {
@@ -53,7 +54,7 @@ describe("Distribute Shares", () => {
     await expect(
       ethdkg
         .connect(
-          await ethers.getSigner("0x26D3D8Ab74D62C26f1ACc220dA1646411c9880Ac")
+          await getValidatorEthAccount("0x26D3D8Ab74D62C26f1ACc220dA1646411c9880Ac")
         )
         .distributeShares(
           [BigNumber.from("0")],
@@ -95,7 +96,7 @@ describe("Distribute Shares", () => {
     // distribute shares with empty data
     await expect(
       ethdkg
-        .connect(await ethers.getSigner(validators4[0].address))
+        .connect(await getValidatorEthAccount(validators4[0].address))
         .distributeShares([BigNumber.from("0")], validators4[0].commitments)
     ).to.be.rejectedWith(
       "share distribution failed, invalid number of encrypted shares provided"
@@ -103,7 +104,7 @@ describe("Distribute Shares", () => {
 
     await expect(
       ethdkg
-        .connect(await ethers.getSigner(validators4[0].address))
+        .connect(await getValidatorEthAccount(validators4[0].address))
         .distributeShares(validators4[0].encryptedShares, [
           [BigNumber.from("0"), BigNumber.from("0")],
         ])
@@ -113,7 +114,7 @@ describe("Distribute Shares", () => {
 
     await expect(
       ethdkg
-        .connect(await ethers.getSigner(validators4[0].address))
+        .connect(await getValidatorEthAccount(validators4[0].address))
         .distributeShares(validators4[0].encryptedShares, [
           [BigNumber.from("0"), BigNumber.from("0")],
           [BigNumber.from("0"), BigNumber.from("0")],
@@ -124,7 +125,7 @@ describe("Distribute Shares", () => {
     // the user can send empty encrypted shares on this phase, the accusation window will be
     // handling this!
     let tx = await ethdkg
-      .connect(await ethers.getSigner(validators4[0].address))
+      .connect(await getValidatorEthAccount(validators4[0].address))
       .distributeShares(
         [BigNumber.from("0"), BigNumber.from("0"), BigNumber.from("0")],
         validators4[0].commitments
