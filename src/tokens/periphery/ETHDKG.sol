@@ -473,6 +473,10 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
             "Dispute failed! Issuer is not participating in this ETHDKG round!"
         );
 
+        require(issuer.phase == Phase.ShareDistribution, "Dispute failed! Issuer did not distribute shares!");
+
+        require(disputer.phase == Phase.ShareDistribution, "Dispute failed! Disputer did not distribute shares!");
+
         require(
             issuer.index == issuerListIdx && disputer.index == disputerListIdx,
             "Dispute failed! Invalid list indices for the issuer or for the disputer!"
