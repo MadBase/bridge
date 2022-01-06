@@ -878,6 +878,7 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
                     commitments[k].length == threshold + 1,
                     "gpkj acc comp failed: invalid number of commitments provided"
                 );
+
                 bytes32 commitmentsHash = keccak256(abi.encodePacked(commitments[k]));
                 Participant memory participant = _participants[validators[k]];
                 require(
@@ -886,6 +887,7 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
                         !_isBitSet(bitMap, uint8(participant.index)),
                     "Invalid or duplicated participant address!"
                 );
+
                 require(
                     participant.distributedSharesHash ==
                         keccak256(abi.encodePacked(encryptedSharesHash[k], commitmentsHash)),
@@ -894,7 +896,7 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
                 bitMap = _setBit(bitMap, uint8(participant.index));
             }
         }
-        
+
         ////////////////////////////////////////////////////////////////////////
         // End initial check
 

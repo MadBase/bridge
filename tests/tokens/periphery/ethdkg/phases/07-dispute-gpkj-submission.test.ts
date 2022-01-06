@@ -151,7 +151,7 @@ describe("Dispute GPKj", () => {
     .to.be.revertedWith("ETHDKG: Disputer didn't submit his GPKJ for this round!")
   });
 
-  /* 
+  
   it("should not allow accusation with incorrect data length, or all zeros", async function () {
     let [ethdkg, validatorPool, expectedNonce] = await startAtGPKJ(
       validators4
@@ -211,14 +211,17 @@ describe("Dispute GPKj", () => {
     .to.be.revertedWith("gpkj acc comp failed: dishonest index does not match dishonest address")
 
     // duplicated validator in `validators` input
+    // also create a encryptedSharesHash like keccak256(abi.encodePacked(encryptedShares))
+    const encryptedSharesHash = ethers.utils.solidityKeccak256(["uint256[]"], [validators4[0].encryptedShares])
+
     await expect(ethdkg.connect(await ethers.getSigner(validators4[3].address)).accuseParticipantSubmittedBadGPKj(
-      [validators4[0].address, validators4[1].address, validators4[2].address, validators4[0].address],
-      [validators4[0].encryptedShares, placeholderBytes32, placeholderBytes32, placeholderBytes32],
-      [[[0,0]],[[0,0]],[[0,0]],[[0,0]]],
-      10,
+      [validators4[0].address, validators4[0].address, validators4[1].address, validators4[2].address],
+      [encryptedSharesHash, placeholderBytes32, placeholderBytes32, placeholderBytes32],
+      [validators4[0].commitments, [[0,0], [0,0], [0,0]],[[0,0], [0,0], [0,0]],[[0,0], [0,0], [0,0]]],
+      1,
       validators4[0].address))
-    .to.be.revertedWith("gpkj acc comp failed: dishonest index does not match dishonest address")
+    .to.be.revertedWith("Invalid or duplicated participant address!")
   });
-  */
+  
 
 });
