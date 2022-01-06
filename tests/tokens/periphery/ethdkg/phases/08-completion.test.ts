@@ -189,8 +189,6 @@ describe("ETHDKG Completion", () => {
         .connect(await getValidatorEthAccount(validators4[0].address))
         .accuseParticipantDistributedBadShares(
           PLACEHOLDER_ADDRESS,
-          0,
-          0,
           [],
           [
             [0, 0],
@@ -246,7 +244,6 @@ describe("ETHDKG Completion", () => {
           [],
           [],
           [[[0, 0]]],
-          0,
           PLACEHOLDER_ADDRESS
         )
     ).to.be.revertedWith("ETHDKG: should be in post-GPKJSubmission phase!");

@@ -441,8 +441,6 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
     /// Someone sent bad shares
     function accuseParticipantDistributedBadShares(
         address dishonestAddress,
-        uint256 issuerListIdx,
-        uint256 disputerListIdx,
         uint256[] memory encryptedShares,
         uint256[2][] memory commitments,
         uint256[2] memory sharedKey,
@@ -478,11 +476,6 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
         require(disputer.phase == Phase.ShareDistribution, "Dispute failed! Disputer did not distribute shares!");
 
         require(
-            issuer.index == issuerListIdx && disputer.index == disputerListIdx,
-            "Dispute failed! Invalid list indices for the issuer or for the disputer!"
-        );
-
-        require(
             issuer.distributedSharesHash ==
                 keccak256(
                     abi.encodePacked(
@@ -506,26 +499,28 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
 
         // Since all provided data is valid so far, we load the share and use the verified shared
         // key to decrypt the share for the disputer.
+
         uint256 share;
-        uint256 disputerIdx = disputerListIdx + 1;
-        if (disputerListIdx < issuerListIdx) {
-            share = encryptedShares[disputerListIdx];
+        //uint256 disputerIdx = disputer.index;
+        //uint256 issuerIdx = issuer.index;
+        if (disputer.index < issuer.index) {
+            share = encryptedShares[disputer.index];
         } else {
-            share = encryptedShares[disputerListIdx - 1];
+            share = encryptedShares[disputer.index - 1];
         }
 
-        share ^= uint256(keccak256(abi.encodePacked(sharedKey[0], disputerIdx)));
+        share ^= uint256(keccak256(abi.encodePacked(sharedKey[0], disputer.index)));
 
         // Verify the share for it's correctness using the polynomial defined by the commitments.
         // First, the polynomial (in group G1) is evaluated at the disputer's idx.
-        uint256 x = disputerIdx;
+        uint256 x = disputer.index;
         uint256[2] memory result = commitments[0];
         uint256[2] memory tmp = CryptoLibrary.bn128_multiply(
             [commitments[1][0], commitments[1][1], x]
         );
         result = CryptoLibrary.bn128_add([result[0], result[1], tmp[0], tmp[1]]);
         for (uint256 j = 2; j < commitments.length; j++) {
-            x = mulmod(x, disputerIdx, CryptoLibrary.GROUP_ORDER);
+            x = mulmod(x, disputer.index, CryptoLibrary.GROUP_ORDER);
             tmp = CryptoLibrary.bn128_multiply([commitments[j][0], commitments[j][1], x]);
             result = CryptoLibrary.bn128_add([result[0], result[1], tmp[0], tmp[1]]);
         }
