@@ -820,7 +820,6 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
         address[] memory validators,
         bytes32[] memory encryptedSharesHash,
         uint256[2][][] memory commitments,
-        uint256 dishonestListIdx,
         address dishonestAddress
     ) external onlyValidator {
         // We should allow accusation, even if some of the participants didn't participate
@@ -836,11 +835,11 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
 
         require(_validatorPool.isValidator(dishonestAddress), "Dishonest Address is not a validator at the moment!");
 
-        Participant memory issuer = _participants[dishonestAddress];
+        Participant memory dishonestParticipant = _participants[dishonestAddress];
         Participant memory disputer = _participants[msg.sender];
 
         require(
-            issuer.nonce == _nonce && issuer.phase == Phase.GPKJSubmission,
+            dishonestParticipant.nonce == _nonce && dishonestParticipant.phase == Phase.GPKJSubmission,
             "ETHDKG: Issuer didn't submit his GPKJ for this round!"
         );
 
@@ -849,15 +848,10 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
             "ETHDKG: Disputer didn't submit his GPKJ for this round!"
         );
 
-        // Ensure address submissions are correct; this will be converted to loop later
-        require(
-            dishonestListIdx == issuer.index,
-            "gpkj acc comp failed: dishonest index does not match dishonest address"
-        );
-
+        uint32 badParticipants = _badParticipants;
         // n is total _participants;
         // t is threshold, so that t+1 is BFT majority.
-        uint256 numParticipants = _validatorPool.getValidatorsCount();
+        uint256 numParticipants = _validatorPool.getValidatorsCount() + badParticipants;
         uint256 threshold = _getThreshold(numParticipants);
 
         // Begin initial check
@@ -900,9 +894,6 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
         ////////////////////////////////////////////////////////////////////////
         // End initial check
 
-        // At this point, everything has been validated.
-        uint256 j = dishonestListIdx + 1;
-
         // Info for looping computation
         uint256 pow;
         uint256[2] memory gpkjStar;
@@ -942,7 +933,7 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
 
         // Add linear term
         tmp = commitments[0][1]; // Store initial linear term
-        pow = j;
+        pow = dishonestParticipant.index;
         for (idx = 1; idx < numParticipants; idx++) {
             tmp = CryptoLibrary.bn128_add(
                 [tmp[0], tmp[1], commitments[idx][1][0], commitments[idx][1][1]]
@@ -955,8 +946,7 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
         for (uint256 k = 2; k <= threshold; k++) {
             tmp = commitments[0][k]; // Store initial degree k term
             // Increase pow by factor
-            pow = mulmod(pow, j, CryptoLibrary.GROUP_ORDER);
-            //x = mulmod(x, disputerIdx, GROUP_ORDER);
+            pow = mulmod(pow, dishonestParticipant.index, CryptoLibrary.GROUP_ORDER);
             for (idx = 1; idx < numParticipants; idx++) {
                 tmp = CryptoLibrary.bn128_add(
                     [tmp[0], tmp[1], commitments[idx][k][0], commitments[idx][k][1]]
@@ -969,7 +959,7 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
         // End computation loop
 
         // We now have gpkj*; we now verify.
-        uint256[4] memory gpkj = issuer.gpkj;
+        uint256[4] memory gpkj = dishonestParticipant.gpkj;
         bool isValid = CryptoLibrary.bn128_check_pairing(
             [
                 gpkjStar[0],
@@ -991,7 +981,8 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
         } else {
             _validatorPool.majorSlash(msg.sender);
         }
-        _badParticipants++;
+        badParticipants++;
+        _badParticipants = badParticipants;
     }
 
     // Successful_Completion should be called at the completion of the DKG algorithm.
