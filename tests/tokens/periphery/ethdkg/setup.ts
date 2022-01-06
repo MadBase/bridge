@@ -37,6 +37,9 @@ export interface ValidatorRawData {
   gpkj: [BigNumberish, BigNumberish, BigNumberish, BigNumberish];
   sharedKey?: [BigNumberish, BigNumberish];
   sharedKeyProof?: [BigNumberish, BigNumberish];
+  encryptedSharesHash?: BigNumberish[],
+  groupCommitments?: [BigNumberish, BigNumberish][][],
+
 }
 
 /**
