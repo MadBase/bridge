@@ -18,19 +18,19 @@ describe("MadnetFactory", function () {
         //get the instance of madnetFactory
         const MadnetFactory = await ethers.getContractFactory("MadnetFactory");
         //get the bytecode of the implementation contract
-        const Implementation = await ethers.getContractFactory("foo");
+        //const Implementation = await ethers.getContractFactory("foo");
         //connect to the deployed factory contract
         const madnetFactory = await MadnetFactory.attach(MNaddress);
-        //deployTemplate        
-        let deployTemp = MadnetFactory.interface.encodeFunctionData("deployTemplate", [Implementation.bytecode]);
-        deployTemp = deployTemp + "00000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000000"
+        //deployTemplate 
+        let deployTemp = MadnetFactory.interface.encodeFunctionData("deployTemplate", ["0x67363D3D373D3D3D733D526060331B6008527833146031573D363D30545af43D3D92803D603557fd5b5130555bf3601c52601c3Df3fe00000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000000"]);
+        //deployTemp = deployTemp + "00000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000000"
         //deploy, inputs salt, initiator
         let deploy = MadnetFactory.interface.encodeFunctionData("deploy", ["0x0000000000000000000000000000000000000000", ethers.utils.formatBytes32String("foo"), "0x"]);
         //destroy
         let  destroy = MadnetFactory.interface.encodeFunctionData("destroy", ["0x0000000000000000000000000000000000000000"]);
-        let implementationInstance = await Implementation.deploy("0xf22EC8b8Fe42cc72A269eC588a13CfE312EE0B73", "0x");
-        expect(implementationInstance.deployed());
+        //let implementationInstance = await Implementation.deploy("0xf22EC8b8Fe42cc72A269eC588a13CfE312EE0B73", "0x");
+        //expect(implementationInstance.deployed());
         expect(await madnetFactory.multiCall([deployTemp, deploy, destroy]));
-        expect(await madnetFactory.deployTemplate(Implementation.bytecode));
+        //expect(await madnetFactory.deployTemplate(Implementation.bytecode));
     });
 });

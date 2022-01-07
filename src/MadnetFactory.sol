@@ -2,7 +2,10 @@
 pragma solidity  ^0.8.11;
 import "../lib/utils/DeterministicAddress.sol";
 
-
+interface ifoo {
+    function owner() external returns (address);
+    fallback() external;
+}
 contract foo {
     address public owner;
     constructor(address bar, bytes memory) {
@@ -225,8 +228,9 @@ contract MadnetFactory is DeterministicAddress {
             // Move the ptr to the end of the code in memory
             // account for the previously added values to offset the copy
             // account for the need to change the constructor dynamic byte array
-            ptr := add(ptr, sub(_deployCode.length, 0x25))
             // store the length of the initcode modifier
+            ptr := add(ptr, sub(_deployCode.length, 0x05))
+            ptr := sub(ptr, 0x20)
             mstore(ptr, 0x28)
             ptr := add(ptr, 0x20)
             // finish the code with the terminate sequence  
@@ -234,6 +238,7 @@ contract MadnetFactory is DeterministicAddress {
             mstore8(ptr, 0x5b)
             ptr := add(ptr, 0x01)
             calldatacopy(ptr, _deployCode.offset, 0x05)
+            ptr := add(ptr, 0x05)
             mstore(ptr, or(or(shl(240, 0x3373), shl(80, address())), shl(48, 0x14156004)))
             ptr := add(ptr, 0x1a)
             mstore(ptr, shl(192, 0x57361560045733ff))
@@ -358,11 +363,35 @@ contract MadnetFactory is DeterministicAddress {
 }
 
 contract utils {
-    function checkcodeSize(address target) public view returns (uint256) {
+    function getCodeSize(address target) public view returns (uint256) {
         uint256 csize;
         assembly{
             csize := extcodesize(target)
         }
         return csize;
     }
+    function getCode(address target) public payable returns (bytes memory) {
+        assembly{
+            extcodecopy(target, 0x120, 0x00, extcodesize(target))
+            let s := mul(div(extcodesize(target), 32), 32)
+            if iszero(iszero(mod(extcodesize(target), 32))) {
+                s := add(s,32)
+            }
+            mstore(0x100, extcodesize(target))
+            return(0x00, add(s,0x20))
+        }
+    }
+    function encodeProxyDeploy(address impl) public view returns(bytes memory) { 
+        bytes memory filler;
+        return epd(impl, filler);
+    }
+
+    function epd(address impl, bytes memory filler) internal pure returns(bytes memory) { 
+            bytes memory code = (
+            hex"60a060405234801561001057600080fd5b506040516101ee3803806101ee83398101604081905261002f91610053565b503360808190521955610145565b634e487b7160e01b600052604160045260246000fd5b6000806040838503121561006657600080fd5b82516001600160a01b038116811461007d57600080fd5b602084810151919350906001600160401b038082111561009c57600080fd5b818601915086601f8301126100b057600080fd5b8151818111156100c2576100c261003d565b604051601f8201601f19908116603f011681019083821181831017156100ea576100ea61003d565b81604052828152898684870101111561010257600080fd5b600093505b828410156101245784840186015181850187015292850192610107565b828411156101355760008684830101525b8096505050505050509250929050565b608051609161015d60003960006009015260916000f3fe60806040526040517f000000000000000000000000000000000000000000000000000000000000000090363d8237811982331415603e57815181553682f35b3d3d3d368585545af491503d81843e50806056573d82fd5b503d81f3fea2646970667358221220bdc9f5e3b8432af0970b67d5af169636847415b0b28c116d89b918908fc8343564736f6c634300080b0033"
+            );
+            return abi.encodePacked(code, abi.encode(impl, filler));
+    }
+        
+    
 }
