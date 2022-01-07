@@ -311,12 +311,12 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
                 "Dishonest Address is not a validator at the moment!"
             );
 
-            // check if the issuer didn't participate in the registration phase,
+            // check if the dishonestParticipant didn't participate in the registration phase,
             // so it doesn't have a Participant object with the latest nonce
-            Participant memory issuer = _participants[dishonestAddresses[i]];
+            Participant memory dishonestParticipant = _participants[dishonestAddresses[i]];
             require(
-                issuer.nonce != _nonce,
-                "Dispute failed! Issuer is participating in this ETHDKG round!"
+                dishonestParticipant.nonce != _nonce,
+                "Dispute failed! dishonestParticipant is participating in this ETHDKG round!"
             );
 
             // this makes sure we cannot accuse someone twice because a minor fine will be enough to
@@ -410,25 +410,25 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
                 _validatorPool.isValidator(dishonestAddresses[i]),
                 "Dishonest Address is not a validator at the moment!"
             );
-            Participant memory issuer = _participants[dishonestAddresses[i]];
+            Participant memory dishonestParticipant = _participants[dishonestAddresses[i]];
             require(
-                issuer.nonce == _nonce,
-                "Dispute failed! Issuer is not participating in this ETHDKG round!"
+                dishonestParticipant.nonce == _nonce,
+                "Dispute failed! dishonestParticipant is not participating in this ETHDKG round!"
             );
 
             require(
-                issuer.phase != Phase.ShareDistribution,
-                "Dispute failed! Issuer distributed its share in this ETHDKG round!"
+                dishonestParticipant.phase != Phase.ShareDistribution,
+                "Dispute failed! dishonestParticipant distributed its share in this ETHDKG round!"
             );
 
             require(
-                issuer.distributedSharesHash == 0x0,
-                "ETHDKG: it looks like the issuer distributed shares"
+                dishonestParticipant.distributedSharesHash == 0x0,
+                "ETHDKG: it looks like the dishonestParticipant distributed shares"
             );
             require(
-                issuer.commitmentsFirstCoefficient[0] == 0 &&
-                    issuer.commitmentsFirstCoefficient[1] == 0,
-                "ETHDKG: it looks like the issuer had commitments"
+                dishonestParticipant.commitmentsFirstCoefficient[0] == 0 &&
+                    dishonestParticipant.commitmentsFirstCoefficient[1] == 0,
+                "ETHDKG: it looks like the dishonestParticipant had commitments"
             );
 
             _validatorPool.minorSlash(dishonestAddresses[i]);
@@ -458,7 +458,7 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
         );
         require(_validatorPool.isValidator(dishonestAddress), "Dishonest Address is not a validator at the moment!");
 
-        Participant memory issuer = _participants[dishonestAddress];
+        Participant memory dishonestParticipant = _participants[dishonestAddress];
         Participant memory disputer = _participants[msg.sender];
 
         require(
@@ -466,16 +466,16 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
             "Dispute failed! Disputer is not participating in this ETHDKG round!"
         );
         require(
-            issuer.nonce == _nonce,
-            "Dispute failed! Issuer is not participating in this ETHDKG round!"
+            dishonestParticipant.nonce == _nonce,
+            "Dispute failed! dishonestParticipant is not participating in this ETHDKG round!"
         );
 
-        require(issuer.phase == Phase.ShareDistribution, "Dispute failed! Issuer did not distribute shares!");
+        require(dishonestParticipant.phase == Phase.ShareDistribution, "Dispute failed! dishonestParticipant did not distribute shares!");
 
         require(disputer.phase == Phase.ShareDistribution, "Dispute failed! Disputer did not distribute shares!");
 
         require(
-            issuer.distributedSharesHash ==
+            dishonestParticipant.distributedSharesHash ==
                 keccak256(
                     abi.encodePacked(
                         keccak256(abi.encodePacked(encryptedShares)),
@@ -489,7 +489,7 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
             CryptoLibrary.dleq_verify(
                 [CryptoLibrary.G1x, CryptoLibrary.G1y],
                 disputer.publicKey,
-                issuer.publicKey,
+                dishonestParticipant.publicKey,
                 sharedKey,
                 sharedKeyCorrectnessProof
             ),
@@ -499,7 +499,7 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
         // Since all provided data is valid so far, we load the share and use the verified shared
         // key to decrypt the share for the disputer.
         uint256 share;
-        if (disputer.index < issuer.index) {
+        if (disputer.index < dishonestParticipant.index) {
             share = encryptedShares[disputer.index - 1];
         } else {
             share = encryptedShares[disputer.index - 2];
@@ -538,8 +538,8 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
         uint256[2] memory keyShareG1CorrectnessProof,
         uint256[4] memory keyShareG2
     ) external onlyValidator {
-        // Only progress if all participants distributed their shares and no bad participant was
-        // found
+        // Only progress if all participants distributed their shares
+        // and no bad participant was found
         require(
             (_ethdkgPhase == Phase.KeyShareSubmission &&
                 block.number > _phaseStartBlock &&
@@ -640,20 +640,20 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
                 "Dishonest Address is not a validator at the moment!"
             );
 
-            Participant memory issuer = _participants[dishonestAddresses[i]];
+            Participant memory dishonestParticipant = _participants[dishonestAddresses[i]];
             require(
-                issuer.nonce == _nonce,
-                "Dispute failed! Issuer is not participating in this ETHDKG round!"
+                dishonestParticipant.nonce == _nonce,
+                "Dispute failed! dishonestParticipant is not participating in this ETHDKG round!"
             );
 
             require(
-                issuer.phase != Phase.KeyShareSubmission,
-                "Dispute failed! Issuer submitted its key shares in this ETHDKG round!"
+                dishonestParticipant.phase != Phase.KeyShareSubmission,
+                "Dispute failed! dishonestParticipant submitted its key shares in this ETHDKG round!"
             );
 
             require(
-                issuer.keyShares[0] == 0 && issuer.keyShares[1] == 0,
-                "ETHDKG: it looks like the issuer submitted the key shares"
+                dishonestParticipant.keyShares[0] == 0 && dishonestParticipant.keyShares[1] == 0,
+                "ETHDKG: it looks like the dishonestParticipant submitted the key shares"
             );
 
             // evict the validator that didn't submit his shares
@@ -766,24 +766,24 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
                 _validatorPool.isValidator(dishonestAddresses[i]),
                 "Dishonest Address is not a validator at the moment!"
             );
-            Participant memory issuer = _participants[dishonestAddresses[i]];
+            Participant memory dishonestParticipant = _participants[dishonestAddresses[i]];
             require(
-                issuer.nonce == _nonce,
-                "Dispute failed! Issuer is not participating in this ETHDKG round!"
+                dishonestParticipant.nonce == _nonce,
+                "Dispute failed! dishonestParticipant is not participating in this ETHDKG round!"
             );
 
             require(
-                issuer.phase != Phase.GPKJSubmission,
-                "Dispute failed! Issuer did participate in this GPKj submission!"
+                dishonestParticipant.phase != Phase.GPKJSubmission,
+                "Dispute failed! dishonestParticipant did participate in this GPKj submission!"
             );
 
             // todo: being paranoic, check if we need this or if it's expensive
             require(
-                issuer.gpkj[0] == 0 &&
-                    issuer.gpkj[1] == 0 &&
-                    issuer.gpkj[2] == 0 &&
-                    issuer.gpkj[3] == 0,
-                "ETHDKG: it looks like the issuer distributed its GPKJ"
+                dishonestParticipant.gpkj[0] == 0 &&
+                    dishonestParticipant.gpkj[1] == 0 &&
+                    dishonestParticipant.gpkj[2] == 0 &&
+                    dishonestParticipant.gpkj[3] == 0,
+                "ETHDKG: it looks like the dishonestParticipant distributed its GPKJ"
             );
 
             _validatorPool.minorSlash(dishonestAddresses[i]);
@@ -829,7 +829,7 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
 
         require(
             dishonestParticipant.nonce == _nonce && dishonestParticipant.phase == Phase.GPKJSubmission,
-            "ETHDKG: Issuer didn't submit his GPKJ for this round!"
+            "ETHDKG: dishonestParticipant didn't submit his GPKJ for this round!"
         );
 
         require(

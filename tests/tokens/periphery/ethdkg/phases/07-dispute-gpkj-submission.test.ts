@@ -256,7 +256,7 @@ describe("Dispute GPKj", () => {
 
     // try accusing the 4th validator of bad GPKj, when it did not even submit it
     await expect(ethdkg.connect(await ethers.getSigner(validators4[0].address)).accuseParticipantSubmittedBadGPKj([], [], [[[0,0]]], validators4[3].address))
-    .to.be.revertedWith("ETHDKG: Issuer didn't submit his GPKJ for this round!")
+    .to.be.revertedWith("ETHDKG: dishonestParticipant didn't submit his GPKJ for this round!")
   });
 
   it("should not allow accusation from a non-participating validator", async function () {

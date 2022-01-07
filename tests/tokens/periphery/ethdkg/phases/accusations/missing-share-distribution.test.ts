@@ -15,7 +15,7 @@ describe("Missing distribute share accusation", () => {
       validators4
     );
 
-    //Only validator 0 and 1 distributed shares
+    // Only validator 0 and 1 distributed shares
     await distributeValidatorsShares(
       ethdkg,
       validatorPool,
@@ -59,7 +59,7 @@ describe("Missing distribute share accusation", () => {
       validators4
     );
 
-    //Only validator 0 and 1 distributed shares
+    // Only validator 0 and 1 distributed shares
     await distributeValidatorsShares(
       ethdkg,
       validatorPool,
@@ -105,7 +105,7 @@ describe("Missing distribute share accusation", () => {
       validators4
     );
 
-    //Only validator 0 and 1 distributed shares
+    // Only validator 0 and 1 distributed shares
     await distributeValidatorsShares(
       ethdkg,
       validatorPool,
@@ -140,7 +140,7 @@ describe("Missing distribute share accusation", () => {
       validators4
     );
 
-    //Only validator 0 and 1 distributed shares
+    // Only validator 0 and 1 distributed shares
     await distributeValidatorsShares(
       ethdkg,
       validatorPool,
@@ -160,7 +160,7 @@ describe("Missing distribute share accusation", () => {
       validators4
     );
 
-    //Only validator 0 and 1 distributed shares
+    // Only validator 0 and 1 distributed shares
     await distributeValidatorsShares(
       ethdkg,
       validatorPool,
@@ -186,7 +186,7 @@ describe("Missing distribute share accusation", () => {
       validators4
     );
 
-    //Only validator 0 and 1 distributed shares
+    // Only validator 0 and 1 distributed shares
     await distributeValidatorsShares(
       ethdkg,
       validatorPool,
@@ -249,7 +249,7 @@ describe("Missing distribute share accusation", () => {
     await expect(
       ethdkg.accuseParticipantDidNotDistributeShares([validators4[0].address])
     ).to.be.revertedWith(
-      "Dispute failed! Issuer distributed its share in this ETHDKG round!"
+      "Dispute failed! dishonestParticipant distributed its share in this ETHDKG round!"
     );
 
     expect(await ethdkg.getBadParticipants()).to.equal(0);
@@ -316,7 +316,7 @@ describe("Missing distribute share accusation", () => {
       validators4
     );
 
-    //Only validator 0 and 1 distributed shares
+    // Only validator 0 and 1 distributed shares
     await distributeValidatorsShares(
       ethdkg,
       validatorPool,
@@ -336,7 +336,7 @@ describe("Missing distribute share accusation", () => {
         validators4[0].address,
       ])
     ).to.be.revertedWith(
-      "Dispute failed! Issuer distributed its share in this ETHDKG round!"
+      "Dispute failed! dishonestParticipant distributed its share in this ETHDKG round!"
     );
 
     expect(await ethdkg.getBadParticipants()).to.equal(0);
@@ -347,7 +347,7 @@ describe("Missing distribute share accusation", () => {
       validators4
     );
 
-    //Only validator 0 and 1 distributed shares
+    // Only validator 0 and 1 distributed shares
     await distributeValidatorsShares(
       ethdkg,
       validatorPool,
