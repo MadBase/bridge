@@ -979,10 +979,10 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
         //todo: should we reward ppl here?
         require(
             (_ethdkgPhase == Phase.DisputeGPKJSubmission &&
-                block.number > _phaseStartBlock + _phaseLength &&
-                _badParticipants == 0),
-            "ETHDKG: cannot complete yet"
+                block.number > _phaseStartBlock + _phaseLength),
+            "ETHDKG: should be in post-GPKJDispute phase!"
         );
+        require(_badParticipants == 0,  "ETHDKG: Not all requisites to complete this ETHDKG round were completed!");
 
         // Since we had a dispute stage prior this state we need to set global state in here
         _setPhase(Phase.Completion);

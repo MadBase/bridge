@@ -27,7 +27,7 @@ describe("ETHDKG Completion", () => {
 
     await expect(
       ethdkg.connect(await getValidatorEthAccount(validators4[0].address)).complete()
-    ).to.be.revertedWith("ETHDKG: cannot complete yet");
+    ).to.be.revertedWith("ETHDKG: should be in post-GPKJDispute phase!");
 
     await assertETHDKGPhase(ethdkg, Phase.DisputeGPKJSubmission);
     await endCurrentPhase(ethdkg);
@@ -62,7 +62,7 @@ describe("ETHDKG Completion", () => {
 
     await expect(
       ethdkg.connect(await getValidatorEthAccount(validators4[0].address)).complete()
-    ).to.be.revertedWith("ETHDKG: cannot complete yet");
+    ).to.be.revertedWith("ETHDKG: should be in post-GPKJDispute phase!");
 
     await assertETHDKGPhase(ethdkg, Phase.DisputeGPKJSubmission);
     await endCurrentPhase(ethdkg);
@@ -92,7 +92,7 @@ describe("ETHDKG Completion", () => {
 
     await expect(
       ethdkg.connect(await getValidatorEthAccount(validators4[0].address)).complete()
-    ).to.be.revertedWith("ETHDKG: cannot complete yet");
+    ).to.be.revertedWith("ETHDKG: should be in post-GPKJDispute phase!");
 
     await assertETHDKGPhase(ethdkg, Phase.DisputeGPKJSubmission);
     await endCurrentPhase(ethdkg);
@@ -115,7 +115,7 @@ describe("ETHDKG Completion", () => {
     // try completing again
     await expect(
       ethdkg.connect(await getValidatorEthAccount(validators4[0].address)).complete()
-    ).to.be.revertedWith("ETHDKG: cannot complete yet");
+    ).to.be.revertedWith("ETHDKG: should be in post-GPKJDispute phase!");
   });
 
   it("should not allow validators to participate in previous phases", async () => {
@@ -132,7 +132,7 @@ describe("ETHDKG Completion", () => {
 
     await expect(
       ethdkg.connect(await getValidatorEthAccount(validators4[0].address)).complete()
-    ).to.be.revertedWith("ETHDKG: cannot complete yet");
+    ).to.be.revertedWith("ETHDKG: should be in post-GPKJDispute phase!");
 
     await assertETHDKGPhase(ethdkg, Phase.DisputeGPKJSubmission);
     await endCurrentPhase(ethdkg);
@@ -250,6 +250,6 @@ describe("ETHDKG Completion", () => {
 
     await expect(
       ethdkg.connect(await getValidatorEthAccount(validators4[0].address)).complete()
-    ).to.be.revertedWith("ETHDKG: cannot complete yet");
+    ).to.be.revertedWith("ETHDKG: should be in post-GPKJDispute phase!");
   });
 });

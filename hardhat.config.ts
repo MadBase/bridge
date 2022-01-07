@@ -166,6 +166,9 @@ const config: HardhatUserConfig = {
     currency: "ETH",
     gasPrice: 1000000,
   },
+  mocha: {
+    timeout: 60000
+  }
 };
 
 

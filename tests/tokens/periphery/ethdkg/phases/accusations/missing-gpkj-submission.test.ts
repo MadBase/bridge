@@ -37,7 +37,7 @@ describe("Accuse participant of not submitting GPKj", () => {
     await endCurrentPhase(ethdkg);
     await expect(
       ethdkg.connect(await getValidatorEthAccount(validators4[0].address)).complete()
-    ).to.be.revertedWith("ETHDKG: cannot complete yet");
+    ).to.be.revertedWith("ETHDKG: should be in post-GPKJDispute phase!");
   });
 
   it("allows accusation of missing validators one at a time", async () => {
@@ -90,7 +90,7 @@ describe("Accuse participant of not submitting GPKj", () => {
     // should not allow to finish ethdkg
     await expect(
       ethdkg.connect(await getValidatorEthAccount(validators4[0].address)).complete()
-    ).to.be.revertedWith("ETHDKG: cannot complete yet");
+    ).to.be.revertedWith("ETHDKG: should be in post-GPKJDispute phase!");
 
     await assertETHDKGPhase(ethdkg, Phase.GPKJSubmission);
   });
@@ -150,7 +150,7 @@ describe("Accuse participant of not submitting GPKj", () => {
     // should not allow finishing ethdkg
     await expect(
       ethdkg.connect(await getValidatorEthAccount(validators4[1].address)).complete()
-    ).to.be.revertedWith("ETHDKG: cannot complete yet");
+    ).to.be.revertedWith("ETHDKG: should be in post-GPKJDispute phase!");
 
     await assertETHDKGPhase(ethdkg, Phase.GPKJSubmission);
   });
