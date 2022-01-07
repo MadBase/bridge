@@ -173,7 +173,7 @@ describe("Accuse participant of not submitting GPKj", () => {
     await expect(
       ethdkg.accuseParticipantDidNotSubmitGPKJ([validators4[0].address])
     ).to.be.revertedWith(
-      "Dispute failed! Issuer did participate in this GPKj submission!"
+      "Dispute failed! dishonestParticipant did participate in this GPKj submission!"
     );
 
     expect(await ethdkg.getBadParticipants()).to.equal(0);
@@ -252,7 +252,7 @@ describe("Accuse participant of not submitting GPKj", () => {
     await expect(
       ethdkg.accuseParticipantDidNotSubmitGPKJ(addresses)
     ).to.be.revertedWith(
-      "Dispute failed! Issuer did participate in this GPKj submission!"
+      "Dispute failed! dishonestParticipant did participate in this GPKj submission!"
     );
 
     expect(await ethdkg.getBadParticipants()).to.equal(0);

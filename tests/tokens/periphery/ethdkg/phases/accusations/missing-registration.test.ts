@@ -247,7 +247,7 @@ describe("Missing registration Accusation", () => {
     await expect(
       ethdkg.accuseParticipantNotRegistered([validators4[0].address])
     ).to.be.rejectedWith(
-      "Dispute failed! Issuer is participating in this ETHDKG round!"
+      "Dispute failed! dishonestParticipant is participating in this ETHDKG round!"
     );
 
     expect(await ethdkg.getBadParticipants()).to.equal(0);

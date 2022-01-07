@@ -185,7 +185,7 @@ describe("Accuse participant of not submitting key shares", () => {
     await expect(
       ethdkg.accuseParticipantDidNotSubmitKeyShares([validators4[0].address])
     ).to.be.revertedWith(
-      "Dispute failed! Issuer submitted its key shares in this ETHDKG round!"
+      "Dispute failed! dishonestParticipant submitted its key shares in this ETHDKG round!"
     );
 
     await expect(await ethdkg.getBadParticipants()).to.equal(0);
@@ -263,7 +263,7 @@ describe("Accuse participant of not submitting key shares", () => {
 
     await expect(
       ethdkg.accuseParticipantDidNotSubmitKeyShares([validators4[2].address, validators4[0].address])
-    ).to.be.revertedWith("Dispute failed! Issuer submitted its key shares in this ETHDKG round!");
+    ).to.be.revertedWith("Dispute failed! dishonestParticipant submitted its key shares in this ETHDKG round!");
 
     await expect(await ethdkg.getBadParticipants()).to.equal(0);
   });
