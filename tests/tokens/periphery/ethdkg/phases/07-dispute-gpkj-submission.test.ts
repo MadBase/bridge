@@ -387,7 +387,7 @@ describe("Dispute GPKj", () => {
           validators4[3].address
         )
     ).to.be.revertedWith(
-      "ETHDKG: Issuer didn't submit his GPKJ for this round!"
+      "ETHDKG: dishonestParticipant didn't submit his GPKJ for this round!"
     );
   });
 
