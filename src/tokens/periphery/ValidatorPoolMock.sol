@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT-open-group
 pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
@@ -48,8 +49,8 @@ contract ValidatorPoolMock is Initializable, UUPSUpgradeable {
     }
 
     function _isValidator(address participant) internal view returns(bool) {
-        uint256 index = _validatorsData[participant].index;
-        return index < _validators.length && _validators[index] == participant;
+        ValidatorData memory vd = _validatorsData[participant];
+        return vd.tokenID != 0 && vd.index < _validators.length && _validators[vd.index] == participant;
     }
 
     function addValidator(address v) external {

@@ -128,6 +128,12 @@ const config: HardhatUserConfig = {
           privateKey: "0xc62fd5e127b007a90478de7259b20b0281d20e8c8aa713bdbf819337cf8712df",
           balance: "10000000000000000000000", // 10000 eth
         },
+        {
+          // address: 0x18be4d5d73995fe29149f7ab48c614ddedc7a2fa
+          // user
+          privateKey: "0xff030000000000000000000000000000000000000000000000000000000000ff",
+          balance: "10000000000000000000000", // 10000 eth
+        },
       ],
     }
   },

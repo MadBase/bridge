@@ -438,7 +438,7 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
         _badParticipants = badParticipants;
     }
 
-    /// Someone sent bad shares
+    // Someone sent bad shares
     function accuseParticipantDistributedBadShares(
         address dishonestAddress,
         uint256[] memory encryptedShares,
@@ -456,7 +456,6 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
                     (block.number <= _phaseStartBlock + 2 * _phaseLength)),
             "Dispute failed! Contract is not in dispute phase"
         );
-
         require(_validatorPool.isValidator(dishonestAddress), "Dishonest Address is not a validator at the moment!");
 
         Participant memory issuer = _participants[dishonestAddress];
@@ -499,16 +498,12 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
 
         // Since all provided data is valid so far, we load the share and use the verified shared
         // key to decrypt the share for the disputer.
-
         uint256 share;
-        //uint256 disputerIdx = disputer.index;
-        //uint256 issuerIdx = issuer.index;
         if (disputer.index < issuer.index) {
-            share = encryptedShares[disputer.index];
-        } else {
             share = encryptedShares[disputer.index - 1];
+        } else {
+            share = encryptedShares[disputer.index - 2];
         }
-
         share ^= uint256(keccak256(abi.encodePacked(sharedKey[0], disputer.index)));
 
         // Verify the share for it's correctness using the polynomial defined by the commitments.
@@ -524,7 +519,6 @@ contract ETHDKG is Initializable, UUPSUpgradeable {
             tmp = CryptoLibrary.bn128_multiply([commitments[j][0], commitments[j][1], x]);
             result = CryptoLibrary.bn128_add([result[0], result[1], tmp[0], tmp[1]]);
         }
-
         // Then the result is compared to the point in G1 corresponding to the decrypted share.
         // In this case, either the shared value is invalid, so the dishonestAddress
         // should be burned; otherwise, the share is valid, and whoever

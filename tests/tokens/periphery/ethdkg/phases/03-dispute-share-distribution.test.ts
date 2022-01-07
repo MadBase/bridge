@@ -1,4 +1,5 @@
 import { validators4 } from "../assets/4-validators-successful-case";
+import { validators4BadDistributeShares } from "../assets/4-validators-bad-distribute-shares";
 import { ethers } from "hardhat";
 import {
   endCurrentPhase,
@@ -15,6 +16,7 @@ import {
   submitValidatorsGPKJ,
   completeETHDKG,
 } from "../setup";
+import { BigNumberish } from "ethers";
 
 describe("Dispute bad shares", () => {
 
@@ -188,6 +190,50 @@ describe("Dispute bad shares", () => {
     // try accusing the 1st validator of bad shares using incorrect encrypted shares and commitments
     await expect(ethdkg.connect(await ethers.getSigner(validators4[3].address)).accuseParticipantDistributedBadShares(validators4[0].address, [], [[0,0]], [0,0], [0,0]))
     .to.be.revertedWith("dispute failed, submitted commitments and encrypted shares don't match!")
+  });
+
+  it("should not allow double accusation of a validator on two separate calls", async function () {
+    let [ethdkg, validatorPool, expectedNonce] = await startAtDistributeShares(
+      validators4BadDistributeShares
+    );
+    
+    await assertETHDKGPhase(ethdkg, Phase.ShareDistribution);
+
+    await distributeValidatorsShares(
+      ethdkg,
+      validatorPool,
+      validators4BadDistributeShares,
+      expectedNonce
+    );
+
+    await assertETHDKGPhase(ethdkg, Phase.DisputeShareDistribution)
+    await mineBlocks((await ethdkg.getConfirmationLength()).toNumber())
+
+    
+    // try accusing the 1st validator of bad shares using valid encrypted shares and commitments
+    await ethdkg.connect(await ethers.getSigner(validators4BadDistributeShares[3].address))
+    .accuseParticipantDistributedBadShares(
+      validators4BadDistributeShares[0].address,
+      validators4BadDistributeShares[0].encryptedShares,
+      validators4BadDistributeShares[0].commitments,
+      validators4BadDistributeShares[3].sharedKey as [BigNumberish, BigNumberish],
+      validators4BadDistributeShares[3].sharedKeyProof as [BigNumberish, BigNumberish])
+
+    expect(await validatorPool.isValidator(validators4BadDistributeShares[3].address))
+    .to.equal(true)
+    expect(await validatorPool.isValidator(validators4BadDistributeShares[0].address))
+    .to.equal(false)
+    
+    // try accusing the 1st validator again of bad shares using valid encrypted shares and commitments
+    await expect(ethdkg.connect(await ethers.getSigner(validators4BadDistributeShares[3].address))
+    .accuseParticipantDistributedBadShares(
+      validators4BadDistributeShares[0].address,
+      validators4BadDistributeShares[0].encryptedShares,
+      validators4BadDistributeShares[0].commitments,
+      validators4BadDistributeShares[3].sharedKey as [BigNumberish, BigNumberish],
+      validators4BadDistributeShares[3].sharedKeyProof as [BigNumberish, BigNumberish]))
+    .to.be.revertedWith("Dishonest Address is not a validator at the moment!")
+    
   });
  
 
