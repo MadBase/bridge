@@ -624,7 +624,7 @@ contract StakeNFTTest is DSTest {
 
         assertPosition(
             getCurrentPosition(stakeNFT, tokenID),
-            StakeNFT.Position(1000, 10, 10, 0, 0)
+            StakeNFT.Position(1000, 10, 1, 0, 0)
         );
         assertEq(stakeNFT.balanceOf(address(user)), 1);
         assertEq(stakeNFT.ownerOf(tokenID), address(user));
@@ -819,7 +819,7 @@ contract StakeNFTTest is DSTest {
         uint256 tokenID = user.mintTo(address(user2), 1000, 10);
         assertPosition(
             getCurrentPosition(stakeNFT, tokenID),
-            StakeNFT.Position(1000, 10, 10, 0, 0)
+            StakeNFT.Position(1000, 10, 1, 0, 0)
         );
 
         assertEq(madToken.balanceOf(address(user)), 0);
@@ -2607,6 +2607,62 @@ contract StakeNFTTest is DSTest {
         user.collectEth(tokenID);
 
         assertEq(madToken.balanceOf(address(user)), 0);
+        assertEq(madToken.balanceOf(address(stakeNFT)), 100 * ONE_MADTOKEN);
+    }
+
+    function testCollectRewardsAfterMinting() public {
+        (StakeNFT stakeNFT, MadTokenMock madToken, , ) = getFixtureData();
+        UserAccount user = newUserAccount(madToken, stakeNFT);
+        UserAccount user2 = newUserAccount(madToken, stakeNFT);
+        payable(address(user2)).transfer(10 ether);
+
+        madToken.transfer(address(user), 100 * ONE_MADTOKEN);
+
+        user.approve(address(stakeNFT), 100 * ONE_MADTOKEN);
+
+        uint256 tokenID = user.mint(100 * ONE_MADTOKEN);
+
+        assertPosition(
+            getCurrentPosition(stakeNFT, tokenID),
+            StakeNFT.Position(uint224(100 * ONE_MADTOKEN), 1, 1, 0, 0)
+        );
+
+        setBlockNumber(block.number+2);
+
+        user2.depositEth(10 ether);
+
+        user.collectEth(tokenID);
+
+        assertEq(madToken.balanceOf(address(user)), 0);
+        assertEq(address(user).balance, 10 ether);
+        assertEq(address(user2).balance, 0);
+        assertEq(madToken.balanceOf(address(stakeNFT)), 100 * ONE_MADTOKEN);
+    }
+
+    function testCollectRewardsAfterMintingTo() public {
+        (StakeNFT stakeNFT, MadTokenMock madToken, , ) = getFixtureData();
+        UserAccount user = newUserAccount(madToken, stakeNFT);
+        UserAccount user2 = newUserAccount(madToken, stakeNFT);
+        payable(address(user2)).transfer(10 ether);
+
+        madToken.approve(address(stakeNFT), 100 * ONE_MADTOKEN);
+
+        uint256 tokenID = stakeNFT.mintTo(address(user), 100 * ONE_MADTOKEN, 10);
+
+        assertPosition(
+            getCurrentPosition(stakeNFT, tokenID),
+            StakeNFT.Position(uint224(100 * ONE_MADTOKEN), 10, 1, 0, 0)
+        );
+
+        setBlockNumber(block.number+2);
+
+        user2.depositEth(10 ether);
+
+        user.collectEth(tokenID);
+
+        assertEq(madToken.balanceOf(address(user)), 0);
+        assertEq(address(user).balance, 10 ether);
+        assertEq(address(user2).balance, 0);
         assertEq(madToken.balanceOf(address(stakeNFT)), 100 * ONE_MADTOKEN);
     }
 
