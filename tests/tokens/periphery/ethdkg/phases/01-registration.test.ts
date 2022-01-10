@@ -47,7 +47,7 @@ describe("Registration Open", () => {
         .connect(await getValidatorEthAccount(validators4[0].address))
         .register(validators4[0].madNetPublicKey)
     ).to.be.revertedWith(
-      "Participant is already participating in this ETHDKG round"
+      "ETHDKG: Participant is already participating in this ETHDKG round!"
     );
   });
 
@@ -67,20 +67,20 @@ describe("Registration Open", () => {
       ethdkg
         .connect(signer0)
         .register([BigNumber.from("0"), BigNumber.from("1")])
-    ).to.be.revertedWith("registration failed - pubKey0 invalid");
+    ).to.be.revertedWith("ETHDKG: Registration failed - pubKey should be different from 0!");
 
     await expect(
       ethdkg
         .connect(signer0)
         .register([BigNumber.from("1"), BigNumber.from("0")])
-    ).to.be.revertedWith("registration failed - pubKey1 invalid");
+    ).to.be.revertedWith("ETHDKG: Registration failed - pubKey should be different from 0!");
 
     await expect(
       ethdkg
         .connect(signer0)
         .register([BigNumber.from("1"), BigNumber.from("1")])
     ).to.be.revertedWith(
-      "registration failed - public key not on elliptic curve"
+      "ETHDKG: Registration failed - public key not on elliptic curve!"
     );
   });
 

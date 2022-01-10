@@ -51,7 +51,7 @@ describe("GPKj submission", () => {
         1
       )
     ).to.be.revertedWith(
-      "Participant already submitted GPKj this ETHDKG round"
+      "ETHDKG: Participant already submitted GPKj this ETHDKG round!"
     );
   });
 

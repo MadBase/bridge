@@ -123,7 +123,7 @@ describe("Accuse participant of not submitting key shares", () => {
 
     await expect(
       ethdkg.accuseParticipantDidNotSubmitKeyShares([validators4[2].address])
-    ).to.be.revertedWith("ETHDKG: should be in post-KeyShareSubmission phase!");
+    ).to.be.revertedWith("ETHDKG: Dispute failed! Should be in post-KeyShareSubmission phase!");
   });
 
   it("should not allow validators who did not submit key shares in time to submit on the accusation phase", async function () {
@@ -185,7 +185,7 @@ describe("Accuse participant of not submitting key shares", () => {
     await expect(
       ethdkg.accuseParticipantDidNotSubmitKeyShares([validators4[0].address])
     ).to.be.revertedWith(
-      "Dispute failed! dishonestParticipant submitted its key shares in this ETHDKG round!"
+      "ETHDKG: Dispute failed! Dishonest participant submitted its key shares in this ETHDKG round!"
     );
 
     await expect(await ethdkg.getBadParticipants()).to.equal(0);
@@ -214,7 +214,7 @@ describe("Accuse participant of not submitting key shares", () => {
       ethdkg.accuseParticipantDidNotSubmitKeyShares([
         "0x23EA3Bad9115d436190851cF4C49C1032fA7579A",
       ])
-    ).to.be.revertedWith("Dishonest Address is not a validator at the moment!");
+    ).to.be.revertedWith("ETHDKG: Dispute Failed! Dishonest Address is not a validator at the moment!");
 
     await expect(await ethdkg.getBadParticipants()).to.equal(0);
   });
@@ -240,7 +240,7 @@ describe("Accuse participant of not submitting key shares", () => {
 
     await expect(
       ethdkg.accuseParticipantDidNotSubmitKeyShares([validators4[2].address])
-    ).to.be.revertedWith("ETHDKG: should be in post-KeyShareSubmission phase!");
+    ).to.be.revertedWith("ETHDKG: Dispute failed! Should be in post-KeyShareSubmission phase!");
 
     await expect(await ethdkg.getBadParticipants()).to.equal(0);
   });
@@ -263,7 +263,7 @@ describe("Accuse participant of not submitting key shares", () => {
 
     await expect(
       ethdkg.accuseParticipantDidNotSubmitKeyShares([validators4[2].address, validators4[0].address])
-    ).to.be.revertedWith("Dispute failed! dishonestParticipant submitted its key shares in this ETHDKG round!");
+    ).to.be.revertedWith("ETHDKG: Dispute failed! Dishonest participant submitted its key shares in this ETHDKG round!");
 
     await expect(await ethdkg.getBadParticipants()).to.equal(0);
   });
@@ -290,7 +290,7 @@ describe("Accuse participant of not submitting key shares", () => {
 
     await expect(
       ethdkg.accuseParticipantDidNotSubmitKeyShares([validators4[2].address])
-    ).to.be.revertedWith("Dishonest Address is not a validator at the moment!");
+    ).to.be.revertedWith("ETHDKG: Dispute Failed! Dishonest Address is not a validator at the moment!");
 
     await expect(await ethdkg.getBadParticipants()).to.equal(1);
 

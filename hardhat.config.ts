@@ -139,7 +139,7 @@ const config: HardhatUserConfig = {
   },
   solidity: {
     compilers: [{
-      version: "0.8.9",
+      version: "0.8.11",
       settings: {
         optimizer: {
           enabled: true,
@@ -167,7 +167,7 @@ const config: HardhatUserConfig = {
     gasPrice: 1000000,
   },
   mocha: {
-    timeout: 60000
+    timeout: 600000
   }
 };
 

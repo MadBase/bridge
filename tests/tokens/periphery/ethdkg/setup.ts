@@ -157,8 +157,12 @@ export const getFixture = async () => {
   await ethdkg.deployed();
   // console.log(`ETHDKG deployed at ${ethdkg.address}`);
 
-  await ethdkg.initialize(validatorPool.address);
+  // ETHDKG
+  const ETHDKGAccusations = await ethers.getContractFactory("ETHDKGAccusations");
+  const ethdkgAccusations = await ETHDKGAccusations.deploy();
+  await ethdkgAccusations.deployed();
 
+  await ethdkg.initialize(validatorPool.address, ethdkgAccusations.address);
   // console.log("finished core deployment");
 
   return {
@@ -188,8 +192,8 @@ export const assertRegistrationComplete = async (tx: ContractTransaction) => {
 export const assertEventSharesDistributed = async (
   tx: ContractTransaction,
   account: string,
-  index: number,
-  nonce: number,
+  index: BigNumberish,
+  nonce: BigNumberish,
   encryptedShares: BigNumberish[],
   commitments: [BigNumberish, BigNumberish][]
 ) => {
@@ -227,8 +231,8 @@ export const assertEventShareDistributionComplete = async (
 export const assertEventKeyShareSubmitted = async (
   tx: ContractTransaction,
   account: string,
-  index: number,
-  nonce: number,
+  index: BigNumberish,
+  nonce: BigNumberish,
   keyShareG1: [BigNumberish, BigNumberish],
   keyShareG1CorrectnessProof: [BigNumberish, BigNumberish],
   keyShareG2: [BigNumberish, BigNumberish, BigNumberish, BigNumberish]
@@ -270,7 +274,7 @@ export const assertEventKeyShareSubmissionComplete = async (
 
 export const assertEventMPKSet = async (
   tx: ContractTransaction,
-  nonce: number,
+  nonce: BigNumberish,
   mpk: [BigNumberish, BigNumberish, BigNumberish, BigNumberish]
 ) => {
   let receipt = await ethers.provider.getTransactionReceipt(tx.hash);
@@ -292,9 +296,9 @@ export const assertEventMPKSet = async (
 export const assertEventValidatorMemberAdded = async (
   tx: ContractTransaction,
   account: string,
-  index: number,
-  nonce: number,
-  epoch: number,
+  index: BigNumberish,
+  nonce: BigNumberish,
+  epoch: BigNumberish,
   gpkj: [BigNumberish, BigNumberish, BigNumberish, BigNumberish]
 ) => {
   let receipt = await ethers.provider.getTransactionReceipt(tx.hash);
@@ -331,16 +335,16 @@ export const assertEventGPKJSubmissionComplete = async (
 
 export const assertEventValidatorSetCompleted = async (
   tx: ContractTransaction,
-  validatorCount: number,
-  nonce: number,
-  epoch: number,
-  ethHeight: number,
-  madHeight: number,
+  validatorCount: BigNumberish,
+  nonce: BigNumberish,
+  epoch: BigNumberish,
+  ethHeight: BigNumberish,
+  madHeight: BigNumberish,
   mpk: [BigNumberish, BigNumberish, BigNumberish, BigNumberish]
 ) => {
   let receipt = await ethers.provider.getTransactionReceipt(tx.hash);
   let intrface = new ethers.utils.Interface([
-    "event ValidatorSetCompleted(uint256 validatorCount, uint256 nonce, uint256 epoch, uint32 ethHeight, uint32 madHeight, uint256 groupKey0, uint256 groupKey1, uint256 groupKey2, uint256 groupKey3)",
+    "event ValidatorSetCompleted(uint256 validatorCount, uint256 nonce, uint256 epoch, uint256 ethHeight, uint256 madHeight, uint256 groupKey0, uint256 groupKey1, uint256 groupKey2, uint256 groupKey3)",
   ]);
   let data = receipt.logs[0].data;
   let topics = receipt.logs[0].topics;

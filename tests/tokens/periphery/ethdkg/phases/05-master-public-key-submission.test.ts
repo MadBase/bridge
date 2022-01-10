@@ -98,6 +98,6 @@ describe("Submit Master Public Key", () => {
       ethdkg
         .connect(await getValidatorEthAccount(validators4[0].address))
         .submitMasterPublicKey(mpk)
-    ).to.be.revertedWith("master key submission pairing check failed");
+    ).to.be.revertedWith("ETHDKG: Master key submission pairing check failed!");
   });
 });

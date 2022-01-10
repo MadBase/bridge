@@ -84,7 +84,7 @@ describe("Distribute Shares", () => {
         expectedNonce
       )
     ).to.be.rejectedWith(
-      "Participant already distributed shares this ETHDKG round"
+      "ETHDKG: Participant already distributed shares this ETHDKG round!"
     );
   });
 
@@ -99,7 +99,7 @@ describe("Distribute Shares", () => {
         .connect(await getValidatorEthAccount(validators4[0].address))
         .distributeShares([BigNumber.from("0")], validators4[0].commitments)
     ).to.be.rejectedWith(
-      "share distribution failed, invalid number of encrypted shares provided"
+      "ETHDKG: Share distribution failed - invalid number of encrypted shares provided!"
     );
 
     await expect(
@@ -109,7 +109,7 @@ describe("Distribute Shares", () => {
           [BigNumber.from("0"), BigNumber.from("0")],
         ])
     ).to.be.rejectedWith(
-      "key sharing failed, invalid number of commitments provided"
+      "ETHDKG: Key sharing failed - invalid number of commitments provided!"
     );
 
     await expect(
@@ -120,7 +120,7 @@ describe("Distribute Shares", () => {
           [BigNumber.from("0"), BigNumber.from("0")],
           [BigNumber.from("0"), BigNumber.from("0")],
         ])
-    ).to.be.rejectedWith("key sharing failed commitment not on elliptic curve");
+    ).to.be.rejectedWith("ETHDKG: Key sharing failed - commitment not on elliptic curve!");
 
     // the user can send empty encrypted shares on this phase, the accusation window will be
     // handling this!

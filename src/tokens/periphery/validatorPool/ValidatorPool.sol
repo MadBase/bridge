@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: MIT-open-group
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.9;
 
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
-import "../interfaces/INFTStake.sol";
-import "../interfaces/IERC20Transferable.sol";
-import "../interfaces/IERC721Transferable.sol";
-import "../utils/EthSafeTransfer.sol";
-import "../utils/ERC20SafeTransfer.sol";
+import "../../interfaces/INFTStake.sol";
+import "../../interfaces/IERC20Transferable.sol";
+import "../../interfaces/IERC721Transferable.sol";
+import "../../utils/EthSafeTransfer.sol";
+import "../../utils/ERC20SafeTransfer.sol";
 
 contract ValidatorPool is Initializable, UUPSUpgradeable, EthSafeTransfer, ERC20SafeTransfer {
 

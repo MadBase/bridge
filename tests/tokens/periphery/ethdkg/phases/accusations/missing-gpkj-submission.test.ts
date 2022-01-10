@@ -103,7 +103,7 @@ describe("Accuse participant of not submitting GPKj", () => {
     // accuse one validator only
     await expect(
       ethdkg.accuseParticipantDidNotSubmitGPKJ([validators4[1].address])
-    ).to.be.revertedWith("ETHDKG: should be in post-GPKJSubmission phase!");
+    ).to.be.revertedWith("ETHDKG: Dispute Failed! Should be in post-GPKJSubmission phase!");
   });
 
   it("should not allow GPKj submission after the GPKj submission phase", async () => {
@@ -173,7 +173,7 @@ describe("Accuse participant of not submitting GPKj", () => {
     await expect(
       ethdkg.accuseParticipantDidNotSubmitGPKJ([validators4[0].address])
     ).to.be.revertedWith(
-      "Dispute failed! dishonestParticipant did participate in this GPKj submission!"
+      "ETHDKG: Dispute failed! Dishonest participant did participate in this GPKj submission!"
     );
 
     expect(await ethdkg.getBadParticipants()).to.equal(0);
@@ -200,7 +200,7 @@ describe("Accuse participant of not submitting GPKj", () => {
       ethdkg.accuseParticipantDidNotSubmitGPKJ([
         "0x26D3D8Ab74D62C26f1ACc220dA1646411c9880Ac",
       ])
-    ).to.be.revertedWith("Dishonest Address is not a validator at the moment!");
+    ).to.be.revertedWith("ETHDKG: Dispute Failed! Dishonest Address is not a validator at the moment!");
 
     expect(await ethdkg.getBadParticipants()).to.equal(0);
 
@@ -224,7 +224,7 @@ describe("Accuse participant of not submitting GPKj", () => {
     // accuse
     await expect(
       ethdkg.accuseParticipantDidNotSubmitGPKJ([validators4[1].address])
-    ).to.be.revertedWith("ETHDKG: should be in post-GPKJSubmission phase!");
+    ).to.be.revertedWith("ETHDKG: Dispute Failed! Should be in post-GPKJSubmission phase!");
 
     expect(await ethdkg.getBadParticipants()).to.equal(0);
 
@@ -252,7 +252,7 @@ describe("Accuse participant of not submitting GPKj", () => {
     await expect(
       ethdkg.accuseParticipantDidNotSubmitGPKJ(addresses)
     ).to.be.revertedWith(
-      "Dispute failed! dishonestParticipant did participate in this GPKj submission!"
+      "ETHDKG: Dispute failed! Dishonest participant did participate in this GPKj submission!"
     );
 
     expect(await ethdkg.getBadParticipants()).to.equal(0);
@@ -281,7 +281,7 @@ describe("Accuse participant of not submitting GPKj", () => {
 
     await expect(
       ethdkg.accuseParticipantDidNotSubmitGPKJ([validators4[1].address])
-    ).to.be.revertedWith("Dishonest Address is not a validator at the moment!");
+    ).to.be.revertedWith("ETHDKG: Dispute Failed! Dishonest Address is not a validator at the moment!");
 
     expect(await ethdkg.getBadParticipants()).to.equal(1);
 

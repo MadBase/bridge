@@ -197,7 +197,7 @@ describe("ETHDKG Completion", () => {
           [0, 0],
           [0, 0]
         )
-    ).to.be.revertedWith("Dispute failed! Contract is not in dispute phase");
+    ).to.be.revertedWith("ETHDKG: Dispute failed! Contract is not in dispute phase!");
 
     await expect(
       ethdkg
@@ -215,7 +215,7 @@ describe("ETHDKG Completion", () => {
       ethdkg
         .connect(await getValidatorEthAccount(validators4[0].address))
         .accuseParticipantDidNotSubmitKeyShares([])
-    ).to.be.revertedWith("ETHDKG: should be in post-KeyShareSubmission phase!");
+    ).to.be.revertedWith("ETHDKG: Dispute failed! Should be in post-KeyShareSubmission phase!");
 
     await expect(
       ethdkg
@@ -235,18 +235,18 @@ describe("ETHDKG Completion", () => {
       ethdkg
         .connect(await getValidatorEthAccount(validators4[0].address))
         .accuseParticipantDidNotSubmitGPKJ([])
-    ).to.be.revertedWith("ETHDKG: should be in post-GPKJSubmission phase!");
+    ).to.be.revertedWith("ETHDKG: Dispute Failed! Should be in post-GPKJSubmission phase!");
 
     await expect(
       ethdkg
         .connect(await getValidatorEthAccount(validators4[0].address))
-        .accuseParticipantSubmittedBadGPKj(
+        .accuseParticipantSubmittedBadGPKJ(
           [],
           [],
           [[[0, 0]]],
           PLACEHOLDER_ADDRESS
         )
-    ).to.be.revertedWith("ETHDKG: should be in post-GPKJSubmission phase!");
+    ).to.be.revertedWith("ETHDKG: Dispute Failed! Should be in post-GPKJSubmission phase!");
 
     await expect(
       ethdkg.connect(await getValidatorEthAccount(validators4[0].address)).complete()

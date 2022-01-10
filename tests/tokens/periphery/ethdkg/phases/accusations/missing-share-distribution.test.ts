@@ -249,7 +249,7 @@ describe("Missing distribute share accusation", () => {
     await expect(
       ethdkg.accuseParticipantDidNotDistributeShares([validators4[0].address])
     ).to.be.revertedWith(
-      "Dispute failed! dishonestParticipant distributed its share in this ETHDKG round!"
+      "ETHDKG: Dispute failed! Supposed dishonest participant distributed its share in this ETHDKG round!"
     );
 
     expect(await ethdkg.getBadParticipants()).to.equal(0);
@@ -278,7 +278,7 @@ describe("Missing distribute share accusation", () => {
       ethdkg.accuseParticipantDidNotDistributeShares([
         "0x26D3D8Ab74D62C26f1ACc220dA1646411c9880Ac",
       ])
-    ).to.be.revertedWith("Dishonest Address is not a validator at the moment!");
+    ).to.be.revertedWith("ETHDKG: Dispute Failed! Dishonest Address is not a validator at the moment!");
 
     expect(await ethdkg.getBadParticipants()).to.equal(0);
   });
@@ -336,7 +336,7 @@ describe("Missing distribute share accusation", () => {
         validators4[0].address,
       ])
     ).to.be.revertedWith(
-      "Dispute failed! dishonestParticipant distributed its share in this ETHDKG round!"
+      "ETHDKG: Dispute failed! Supposed dishonest participant distributed its share in this ETHDKG round!"
     );
 
     expect(await ethdkg.getBadParticipants()).to.equal(0);
@@ -366,7 +366,7 @@ describe("Missing distribute share accusation", () => {
 
     await expect(
       ethdkg.accuseParticipantDidNotDistributeShares([validators4[2].address])
-    ).to.be.revertedWith("Dishonest Address is not a validator at the moment!");
+    ).to.be.revertedWith("ETHDKG: Dispute Failed! Dishonest Address is not a validator at the moment!");
 
     expect(await ethdkg.getBadParticipants()).to.equal(1);
   });

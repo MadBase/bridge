@@ -1,6 +1,5 @@
 import { validators4 } from "../../assets/4-validators-successful-case";
 import { validators10 } from "../../assets/10-validators-successful-case";
-import { ethers } from "hardhat";
 import {
   getFixture,
   addValidators,
@@ -247,7 +246,7 @@ describe("Missing registration Accusation", () => {
     await expect(
       ethdkg.accuseParticipantNotRegistered([validators4[0].address])
     ).to.be.rejectedWith(
-      "Dispute failed! dishonestParticipant is participating in this ETHDKG round!"
+      "ETHDKG: Dispute failed! dishonestParticipant is participating in this ETHDKG round!"
     );
 
     expect(await ethdkg.getBadParticipants()).to.equal(0);
@@ -280,7 +279,7 @@ describe("Missing registration Accusation", () => {
       ethdkg.accuseParticipantNotRegistered([
         "0x26D3D8Ab74D62C26f1ACc220dA1646411c9880Ac",
       ])
-    ).to.be.rejectedWith("Dishonest Address is not a validator at the moment!");
+    ).to.be.rejectedWith("ETHDKG: Dispute Failed! Dishonest Address is not a validator at the moment!");
 
     expect(await ethdkg.getBadParticipants()).to.equal(0);
   });
@@ -349,7 +348,7 @@ describe("Missing registration Accusation", () => {
         validators4[3].address,
         "0x26D3D8Ab74D62C26f1ACc220dA1646411c9880Ac",
       ])
-    ).to.be.rejectedWith("Dishonest Address is not a validator at the moment!");
+    ).to.be.rejectedWith("ETHDKG: Dispute Failed! Dishonest Address is not a validator at the moment!");
 
     expect(await ethdkg.getBadParticipants()).to.equal(0);
   });
@@ -479,7 +478,7 @@ describe("Missing registration Accusation", () => {
         validators4[2].address,
         validators4[2].address,
       ])
-    ).to.be.rejectedWith("Dishonest Address is not a validator at the moment!");
+    ).to.be.rejectedWith("ETHDKG: Dispute Failed! Dishonest Address is not a validator at the moment!");
 
     await assertETHDKGPhase(ethdkg, Phase.RegistrationOpen);
   });

@@ -108,7 +108,7 @@ describe("Submit Key share", () => {
         expectedNonce
       )
     ).to.be.revertedWith(
-      "Participant already submitted key shares this ETHDKG round"
+      "ETHDKG: Participant already submitted key shares this ETHDKG round!"
     );
   });
 
@@ -122,7 +122,7 @@ describe("Submit Key share", () => {
       ethdkg
         .connect(await getValidatorEthAccount(validators4[0].address))
         .submitKeyShare(["0", "0"], ["0", "0"], ["0", "0", "0", "0"])
-    ).to.be.rejectedWith("key share submission failed invalid key share G1");
+    ).to.be.rejectedWith("ETHDKG: Key share submission failed - invalid key share G1!");
 
     await expect(
       ethdkg
@@ -132,7 +132,7 @@ describe("Submit Key share", () => {
           ["0", "0"],
           ["0", "0", "0", "0"]
         )
-    ).to.be.rejectedWith("key share submission failed invalid key share G1");
+    ).to.be.rejectedWith("ETHDKG: Key share submission failed - invalid key share G1!");
 
     await expect(
       ethdkg
@@ -142,6 +142,6 @@ describe("Submit Key share", () => {
           validators4[0].keyShareG1CorrectnessProof,
           ["0", "0", "0", "0"]
         )
-    ).to.be.rejectedWith("key share submission failed invalid key share G2");
+    ).to.be.rejectedWith("ETHDKG: Key share submission failed - invalid key share G2!");
   });
 });

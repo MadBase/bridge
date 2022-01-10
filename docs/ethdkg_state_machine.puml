@@ -43,7 +43,7 @@ SubmitGPKj --> SubmitGPKj: submitGPKj()
 state "AccuseMissingGPKJSubmission\n Or DisputeGPKJ"  as AccuseGPKJWindow
 SubmitGPKj --> AccuseGPKJWindow: timeout*
 AccuseGPKJWindow --> AccuseGPKJWindow: accuseParticipantDidNotSubmitGPKJ()
-AccuseGPKJWindow --> AccuseGPKJWindow: accuseParticipantSubmittedBadGPKj()
+AccuseGPKJWindow --> AccuseGPKJWindow: accuseParticipantSubmittedBadGPKJ()
 AccuseGPKJWindow --> end1: timeout*
 
 SubmitGPKj --> DisputeGPKJDistribution: submitGPKj()
