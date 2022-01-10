@@ -9,9 +9,9 @@ import "../validatorPool/interfaces/IValidatorPool.sol";
 import "./interfaces/IETHDKGEvents.sol";
 import "./interfaces/IETHDKG.sol";
 import "./ETHDKGStorage.sol";
-import "./ETHDKGLibrary.sol";
+import "./utils/ETHDKGUtils.sol";
 
-contract ETHDKG is ETHDKGStorage, Initializable, UUPSUpgradeable, IETHDKG, IETHDKGEvents {
+contract ETHDKG is ETHDKGStorage, Initializable, UUPSUpgradeable, IETHDKG, IETHDKGEvents, ETHDKGUtils {
     function initialize(address validatorPool, address ethdkgAccusations) public initializer {
         _nonce = 0;
         _phaseStartBlock = 0;
@@ -254,7 +254,7 @@ contract ETHDKG is ETHDKGStorage, Initializable, UUPSUpgradeable, IETHDKG, IETHD
         );
 
         uint256 numValidators = _validatorPool.getValidatorsCount();
-        uint256 threshold = ETHDKGLibrary._getThreshold(numValidators);
+        uint256 threshold = _getThreshold(numValidators);
         require(
             encryptedShares.length == numValidators - 1,
             "ETHDKG: Share distribution failed - invalid number of encrypted shares provided!"

@@ -1,16 +1,7 @@
 // SPDX-License-Identifier: MIT-open-group
 pragma solidity ^0.8.11;
 
-import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
-import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
-import "../../../CryptoLibrary.sol";
-import "../../utils/AtomicCounter.sol";
-import "../validatorPool/interfaces/IValidatorPool.sol";
-import "./interfaces/IETHDKGEvents.sol";
-import "./ETHDKGStorage.sol";
-import "../../../CryptoLibrary.sol";
-
-library ETHDKGLibrary {
+abstract contract ETHDKGUtils {
     function _getThreshold(uint256 numParticipants_) internal pure returns (uint256 threshold) {
         // In our BFT consensus alg, we require t + 1 > 2*n/3.
         // Where t = threshold, n = numParticipants and k = quotient from the integer division

@@ -1,17 +1,15 @@
 // SPDX-License-Identifier: MIT-open-group
 pragma solidity ^0.8.11;
 
-import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
-import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
-import "../../../CryptoLibrary.sol";
-import "../../utils/AtomicCounter.sol";
 import "../validatorPool/interfaces/IValidatorPool.sol";
 import "./interfaces/IETHDKGEvents.sol";
 import "./ETHDKGStorage.sol";
-import "./ETHDKGLibrary.sol";
+import "./utils/ETHDKGUtils.sol";
+
+import "../../../CryptoLibrary.sol";
 
 // todo: change this to work with the contract factory and have a deterministic address
-contract ETHDKGAccusations is ETHDKGStorage, IETHDKGEvents {
+contract ETHDKGAccusations is ETHDKGStorage, IETHDKGEvents, ETHDKGUtils {
     function accuseParticipantNotRegistered(address[] memory dishonestAddresses) external {
         require(
             _ethdkgPhase == Phase.RegistrationOpen &&
@@ -311,7 +309,7 @@ contract ETHDKGAccusations is ETHDKGStorage, IETHDKGEvents {
         // n is total _participants;
         // t is threshold, so that t+1 is BFT majority.
         uint256 numParticipants = _validatorPool.getValidatorsCount() + badParticipants;
-        uint256 threshold = ETHDKGLibrary._getThreshold(numParticipants);
+        uint256 threshold = _getThreshold(numParticipants);
 
         // Begin initial check
         ////////////////////////////////////////////////////////////////////////
@@ -337,7 +335,7 @@ contract ETHDKGAccusations is ETHDKGStorage, IETHDKGEvents {
                 require(
                     participant.nonce == nonce &&
                         participant.index <= type(uint8).max &&
-                        !ETHDKGLibrary._isBitSet(bitMap, uint8(participant.index)),
+                        !_isBitSet(bitMap, uint8(participant.index)),
                     "ETHDKG: Dispute Failed! Invalid or duplicated participant address!"
                 );
 
@@ -346,7 +344,7 @@ contract ETHDKGAccusations is ETHDKGStorage, IETHDKGEvents {
                         keccak256(abi.encodePacked(encryptedSharesHash[k], commitmentsHash)),
                     "ETHDKG: Dispute Failed! Invalid shares or commitments!"
                 );
-                bitMap = ETHDKGLibrary._setBit(bitMap, uint8(participant.index));
+                bitMap = _setBit(bitMap, uint8(participant.index));
             }
         }
 
