@@ -151,11 +151,7 @@ export const getFixture = async () => {
   await validatorPool.deployed();
   // console.log(`ValidatorPool deployed at ${validatorPool.address}`);
 
-  // ETHDKG
-  const ETHDKG = await ethers.getContractFactory("ETHDKG");
-  const ethdkg = await ETHDKG.deploy();
-  await ethdkg.deployed();
-  // console.log(`ETHDKG deployed at ${ethdkg.address}`);
+
 
   // ETHDKG Accusations
   const ETHDKGAccusations = await ethers.getContractFactory("ETHDKGAccusations");
@@ -167,7 +163,11 @@ export const getFixture = async () => {
   const ethdkgPhases = await ETHDKGPhases.deploy();
   await ethdkgPhases.deployed();
 
-  await ethdkg.initialize(validatorPool.address, ethdkgAccusations.address, ethdkgPhases.address);
+   // ETHDKG
+   const ETHDKG = await ethers.getContractFactory("ETHDKG");
+   const ethdkg = await ETHDKG.deploy(validatorPool.address, ethdkgAccusations.address, ethdkgPhases.address,"0x0");
+   await ethdkg.deployed();
+   // console.log(`ETHDKG deployed at ${ethdkg.address}`);
   // console.log("finished core deployment");
 
   return {

@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: MIT-open-group
 pragma solidity ^0.8.11;
 
-import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
-import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "../../../CryptoLibrary.sol";
 import "../../utils/AtomicCounter.sol";
 import "../validatorPool/interfaces/IValidatorPool.sol";
@@ -13,17 +11,16 @@ import "./utils/ETHDKGUtils.sol";
 
 contract ETHDKG is
     ETHDKGStorage,
-    Initializable,
-    UUPSUpgradeable,
     IETHDKG,
     IETHDKGEvents,
     ETHDKGUtils
 {
-    function initialize(
+    constructor(
         address validatorPool,
         address ethdkgAccusations,
-        address ethdkgPhases
-    ) public initializer {
+        address ethdkgPhases,
+        bytes memory
+    ) {
         _nonce = 0;
         _phaseStartBlock = 0;
         _phaseLength = 40;
@@ -37,11 +34,11 @@ contract ETHDKG is
         _ethdkgAccusations = ethdkgAccusations;
         // todo: use contract factory with create2
         _ethdkgPhases = ethdkgPhases;
-        __UUPSUpgradeable_init();
+        _admin = msg.sender;
     }
 
     modifier onlyAdmin() {
-        require(msg.sender == _getAdmin(), "ETHDKG: requires admin privileges");
+        require(msg.sender == _admin, "ETHDKG: requires admin privileges");
         _;
     }
 
@@ -58,7 +55,15 @@ contract ETHDKG is
         _;
     }
 
-    function _authorizeUpgrade(address newImplementation) internal override onlyAdmin {}
+    /// @dev getAdmin returns the current _admin
+    function getAdmin() public view returns(address) {
+        return _admin;
+    }
+
+    /// @dev assigns a new admin may only be called by _admin
+    function setAdmin(address admin_) public onlyAdmin {
+        _admin = admin_;
+    }
 
     function setPhaseLength(uint16 phaseLength_) external onlyAdmin {
         _phaseLength = phaseLength_;

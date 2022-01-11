@@ -43,6 +43,8 @@ abstract contract ETHDKGStorage {
     // todo: use contract factory with create2 to get rid of this
     address internal _ethdkgPhases;
 
+    address internal _admin;
+
     uint256[4] internal _masterPublicKey;
     uint256[2] internal _mpkG1;
 
