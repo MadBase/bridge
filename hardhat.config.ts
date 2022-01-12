@@ -49,10 +49,7 @@ const config: HardhatUserConfig = {
       allowUnlimitedContractSize: true,
       mining: {
         auto: false,
-        interval: 1000,
-        mempool: {
-          order: "fifo"
-        }
+        interval: 15000,
       },
       accounts: [
         {
