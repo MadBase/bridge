@@ -245,7 +245,7 @@ contract ETHDKGPhases is ETHDKGStorage, IETHDKGEvents, ETHDKGUtils {
         emit MPKSet(block.number, _nonce, masterPublicKey_);
     }
 
-    function submitGPKj(uint256[4] memory gpkj) external {
+    function submitGPKJ(uint256[4] memory gpkj) external {
         //todo: should we evict all validators if no one sent the master public key in time?
         require(
             _ethdkgPhase == Phase.GPKJSubmission &&

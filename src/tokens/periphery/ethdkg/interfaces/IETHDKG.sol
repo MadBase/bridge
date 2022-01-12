@@ -54,7 +54,7 @@ interface IETHDKG {
 
     function submitMasterPublicKey(uint256[4] memory masterPublicKey_) external;
 
-    function submitGPKj(uint256[4] memory gpkj) external;
+    function submitGPKJ(uint256[4] memory gpkj) external;
 
     function complete() external;
 

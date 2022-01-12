@@ -1,15 +1,12 @@
 // SPDX-License-Identifier: MIT-open-group
 pragma solidity ^0.8.9;
-
-import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
-import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "../../interfaces/INFTStake.sol";
 import "../../interfaces/IERC20Transferable.sol";
 import "../../interfaces/IERC721Transferable.sol";
 import "../../utils/EthSafeTransfer.sol";
 import "../../utils/ERC20SafeTransfer.sol";
 
-contract ValidatorPool is Initializable, UUPSUpgradeable, EthSafeTransfer, ERC20SafeTransfer {
+contract ValidatorPoolTrue is EthSafeTransfer, ERC20SafeTransfer {
 
     event ValidatorAdded(address indexed account, uint256 validatorNFT);
     event ValidatorRemoved(address indexed account);
@@ -38,28 +35,26 @@ contract ValidatorPool is Initializable, UUPSUpgradeable, EthSafeTransfer, ERC20
     address[] internal _validators;
     mapping(address=>ValidatorData) internal _validatorsData;
 
+    address _admin;
 
-    function initialize(
+    constructor(
         INFTStake stakeNFT_,
         INFTStake validatorNFT_,
-        IERC20Transferable madToken_
-    ) public initializer {
+        IERC20Transferable madToken_,
+        bytes memory hook
+    ) {
         //20000*10**18 MadWei = 20k MadTokens
         _minimumStake = 20000*10**18;
         _maxNumValidators = 5;
         _stakeNFT = stakeNFT_;
         _madToken = madToken_;
         _validatorsNFT = validatorNFT_;
-        __UUPSUpgradeable_init();
+        _admin = msg.sender;
     }
 
     // todo: onlyAdmin or onlyGovernance?
-    function _authorizeUpgrade(address newImplementation) internal onlyAdmin override {
-
-    }
-
     modifier onlyAdmin() {
-        require(msg.sender == _getAdmin(), "Validators: requires admin privileges");
+        require(msg.sender == _admin, "Validators: requires admin privileges");
         _;
     }
 

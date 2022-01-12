@@ -228,7 +228,7 @@ describe("ETHDKG Completion", () => {
     await expect(
       ethdkg
         .connect(await getValidatorEthAccount(validators4[0].address))
-        .submitGPKj([0, 0, 0, 0])
+        .submitGPKJ([0, 0, 0, 0])
     ).to.be.revertedWith("ETHDKG: Not in GPKJ submission phase");
 
     await expect(

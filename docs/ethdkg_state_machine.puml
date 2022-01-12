@@ -37,7 +37,7 @@ MPKSubmission --> SubmitGPKj: submitMasterPublicKey()
 
 MPKSubmission --> end1: timeout*
 
-SubmitGPKj --> SubmitGPKj: submitGPKj()
+SubmitGPKj --> SubmitGPKj: submitGPKJ()
 
 
 state "AccuseMissingGPKJSubmission\n Or DisputeGPKJ"  as AccuseGPKJWindow
@@ -46,7 +46,7 @@ AccuseGPKJWindow --> AccuseGPKJWindow: accuseParticipantDidNotSubmitGPKJ()
 AccuseGPKJWindow --> AccuseGPKJWindow: accuseParticipantSubmittedBadGPKJ()
 AccuseGPKJWindow --> end1: timeout*
 
-SubmitGPKj --> DisputeGPKJDistribution: submitGPKj()
+SubmitGPKj --> DisputeGPKJDistribution: submitGPKJ()
 
 DisputeGPKJDistribution --> Completion: complete()
 DisputeGPKJDistribution --> end1: timeout* with accusations

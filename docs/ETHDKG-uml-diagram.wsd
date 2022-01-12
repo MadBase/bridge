@@ -62,7 +62,7 @@ class ETHDKG {
 	+submitKeyShare()
 	+accuseParticipantDidNotSubmitKeyShares()
 	+submitMasterPublicKey()
-	+submitGPKj()
+	+submitGPKJ()
 	+accuseParticipantDidNotSubmitGPKJ()
 	+accuseParticipantSubmittedBadGPKJ()
 	+complete()

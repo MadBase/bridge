@@ -1,12 +1,9 @@
 // SPDX-License-Identifier: MIT-open-group
 pragma solidity ^0.8.9;
 
-import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
-import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
-
 import "../../ethdkg/ETHDKG.sol";
 
-contract ValidatorPoolMock is Initializable, UUPSUpgradeable {
+contract ValidatorPool {
 
     struct ValidatorData {
         uint128 index;
@@ -19,9 +16,10 @@ contract ValidatorPoolMock is Initializable, UUPSUpgradeable {
     address[] internal _validators;
     mapping(address=>ValidatorData) internal _validatorsData;
 
-    function initialize() public initializer {
+    address _admin;
+
+    constructor(bytes memory hook) {
         _tokenIDCounter = 0;
-        __UUPSUpgradeable_init();
     }
 
     function setETHDKG(address ethdkg) external {
@@ -32,16 +30,11 @@ contract ValidatorPoolMock is Initializable, UUPSUpgradeable {
         // require(_ethdkg.isAccusationWindowOver(), "cannot init ETHDKG at the moment");
 
         _ethdkg.initializeETHDKG();
-        //require(success, "ValidatorPoolMock: could not init ETHDKG");
-    }
-
-    // todo: onlyAdmin or onlyGovernance?
-    function _authorizeUpgrade(address newImplementation) internal onlyAdmin override {
-
+        //require(success, "ValidatorPool: could not init ETHDKG");
     }
 
     modifier onlyAdmin() {
-        require(msg.sender == _getAdmin(), "Validators: requires admin privileges");
+        require(msg.sender == _admin, "Validators: requires admin privileges");
         _;
     }
 

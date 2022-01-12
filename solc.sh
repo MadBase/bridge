@@ -1,7 +1,7 @@
 #!/bin/sh
 
 solc \
-    --optimize-runs 20000000 \
+    --optimize-runs 2000000 \
     --pretty-json \
     --combined-json abi,bin \
     @openzeppelin/=$(pwd)/node_modules/@openzeppelin/ \

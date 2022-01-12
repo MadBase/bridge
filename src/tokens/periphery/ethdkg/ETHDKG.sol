@@ -19,7 +19,7 @@ contract ETHDKG is
         address validatorPool,
         address ethdkgAccusations,
         address ethdkgPhases,
-        bytes memory
+        bytes memory hook
     ) {
         _nonce = 0;
         _phaseStartBlock = 0;
@@ -272,8 +272,8 @@ contract ETHDKG is
         );
     }
 
-    function submitGPKj(uint256[4] memory gpkj) external onlyValidator {
-        _callPhaseContract(abi.encodeWithSignature("submitGPKj(uint256[4])", gpkj));
+    function submitGPKJ(uint256[4] memory gpkj) external onlyValidator {
+        _callPhaseContract(abi.encodeWithSignature("submitGPKJ(uint256[4])", gpkj));
     }
 
     function accuseParticipantDidNotSubmitGPKJ(address[] memory dishonestAddresses) external {

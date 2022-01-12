@@ -5,9 +5,10 @@ import {
   BigNumberish,
   ContractTransaction,
   Signer,
+  utils,
   Wallet,
 } from "ethers";
-import { ETHDKG, ValidatorPoolMock } from "../../../../typechain-types";
+import { ETHDKG, ValidatorPool } from "../../../../typechain-types";
 
 export const PLACEHOLDER_ADDRESS = "0x0000000000000000000000000000000000000000";
 
@@ -146,11 +147,10 @@ export const getFixture = async () => {
   // console.log(`ValidatorNFT deployed at ${validatorNFT.address}`);
 
   // ValidatorPool
-  const ValidatorPool = await ethers.getContractFactory("ValidatorPoolMock");
-  const validatorPool = await ValidatorPool.deploy();
+  const ValidatorPool = await ethers.getContractFactory("ValidatorPool");
+  const validatorPool = await ValidatorPool.deploy(utils.formatBytes32String("0x0"));
   await validatorPool.deployed();
   // console.log(`ValidatorPool deployed at ${validatorPool.address}`);
-
 
 
   // ETHDKG Accusations
@@ -165,7 +165,7 @@ export const getFixture = async () => {
 
    // ETHDKG
    const ETHDKG = await ethers.getContractFactory("ETHDKG");
-   const ethdkg = await ETHDKG.deploy(validatorPool.address, ethdkgAccusations.address, ethdkgPhases.address,"0x0");
+   const ethdkg = await ETHDKG.deploy(validatorPool.address, ethdkgAccusations.address, ethdkgPhases.address, utils.formatBytes32String("0x0"));
    await ethdkg.deployed();
    // console.log(`ETHDKG deployed at ${ethdkg.address}`);
   // console.log("finished core deployment");
@@ -413,7 +413,7 @@ export const assertETHDKGPhase = async (
 
 // Aux functions
 export const addValidators = async (
-  validatorPool: ValidatorPoolMock,
+  validatorPool: ValidatorPool,
   validators: ValidatorRawData[]
 ) => {
   for (let validator of validators) {
@@ -453,7 +453,7 @@ export const waitNextPhaseStartDelay = async (ethdkg: ETHDKG) => {
 
 export const initializeETHDKG = async (
   ethdkg: ETHDKG,
-  validatorPool: ValidatorPoolMock
+  validatorPool: ValidatorPool
 ) => {
   let nonce = await ethdkg.getNonce();
   await expect(validatorPool.initializeETHDKG())
@@ -465,7 +465,7 @@ export const initializeETHDKG = async (
 
 export const registerValidators = async (
   ethdkg: ETHDKG,
-  validatorPool: ValidatorPoolMock,
+  validatorPool: ValidatorPool,
   validators: ValidatorRawData[],
   expectedNonce: number
 ) => {
@@ -502,7 +502,7 @@ export const registerValidators = async (
 
 export const distributeValidatorsShares = async (
   ethdkg: ETHDKG,
-  validatorPool: ValidatorPoolMock,
+  validatorPool: ValidatorPool,
   validators: ValidatorRawData[],
   expectedNonce: number
 ) => {
@@ -538,7 +538,7 @@ export const distributeValidatorsShares = async (
 
 export const submitValidatorsKeyShares = async (
   ethdkg: ETHDKG,
-  validatorPool: ValidatorPoolMock,
+  validatorPool: ValidatorPool,
   validators: ValidatorRawData[],
   expectedNonce: number
 ) => {
@@ -608,7 +608,7 @@ export const submitMasterPublicKey = async (
 
 export const submitValidatorsGPKJ = async (
   ethdkg: ETHDKG,
-  validatorPool: ValidatorPoolMock,
+  validatorPool: ValidatorPool,
   validators: ValidatorRawData[],
   expectedNonce: number,
   expectedEpoch: number
@@ -618,7 +618,7 @@ export const submitValidatorsGPKJ = async (
     let numParticipantsBefore = await ethdkg.getNumParticipants();
     let tx = await ethdkg
       .connect(await getValidatorEthAccount(validator))
-      .submitGPKj(validator.gpkj);
+      .submitGPKJ(validator.gpkj);
     let participant = await ethdkg.getParticipantInternalState(
       validator.address
     );
@@ -679,8 +679,8 @@ export const completeETHDKG = async (
 
 export const startAtDistributeShares = async (
   validators: ValidatorRawData[],
-  contracts?: { ethdkg: ETHDKG; validatorPool: ValidatorPoolMock }
-): Promise<[ETHDKG, ValidatorPoolMock, number]> => {
+  contracts?: { ethdkg: ETHDKG; validatorPool: ValidatorPool }
+): Promise<[ETHDKG, ValidatorPool, number]> => {
   const { ethdkg, validatorPool } =
     typeof contracts !== "undefined" ? contracts : await getFixture();
   // add validators
@@ -698,8 +698,8 @@ export const startAtDistributeShares = async (
 
 export const startAtSubmitKeyShares = async (
   validators: ValidatorRawData[],
-  contracts?: { ethdkg: ETHDKG; validatorPool: ValidatorPoolMock }
-): Promise<[ETHDKG, ValidatorPoolMock, number]> => {
+  contracts?: { ethdkg: ETHDKG; validatorPool: ValidatorPool }
+): Promise<[ETHDKG, ValidatorPool, number]> => {
   let [ethdkg, validatorPool, expectedNonce] = await startAtDistributeShares(
     validators,
     contracts
@@ -720,8 +720,8 @@ export const startAtSubmitKeyShares = async (
 
 export const startAtMPKSubmission = async (
   validators: ValidatorRawData[],
-  contracts?: { ethdkg: ETHDKG; validatorPool: ValidatorPoolMock }
-): Promise<[ETHDKG, ValidatorPoolMock, number]> => {
+  contracts?: { ethdkg: ETHDKG; validatorPool: ValidatorPool }
+): Promise<[ETHDKG, ValidatorPool, number]> => {
   let [ethdkg, validatorPool, expectedNonce] = await startAtSubmitKeyShares(
     validators,
     contracts
@@ -741,8 +741,8 @@ export const startAtMPKSubmission = async (
 
 export const startAtGPKJ = async (
   validators: ValidatorRawData[],
-  contracts?: { ethdkg: ETHDKG; validatorPool: ValidatorPoolMock }
-): Promise<[ETHDKG, ValidatorPoolMock, number]> => {
+  contracts?: { ethdkg: ETHDKG; validatorPool: ValidatorPool }
+): Promise<[ETHDKG, ValidatorPool, number]> => {
   let [ethdkg, validatorPool, expectedNonce] = await startAtMPKSubmission(
     validators,
     contracts
@@ -757,8 +757,8 @@ export const startAtGPKJ = async (
 
 export const completeETHDKGRound = async (
   validators: ValidatorRawData[],
-  contracts?: { ethdkg: ETHDKG; validatorPool: ValidatorPoolMock }
-): Promise<[ETHDKG, ValidatorPoolMock, number, number, number]> => {
+  contracts?: { ethdkg: ETHDKG; validatorPool: ValidatorPool }
+): Promise<[ETHDKG, ValidatorPool, number, number, number]> => {
   let [ethdkg, validatorPool, expectedNonce] = await startAtGPKJ(
     validators,
     contracts

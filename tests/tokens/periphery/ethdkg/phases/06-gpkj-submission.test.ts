@@ -15,7 +15,7 @@ describe("GPKj submission", () => {
     await expect(
       ethdkg
         .connect(await getValidatorEthAccount(validators4[0].address))
-        .submitGPKj(validators4[0].gpkj)
+        .submitGPKJ(validators4[0].gpkj)
     ).to.be.revertedWith("ETHDKG: Not in GPKJ submission phase");
   });
 
@@ -27,7 +27,7 @@ describe("GPKj submission", () => {
     await expect(
       ethdkg
         .connect(await getValidatorEthAccount(validator11))
-        .submitGPKj(validators4[0].gpkj)
+        .submitGPKJ(validators4[0].gpkj)
     ).to.be.revertedWith("ETHDKG: Only validators allowed!");
   });
 
@@ -61,7 +61,7 @@ describe("GPKj submission", () => {
     await expect(
       ethdkg
         .connect(await getValidatorEthAccount(validators4[0].address))
-        .submitGPKj(["0", "0", "0", "0"])
+        .submitGPKJ(["0", "0", "0", "0"])
     ).to.be.revertedWith("ETHDKG: GPKj cannot be all zeros!");
   });
 });
