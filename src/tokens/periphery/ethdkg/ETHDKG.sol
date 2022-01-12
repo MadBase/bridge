@@ -66,10 +66,12 @@ contract ETHDKG is
     }
 
     function setPhaseLength(uint16 phaseLength_) external onlyAdmin {
+        //todo: doesnt allow to change while an ethdkg round is going on
         _phaseLength = phaseLength_;
     }
 
     function setConfirmationLength(uint16 confirmationLength_) external onlyAdmin {
+        //todo: doesnt allow to change while an ethdkg round is going on
         _confirmationLength = confirmationLength_;
     }
 
@@ -186,7 +188,7 @@ contract ETHDKG is
 
         delete _masterPublicKey;
 
-        emit RegistrationOpened(block.number, _nonce);
+        emit RegistrationOpened(block.number, _nonce, _phaseLength, _confirmationLength);
     }
 
     function register(uint256[2] memory publicKey) external onlyValidator {

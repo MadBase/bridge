@@ -1,6 +1,7 @@
 #!/bin/sh
 
 solc \
+    --optimize \
     --optimize-runs 2000000 \
     --pretty-json \
     --combined-json abi,bin \
