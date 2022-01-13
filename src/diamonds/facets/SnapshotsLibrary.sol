@@ -181,7 +181,7 @@ library SnapshotsLibrary {
         return reinitEthdkg;
     }
 
-    function mayValidatorSnapshot(int numValidators, int myIdx, int blocksSinceDesperation, bytes32 blsig, int desperationFactor) public pure returns (bool) {        
+    function mayValidatorSnapshot(int numValidators, int myIdx, int blocksSinceDesperation, bytes32 blsig, int desperationFactor) internal pure returns (bool) {        
         int numValidatorsAllowed = 1;
         
         for (int i = blocksSinceDesperation; i > 0;) {
