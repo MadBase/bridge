@@ -98,21 +98,19 @@ library SnapshotsLibrary {
         ChainStatusLibrary.ChainStatusStorage storage cs = ChainStatusLibrary.chainStatusStorage();
         SnapshotsStorage storage ss = snapshotsStorage();
 
-        {
-            uint256[4] memory publicKey;
-            uint256[2] memory signature;
-            (publicKey, signature) = RCertParserLibrary.extractSigGroup(_signatureGroup, 0);
+        uint256[4] memory publicKey;
+        uint256[2] memory signature;
+        (publicKey, signature) = RCertParserLibrary.extractSigGroup(_signatureGroup, 0);
 
-            bytes memory blockHash = abi.encodePacked(keccak256(_bclaims));
+        bytes memory blockHash = abi.encodePacked(keccak256(_bclaims));
 
-            require(CryptoLibrary.Verify(blockHash, signature, publicKey), "Signature verification failed");
-        }
+        require(CryptoLibrary.Verify(blockHash, signature, publicKey), "Signature verification failed");
 
         // Extract
+        uint32 chainId = extractUint32(_bclaims, 8);
         uint32 madHeight = extractUint32(_bclaims, 12);
 
         // Store snapshot
-        uint32 chainId = extractUint32(_bclaims, 8);
         {
             Snapshot storage currentSnapshot = ss.snapshots[cs.epoch];
 
@@ -124,10 +122,12 @@ library SnapshotsLibrary {
             currentSnapshot.chainId = chainId;
         }
 
+        // Check if snapshot not too early
         uint ethBlocksSinceLastSnapshot;
         {
             Snapshot memory previousSnapshot = ss.snapshots[cs.epoch-1];
             ethBlocksSinceLastSnapshot = block.number - previousSnapshot.ethHeight;
+            
             if (cs.epoch > 1) {
 
                 require(
@@ -142,26 +142,32 @@ library SnapshotsLibrary {
             }
         }
 
+        // Lock rewards
+        ParticipantsLibrary.ParticipantsStorage storage ps = ParticipantsLibrary.participantsStorage();
         {
-            ParticipantsLibrary.ParticipantsStorage storage ps = ParticipantsLibrary.participantsStorage();
-            {
-                StakingLibrary.StakingStorage storage stakingS = StakingLibrary.stakingStorage();
-                for (uint idx=0; idx<ps.validators.length; idx++) {
-                    if (msg.sender==ps.validators[idx]) {
-                        StakingLibrary.lockRewardFor(ps.validators[idx], stakingS.rewardAmount + stakingS.rewardBonus, cs.epoch+2);
-                    } else {
-                        StakingLibrary.lockRewardFor(ps.validators[idx], stakingS.rewardAmount, cs.epoch+2);
-                    }
+            StakingLibrary.StakingStorage storage stakingS = StakingLibrary.stakingStorage();
+            for (uint idx=0; idx<ps.validators.length; idx++) {
+                if (msg.sender==ps.validators[idx]) {
+                    StakingLibrary.lockRewardFor(ps.validators[idx], stakingS.rewardAmount + stakingS.rewardBonus, cs.epoch+2);
+                } else {
+                    StakingLibrary.lockRewardFor(ps.validators[idx], stakingS.rewardAmount, cs.epoch+2);
                 }
             }
-
-            require(
-                mayValidatorSnapshot(int(ps.ethdkgDiamond.numberOfRegistrations()), int(ps.ethdkgDiamond.validatorIndex(msg.sender)), int(ethBlocksSinceLastSnapshot)-int(ss.snapshotDesperationDelay), keccak256(_bclaims), int(ss.snapshotDesperationFactor)),
-                string(abi.encodePacked("validator not among allowed ", int2str(int(ethBlocksSinceLastSnapshot)-int(ss.snapshotDesperationDelay)), ", ", int2str(int(ss.snapshotDesperationFactor))))
-            );
         }
-        
 
+        // Check if sender is the elected validator allowed to make the snapshot
+        require(
+            mayValidatorSnapshot(
+                int(ps.ethdkgDiamond.numberOfRegistrations()),
+                int(ps.ethdkgDiamond.validatorIndex(msg.sender)),
+                int(ethBlocksSinceLastSnapshot)-int(ss.snapshotDesperationDelay),
+                keccak256(_bclaims),
+                int(ss.snapshotDesperationFactor)
+            ),
+            "validator not among allowed"
+        );
+
+        // determine whether validators changed and thus ethDKG needs to be rerun
         bool reinitEthdkg;
         if (ss.validatorsChanged) {
             reinitEthdkg = true;
