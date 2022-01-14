@@ -216,6 +216,8 @@ contract Setup is Constants {
         update.addFacet(ETHDKG.master_public_key.selector, infoFacet);
         update.addFacet(ETHDKG.gpkj_submissions.selector, infoFacet);
         update.addFacet(ETHDKG.getPhaseLength.selector, infoFacet);
+        update.addFacet(ETHDKG.validatorIndex.selector, infoFacet);
+        update.addFacet(ETHDKG.numberOfRegistrations.selector, infoFacet);
 
         // SudoFacet Wiring
         update.addFacet(Sudo.modifyDiamondStorage.selector, sudoFacet);

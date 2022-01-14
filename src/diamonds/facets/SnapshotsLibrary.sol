@@ -160,7 +160,7 @@ library SnapshotsLibrary {
             mayValidatorSnapshot(
                 int(ps.ethdkgDiamond.numberOfRegistrations()),
                 int(ps.ethdkgDiamond.validatorIndex(msg.sender)),
-                int(ethBlocksSinceLastSnapshot)-int(ss.snapshotDesperationDelay),
+                int(ethBlocksSinceLastSnapshot) - int(ss.snapshotDesperationDelay),
                 keccak256(_bclaims),
                 int(ss.snapshotDesperationFactor)
             ),
