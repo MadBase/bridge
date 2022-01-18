@@ -98,7 +98,7 @@ describe("Dispute bad shares", () => {
     .to.be.revertedWith("ETHDKG: Dispute failed! Contract is not in dispute phase!")
 
     // complete ethdkg
-    await completeETHDKG(ethdkg, validators4, expectedNonce, 1, 1)
+    await completeETHDKG(ethdkg, validators4, expectedNonce, 1, 0)
 
     await assertETHDKGPhase(ethdkg, Phase.Completion)
 

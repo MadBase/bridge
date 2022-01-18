@@ -95,11 +95,11 @@ contract ETHDKGAccusations is ETHDKGStorage, IETHDKGEvents, ETHDKGUtils {
         // We should allow accusation, even if some of the participants didn't participate
         require(
             (_ethdkgPhase == Phase.DisputeShareDistribution &&
-                block.number > _phaseStartBlock &&
-                block.number <= _phaseStartBlock + _phaseLength) ||
+                block.number >= _phaseStartBlock &&
+                block.number < _phaseStartBlock + _phaseLength) ||
                 (_ethdkgPhase == Phase.ShareDistribution &&
-                    (block.number > _phaseStartBlock + _phaseLength) &&
-                    (block.number <= _phaseStartBlock + 2 * _phaseLength)),
+                    (block.number >= _phaseStartBlock + _phaseLength) &&
+                    (block.number < _phaseStartBlock + 2 * _phaseLength)),
             "ETHDKG: Dispute failed! Contract is not in dispute phase!"
         );
         require(
@@ -191,8 +191,8 @@ contract ETHDKGAccusations is ETHDKGStorage, IETHDKGEvents, ETHDKGUtils {
     function accuseParticipantDidNotSubmitKeyShares(address[] memory dishonestAddresses) external {
         require(
             _ethdkgPhase == Phase.KeyShareSubmission &&
-                (block.number > _phaseStartBlock + _phaseLength &&
-                    block.number <= _phaseStartBlock + 2 * _phaseLength),
+                (block.number >= _phaseStartBlock + _phaseLength &&
+                    block.number < _phaseStartBlock + 2 * _phaseLength),
             "ETHDKG: Dispute failed! Should be in post-KeyShareSubmission phase!"
         );
 
@@ -230,8 +230,8 @@ contract ETHDKGAccusations is ETHDKGStorage, IETHDKGEvents, ETHDKGUtils {
     function accuseParticipantDidNotSubmitGPKJ(address[] memory dishonestAddresses) external {
         require(
             _ethdkgPhase == Phase.GPKJSubmission &&
-                (block.number > _phaseStartBlock + _phaseLength &&
-                    block.number <= _phaseStartBlock + 2 * _phaseLength),
+                (block.number >= _phaseStartBlock + _phaseLength &&
+                    block.number < _phaseStartBlock + 2 * _phaseLength),
             "ETHDKG: Dispute Failed! Should be in post-GPKJSubmission phase!"
         );
 
@@ -278,11 +278,11 @@ contract ETHDKGAccusations is ETHDKGStorage, IETHDKGEvents, ETHDKGUtils {
         // We should allow accusation, even if some of the participants didn't participate
         require(
             (_ethdkgPhase == Phase.DisputeGPKJSubmission &&
-                block.number > _phaseStartBlock &&
-                block.number <= _phaseStartBlock + _phaseLength) ||
+                block.number >= _phaseStartBlock &&
+                block.number < _phaseStartBlock + _phaseLength) ||
                 (_ethdkgPhase == Phase.GPKJSubmission &&
-                    (block.number > _phaseStartBlock + _phaseLength) &&
-                    (block.number <= _phaseStartBlock + 2 * _phaseLength)),
+                    (block.number >= _phaseStartBlock + _phaseLength) &&
+                    (block.number < _phaseStartBlock + 2 * _phaseLength)),
             "ETHDKG: Dispute Failed! Should be in post-GPKJSubmission phase!"
         );
 

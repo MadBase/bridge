@@ -12,8 +12,8 @@ contract ETHDKGPhases is ETHDKGStorage, IETHDKGEvents, ETHDKGUtils {
     function register(uint256[2] memory publicKey) external {
         require(
             _ethdkgPhase == Phase.RegistrationOpen &&
-                block.number > _phaseStartBlock &&
-                block.number <= _phaseStartBlock + _phaseLength,
+                block.number >= _phaseStartBlock &&
+                block.number < _phaseStartBlock + _phaseLength,
             "ETHDKG: Cannot register at the moment"
         );
         require(
@@ -59,8 +59,8 @@ contract ETHDKGPhases is ETHDKGStorage, IETHDKGEvents, ETHDKGUtils {
     {
         require(
             _ethdkgPhase == Phase.ShareDistribution &&
-                block.number > _phaseStartBlock &&
-                block.number <= _phaseStartBlock + _phaseLength,
+                block.number >= _phaseStartBlock &&
+                block.number < _phaseStartBlock + _phaseLength,
             "ETHDKG: cannot participate on this phase"
         );
         Participant memory participant = _participants[msg.sender];
@@ -128,10 +128,10 @@ contract ETHDKGPhases is ETHDKGStorage, IETHDKGEvents, ETHDKGUtils {
         // and no bad participant was found
         require(
             (_ethdkgPhase == Phase.KeyShareSubmission &&
-                block.number > _phaseStartBlock &&
-                block.number <= _phaseStartBlock + _phaseLength) ||
+                block.number >= _phaseStartBlock &&
+                block.number < _phaseStartBlock + _phaseLength) ||
                 (_ethdkgPhase == Phase.DisputeShareDistribution &&
-                    block.number > _phaseStartBlock + _phaseLength &&
+                    block.number >= _phaseStartBlock + _phaseLength &&
                     _badParticipants == 0),
             "ETHDKG: cannot participate on key share submission phase"
         );
@@ -214,8 +214,8 @@ contract ETHDKGPhases is ETHDKGStorage, IETHDKGEvents, ETHDKGUtils {
         //todo: should we reward ppl here?
         require(
             _ethdkgPhase == Phase.MPKSubmission &&
-                block.number > _phaseStartBlock &&
-                block.number <= _phaseStartBlock + _phaseLength,
+                block.number >= _phaseStartBlock &&
+                block.number < _phaseStartBlock + _phaseLength,
             "ETHDKG: cannot participate on master public key submission phase"
         );
         uint256[2] memory mpkG1 = _mpkG1;
@@ -249,8 +249,8 @@ contract ETHDKGPhases is ETHDKGStorage, IETHDKGEvents, ETHDKGUtils {
         //todo: should we evict all validators if no one sent the master public key in time?
         require(
             _ethdkgPhase == Phase.GPKJSubmission &&
-                block.number > _phaseStartBlock &&
-                block.number <= _phaseStartBlock + _phaseLength,
+                block.number >= _phaseStartBlock &&
+                block.number < _phaseStartBlock + _phaseLength,
             "ETHDKG: Not in GPKJ submission phase"
         );
 
@@ -301,7 +301,7 @@ contract ETHDKGPhases is ETHDKGStorage, IETHDKGEvents, ETHDKGUtils {
         //todo: should we reward ppl here?
         require(
             (_ethdkgPhase == Phase.DisputeGPKJSubmission &&
-                block.number > _phaseStartBlock + _phaseLength),
+                block.number >= _phaseStartBlock + _phaseLength),
             "ETHDKG: should be in post-GPKJDispute phase!"
         );
         require(
@@ -314,7 +314,7 @@ contract ETHDKGPhases is ETHDKGStorage, IETHDKGEvents, ETHDKGUtils {
         //todo:fix this once we have the snapshot logic!!!!!
         uint32 epoch = 1; //uint32(es.validators.epoch()) - 1; // validators is always set to the _next_ epoch
         uint32 ethHeight = 1; //uint32(es.validators.getHeightFromSnapshot(epoch));
-        uint32 madHeight = 1; // uint32(es.validators.getMadHeightFromSnapshot(epoch));
+        uint32 madHeight = 0; // uint32(es.validators.getMadHeightFromSnapshot(epoch));
         emit ValidatorSetCompleted(
             uint8(_validatorPool.getValidatorsCount()),
             _nonce,
@@ -329,9 +329,8 @@ contract ETHDKGPhases is ETHDKGStorage, IETHDKGEvents, ETHDKGUtils {
     }
 
     function _setPhase(Phase phase_) internal {
-        require(block.number > 0, "ETHDKG: block number needs to greater than 0");
         _ethdkgPhase = phase_;
-        _phaseStartBlock = uint64(block.number-1);
+        _phaseStartBlock = uint64(block.number);
         _numParticipants = 0;
     }
 

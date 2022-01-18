@@ -764,7 +764,7 @@ export const completeETHDKGRound = async (
     contracts
   );
   const expectedEpoch = 1;
-  const expectedMadHeight = 1;
+  const expectedMadHeight = 0;
   // Submit GPKj for all validators
   await submitValidatorsGPKJ(
     ethdkg,
