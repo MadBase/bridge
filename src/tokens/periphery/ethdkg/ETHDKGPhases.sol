@@ -329,8 +329,9 @@ contract ETHDKGPhases is ETHDKGStorage, IETHDKGEvents, ETHDKGUtils {
     }
 
     function _setPhase(Phase phase_) internal {
+        require(block.number > 0, "ETHDKG: block number needs to greater than 0");
         _ethdkgPhase = phase_;
-        _phaseStartBlock = uint64(block.number);
+        _phaseStartBlock = uint64(block.number-1);
         _numParticipants = 0;
     }
 

@@ -174,8 +174,9 @@ contract ETHDKG is
 
     function _initializeETHDKG() internal {
         //todo: should we reward ppl here?
+        uint256 numberValidators = _validatorPool.getValidatorsCount();
         require(
-            _validatorPool.getValidatorsCount() >= _minValidators,
+            numberValidators >= _minValidators,
             "ETHDKG: Minimum number of validators staked not met!"
         );
 
@@ -188,7 +189,7 @@ contract ETHDKG is
 
         delete _masterPublicKey;
 
-        emit RegistrationOpened(block.number, _nonce, _phaseLength, _confirmationLength);
+        emit RegistrationOpened(block.number, numberValidators, _nonce, _phaseLength, _confirmationLength);
     }
 
     function register(uint256[2] memory publicKey) external onlyValidator {
