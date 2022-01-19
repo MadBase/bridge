@@ -70,6 +70,10 @@ contract ValidatorPoolTrue is EthSafeTransfer, ERC20SafeTransfer {
         return _validators.length;
     }
 
+    function getValidatorAddresses() external view returns (address[] memory addresses) {
+        return _validators;
+    }
+
     function getValidator(uint256 index) public view returns(address) {
         require(index < _validators.length, "Index out boundaries!");
         return _validators[index];

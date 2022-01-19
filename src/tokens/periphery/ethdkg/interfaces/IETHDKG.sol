@@ -27,6 +27,8 @@ interface IETHDKG {
     function getETHDKGPhase() external view returns (Phase);
 
     function getNumParticipants() external view returns (uint256);
+    
+    function getNumValidators() external view returns (uint256);
 
     function getBadParticipants() external view returns (uint256);
 

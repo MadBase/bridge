@@ -118,6 +118,10 @@ contract ETHDKG is
         return _numParticipants;
     }
 
+    function getNumValidators() public view returns (uint256) {
+        return _numValidators;
+    }
+
     function getBadParticipants() public view returns (uint256) {
         return _badParticipants;
     }
@@ -132,6 +136,20 @@ contract ETHDKG is
         returns (Participant memory)
     {
         return _participants[participant];
+    }
+
+    function getParticipantsInternalState(address[] calldata participantAddresses)
+        public
+        view
+        returns (Participant[] memory)
+    {
+        Participant[] memory participants = new Participant[](participantAddresses.length) ;
+
+        for (uint256 i=0; i<participantAddresses.length; i++) {
+            participants[i] = _participants[participantAddresses[i]];
+        }
+
+        return participants;
     }
 
     function getMasterPublicKey() public view returns (uint256[4] memory) {
@@ -183,6 +201,7 @@ contract ETHDKG is
         _phaseStartBlock = uint64(block.number);
         _nonce++;
         _numParticipants = 0;
+        _numValidators = uint32(numberValidators);
         _badParticipants = 0;
         _mpkG1 = [uint256(0), uint256(0)];
         _ethdkgPhase = Phase.RegistrationOpen;

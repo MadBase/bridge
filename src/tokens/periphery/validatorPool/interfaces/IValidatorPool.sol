@@ -10,6 +10,8 @@ interface IValidatorPool {
 
     function getValidator(uint256 index) external view returns (address);
 
+    function getValidatorAddresses() external view returns (address[] memory);
+
     function isValidator(address participant) external view returns (bool);
 
     function collectProfits() external returns (uint256 payoutEth, uint256 payoutToken);
