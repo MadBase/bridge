@@ -2,21 +2,6 @@
 pragma solidity  ^0.8.11;
 import "../lib/utils/DeterministicAddress.sol";
 
-interface ifoo {
-    function owner() external returns (address);
-    fallback() external;
-}
-contract foo {
-    address public owner;
-    constructor(address bar, bytes memory) {
-        owner = bar;
-    }
-
-    fallback() external {
-        owner = msg.sender;
-    }
-}
-
 interface MadnetFacInterface {
     function deploy(address _implementation, bytes32 _salt, bytes calldata _initCallData) external payable returns (address contractAddr);
 }
@@ -46,9 +31,9 @@ contract MadnetFactory is DeterministicAddress {
     /**
     @dev events that notify of contract deployment
     */
-    event Deployed(bytes32, address);
-    event DeployedTemplate(address);
-    event DeployedRaw(address);
+    event Deployed(bytes32 salt , address contractAddr);
+    event DeployedTemplate(address contractAddr);
+    event DeployedRaw(address contractAddr);
 
     // modifier restricts caller to owner or self via multicall
     modifier onlyOwner() {
@@ -128,44 +113,6 @@ contract MadnetFactory is DeterministicAddress {
             return(0x00, returndatasize())
         }
     }
-    /**  
-    * @dev deploy uses create2 to deploy a metamorphic contract to a deterministic location 
-    * once deployed the metamorphic contract will static call into the factory fall back to retrieve 
-    * the address of the most recent template deployment
-    * the metamorphic contract will then make a delegate call into the template contract to triger the deploycode which will 
-    * return the runtime code.
-    * after  deployment is done, if Init call data 
-    * @param _implementation the implementation contract address, to copy runtime code from.
-    if the 0 address is used, the last addressed stored on the global state is used    
-    * @param _salt salt used for create2 param, (ascii representation of the contract name padded to 32 bytes) 
-    * @param _initCallData call data used for making a initialization call to initializable contracts 
-    * @return contractAddr the address of the created contract 
-    */
-    function deploy(address _implementation, bytes32 _salt, bytes calldata _initCallData) public payable onlyOwner returns (address contractAddr) {
-        assembly {
-            // store non-zero address as implementation,
-            if iszero(iszero(_implementation)) {
-                    sstore(implementation_.slot, _implementation)
-            }
-            let ptr := mload(0x40)
-            // put metamorphic code as initcode
-            mstore(ptr, shl(72, 0x6020363636335afa1536363636515af43d36363e3d36f3))
-            contractAddr := create2(0, ptr, 0x17, _salt)
-            //if the _initCallData is non zero make a initialization call 
-            if iszero(iszero(_initCallData.length)) {
-                //copy the arguement over from the call data in the context of the deploy function call
-                calldatacopy(ptr, _initCallData.offset, _initCallData.length)
-                if iszero(call(gas(), contractAddr, 0, ptr, _initCallData.length, 0x00, 0x00)) {
-                    revert(0x00, returndatasize())
-                }
-            }
-        }
-        codeSizeZeroRevert(uint160(contractAddr) != 0);
-        //add the salt to the list of contract names
-        contracts_.push(_salt);
-        emit Deployed(_salt, contractAddr);
-        return contractAddr;
-    }
 
     /**  
     * @dev requireAuth reverts if false and returns csize0 error message 
@@ -192,7 +139,6 @@ contract MadnetFactory is DeterministicAddress {
         return getMetamorphicContractAddress(_salt, address(this));
     }
  
-    
     /**  
     * @dev getNumContracts retrieves the address of the contract specified by its 32 byte salt derived from its name    
     */
@@ -299,6 +245,46 @@ contract MadnetFactory is DeterministicAddress {
         return contractAddr;        
     }
 
+    /**  
+    * @dev deploy uses create2 to deploy a metamorphic contract to a deterministic location 
+    * once deployed the metamorphic contract will static call into the factory fall back to retrieve 
+    * the address of the most recent template deployment
+    * the metamorphic contract will then make a delegate call into the template contract to triger the deploycode which will 
+    * return the runtime code.
+    * after  deployment is done, if Init call data 
+    * @param _implementation the implementation contract address, to copy runtime code from.
+    if the 0 address is used, the last addressed stored on the global state is used    
+    * @param _salt salt used for create2 param, (ascii representation of the contract name padded to 32 bytes) 
+    * @param _initCallData call data used for making a initialization call to initializable contracts 
+    * @return contractAddr the address of the created contract 
+    */
+    function deploy(address _implementation, bytes32 _salt, bytes calldata _initCallData) public payable onlyOwner returns (address contractAddr) {
+        assembly {
+            // store non-zero address as implementation,
+            if iszero(iszero(_implementation)) {
+                    sstore(implementation_.slot, _implementation)
+            }
+            let ptr := mload(0x40)
+            // put metamorphic code as initcode
+            //push1 20 
+            mstore(ptr, shl(72, 0x6020363636335afa1536363636515af43d36363e3d36f3))
+            contractAddr := create2(0, ptr, 0x17, _salt)
+            //if the _initCallData is non zero make a initialization call 
+            if iszero(iszero(_initCallData.length)) {
+                //copy the arguement over from the call data in the context of the deploy function call
+                calldatacopy(ptr, _initCallData.offset, _initCallData.length)
+                if iszero(call(gas(), contractAddr, 0, ptr, _initCallData.length, 0x00, 0x00)) {
+                    revert(0x00, returndatasize())
+                }
+            }
+        }
+        codeSizeZeroRevert(uint160(contractAddr) != 0);
+        //add the salt to the list of contract names
+        contracts_.push(_salt);
+        emit Deployed(_salt, contractAddr);
+        return contractAddr;
+    }
+
      /**  
     * @dev destroy calls the template contract with arbitrary which will cause it to self destruct 
     * @param _contractAddr the address of the contract to self destruct 
@@ -360,6 +346,25 @@ contract MadnetFactory is DeterministicAddress {
             return(returndatasize(), 0x20)
         }
     }
+}
+
+contract factoryLogic {
+
+    constructor()  {
+        // create proxy template
+    }
+
+    function deployUpgradable(bytes32 _salt, bytes calldata _runtime, bytes calldata _initCallData) public {
+        // deploy impl
+        // deploy proxy
+        // bind proxy against impl 
+        // invoke init on proxy
+    }
+
+    function deployNonUpgradable(bytes32 _salt, bytes calldata _runtime, bytes calldata _initCallData) public {
+        // deploy 
+    }
+
 }
 
 contract utils {
