@@ -31,7 +31,6 @@ abstract contract ETHDKGStorage {
     uint64 internal _phaseStartBlock;
     Phase internal _ethdkgPhase;
     uint32 internal _numParticipants;
-    uint32 internal _numValidators;
     uint16 internal _badParticipants;
 
     uint16 internal _minValidators;

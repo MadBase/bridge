@@ -118,10 +118,6 @@ contract ETHDKG is
         return _numParticipants;
     }
 
-    function getNumValidators() public view returns (uint256) {
-        return _numValidators;
-    }
-
     function getBadParticipants() public view returns (uint256) {
         return _badParticipants;
     }
@@ -201,7 +197,6 @@ contract ETHDKG is
         _phaseStartBlock = uint64(block.number);
         _nonce++;
         _numParticipants = 0;
-        _numValidators = uint32(numberValidators);
         _badParticipants = 0;
         _mpkG1 = [uint256(0), uint256(0)];
         _ethdkgPhase = Phase.RegistrationOpen;
