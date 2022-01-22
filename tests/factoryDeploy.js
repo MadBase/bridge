@@ -9,6 +9,7 @@ const EndPoint = artifacts.require("endPoint");
 const Proxy = artifacts.require("Proxy");
 const Mock = artifacts.require("Mock")
 const EndPointLockable = artifacts.require("endPointLockable");
+const Utils = artifacts.require("utils");
 contract("Factory", function (accounts) {
     before(async function () {
         //get a instance of a ethereum provider
@@ -27,6 +28,8 @@ contract("Factory", function (accounts) {
         expect(await this.factory.deployed())
         //replace the factory instance 
         this.factory = factory.attach(this.factory.address)
+        //create a utilities instance for testing 
+        this.utils = Utils.new();
     });
     it("VERIFY CALCULATED FACTORY ADDRESS", async function(){
         expect(this.factory.address).to.equal(this.futureFactoryAddress);
@@ -133,35 +136,36 @@ contract("Factory", function (accounts) {
         let v = await MockContract.v.call();
         expect(v.toNumber()).to.equal(2);
     });
-
+    //Deploys a mock logic contract and points the proxy contract to it 
     it("MOCK PROXY LOGIC", async function() {
-        //deploy the mock
+        //get an instance of the mock contract
         let mockCon = await ethers.getContractFactory("Mock");
+        //get the init code with contructor args appended
         deployBCode = mockCon.getDeployTransaction(2);
-        
-        await this.factory.once("DeployedRaw", (contractAddr) => {
-            //upgrade the proxy endpoint to the mock contract address 
-            console.log("deployedRaw: ", contractAddr);
-        });
         //deploy Mock Logic through the factory
         // 27fe1822
-        // 0x27fe18220000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000043c60a060405234801561001057600080fd5b5060405161041c38038061041c833981810160405281019061003291906100bb565b8060808181525050336000806101000a81548173ffffffffffffffffffffffffffffffffffffffff021916908373ffffffffffffffffffffffffffffffffffffffff160217905550506100e8565b600080fd5b6000819050919050565b61009881610085565b81146100a357600080fd5b50565b6000815190506100b58161008f565b92915050565b6000602082840312156100d1576100d0610080565b5b60006100df848285016100a6565b91505092915050565b608051610319610103600039600061014e01526103196000f3fe608060405234801561001057600080fd5b50600436106100625760003560e01c80635bb47808146100675780637c2efcba14610083578063a69df4b5146100a1578063cd4c82f7146100ab578063e5aa3d58146100c7578063f83d08ba146100e5575b600080fd5b610081600480360381019061007c9190610229565b6100ef565b005b61008b610132565b604051610098919061026f565b60405180910390f35b6100a9610138565b005b6100c560048036038101906100c091906102b6565b610142565b005b6100cf61014c565b6040516100dc919061026f565b60405180910390f35b6100ed610170565b005b806000806101000a81548173ffffffffffffffffffffffffffffffffffffffff021916908373ffffffffffffffffffffffffffffffffffffffff16021790555050565b60015481565b61014061017a565b565b8060018190555050565b7f000000000000000000000000000000000000000000000000000000000000000081565b61017861019a565b565b600019805473ffffffffffffffffffffffffffffffffffffffff16815550565b60001980547fca11c0de15dead10cced0000000000000000000000000000000000000000000017815550565b600080fd5b600073ffffffffffffffffffffffffffffffffffffffff82169050919050565b60006101f6826101cb565b9050919050565b610206816101eb565b811461021157600080fd5b50565b600081359050610223816101fd565b92915050565b60006020828403121561023f5761023e6101c6565b5b600061024d84828501610214565b91505092915050565b6000819050919050565b61026981610256565b82525050565b60006020820190506102846000830184610260565b92915050565b61029381610256565b811461029e57600080fd5b50565b6000813590506102b08161028a565b92915050565b6000602082840312156102cc576102cb6101c6565b5b60006102da848285016102a1565b9150509291505056fea2646970667358221220d25837193184009e65b34f88284f5eb76c895199d3d75f6e4016c48d6aa8f3c464736f6c634300080b0033000000000000000000000000000000000000000000000000000000000000000200000000
         let receipt = await this.factory.deployCreate(deployBCode.data);
-        //grab the address from the event 
-        console.log(receipt)
+        //wait for the transaction to be mined
         await receipt.wait(1)
         .then((res) => {
-            console.log("TEMPLATE_LOG: ", res)
-            let g = res["events"][0]["args"]
-            console.log(res["logs"][0])
-            console.log(res["events"][0]["event"])
-            console.log(g)
+            //loop through all the events from that transaction
+            for (let i = 0; i < res["events"].length; i++) {
+                //look for the event DeployedRaw
+                if(res["events"][i]["event"] == "DeployedRaw"){
+                    //extract the deployed mock logic contract address from the event
+                    this.mockAddress = res["events"][i]["args"]["contractAddr"]
+                    //exit the loop
+                    break;
+                }  
+            }
         })
         //func sig 0a008a5d
+        //Upgrade the proxy to the new implementation 
         await this.factory.upgradeProxy(this.proxySalt, this.mockAddress);
-        //connect an instance of the lockable endpoint to proxy address
+        //create a interface of Mock connected to the proxy
         this.proxyMock = await Mock.at(this.proxy.address);
         //extCodeSize func sig fc6f06f5
+        
         let csize = await this.factory.extCodeSize(this.proxyMock.address);
         expect(csize.toNumber()).to.equal((Proxy.deployedBytecode.length-2)/2)
         console.log("proxyMock csize", csize.toNumber());
@@ -171,17 +175,12 @@ contract("Factory", function (accounts) {
         console.log(mockCon.interface.encodeFunctionData("setv", [4]))
         receipt = await this.proxyMock.setv(4, {from:accounts[0]});
         
-        
         //verify the proxy is pointing to the correct logic 
         let res = await this.proxyMock.v.call();
         expect(res.toNumber()).to.equal(4);
         //lock the proxy
-        await this.proxyMock.lock();
-        await this.proxyMock.once("upgradeLocked", (lock)=>{
-            // listener for the deployed proxy event 
-            //compares the deployed proxy address with the expected Proxy address
-            expect(lock).to.equal(true);
-        });
+        receipt = await this.proxyMock.lock();
+        
         //attempt to upgrade the proxy through 
     });
     /*it("lock", async function() {
