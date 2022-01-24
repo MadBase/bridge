@@ -1,12 +1,13 @@
 // SPDX-License-Identifier: MIT-open-group
 pragma solidity  ^0.8.11;
 import "../lib/utils/DeterministicAddress.sol";
+import "./Proxy.sol";
 
 interface MadnetFacInterface {
     function deploy(address _implementation, bytes32 _salt, bytes calldata _initCallData) external payable returns (address contractAddr);
 }
 
-contract MadnetFactory is DeterministicAddress {
+contract MadnetFactory is DeterministicAddress, ProxyUpgrader {
 
     /**
     @dev owner role for priveledged access to functions  
@@ -31,10 +32,14 @@ contract MadnetFactory is DeterministicAddress {
     /**
     @dev events that notify of contract deployment
     */
+    address immutable proxyTemplate_;
+    address public template_;
+    address public static_;
+    bytes8 constant universalDeployCode_ = 0x38585839386009f3;
     event Deployed(bytes32 salt , address contractAddr);
     event DeployedTemplate(address contractAddr);
     event DeployedRaw(address contractAddr);
-
+    event DeployedProxy(address contractAddr);
     // modifier restricts caller to owner or self via multicall
     modifier onlyOwner() {
         requireAuth(msg.sender == address(this) || msg.sender == owner_);
@@ -50,7 +55,20 @@ contract MadnetFactory is DeterministicAddress {
     /**
     * @dev sets the value of owner_ to the sender address
     */
-    constructor() {
+    constructor(address selfAddr_) {
+        bytes memory proxyDeployCode = abi.encodePacked(
+            universalDeployCode_,
+            type(Proxy).creationCode,
+            bytes32(uint256(uint160(selfAddr_)))
+        );
+        address addr;
+        assembly {
+            addr := create(0, add(proxyDeployCode, 0x20), mload(proxyDeployCode))
+            if iszero(addr) {
+                revert(0x00, 0x00)
+            }
+        }
+        proxyTemplate_ = addr;
         owner_ = msg.sender;
     }
 
@@ -196,7 +214,49 @@ contract MadnetFactory is DeterministicAddress {
         implementation_ = contractAddr;
         return contractAddr;      
     }
+    function deployStatic(bytes32 _salt) public onlyOwner returns (address contractAddr) {
+        assembly {
+            // store proxy template address as implementation,
+            //sstore(implementation_.slot, _impl)
+            let ptr := mload(0x40)
+            mstore(0x40, add(ptr, 0x20))
+            // put metamorphic code as initcode
+            mstore(ptr, shl(72, 0x6020363636335afa1536363636515af43d36363e3d36f3))
+            contractAddr := create2(0, ptr, 0x17, _salt)
+            //if the returndatasize is not 0 revert with the error message
+            if iszero(iszero(returndatasize())){
+                returndatacopy(0x00, 0x00, returndatasize())
+                revert(0, returndatasize())
+            }
+            //if contractAddr or code size at contractAddr is 0 revert with deploy fail message
+            if or(iszero(contractAddr), iszero(extcodesize(contractAddr))) {
+                mstore(0, "Static deploy failed")
+                revert(0, 0x20)
+            }
+        }
+        static_ = contractAddr;
+        return contractAddr;
+    }
 
+    function deployProxy(bytes32 _salt) public onlyOwner returns (address contractAddr) {
+        address proxyTemplate = proxyTemplate_;
+        assembly {
+            // store proxy template address as implementation,
+            sstore(implementation_.slot, proxyTemplate)
+            let ptr := mload(0x40)
+            mstore(0x40, add(ptr, 0x20))
+            // put metamorphic code as initcode
+            //push1 20
+            mstore(ptr, shl(72, 0x6020363636335afa1536363636515af43d36363e3d36f3))
+            contractAddr := create2(0, ptr, 0x17, _salt)
+        }
+        emit DeployedProxy(contractAddr);
+        return contractAddr;
+    }
+    function upgradeProxy(bytes32 _salt, address _newImpl) public onlyOwner {
+        address proxy = DeterministicAddress.getMetamorphicContractAddress(_salt, address(this));
+        __upgrade(proxy, _newImpl);
+    }
     /**  
     * @dev deployCreate deploys a contract from the factory address using create
     * @param _deployCode bytecode to deploy using create

@@ -132,7 +132,7 @@ contract Factory is DeterministicAddress, ProxyUpgrader {
     bytes8 constant universalDeployCode_ = 0x38585839386009f3;
     event DeployedTemplate(address contractAddr);
     event DeployedProxy(address contractAddr);
-    event DeployedRaw(address contractAddr);
+    event DeployedRaw(address indexed contractAddr);
     // modifier restricts caller to owner or self via multicall
     modifier onlyOwner() {
         requireAuth(msg.sender == address(this) || msg.sender == owner_);
@@ -408,9 +408,6 @@ contract Mock is ProxyInternalUpgradeLock, ProxyInternalUpgradeUnlock {
 
     function setFactory(address _factory) public {
         factory_ = _factory;
-    }
-    fallback() external payable {
-        return; 
     }
 }
 

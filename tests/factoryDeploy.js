@@ -1,9 +1,8 @@
 const {expect} = require("chai");
 const { ethers, artifacts } = require("hardhat");
-const { BN, expectEvent} = require('@openzeppelin/test-helpers');
+const { BN, expectEvent, expectRevert} = require('@openzeppelin/test-helpers');
 const ether = require("@openzeppelin/test-helpers/src/ether");
 require("@nomiclabs/hardhat-waffle");
-
 const Factory = artifacts.require("Factory");
 const EndPoint = artifacts.require("endPoint");
 const Proxy = artifacts.require("Proxy");
@@ -21,15 +20,11 @@ contract("Factory", function (accounts) {
             from: accounts[0],
             nonce: transactionCount
         });
-        //get an instance of Factory contract
-        let factory = await ethers.getContractFactory("Factory")
         //deploy the factory with its address as a constructor input
-        this.factory = await factory.deploy(this.futureFactoryAddress);
-        expect(await this.factory.deployed())
-        //replace the factory instance 
-        this.factory = factory.attach(this.factory.address)
+        this.factory = await Factory.new(this.futureFactoryAddress);
         //create a utilities instance for testing 
         this.utils = Utils.new();
+        this.i = 0;
     });
     it("VERIFY CALCULATED FACTORY ADDRESS", async function(){
         expect(this.factory.address).to.equal(this.futureFactoryAddress);
@@ -41,13 +36,6 @@ contract("Factory", function (accounts) {
         salty = ethers.utils.formatBytes32String(salty.toString());
         const bcode = EndPoint.bytecode;
         let receipt = await this.factory.deployTemplate(bcode);
-        await receipt.wait(1)
-            .then((res) => {
-                console.log("TEMPLATE_LOG: ", res)
-                for (let i = 0; i < res["logs"].length; i++) {
-                    console.log("TEMPLATE_TOPIC", i, res["logs"][i]["topics"]);
-                }
-            })
         //call the factory for the template address 
         let templateAddr = await this.factory.template_.call();
         let size = await this.factory.extCodeSize(templateAddr);
@@ -95,14 +83,8 @@ contract("Factory", function (accounts) {
         let initCode = "0x6020363636335afa1536363636515af43d36363e3d36f3";
         const expectedProxyAddr = ethers.utils.getCreate2Address(this.factory.address, salt, ethers.utils.keccak256(initCode));
         //deploy the proxy metamorphic
-        const receipt = await this.factory.deployProxy(salt);
-        await receipt.wait(1);
+        let receipt = await this.factory.deployProxy(salt);
          //check if the calculated proxy addr is the contract bytecode 
-        await this.factory.once("DeployedProxy", (contractAddr)=>{
-            // listener for the deployed proxy event 
-            //compares the deployed proxy address with the expected Proxy address
-            expect(contractAddr).to.equal(expectedProxyAddr);
-        });
         this.proxy = await Proxy.at(expectedProxyAddr);
         //get an instance of the endPoint Contract 
         let ePoint = await ethers.getContractFactory("endPoint");
@@ -112,15 +94,16 @@ contract("Factory", function (accounts) {
         await this.endPoint.deployed();
         this.endPoint = ePoint.attach(this.endPoint.address)
         //point the proxy to the endPoint contract Address
-        let upgrade = await this.factory.upgradeProxy(salt, this.endPoint.address);
-        await upgrade.wait(1);
+        receipt = await this.factory.upgradeProxy(salt, this.endPoint.address);
+        expect(receipt["receipt"]["status"]).to.equal(true);
         //verify that the proxy is pointing to the endpoint contract 
-        const proxyEndPoint = await EndPoint.at(this.proxy.address);
+        this.proxyEndPoint = await EndPoint.at(this.proxy.address);
         //call the add two function that is in the endpoint contract through proxy
-        await proxyEndPoint.addTwo();
+        await this.proxyEndPoint.addTwo();
+        this.i = this.i + 2;
         //query public state variable i through proxy
-        const tx = await proxyEndPoint.i.call();
-        expect( tx.toNumber()).to.equal(2);
+        const tx = await this.proxyEndPoint.i.call();
+        expect(tx.toNumber()).to.equal(this.i);
         /*
         this.endPoint2 = await EndPoint.new(this.factory.address);
         await this.factory.upgradeProxy(salt, this.endPoint2.address);
@@ -133,76 +116,74 @@ contract("Factory", function (accounts) {
     it("TEST MOCK LOGIC", async function(){
         let MockContract = await Mock.new(1);
         await MockContract.setv(2);
+        this.v = 2;
         let v = await MockContract.v.call();
-        expect(v.toNumber()).to.equal(2);
+        expect(v.toNumber()).to.equal(this.v);
     });
     //Deploys a mock logic contract and points the proxy contract to it 
     it("MOCK PROXY LOGIC", async function() {
         //get an instance of the mock contract
+        //mockCon is a ether contract instance
         let mockCon = await ethers.getContractFactory("Mock");
         //get the init code with contructor args appended
         deployBCode = mockCon.getDeployTransaction(2);
         //deploy Mock Logic through the factory
         // 27fe1822
         let receipt = await this.factory.deployCreate(deployBCode.data);
-        //wait for the transaction to be mined
-        await receipt.wait(1)
-        .then((res) => {
-            //loop through all the events from that transaction
-            for (let i = 0; i < res["events"].length; i++) {
-                //look for the event DeployedRaw
-                if(res["events"][i]["event"] == "DeployedRaw"){
-                    //extract the deployed mock logic contract address from the event
-                    this.mockAddress = res["events"][i]["args"]["contractAddr"]
-                    //exit the loop
-                    break;
-                }  
-            }
-        })
-        //func sig 0a008a5d
+        //loop through all the events from that transaction
+        for (let i = 0; i < receipt["logs"].length; i++) {
+            //look for the event DeployedRaw
+            if(receipt["logs"][i]["event"] == "DeployedRaw"){
+                //extract the deployed mock logic contract address from the event
+                this.mockAddress = receipt["logs"][i]["args"]["contractAddr"]
+                console.log(this.mockAddress)
+                //exit the loop
+                break;
+            }  
+        }
         //Upgrade the proxy to the new implementation 
+        //func sig 0a008a5d
         await this.factory.upgradeProxy(this.proxySalt, this.mockAddress);
-        //create a interface of Mock connected to the proxy
+        //create a interface of logic contract connected to the proxy
+        //Mock is a truffle contract object 
         this.proxyMock = await Mock.at(this.proxy.address);
         //extCodeSize func sig fc6f06f5
-        
         let csize = await this.factory.extCodeSize(this.proxyMock.address);
         expect(csize.toNumber()).to.equal((Proxy.deployedBytecode.length-2)/2)
-        console.log("proxyMock csize", csize.toNumber());
-        console.log("proxy address: ", this.proxy.address);
-        console.log("factory address: ", this.factory.address);
-        console.log("Mock contract address: ", this.mockAddress);
-        console.log(mockCon.interface.encodeFunctionData("setv", [4]))
         receipt = await this.proxyMock.setv(4, {from:accounts[0]});
-        
         //verify the proxy is pointing to the correct logic 
         let res = await this.proxyMock.v.call();
         expect(res.toNumber()).to.equal(4);
         //lock the proxy
         receipt = await this.proxyMock.lock();
-        
-        //attempt to upgrade the proxy through 
-    });
-    /*it("lock", async function() {
-        //deploy a proxy with lock and unlock capability
-        let EPLockable = await ethers.getContractFactory("endPointLockable");
-        //deploy the lockable endpoint
-        this.endPointLockable = await EPLockable.deploy(this.factory.address);
-        expect(this.endPointLockable.deployed());
-        //upgrade the proxy through the factory 
-        await this.factory.upgradeProxy(this.proxySalt, this.endPointLockable.address);
-        //connect an instance of the lockable endpoint to proxy address
-        this.proxyEPLockable = await EndPointLockable.at(this.proxy.address);
-        //lock the proxy
-        await this.proxyEPLockable.upgradeLock();
-        await this.proxyEPLockable.once("upgradeLocked", (lock)=>{
-            // listener for the deployed proxy event 
-            //compares the deployed proxy address with the expected Proxy address
-            expect(lock).to.equal(true);
-        });
-        //attempt to upgrade the proxy through 
-    });*/
+        //attempt to upgrade the proxy through factory 
+        receipt = this.factory.upgradeProxy(this.proxySalt, this.mockAddress);
+        await expectRevert(receipt, "revert");
+        //unlock the upgrade lock 
+        receipt = await this.proxyMock.unlock();
+        //check if the transaction went through
+        expect(receipt["receipt"]["status"]).to.equal(true);
+        //change the proxy to point at a different implementation 
+        receipt = await this.factory.upgradeProxy(this.proxySalt, this.endPoint.address);
+        expect(receipt["receipt"]["status"]).to.equal(true);
+        receipt = await this.proxyEndPoint.addTwo();
+        this.i = this.i + 2;
+        console.log(receipt);
+        let result 
+        for (let i = 0; i < receipt["logs"].length; i++) {
+            //look for the event DeployedRaw
+            if(receipt["logs"][i]["event"] == "addedTwo"){
+                //extract the deployed mock logic contract address from the event
+                this.i = receipt["logs"][i]["args"]["i"].toNumber();
+                result = await this.proxyEndPoint.i.call();
+                //exit the loop
+                break;
+            }
+        }
+        expect(result.toNumber()).to.equal(this.i)
+                
 
+    });
 });
 
 
