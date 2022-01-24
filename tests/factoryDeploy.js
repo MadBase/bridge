@@ -181,9 +181,9 @@ contract("Factory", function (accounts) {
             }
         }
         expect(result.toNumber()).to.equal(this.i)
-                
-
     });
+
+
 });
 
 
