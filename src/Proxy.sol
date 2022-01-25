@@ -197,19 +197,30 @@ contract Factory is DeterministicAddress, ProxyUpgrader {
             return(0x00, returndatasize())
         }
     }
-
+    /**  
+    * @dev deployProxy allows the owner to deploy a metamorphic contract that copies code 
+    * from the deployed proxyTemplate contract
+    * @param _salt: salt used to generate the address of the create2 metamorphic contract
+    * 
+    */
     function deployProxy(bytes32 _salt) public onlyOwner returns (address contractAddr) {
+        //bring in the proxyTemplate address from global state
         address proxyTemplate = proxyTemplate_;
         assembly {
             // store proxy template address as implementation,
+            //store the proxyTemplate Address in the implementation slot 
+            //so that the metamorphic contract can retrieve the template address 
+            //through the fallback function
             sstore(implementation_.slot, proxyTemplate)
+            //get the free memory pointers
             let ptr := mload(0x40)
             mstore(0x40, add(ptr, 0x20))
             // put metamorphic code as initcode
-            //push1 20
+            //push1 20 
             mstore(ptr, shl(72, 0x6020363636335afa1536363636515af43d36363e3d36f3))
             contractAddr := create2(0, ptr, 0x17, _salt)
         }
+        //TODO: determine if we should check if there is code at contractAddr
         emit DeployedProxy(contractAddr);
         return contractAddr;
     }
@@ -408,6 +419,39 @@ contract Mock is ProxyInternalUpgradeLock, ProxyInternalUpgradeUnlock {
 
     function setFactory(address _factory) public {
         factory_ = _factory;
+    }
+    function getFactory() external view returns (address) {
+        return factory_;
+    }
+}
+
+contract MockSD is ProxyInternalUpgradeLock, ProxyInternalUpgradeUnlock {
+    address factory_;
+    uint256 public v;
+    uint256 public immutable i;
+    
+    constructor(uint256 _i, bytes memory ) {
+        i = _i;
+        factory_ = msg.sender;
+    }
+
+    function setv(uint256 _v) public {
+        v = _v;
+    }
+
+    function lock() public {
+        __lockImplementation();
+    }
+
+    function unlock() public {
+        __unlockImplementation();
+    }
+
+    function setFactory(address _factory) public {
+        factory_ = _factory;
+    }
+    function getFactory() external view returns (address) {
+        return factory_;
     }
 }
 

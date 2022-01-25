@@ -7,7 +7,6 @@ const Factory = artifacts.require("Factory");
 const EndPoint = artifacts.require("endPoint");
 const Proxy = artifacts.require("Proxy");
 const Mock = artifacts.require("Mock")
-const EndPointLockable = artifacts.require("endPointLockable");
 const Utils = artifacts.require("utils");
 contract("Factory", function (accounts) {
     before(async function () {
@@ -24,7 +23,6 @@ contract("Factory", function (accounts) {
         this.factory = await Factory.new(this.futureFactoryAddress);
         //create a utilities instance for testing 
         this.utils = Utils.new();
-        this.i = 0;
     });
     it("VERIFY CALCULATED FACTORY ADDRESS", async function(){
         expect(this.factory.address).to.equal(this.futureFactoryAddress);

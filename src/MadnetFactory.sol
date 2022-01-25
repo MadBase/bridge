@@ -29,15 +29,18 @@ contract MadnetFactory is DeterministicAddress, ProxyUpgrader {
     */
     address private implementation_;
 
-    /**
-    @dev events that notify of contract deployment
-    */
+    
     address immutable proxyTemplate_;
     address public template_;
     address public static_;
     bytes8 constant universalDeployCode_ = 0x38585839386009f3;
+    
+    /**
+     *@dev events that notify of contract deployment
+     */
     event Deployed(bytes32 salt , address contractAddr);
     event DeployedTemplate(address contractAddr);
+    event DeployedStatic(address contractAddr);
     event DeployedRaw(address contractAddr);
     event DeployedProxy(address contractAddr);
     // modifier restricts caller to owner or self via multicall
@@ -53,68 +56,60 @@ contract MadnetFactory is DeterministicAddress, ProxyUpgrader {
     }
 
     /**
-    * @dev sets the value of owner_ to the sender address
+    * @dev The constructor encodes the proxy deploy byte code with the universal deploycode at
+    * the head and the factory address at the tail, and deploys the proxy byte code using create 
+    * The result of this deployment will be a contract with the proxy contract deployment bytecode 
+    * with its constructor at the head, runtime code in the body and constructor args at the tail.
+    * the constructor then sets proxyTemplate_ state var to the deployed proxy template address 
+    * the deploy account will be set as the first owner of the factory. 
+    * @param selfAddr_ is the factory contracts address (address of itself)
     */
     constructor(address selfAddr_) {
         bytes memory proxyDeployCode = abi.encodePacked(
+            //8 byte code copy constructor code 
             universalDeployCode_,
             type(Proxy).creationCode,
             bytes32(uint256(uint160(selfAddr_)))
         );
+        //variable to store the address created from create(the location of the proxy template contract)
         address addr;
         assembly {
+            //deploys the proxy template contract 
             addr := create(0, add(proxyDeployCode, 0x20), mload(proxyDeployCode))
             if iszero(addr) {
-                revert(0x00, 0x00)
+                //if contract creation fails, we want to return any err messages
+                returndatacopy(0x00, 0x00, returndatasize())
+                //revert and return errors 
+                revert(0x00, returndatasize())
             }
         }
+        //State var that stores the proxyTemplate address 
         proxyTemplate_ = addr;
+        //State var that stores the owner_ address
         owner_ = msg.sender;
     }
 
     /**
-    * @dev setOwner sets the owner_ global variable with a new address
-    * @param _new: address of new owner
+    * @dev setOwner allows the owner of this contract to change ownership to _new account 
+    * @param _new: address of new owner 
+    * (WARNING! setting owner_ to a contract address without proper functionality can deadlock everything)
     */
     function setOwner(address _new) public onlyOwner {
         owner_ = _new;
     }
 
     /**
-    * @dev update the delegator global variable
-    * @param _new: address of new owner
+    * @dev allows the owner of this contract to set a delegator_, 
+    * an account with some prvilidged access 
+    * @param _new: address of new delegator account 
+    * (accidentally setting delegator_ to a contract address will not deadlock the system 
+    * since owner can change it back, but still think twice about doing that)
     */
     function setDelegator(address _new) public onlyOwner {
         delegator_ = _new;
     }
-
-    /**  
-    * @dev delegateCallAny is a access restricted wrapper function for delegateCallAnyInternal
-    * @param _target: the address of the contract to call
-    * @param _cdata: the call data for the delegate call
-    */
-    function delegateCallAny(address _target, bytes calldata _cdata) public onlyOwnerOrDelegator {
-        bytes memory cdata = _cdata;
-        delegateCallAnyInternal(_target, cdata);
-        assembly {
-            returndatacopy(0x00, 0x00, returndatasize())
-            return(0x00, returndatasize())
-        }
-    }
-    /**  
-    * @dev callAny is a access restricted wrapper function for callAnyInternal 
-    * @param _target: the address of the contract to call
-    * @param _value: value to send with the call
-    * @param _cdata: the call data for the delegate call
-    */
-    function callAny(address _target, uint256 _value, bytes calldata _cdata) public onlyOwner {
-        bytes memory cdata = _cdata;
-        callAnyInternal(_target, _value, cdata);
-        assembly {
-            returndatacopy(0x00, 0x00, returndatasize())
-            return(0x00, returndatasize())
-        }
-    }
+    
+    
     
     /**  
     * @dev multiCall allows EOA to make multiple function calls within a single transaction **in this contract**, and only returns the result of the last call 
@@ -147,7 +142,13 @@ contract MadnetFactory is DeterministicAddress, ProxyUpgrader {
     function codeSizeZeroRevert(bool _ok) internal pure {
         require(_ok, "csize0");
     }
- 
+    function extCodeSize(address target) public view returns (uint256 size){ 
+        
+        assembly{
+            size := extcodesize(target)
+        }
+        return size;
+    }
     /**  
     * @dev getContractAddress retrieves the address of the contract specified by its 32 byte salt derived from its name  
     * @param _salt the 32 byte ascii representation of the contract name  
@@ -164,15 +165,16 @@ contract MadnetFactory is DeterministicAddress, ProxyUpgrader {
         return contracts_.length;
     }
 
-    //returns implementation contracts address
+    
     /**  
-    * @dev deployTemplate deploys intermediate contract with the implementation contracts deploy code as its runtime code
-    such that the implemention runtime code is returned using its constructor, if a bare empty delegate call is made into it
-    with the factory as msg.sender. The intermediate contract will self destruct if a call is made with a none zero call data is made into it 
-    with the factory as msg.sender.   
-    * @param _deployCode the deploy code of the implementation contract. the contract must have a constructor and the constructor must be the last      
-    */
-    function deployTemplate(bytes calldata _deployCode) public onlyOwner returns (address contractAddr) {
+     * @dev deployTemplateWithSD deploys intermediate contract with the implementation contracts deploy code as its runtime code
+     * such that the implemention runtime code is returned using its constructor, if a bare empty delegate call is made into it
+     * with the factory as msg.sender. The intermediate contract will self destruct if a call is made with a none zero call data is made into it 
+     * with the factory as msg.sender.   
+     * @param _deployCode the deploy code of the implementation contract. the contract must have a constructor and the constructor must be the last      
+     * @return contractAddr the address of the template contract with selfdestruct
+     */
+    function deployTemplateWithSD(bytes calldata _deployCode) public onlyOwner returns (address contractAddr) {
         assembly{
             //get the next free pointer
             let basePtr := mload(0x40)
@@ -209,10 +211,47 @@ contract MadnetFactory is DeterministicAddress, ProxyUpgrader {
             ptr := add(ptr, 0x08)
             contractAddr := create(0, basePtr, sub(ptr, basePtr))
         }
-        codeSizeZeroRevert(uint160(contractAddr) != 0);
+        codeSizeZeroRevert((extCodeSize(contractAddr) != 0));
         emit DeployedTemplate(contractAddr);
         implementation_ = contractAddr;
         return contractAddr;      
+    }
+    /**  
+     * @dev deployTemplate deploys a template contract with the universal code copy constructor that deploys 
+     * the deploycode as the contracts runtime code.    
+     * @param _deployCode dfs
+     * @return contractAddr the address of the deployed template contract
+     */
+    function deployTemplate(bytes calldata _deployCode) public onlyOwner returns (address contractAddr) {
+        assembly {
+            //get the next free pointer
+            let basePtr := mload(0x40)
+            mstore(0x40, add(basePtr, add(_deployCode.length, 0x28)))
+            let ptr := basePtr
+            // modify runtime to contain the tail jump operation
+            //codesize, pc,  pc, codecopy, codesize, push1 09, return push2 <codesize> 56 5b
+            mstore(ptr, hex"38585839386009f3")
+            //0x38585839386009f3
+            ptr := add(ptr, 0x08)
+            //copy the initialization code of the implementation contract
+            calldatacopy(ptr,  _deployCode.offset, _deployCode.length)
+            // Move the ptr to the end of the code in memory
+            ptr := add(ptr, _deployCode.length)
+            // put address on constructor
+            mstore(ptr, address())
+            ptr := add(ptr, 0x20)
+            
+            contractAddr := create(0, basePtr, sub(ptr, basePtr))
+            if iszero(contractAddr) {
+                mstore(0, "yeet")
+                revert(0, 0x20)
+            }
+        }
+        codeSizeZeroRevert((extCodeSize(contractAddr) != 0));
+        emit DeployedTemplate(contractAddr);
+        template_ = contractAddr;
+        implementation_ = contractAddr;
+        return contractAddr;
     }
     function deployStatic(bytes32 _salt) public onlyOwner returns (address contractAddr) {
         assembly {
@@ -234,6 +273,7 @@ contract MadnetFactory is DeterministicAddress, ProxyUpgrader {
                 revert(0, 0x20)
             }
         }
+        emit DeployedStatic(contractAddr);
         static_ = contractAddr;
         return contractAddr;
     }
@@ -258,7 +298,7 @@ contract MadnetFactory is DeterministicAddress, ProxyUpgrader {
         __upgrade(proxy, _newImpl);
     }
     /**  
-    * @dev deployCreate deploys a contract from the factory address using create
+    * @dev deployCreate allows the owner to deploy contracts through the factory
     * @param _deployCode bytecode to deploy using create
     */
     function deployCreate(bytes calldata _deployCode) public onlyOwner returns (address contractAddr) {
@@ -275,7 +315,7 @@ contract MadnetFactory is DeterministicAddress, ProxyUpgrader {
             
             contractAddr := create(0, basePtr, sub(ptr, basePtr))
         }
-        codeSizeZeroRevert(uint160(contractAddr) != 0);
+        codeSizeZeroRevert((extCodeSize(contractAddr) != 0));
         emit DeployedRaw(contractAddr);
         return contractAddr;        
     }
@@ -360,7 +400,33 @@ contract MadnetFactory is DeterministicAddress, ProxyUpgrader {
             }
         }
     }
-
+    /**  
+    * @dev delegateCallAny is a access restricted wrapper function for delegateCallAnyInternal
+    * @param _target: the address of the contract to call
+    * @param _cdata: the call data for the delegate call
+    */
+    function delegateCallAny(address _target, bytes calldata _cdata) public onlyOwnerOrDelegator {
+        bytes memory cdata = _cdata;
+        delegateCallAnyInternal(_target, cdata);
+        assembly {
+            returndatacopy(0x00, 0x00, returndatasize())
+            return(0x00, returndatasize())
+        }
+    }
+    /**  
+    * @dev callAny is a access restricted wrapper function for callAnyInternal 
+    * @param _target: the address of the contract to call
+    * @param _value: value to send with the call
+    * @param _cdata: the call data for the delegate call
+    */
+    function callAny(address _target, uint256 _value, bytes calldata _cdata) public onlyOwner {
+        bytes memory cdata = _cdata;
+        callAnyInternal(_target, _value, cdata);
+        assembly {
+            returndatacopy(0x00, 0x00, returndatasize())
+            return(0x00, returndatasize())
+        }
+    }
     /**  
     * @dev delegateCallAnyInternal allows the logic of this contract to be updated
     * in the event that our update/deploy mechanism is invalidated
