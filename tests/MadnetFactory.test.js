@@ -74,20 +74,7 @@ contract("MADNET FACTORY", function (accounts){
             "unauthorized"
         );
     });
-/*
-    it("DEPLOY MOCK WITH DEPLOYTEMPLATESD AS OWNER EXPECT SUCCEED", async function(){
-        //ethers instance of Mock contract abstraction
-        let mockSD = await ethers.getContractFactory("MockSD");
-        //deploy code for mock with constructor args i = 2
-        deployBCode = mockSD.getDeployTransaction(2);
-        bCode = deployBcode.data + "00000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000000"
-        //deploy the mock Contract to deployTemplate
-        let receipt = await this.factory.deployTemplateSD(bCode);
-        expectTxSuccess(receipt);
-        //store the address of the deployedTemplate contract 
-        this.MockDeploySD = await getEventVar(receipt, DeployedTemplate, contractAddr);
-    });
-*/
+
     it("DEPLOY MOCK WITH DEPLOYTEMPLATE AS OWNER EXPECT SUCCEED", async function(){
         //ethers instance of Mock contract abstraction
         let mockCon = await ethers.getContractFactory("Mock");
