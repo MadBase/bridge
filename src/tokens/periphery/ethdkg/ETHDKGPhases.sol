@@ -132,6 +132,7 @@ contract ETHDKGPhases is ETHDKGStorage, IETHDKGEvents, ETHDKGUtils {
                 block.number < _phaseStartBlock + _phaseLength) ||
                 (_ethdkgPhase == Phase.DisputeShareDistribution &&
                     block.number >= _phaseStartBlock + _phaseLength &&
+                    block.number < _phaseStartBlock + 2 * _phaseLength &&
                     _badParticipants == 0),
             "ETHDKG: cannot participate on key share submission phase"
         );
@@ -211,7 +212,6 @@ contract ETHDKGPhases is ETHDKGStorage, IETHDKGEvents, ETHDKGUtils {
     }
 
     function submitMasterPublicKey(uint256[4] memory masterPublicKey_) external {
-        //todo: should we reward ppl here?
         require(
             _ethdkgPhase == Phase.MPKSubmission &&
                 block.number >= _phaseStartBlock &&
@@ -301,7 +301,8 @@ contract ETHDKGPhases is ETHDKGStorage, IETHDKGEvents, ETHDKGUtils {
         //todo: should we reward ppl here?
         require(
             (_ethdkgPhase == Phase.DisputeGPKJSubmission &&
-                block.number >= _phaseStartBlock + _phaseLength),
+                block.number >= _phaseStartBlock + _phaseLength) &&
+                block.number < _phaseStartBlock + 2 * _phaseLength,
             "ETHDKG: should be in post-GPKJDispute phase!"
         );
         require(

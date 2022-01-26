@@ -12,7 +12,7 @@ interface IETHDKG {
 
     function setMinNumberOfValidator(uint16 minValidators_) external;
 
-    function isAccusationWindowOver() external view returns (bool);
+    function isETHDKGRunning() external view returns (bool);
 
     function isMasterPublicKeySet() external view returns (bool);
 

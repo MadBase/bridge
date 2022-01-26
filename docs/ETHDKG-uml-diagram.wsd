@@ -37,7 +37,7 @@ class ETHDKG {
 	+setConfirmationLength()
 	+setValidatorPoolAddress()
 	+setMinNumberOfValidator()
-	+🔍isAccusationWindowOver()
+	+🔍isETHDKGRunning()
 	+🔍isMasterPublicKeySet()
 	+🔍getNonce()
 	+🔍getPhaseStartBlock()

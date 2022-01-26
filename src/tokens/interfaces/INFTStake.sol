@@ -22,6 +22,10 @@ interface INFTStake {
 
     function skimExcessToken(address to_) external returns (uint256 excess);
 
+    function depositToken(uint8 magic_, uint256 amount_) external;
+
+    function depositEth(uint8 magic_) external payable;
+
     function lockPosition(
         address caller_,
         uint256 tokenID_,

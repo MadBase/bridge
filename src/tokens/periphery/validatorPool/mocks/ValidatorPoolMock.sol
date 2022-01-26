@@ -27,7 +27,7 @@ contract ValidatorPool {
     }
 
     function initializeETHDKG() external {
-        // require(_ethdkg.isAccusationWindowOver(), "cannot init ETHDKG at the moment");
+        // require(_ethdkg.isETHDKGRunning(), "cannot init ETHDKG at the moment");
 
         _ethdkg.initializeETHDKG();
         //require(success, "ValidatorPool: could not init ETHDKG");

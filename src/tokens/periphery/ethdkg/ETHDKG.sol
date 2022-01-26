@@ -9,12 +9,7 @@ import "./interfaces/IETHDKG.sol";
 import "./ETHDKGStorage.sol";
 import "./utils/ETHDKGUtils.sol";
 
-contract ETHDKG is
-    ETHDKGStorage,
-    IETHDKG,
-    IETHDKGEvents,
-    ETHDKGUtils
-{
+contract ETHDKG is ETHDKGStorage, IETHDKG, IETHDKGEvents, ETHDKGUtils {
     constructor(
         address validatorPool,
         address ethdkgAccusations,
@@ -56,7 +51,7 @@ contract ETHDKG is
     }
 
     /// @dev getAdmin returns the current _admin
-    function getAdmin() public view returns(address) {
+    function getAdmin() public view returns (address) {
         return _admin;
     }
 
@@ -83,8 +78,33 @@ contract ETHDKG is
         _minValidators = minValidators_;
     }
 
-    function isAccusationWindowOver() public view returns (bool) {
-        return block.number > _phaseStartBlock + 2 * _phaseLength;
+    function isETHDKGRunning() public view returns (bool) {
+        // Handling initial case
+        if (_phaseStartBlock == 0) {
+            return false;
+        }
+        return !_isETHDKGCompleted() && !_isETHDKGHalted();
+    }
+
+    function isETHDKGCompleted() public view returns(bool) {
+        return _isETHDKGCompleted();
+    }
+
+    function _isETHDKGCompleted() internal view returns(bool) {
+        return _ethdkgPhase == Phase.Completion;
+    }
+
+    function isETHDKGHalted() public view returns(bool) {
+        return _isETHDKGHalted();
+    }
+
+    function _isETHDKGHalted() internal view returns(bool) {
+        bool ethdkgFailedInDisputePhase = (_ethdkgPhase == Phase.DisputeShareDistribution ||
+            _ethdkgPhase == Phase.DisputeGPKJSubmission) &&
+            block.number >= _phaseStartBlock + _phaseLength &&
+            _badParticipants != 0;
+        bool ethdkgFailedInNormalPhase = block.number >= _phaseStartBlock + 2 * _phaseLength;
+        return ethdkgFailedInNormalPhase || ethdkgFailedInDisputePhase;
     }
 
     function isMasterPublicKeySet() public view returns (bool) {
@@ -139,9 +159,9 @@ contract ETHDKG is
         view
         returns (Participant[] memory)
     {
-        Participant[] memory participants = new Participant[](participantAddresses.length) ;
+        Participant[] memory participants = new Participant[](participantAddresses.length);
 
-        for (uint256 i=0; i<participantAddresses.length; i++) {
+        for (uint256 i = 0; i < participantAddresses.length; i++) {
             participants[i] = _participants[participantAddresses[i]];
         }
 
@@ -203,7 +223,13 @@ contract ETHDKG is
 
         delete _masterPublicKey;
 
-        emit RegistrationOpened(block.number, numberValidators, _nonce, _phaseLength, _confirmationLength);
+        emit RegistrationOpened(
+            block.number,
+            numberValidators,
+            _nonce,
+            _phaseLength,
+            _confirmationLength
+        );
     }
 
     function register(uint256[2] memory publicKey) external onlyValidator {

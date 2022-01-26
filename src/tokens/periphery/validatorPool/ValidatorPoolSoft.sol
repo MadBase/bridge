@@ -12,7 +12,7 @@ import "../../utils/MagicValue.sol";
 import "./interfaces/IValidatorPool.sol";
 import "./interfaces/IDutchAuction.sol";
 
-contract ValidatorPoolTrue is MagicValue, EthSafeTransfer, ERC20SafeTransfer {
+contract ValidatorPoolSoft is MagicValue, EthSafeTransfer, ERC20SafeTransfer {
 
     event ValidatorJoined(address indexed account, uint256 validatorNFT);
     event ValidatorLeft(address indexed account);
@@ -23,7 +23,7 @@ contract ValidatorPoolTrue is MagicValue, EthSafeTransfer, ERC20SafeTransfer {
     // during a call to mintTo
     uint256 public constant MAX_MINT_LOCK = 1051200;
 
-    // approx 7 days in block number
+    //todo: change this to be 2 epochs length in ethereum blocks
     uint256 public constant CLAIM_PERIOD = 45500;
 
     struct ValidatorData {
@@ -35,7 +35,6 @@ contract ValidatorPoolTrue is MagicValue, EthSafeTransfer, ERC20SafeTransfer {
         uint256 index;
         uint256 stakedAmount;
         uint256 freeAfter;
-        uint256 expireAfter;
     }
 
     // Minimum amount to stake
@@ -48,7 +47,6 @@ contract ValidatorPoolTrue is MagicValue, EthSafeTransfer, ERC20SafeTransfer {
     INFTStake internal _stakeNFT;
     INFTStake internal _validatorsNFT;
     IETHDKG internal _ethdkg;
-    IDutchAuction internal _dutchAuction;
 
     IERC20Transferable internal _madToken;
 
@@ -62,13 +60,11 @@ contract ValidatorPoolTrue is MagicValue, EthSafeTransfer, ERC20SafeTransfer {
 
     //todo: change this to use the Admin abstract contract
     address internal _admin;
-    mapping(address=>bool) internal _operators;
 
     constructor(
         INFTStake stakeNFT_,
         INFTStake validatorNFT_,
         IERC20Transferable madToken_,
-        IDutchAuction dutchAuction_,
         IETHDKG ethdkg_,
         bytes memory hook
     ) {
@@ -82,10 +78,8 @@ contract ValidatorPoolTrue is MagicValue, EthSafeTransfer, ERC20SafeTransfer {
         _stakeNFT = stakeNFT_;
         _validatorsNFT = validatorNFT_;
         _ethdkg = ethdkg_;
-        _dutchAuction = dutchAuction_;
         _madToken = madToken_;
         _admin = msg.sender;
-        _addOperator(address(ethdkg_));
     }
 
     modifier onlyAdmin() {
@@ -93,13 +87,13 @@ contract ValidatorPoolTrue is MagicValue, EthSafeTransfer, ERC20SafeTransfer {
         _;
     }
 
-    modifier onlyValidator() {
-        require(_isValidator(msg.sender), "ValidatorPool: Only validators allowed!");
+    modifier onlyETHDKG() {
+        require(address(_ethdkg) == msg.sender, "ValidatorPool: Only ethdkg contract allowed!");
         _;
     }
 
-    modifier onlyOperator() {
-        require(_operators[msg.sender], "ValidatorPool: Only valid operators allowed!");
+    modifier onlyValidator() {
+        require(_isValidator(msg.sender), "ValidatorPool: Only validators allowed!");
         _;
     }
 
@@ -111,20 +105,8 @@ contract ValidatorPoolTrue is MagicValue, EthSafeTransfer, ERC20SafeTransfer {
         _maxNumValidators = maxNumValidators_;
     }
 
-    function addOperator(address operator) public onlyAdmin {
-        _addOperator(operator);
-    }
-
-    function removeOperator(address operator) public onlyAdmin {
-        _operators[operator] = false;
-    }
-
     function getValidatorsCount() public view returns(uint256) {
         return _validators.length;
-    }
-
-    function getValidatorAddresses() external view returns (address[] memory addresses) {
-        return _validators;
     }
 
     function getValidator(uint256 index) public view returns(address) {
@@ -153,8 +135,46 @@ contract ValidatorPoolTrue is MagicValue, EthSafeTransfer, ERC20SafeTransfer {
         return(payoutEth, payoutToken);
     }
 
-    function _addOperator(address operator) internal {
-        _operators[operator] = true;
+    // validator_ should have given permissions to this contract to transfer the stakeTokenID_ nft
+    // prior calling this function
+    function registerValidator(address validator_, uint256 stakerTokenID_) external onlyAdmin returns (
+            uint256 validatorTokenID,
+            uint256 payoutEth,
+            uint256 payoutToken
+        ){
+        require(_validators.length < _maxNumValidators,"ValidatorPool: There are no free spots for new validators!");
+        require(!_ethdkg.isETHDKGRunning(), "ValidatorPool: There's an ETHDKG round running!");
+
+        (validatorTokenID, payoutEth, payoutToken) = _swapStakeNFTForValidatorNFT(validator_, stakerTokenID_);
+
+        _addValidator(validator_, validatorTokenID);
+        _validatorsChanged = true;
+        // transfer back any profit that was available for the stakeNFT position by the time that we
+        // burned it
+        _transferEthAndTokens(validator_, payoutEth, payoutToken);
+
+        emit ValidatorJoined(validator_, validatorTokenID);
+    }
+
+    function unregisterValidator(address validator) external onlyAdmin returns(uint256, uint256){
+        require(isValidator(validator), "ValidatorPool: Only validators can be unregistered!");
+        (uint256 minerShares, uint256 payoutEth, uint256 payoutToken) = _burnValidatorNFTPosition(validator);
+        _addToExitingQueue(validator, minerShares);
+        _validatorsChanged = true;
+        _transferEthAndTokens(validator, payoutEth, payoutToken);
+        emit ValidatorLeft(validator);
+        return(payoutEth, payoutToken);
+    }
+
+    function initializeETHDKG() external onlyAdmin {
+        require(_validatorsChanged, "ValidatorPool: Validators must have changed in order to run a new ETHDKG ceremony!");
+        require(!_ethdkg.isETHDKGRunning(), "ValidatorPool: There's an ETHDKG round running!");
+        _ethdkg.initializeETHDKG();
+    }
+
+    function _transferEthAndTokens(address to_, uint256 payoutEth, uint256 payoutToken) internal {
+        _safeTransferERC20(_madToken, to_, payoutToken);
+        _safeTransferEth(to_, payoutEth);
     }
 
     function _isValidator(address participant) internal view returns(bool) {
@@ -164,42 +184,6 @@ contract ValidatorPoolTrue is MagicValue, EthSafeTransfer, ERC20SafeTransfer {
 
     function _isAccusable(address participant) internal view returns(bool) {
         return _isValidator(participant) || _exitingValidatorsData[participant].freeAfter > 0 ;
-    }
-
-    //todo: test re-entrance
-    function registerAsValidator(uint256 stakerTokenID_) external payable returns (
-            uint256 validatorTokenID,
-            uint256 payoutEth,
-            uint256 payoutToken
-        ){
-        require(_validators.length < _maxNumValidators,"ValidatorPool: There are no free spots for new validators!");
-        require(!_ethdkg.isETHDKGRunning(), "ValidatorPool: There's an ETHDKG round running!");
-        uint256 auctionPrice = _dutchAuction.getAuctionPrice();
-        require(msg.value >= auctionPrice, "ValidatorPool: Auction Price not met!");
-
-        (validatorTokenID, payoutEth, payoutToken) = _swapStakeNFTForValidatorNFT(msg.sender, stakerTokenID_);
-
-        // Returning back any amount sent in excess
-        if (msg.value > auctionPrice) {
-            payoutEth += (msg.value - auctionPrice);
-        }
-
-        _addValidator(msg.sender, validatorTokenID);
-        _validatorsChanged = true;
-        // transfer back any profit that was available for the stakeNFT position by the time that we
-        // burned it
-        _transferEthAndTokens(msg.sender, payoutEth, payoutToken);
-
-        emit ValidatorJoined(msg.sender, validatorTokenID);
-    }
-
-    function initializeETHDKG() external {
-        require(!_dutchAuction.isAuctionRunning(), "ValidatorPool: Auction window should have finished in order to initialize ETHDKG!");
-        require(_validatorsChanged, "ValidatorPool: Validators must have changed in order to run a new ETHDKG ceremony!");
-        require(!_ethdkg.isETHDKGRunning(), "ValidatorPool: There's an ETHDKG round running!");
-        //todo: dutch auction window here
-        //todo: reward ppl?
-        _ethdkg.initializeETHDKG();
     }
 
     function _swapStakeNFTForValidatorNFT(address to_, uint256 stakerTokenID_)
@@ -217,7 +201,7 @@ contract ValidatorPoolTrue is MagicValue, EthSafeTransfer, ERC20SafeTransfer {
             stakeShares >= minimumStake,
             "ValidatorStakeNFT: Error, the Stake position doesn't have enough founds!"
         );
-        IERC721Transferable(address(_stakeNFT)).safeTransferFrom(msg.sender, address(this), stakerTokenID_);
+        IERC721Transferable(address(_stakeNFT)).safeTransferFrom(to_, address(this), stakerTokenID_);
         (payoutEth, payoutToken) = _stakeNFT.burn(stakerTokenID_);
 
         // Subtracting the shares from StakeNFT profit. The shares will be used to mint the new
@@ -232,17 +216,6 @@ contract ValidatorPoolTrue is MagicValue, EthSafeTransfer, ERC20SafeTransfer {
 
     }
 
-    function _transferEthAndTokens(address to_, uint256 payoutEth, uint256 payoutToken) internal {
-        _safeTransferERC20(_madToken, to_, payoutToken);
-        _safeTransferEth(to_, payoutEth);
-    }
-
-    // todo: finish this
-    function unregisterAsValidator() external onlyValidator {
-        (uint256 payoutEth, uint256 payoutToken) = _swapValidatorNFTForStakeNFT(msg.sender);
-        _transferEthAndTokens(msg.sender, payoutEth, payoutToken);
-    }
-
     function _burnValidatorNFTPosition(address validator) internal returns (
             uint256 minerShares,
             uint256 payoutEth,
@@ -251,25 +224,8 @@ contract ValidatorPoolTrue is MagicValue, EthSafeTransfer, ERC20SafeTransfer {
         uint256 validatorTokenID = _validatorsData[validator].tokenID;
         (minerShares,,,,) = _validatorsNFT.getPosition(validatorTokenID);
         (payoutEth, payoutToken) = _validatorsNFT.burn(validatorTokenID);
-    }
 
-    function _swapValidatorNFTForStakeNFT(
-        address validator
-    )
-        internal
-        returns (
-            uint256 ,
-            uint256
-        )
-    {
-        (uint256 minerShares, uint256 payoutEth, uint256 payoutToken) = _burnValidatorNFTPosition(validator);
         payoutToken -= minerShares;
-
-        _addToExitingQueue(validator, minerShares);
-        _removeValidatorState(validator);
-
-        emit ValidatorLeft(validator);
-        return (payoutEth, payoutToken);
     }
 
     function _addValidator(address validator, uint256 validatorTokenID) internal {
@@ -308,17 +264,12 @@ contract ValidatorPoolTrue is MagicValue, EthSafeTransfer, ERC20SafeTransfer {
     function _addToExitingQueue(address validator, uint256 minerShares) internal {
         _exitingQueue.push(validator);
         _exitingValidatorsData[validator] = ExitingValidatorData(_exitingQueue.length-1,  minerShares, block.number + CLAIM_PERIOD, MAX_MINT_LOCK);
-    }
-
-    function _slash(address validator) internal returns(uint256 minerShares, uint256 payoutEth, uint256 payoutToken){
-        (minerShares, payoutEth, payoutToken) = _burnValidatorNFTPosition(validator);
         _removeValidatorState(validator);
     }
 
-    // todo: emit an event
-    // todo: add balance checks in the ETHDKG accusation unit tests
-    function majorSlash(address validator, address disputer) public onlyOperator {
-        (uint256 minerShares, uint256 payoutEth, uint256 payoutToken) = _slash(validator);
+    function majorSlash(address validator, address disputer) public onlyETHDKG {
+        (uint256 minerShares, uint256 payoutEth, uint256 payoutToken) = _burnValidatorNFTPosition(validator);
+        _removeValidatorState(validator);
         //todo: set a proper reward value
         uint256 reward = payoutToken/10;
         payoutToken -= reward;
@@ -329,12 +280,23 @@ contract ValidatorPoolTrue is MagicValue, EthSafeTransfer, ERC20SafeTransfer {
         emit ValidatorMajorSlashed(validator);
     }
 
+    function _majorSlash(address validator, address disputer) internal {
+        (uint256 minerShares, uint256 payoutEth, uint256 payoutToken) = _burnValidatorNFTPosition(validator);
+        _removeValidatorState(validator);
+        //todo: set a proper reward value
+        uint256 reward = payoutToken/10;
+        payoutToken -= reward;
 
-    // todo: reward caller for taking this awesome action
-    // todo: should we receive an address to send the reward to?
-    // todo: emit an event
-    function minorSlash(address validator, address disputer) public onlyOperator {
-        (uint256 minerShares, uint256 payoutEth, uint256 payoutToken) = _slash(validator);
+        uint8 magicNumber = _getMagic();
+        _validatorsNFT.depositEth{value: payoutEth}(magicNumber);
+        _validatorsNFT.depositToken(magicNumber, payoutToken);
+
+        _safeTransferERC20(_madToken, disputer, reward);
+        emit ValidatorMajorSlashed(validator);
+    }
+
+    function minorSlash(address validator, address disputer) public onlyETHDKG {
+        (uint256 minerShares, uint256 payoutEth, uint256 payoutToken) = _burnValidatorNFTPosition(validator);
         minerShares -= _minorFine;
         payoutToken -= minerShares;
         _addToExitingQueue(validator, minerShares);
@@ -342,18 +304,30 @@ contract ValidatorPoolTrue is MagicValue, EthSafeTransfer, ERC20SafeTransfer {
         emit ValidatorMinorSlashed(validator);
     }
 
+    function _removeExitingValidatorState(address validator) internal {
+        ExitingValidatorData memory vd = _exitingValidatorsData[validator];
+        uint256 lastIndex = _exitingQueue.length - 1;
+        if (vd.index != lastIndex) {
+            address lastValidator = _exitingQueue[lastIndex];
+            _exitingQueue[vd.index] = lastValidator;
+            _exitingValidatorsData[lastValidator].index = vd.index;
+        }
+        _exitingQueue.pop();
+        delete _exitingValidatorsData[validator];
+    }
+
     function claimStakeNFTPosition() public returns(uint256 stakeTokenID) {
         ExitingValidatorData memory data = _exitingValidatorsData[msg.sender];
         require(data.freeAfter > 0, "ValidatorPool: Caller doesn't have a valid StakeNFT Position!");
         require(block.number > data.freeAfter, "ValidatorPool: The waiting period is not over yet!");
 
-        delete _exitingValidatorsData[msg.sender];
+        _removeExitingValidatorState(msg.sender);
         // We should approve the StakeNFT to transferFrom the tokens of this contract
         _madToken.approve(address(_stakeNFT), data.stakedAmount);
         stakeTokenID = _stakeNFT.mintTo(msg.sender, data.stakedAmount, MAX_MINT_LOCK);
     }
 
-    function completeETHDKG() external onlyOperator {
+    function completeETHDKG() external onlyETHDKG {
         _validatorsChanged = false;
     }
 }

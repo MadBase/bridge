@@ -13,8 +13,8 @@ contract ETHDKGAccusations is ETHDKGStorage, IETHDKGEvents, ETHDKGUtils {
     function accuseParticipantNotRegistered(address[] memory dishonestAddresses) external {
         require(
             _ethdkgPhase == Phase.RegistrationOpen &&
-                ((block.number > _phaseStartBlock + _phaseLength) &&
-                    (block.number <= _phaseStartBlock + 2 * _phaseLength)),
+                ((block.number >= _phaseStartBlock + _phaseLength) &&
+                    (block.number < _phaseStartBlock + 2 * _phaseLength)),
             "ETHDKG: should be in post-registration accusation phase!"
         );
 
@@ -44,8 +44,8 @@ contract ETHDKGAccusations is ETHDKGStorage, IETHDKGEvents, ETHDKGUtils {
     function accuseParticipantDidNotDistributeShares(address[] memory dishonestAddresses) external {
         require(
             _ethdkgPhase == Phase.ShareDistribution &&
-                ((block.number > _phaseStartBlock + _phaseLength) &&
-                    (block.number <= _phaseStartBlock + 2 * _phaseLength)),
+                ((block.number >= _phaseStartBlock + _phaseLength) &&
+                    (block.number < _phaseStartBlock + 2 * _phaseLength)),
             "ETHDKG: should be in post-ShareDistribution accusation phase!"
         );
 
