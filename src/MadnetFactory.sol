@@ -212,6 +212,7 @@ contract MadnetFactory is DeterministicAddress, ProxyUpgrader {
             contractAddr := create(0, basePtr, sub(ptr, basePtr))
         }
         codeSizeZeroRevert((extCodeSize(contractAddr) != 0));
+        //template_ = contractAddr;
         emit DeployedTemplate(contractAddr);
         implementation_ = contractAddr;
         return contractAddr;      
@@ -249,7 +250,8 @@ contract MadnetFactory is DeterministicAddress, ProxyUpgrader {
         }
         codeSizeZeroRevert((extCodeSize(contractAddr) != 0));
         emit DeployedTemplate(contractAddr);
-        template_ = contractAddr;
+        //TODO: ONLY FOR TESTING?
+        //template_ = contractAddr;
         implementation_ = contractAddr;
         return contractAddr;
     }
@@ -274,10 +276,36 @@ contract MadnetFactory is DeterministicAddress, ProxyUpgrader {
             }
         }
         emit DeployedStatic(contractAddr);
-        static_ = contractAddr;
         return contractAddr;
     }
 
+   /* function deployInitializable(address _implementation, bytes32 _salt, bytes calldata _initCallData) public payable onlyOwner returns (address contractAddr) {
+        assembly {
+            // store non-zero address as implementation,
+            if iszero(iszero(_implementation)) {
+                    sstore(implementation_.slot, _implementation)
+            }
+            let ptr := mload(0x40)
+            // put metamorphic code as initcode
+            //push1 20 
+            mstore(ptr, shl(72, 0x6020363636335afa1536363636515af43d36363e3d36f3))
+            contractAddr := create2(0, ptr, 0x17, _salt)
+            //if the _initCallData is non zero make a initialization call 
+            if iszero(iszero(_initCallData.length)) {
+                //copy the arguement over from the call data in the context of the deploy function call
+                calldatacopy(ptr, _initCallData.offset, _initCallData.length)
+                if iszero(call(gas(), contractAddr, 0, ptr, _initCallData.length, 0x00, 0x00)) {
+                    revert(0x00, returndatasize())
+                }
+            }
+        }
+        codeSizeZeroRevert(uint160(contractAddr) != 0);
+        //add the salt to the list of contract names
+        contracts_.push(_salt);
+        emit Deployed(_salt, contractAddr);
+        return contractAddr;
+    }
+*/
     function deployProxy(bytes32 _salt) public onlyOwner returns (address contractAddr) {
         address proxyTemplate = proxyTemplate_;
         assembly {
@@ -386,7 +414,7 @@ contract MadnetFactory is DeterministicAddress, ProxyUpgrader {
     }
 
      /**  
-    * @dev destroy calls the template contract with arbitrary which will cause it to self destruct 
+    * @dev destroy calls the template contract with arbitrary call data which will cause it to self destruct 
     * @param _contractAddr the address of the contract to self destruct 
     */
     function destroy(address _contractAddr) public onlyOwner {

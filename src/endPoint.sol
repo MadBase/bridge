@@ -25,7 +25,5 @@ contract endPoint {
         i = i + 2;
         emit addedTwo(i);
     }
-    fallback() external payable {
-        return; 
-    }
+
 }
