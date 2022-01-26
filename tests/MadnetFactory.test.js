@@ -21,6 +21,9 @@ contract("MADNET FACTORY", function (accounts){
     before(async function () {
         //get a instance of a ethereum provider
         this.provider = new ethers.providers.JsonRpcProvider();
+        this.utils = await Utils.new();
+    })
+    it("DEPLOY FACTORY", async function(){
         //gets the initial transaction count for the address 
         let transactionCount = await this.provider.getTransactionCount(accounts[0]);
         //pre calculate the address of the factory contract 
@@ -31,10 +34,20 @@ contract("MADNET FACTORY", function (accounts){
         //deploy the factory with its address as a constructor input
         this.factory = await MadnetFactory.new(this.futureFactoryAddress);
         this.factoryOwner = accounts[0];
+        let size = await this.utils.getCodeSize(this.factory.address)
+        expect(size.toNumber()).to.be.greaterThan(0);
+    });
+    it("DEPLOY ENDPOINT", async function(){
         this.endPoint = await EndPoint.new(this.factory.address);
-        //deploy and instance of utils 
-        this.utils = await Utils.new();
-    })
+        let size = await this.utils.getCodeSize(this.endPoint.address)
+        expect(size.toNumber()).to.be.greaterThan(0);
+    });
+    
+    it("DEPLOY MOCK", async function(){
+        this.mock = await Mock.new(2);
+        let size = await this.utils.getCodeSize(this.mock.address)
+        expect(size.toNumber()).to.be.greaterThan(0);
+    });
     it("VERIFY CALCULATED FACTORY ADDRESS", async function(){
         expect(this.factory.address).to.equal(this.futureFactoryAddress);
     });
