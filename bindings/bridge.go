@@ -978,34 +978,12 @@ func (_Accusation *AccusationFilterer) ParseMultipleProposals(log types.Log) (*A
 
 // AccusationEventsMetaData contains all meta data concerning the AccusationEvents contract.
 var AccusationEventsMetaData = &bind.MetaData{
-	ABI: "[{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"validator\",\"type\":\"address\"}],\"name\":\"ConsensusBrokenBlock\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"validator\",\"type\":\"address\"}],\"name\":\"ContradictoryPreCommits\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"validator\",\"type\":\"address\"}],\"name\":\"ContradictoryPreVotePreCommits\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"validator\",\"type\":\"address\"}],\"name\":\"ContradictoryPreVotes\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"validator\",\"type\":\"address\"}],\"name\":\"InvalidProposer\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"validator\",\"type\":\"address\"}],\"name\":\"InvalidStateTransition\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"validator\",\"type\":\"address\"}],\"name\":\"MultiplePreVotes\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"validator\",\"type\":\"address\"}],\"name\":\"MultipleProposals\",\"type\":\"event\"}]",
-	Bin: "0x6080604052348015600f57600080fd5b50603f80601d6000396000f3fe6080604052600080fdfea2646970667358221220f4fa94c43d2701d9b55a3785c1eacf8f0202d10a81847bd613dd5beb0fbdef2e64736f6c63430008060033",
+	ABI: "[{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"validator\",\"type\":\"address\"}],\"name\":\"InvalidTransactionConsumption\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"validator\",\"type\":\"address\"}],\"name\":\"MultipleProposals\",\"type\":\"event\"}]",
 }
 
 // AccusationEventsABI is the input ABI used to generate the binding from.
 // Deprecated: Use AccusationEventsMetaData.ABI instead.
 var AccusationEventsABI = AccusationEventsMetaData.ABI
-
-// AccusationEventsBin is the compiled bytecode used for deploying new contracts.
-// Deprecated: Use AccusationEventsMetaData.Bin instead.
-var AccusationEventsBin = AccusationEventsMetaData.Bin
-
-// DeployAccusationEvents deploys a new Ethereum contract, binding an instance of AccusationEvents to it.
-func DeployAccusationEvents(auth *bind.TransactOpts, backend bind.ContractBackend) (common.Address, *types.Transaction, *AccusationEvents, error) {
-	parsed, err := AccusationEventsMetaData.GetAbi()
-	if err != nil {
-		return common.Address{}, nil, nil, err
-	}
-	if parsed == nil {
-		return common.Address{}, nil, nil, errors.New("GetABI returned nil")
-	}
-
-	address, tx, contract, err := bind.DeployContract(auth, *parsed, common.FromHex(AccusationEventsBin), backend)
-	if err != nil {
-		return common.Address{}, nil, nil, err
-	}
-	return address, tx, &AccusationEvents{AccusationEventsCaller: AccusationEventsCaller{contract: contract}, AccusationEventsTransactor: AccusationEventsTransactor{contract: contract}, AccusationEventsFilterer: AccusationEventsFilterer{contract: contract}}, nil
-}
 
 // AccusationEvents is an auto generated Go binding around an Ethereum contract.
 type AccusationEvents struct {
@@ -1149,9 +1127,9 @@ func (_AccusationEvents *AccusationEventsTransactorRaw) Transact(opts *bind.Tran
 	return _AccusationEvents.Contract.contract.Transact(opts, method, params...)
 }
 
-// AccusationEventsConsensusBrokenBlockIterator is returned from FilterConsensusBrokenBlock and is used to iterate over the raw logs and unpacked data for ConsensusBrokenBlock events raised by the AccusationEvents contract.
-type AccusationEventsConsensusBrokenBlockIterator struct {
-	Event *AccusationEventsConsensusBrokenBlock // Event containing the contract specifics and raw log
+// AccusationEventsInvalidTransactionConsumptionIterator is returned from FilterInvalidTransactionConsumption and is used to iterate over the raw logs and unpacked data for InvalidTransactionConsumption events raised by the AccusationEvents contract.
+type AccusationEventsInvalidTransactionConsumptionIterator struct {
+	Event *AccusationEventsInvalidTransactionConsumption // Event containing the contract specifics and raw log
 
 	contract *bind.BoundContract // Generic contract to use for unpacking event data
 	event    string              // Event name to use for unpacking event data
@@ -1165,7 +1143,7 @@ type AccusationEventsConsensusBrokenBlockIterator struct {
 // Next advances the iterator to the subsequent event, returning whether there
 // are any more events found. In case of a retrieval or parsing error, false is
 // returned and Error() can be queried for the exact failure.
-func (it *AccusationEventsConsensusBrokenBlockIterator) Next() bool {
+func (it *AccusationEventsInvalidTransactionConsumptionIterator) Next() bool {
 	// If the iterator failed, stop iterating
 	if it.fail != nil {
 		return false
@@ -1174,7 +1152,7 @@ func (it *AccusationEventsConsensusBrokenBlockIterator) Next() bool {
 	if it.done {
 		select {
 		case log := <-it.logs:
-			it.Event = new(AccusationEventsConsensusBrokenBlock)
+			it.Event = new(AccusationEventsInvalidTransactionConsumption)
 			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
 				it.fail = err
 				return false
@@ -1189,7 +1167,7 @@ func (it *AccusationEventsConsensusBrokenBlockIterator) Next() bool {
 	// Iterator still in progress, wait for either a data or an error event
 	select {
 	case log := <-it.logs:
-		it.Event = new(AccusationEventsConsensusBrokenBlock)
+		it.Event = new(AccusationEventsInvalidTransactionConsumption)
 		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
 			it.fail = err
 			return false
@@ -1205,51 +1183,51 @@ func (it *AccusationEventsConsensusBrokenBlockIterator) Next() bool {
 }
 
 // Error returns any retrieval or parsing error occurred during filtering.
-func (it *AccusationEventsConsensusBrokenBlockIterator) Error() error {
+func (it *AccusationEventsInvalidTransactionConsumptionIterator) Error() error {
 	return it.fail
 }
 
 // Close terminates the iteration process, releasing any pending underlying
 // resources.
-func (it *AccusationEventsConsensusBrokenBlockIterator) Close() error {
+func (it *AccusationEventsInvalidTransactionConsumptionIterator) Close() error {
 	it.sub.Unsubscribe()
 	return nil
 }
 
-// AccusationEventsConsensusBrokenBlock represents a ConsensusBrokenBlock event raised by the AccusationEvents contract.
-type AccusationEventsConsensusBrokenBlock struct {
+// AccusationEventsInvalidTransactionConsumption represents a InvalidTransactionConsumption event raised by the AccusationEvents contract.
+type AccusationEventsInvalidTransactionConsumption struct {
 	Validator common.Address
 	Raw       types.Log // Blockchain specific contextual infos
 }
 
-// FilterConsensusBrokenBlock is a free log retrieval operation binding the contract event 0x83037df234739a146aec8f64e978ab3170063df7ebfc53e1d7fb750c53bc2bbe.
+// FilterInvalidTransactionConsumption is a free log retrieval operation binding the contract event 0xe7d88c5a1b3de74710b2ce1551a3d3be5c537d9d526cf4cb0fbbc948f527ee8b.
 //
-// Solidity: event ConsensusBrokenBlock(address indexed validator)
-func (_AccusationEvents *AccusationEventsFilterer) FilterConsensusBrokenBlock(opts *bind.FilterOpts, validator []common.Address) (*AccusationEventsConsensusBrokenBlockIterator, error) {
+// Solidity: event InvalidTransactionConsumption(address indexed validator)
+func (_AccusationEvents *AccusationEventsFilterer) FilterInvalidTransactionConsumption(opts *bind.FilterOpts, validator []common.Address) (*AccusationEventsInvalidTransactionConsumptionIterator, error) {
 
 	var validatorRule []interface{}
 	for _, validatorItem := range validator {
 		validatorRule = append(validatorRule, validatorItem)
 	}
 
-	logs, sub, err := _AccusationEvents.contract.FilterLogs(opts, "ConsensusBrokenBlock", validatorRule)
+	logs, sub, err := _AccusationEvents.contract.FilterLogs(opts, "InvalidTransactionConsumption", validatorRule)
 	if err != nil {
 		return nil, err
 	}
-	return &AccusationEventsConsensusBrokenBlockIterator{contract: _AccusationEvents.contract, event: "ConsensusBrokenBlock", logs: logs, sub: sub}, nil
+	return &AccusationEventsInvalidTransactionConsumptionIterator{contract: _AccusationEvents.contract, event: "InvalidTransactionConsumption", logs: logs, sub: sub}, nil
 }
 
-// WatchConsensusBrokenBlock is a free log subscription operation binding the contract event 0x83037df234739a146aec8f64e978ab3170063df7ebfc53e1d7fb750c53bc2bbe.
+// WatchInvalidTransactionConsumption is a free log subscription operation binding the contract event 0xe7d88c5a1b3de74710b2ce1551a3d3be5c537d9d526cf4cb0fbbc948f527ee8b.
 //
-// Solidity: event ConsensusBrokenBlock(address indexed validator)
-func (_AccusationEvents *AccusationEventsFilterer) WatchConsensusBrokenBlock(opts *bind.WatchOpts, sink chan<- *AccusationEventsConsensusBrokenBlock, validator []common.Address) (event.Subscription, error) {
+// Solidity: event InvalidTransactionConsumption(address indexed validator)
+func (_AccusationEvents *AccusationEventsFilterer) WatchInvalidTransactionConsumption(opts *bind.WatchOpts, sink chan<- *AccusationEventsInvalidTransactionConsumption, validator []common.Address) (event.Subscription, error) {
 
 	var validatorRule []interface{}
 	for _, validatorItem := range validator {
 		validatorRule = append(validatorRule, validatorItem)
 	}
 
-	logs, sub, err := _AccusationEvents.contract.WatchLogs(opts, "ConsensusBrokenBlock", validatorRule)
+	logs, sub, err := _AccusationEvents.contract.WatchLogs(opts, "InvalidTransactionConsumption", validatorRule)
 	if err != nil {
 		return nil, err
 	}
@@ -1259,8 +1237,8 @@ func (_AccusationEvents *AccusationEventsFilterer) WatchConsensusBrokenBlock(opt
 			select {
 			case log := <-logs:
 				// New log arrived, parse the event and forward to the user
-				event := new(AccusationEventsConsensusBrokenBlock)
-				if err := _AccusationEvents.contract.UnpackLog(event, "ConsensusBrokenBlock", log); err != nil {
+				event := new(AccusationEventsInvalidTransactionConsumption)
+				if err := _AccusationEvents.contract.UnpackLog(event, "InvalidTransactionConsumption", log); err != nil {
 					return err
 				}
 				event.Raw = log
@@ -1281,876 +1259,12 @@ func (_AccusationEvents *AccusationEventsFilterer) WatchConsensusBrokenBlock(opt
 	}), nil
 }
 
-// ParseConsensusBrokenBlock is a log parse operation binding the contract event 0x83037df234739a146aec8f64e978ab3170063df7ebfc53e1d7fb750c53bc2bbe.
+// ParseInvalidTransactionConsumption is a log parse operation binding the contract event 0xe7d88c5a1b3de74710b2ce1551a3d3be5c537d9d526cf4cb0fbbc948f527ee8b.
 //
-// Solidity: event ConsensusBrokenBlock(address indexed validator)
-func (_AccusationEvents *AccusationEventsFilterer) ParseConsensusBrokenBlock(log types.Log) (*AccusationEventsConsensusBrokenBlock, error) {
-	event := new(AccusationEventsConsensusBrokenBlock)
-	if err := _AccusationEvents.contract.UnpackLog(event, "ConsensusBrokenBlock", log); err != nil {
-		return nil, err
-	}
-	event.Raw = log
-	return event, nil
-}
-
-// AccusationEventsContradictoryPreCommitsIterator is returned from FilterContradictoryPreCommits and is used to iterate over the raw logs and unpacked data for ContradictoryPreCommits events raised by the AccusationEvents contract.
-type AccusationEventsContradictoryPreCommitsIterator struct {
-	Event *AccusationEventsContradictoryPreCommits // Event containing the contract specifics and raw log
-
-	contract *bind.BoundContract // Generic contract to use for unpacking event data
-	event    string              // Event name to use for unpacking event data
-
-	logs chan types.Log        // Log channel receiving the found contract events
-	sub  ethereum.Subscription // Subscription for errors, completion and termination
-	done bool                  // Whether the subscription completed delivering logs
-	fail error                 // Occurred error to stop iteration
-}
-
-// Next advances the iterator to the subsequent event, returning whether there
-// are any more events found. In case of a retrieval or parsing error, false is
-// returned and Error() can be queried for the exact failure.
-func (it *AccusationEventsContradictoryPreCommitsIterator) Next() bool {
-	// If the iterator failed, stop iterating
-	if it.fail != nil {
-		return false
-	}
-	// If the iterator completed, deliver directly whatever's available
-	if it.done {
-		select {
-		case log := <-it.logs:
-			it.Event = new(AccusationEventsContradictoryPreCommits)
-			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
-				it.fail = err
-				return false
-			}
-			it.Event.Raw = log
-			return true
-
-		default:
-			return false
-		}
-	}
-	// Iterator still in progress, wait for either a data or an error event
-	select {
-	case log := <-it.logs:
-		it.Event = new(AccusationEventsContradictoryPreCommits)
-		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
-			it.fail = err
-			return false
-		}
-		it.Event.Raw = log
-		return true
-
-	case err := <-it.sub.Err():
-		it.done = true
-		it.fail = err
-		return it.Next()
-	}
-}
-
-// Error returns any retrieval or parsing error occurred during filtering.
-func (it *AccusationEventsContradictoryPreCommitsIterator) Error() error {
-	return it.fail
-}
-
-// Close terminates the iteration process, releasing any pending underlying
-// resources.
-func (it *AccusationEventsContradictoryPreCommitsIterator) Close() error {
-	it.sub.Unsubscribe()
-	return nil
-}
-
-// AccusationEventsContradictoryPreCommits represents a ContradictoryPreCommits event raised by the AccusationEvents contract.
-type AccusationEventsContradictoryPreCommits struct {
-	Validator common.Address
-	Raw       types.Log // Blockchain specific contextual infos
-}
-
-// FilterContradictoryPreCommits is a free log retrieval operation binding the contract event 0x9348647501345b23a9b5e3bfc44a78365a6c93669054cc6f602e39e629b0835d.
-//
-// Solidity: event ContradictoryPreCommits(address indexed validator)
-func (_AccusationEvents *AccusationEventsFilterer) FilterContradictoryPreCommits(opts *bind.FilterOpts, validator []common.Address) (*AccusationEventsContradictoryPreCommitsIterator, error) {
-
-	var validatorRule []interface{}
-	for _, validatorItem := range validator {
-		validatorRule = append(validatorRule, validatorItem)
-	}
-
-	logs, sub, err := _AccusationEvents.contract.FilterLogs(opts, "ContradictoryPreCommits", validatorRule)
-	if err != nil {
-		return nil, err
-	}
-	return &AccusationEventsContradictoryPreCommitsIterator{contract: _AccusationEvents.contract, event: "ContradictoryPreCommits", logs: logs, sub: sub}, nil
-}
-
-// WatchContradictoryPreCommits is a free log subscription operation binding the contract event 0x9348647501345b23a9b5e3bfc44a78365a6c93669054cc6f602e39e629b0835d.
-//
-// Solidity: event ContradictoryPreCommits(address indexed validator)
-func (_AccusationEvents *AccusationEventsFilterer) WatchContradictoryPreCommits(opts *bind.WatchOpts, sink chan<- *AccusationEventsContradictoryPreCommits, validator []common.Address) (event.Subscription, error) {
-
-	var validatorRule []interface{}
-	for _, validatorItem := range validator {
-		validatorRule = append(validatorRule, validatorItem)
-	}
-
-	logs, sub, err := _AccusationEvents.contract.WatchLogs(opts, "ContradictoryPreCommits", validatorRule)
-	if err != nil {
-		return nil, err
-	}
-	return event.NewSubscription(func(quit <-chan struct{}) error {
-		defer sub.Unsubscribe()
-		for {
-			select {
-			case log := <-logs:
-				// New log arrived, parse the event and forward to the user
-				event := new(AccusationEventsContradictoryPreCommits)
-				if err := _AccusationEvents.contract.UnpackLog(event, "ContradictoryPreCommits", log); err != nil {
-					return err
-				}
-				event.Raw = log
-
-				select {
-				case sink <- event:
-				case err := <-sub.Err():
-					return err
-				case <-quit:
-					return nil
-				}
-			case err := <-sub.Err():
-				return err
-			case <-quit:
-				return nil
-			}
-		}
-	}), nil
-}
-
-// ParseContradictoryPreCommits is a log parse operation binding the contract event 0x9348647501345b23a9b5e3bfc44a78365a6c93669054cc6f602e39e629b0835d.
-//
-// Solidity: event ContradictoryPreCommits(address indexed validator)
-func (_AccusationEvents *AccusationEventsFilterer) ParseContradictoryPreCommits(log types.Log) (*AccusationEventsContradictoryPreCommits, error) {
-	event := new(AccusationEventsContradictoryPreCommits)
-	if err := _AccusationEvents.contract.UnpackLog(event, "ContradictoryPreCommits", log); err != nil {
-		return nil, err
-	}
-	event.Raw = log
-	return event, nil
-}
-
-// AccusationEventsContradictoryPreVotePreCommitsIterator is returned from FilterContradictoryPreVotePreCommits and is used to iterate over the raw logs and unpacked data for ContradictoryPreVotePreCommits events raised by the AccusationEvents contract.
-type AccusationEventsContradictoryPreVotePreCommitsIterator struct {
-	Event *AccusationEventsContradictoryPreVotePreCommits // Event containing the contract specifics and raw log
-
-	contract *bind.BoundContract // Generic contract to use for unpacking event data
-	event    string              // Event name to use for unpacking event data
-
-	logs chan types.Log        // Log channel receiving the found contract events
-	sub  ethereum.Subscription // Subscription for errors, completion and termination
-	done bool                  // Whether the subscription completed delivering logs
-	fail error                 // Occurred error to stop iteration
-}
-
-// Next advances the iterator to the subsequent event, returning whether there
-// are any more events found. In case of a retrieval or parsing error, false is
-// returned and Error() can be queried for the exact failure.
-func (it *AccusationEventsContradictoryPreVotePreCommitsIterator) Next() bool {
-	// If the iterator failed, stop iterating
-	if it.fail != nil {
-		return false
-	}
-	// If the iterator completed, deliver directly whatever's available
-	if it.done {
-		select {
-		case log := <-it.logs:
-			it.Event = new(AccusationEventsContradictoryPreVotePreCommits)
-			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
-				it.fail = err
-				return false
-			}
-			it.Event.Raw = log
-			return true
-
-		default:
-			return false
-		}
-	}
-	// Iterator still in progress, wait for either a data or an error event
-	select {
-	case log := <-it.logs:
-		it.Event = new(AccusationEventsContradictoryPreVotePreCommits)
-		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
-			it.fail = err
-			return false
-		}
-		it.Event.Raw = log
-		return true
-
-	case err := <-it.sub.Err():
-		it.done = true
-		it.fail = err
-		return it.Next()
-	}
-}
-
-// Error returns any retrieval or parsing error occurred during filtering.
-func (it *AccusationEventsContradictoryPreVotePreCommitsIterator) Error() error {
-	return it.fail
-}
-
-// Close terminates the iteration process, releasing any pending underlying
-// resources.
-func (it *AccusationEventsContradictoryPreVotePreCommitsIterator) Close() error {
-	it.sub.Unsubscribe()
-	return nil
-}
-
-// AccusationEventsContradictoryPreVotePreCommits represents a ContradictoryPreVotePreCommits event raised by the AccusationEvents contract.
-type AccusationEventsContradictoryPreVotePreCommits struct {
-	Validator common.Address
-	Raw       types.Log // Blockchain specific contextual infos
-}
-
-// FilterContradictoryPreVotePreCommits is a free log retrieval operation binding the contract event 0x4ca23d8bc99c010b758a0665fe07e62a6abd7daead3aaa3fefb4f182ace0f0a4.
-//
-// Solidity: event ContradictoryPreVotePreCommits(address indexed validator)
-func (_AccusationEvents *AccusationEventsFilterer) FilterContradictoryPreVotePreCommits(opts *bind.FilterOpts, validator []common.Address) (*AccusationEventsContradictoryPreVotePreCommitsIterator, error) {
-
-	var validatorRule []interface{}
-	for _, validatorItem := range validator {
-		validatorRule = append(validatorRule, validatorItem)
-	}
-
-	logs, sub, err := _AccusationEvents.contract.FilterLogs(opts, "ContradictoryPreVotePreCommits", validatorRule)
-	if err != nil {
-		return nil, err
-	}
-	return &AccusationEventsContradictoryPreVotePreCommitsIterator{contract: _AccusationEvents.contract, event: "ContradictoryPreVotePreCommits", logs: logs, sub: sub}, nil
-}
-
-// WatchContradictoryPreVotePreCommits is a free log subscription operation binding the contract event 0x4ca23d8bc99c010b758a0665fe07e62a6abd7daead3aaa3fefb4f182ace0f0a4.
-//
-// Solidity: event ContradictoryPreVotePreCommits(address indexed validator)
-func (_AccusationEvents *AccusationEventsFilterer) WatchContradictoryPreVotePreCommits(opts *bind.WatchOpts, sink chan<- *AccusationEventsContradictoryPreVotePreCommits, validator []common.Address) (event.Subscription, error) {
-
-	var validatorRule []interface{}
-	for _, validatorItem := range validator {
-		validatorRule = append(validatorRule, validatorItem)
-	}
-
-	logs, sub, err := _AccusationEvents.contract.WatchLogs(opts, "ContradictoryPreVotePreCommits", validatorRule)
-	if err != nil {
-		return nil, err
-	}
-	return event.NewSubscription(func(quit <-chan struct{}) error {
-		defer sub.Unsubscribe()
-		for {
-			select {
-			case log := <-logs:
-				// New log arrived, parse the event and forward to the user
-				event := new(AccusationEventsContradictoryPreVotePreCommits)
-				if err := _AccusationEvents.contract.UnpackLog(event, "ContradictoryPreVotePreCommits", log); err != nil {
-					return err
-				}
-				event.Raw = log
-
-				select {
-				case sink <- event:
-				case err := <-sub.Err():
-					return err
-				case <-quit:
-					return nil
-				}
-			case err := <-sub.Err():
-				return err
-			case <-quit:
-				return nil
-			}
-		}
-	}), nil
-}
-
-// ParseContradictoryPreVotePreCommits is a log parse operation binding the contract event 0x4ca23d8bc99c010b758a0665fe07e62a6abd7daead3aaa3fefb4f182ace0f0a4.
-//
-// Solidity: event ContradictoryPreVotePreCommits(address indexed validator)
-func (_AccusationEvents *AccusationEventsFilterer) ParseContradictoryPreVotePreCommits(log types.Log) (*AccusationEventsContradictoryPreVotePreCommits, error) {
-	event := new(AccusationEventsContradictoryPreVotePreCommits)
-	if err := _AccusationEvents.contract.UnpackLog(event, "ContradictoryPreVotePreCommits", log); err != nil {
-		return nil, err
-	}
-	event.Raw = log
-	return event, nil
-}
-
-// AccusationEventsContradictoryPreVotesIterator is returned from FilterContradictoryPreVotes and is used to iterate over the raw logs and unpacked data for ContradictoryPreVotes events raised by the AccusationEvents contract.
-type AccusationEventsContradictoryPreVotesIterator struct {
-	Event *AccusationEventsContradictoryPreVotes // Event containing the contract specifics and raw log
-
-	contract *bind.BoundContract // Generic contract to use for unpacking event data
-	event    string              // Event name to use for unpacking event data
-
-	logs chan types.Log        // Log channel receiving the found contract events
-	sub  ethereum.Subscription // Subscription for errors, completion and termination
-	done bool                  // Whether the subscription completed delivering logs
-	fail error                 // Occurred error to stop iteration
-}
-
-// Next advances the iterator to the subsequent event, returning whether there
-// are any more events found. In case of a retrieval or parsing error, false is
-// returned and Error() can be queried for the exact failure.
-func (it *AccusationEventsContradictoryPreVotesIterator) Next() bool {
-	// If the iterator failed, stop iterating
-	if it.fail != nil {
-		return false
-	}
-	// If the iterator completed, deliver directly whatever's available
-	if it.done {
-		select {
-		case log := <-it.logs:
-			it.Event = new(AccusationEventsContradictoryPreVotes)
-			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
-				it.fail = err
-				return false
-			}
-			it.Event.Raw = log
-			return true
-
-		default:
-			return false
-		}
-	}
-	// Iterator still in progress, wait for either a data or an error event
-	select {
-	case log := <-it.logs:
-		it.Event = new(AccusationEventsContradictoryPreVotes)
-		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
-			it.fail = err
-			return false
-		}
-		it.Event.Raw = log
-		return true
-
-	case err := <-it.sub.Err():
-		it.done = true
-		it.fail = err
-		return it.Next()
-	}
-}
-
-// Error returns any retrieval or parsing error occurred during filtering.
-func (it *AccusationEventsContradictoryPreVotesIterator) Error() error {
-	return it.fail
-}
-
-// Close terminates the iteration process, releasing any pending underlying
-// resources.
-func (it *AccusationEventsContradictoryPreVotesIterator) Close() error {
-	it.sub.Unsubscribe()
-	return nil
-}
-
-// AccusationEventsContradictoryPreVotes represents a ContradictoryPreVotes event raised by the AccusationEvents contract.
-type AccusationEventsContradictoryPreVotes struct {
-	Validator common.Address
-	Raw       types.Log // Blockchain specific contextual infos
-}
-
-// FilterContradictoryPreVotes is a free log retrieval operation binding the contract event 0xae1bdc7f2e721641da05261844dad550517708284be2eed847adb64706bdb305.
-//
-// Solidity: event ContradictoryPreVotes(address indexed validator)
-func (_AccusationEvents *AccusationEventsFilterer) FilterContradictoryPreVotes(opts *bind.FilterOpts, validator []common.Address) (*AccusationEventsContradictoryPreVotesIterator, error) {
-
-	var validatorRule []interface{}
-	for _, validatorItem := range validator {
-		validatorRule = append(validatorRule, validatorItem)
-	}
-
-	logs, sub, err := _AccusationEvents.contract.FilterLogs(opts, "ContradictoryPreVotes", validatorRule)
-	if err != nil {
-		return nil, err
-	}
-	return &AccusationEventsContradictoryPreVotesIterator{contract: _AccusationEvents.contract, event: "ContradictoryPreVotes", logs: logs, sub: sub}, nil
-}
-
-// WatchContradictoryPreVotes is a free log subscription operation binding the contract event 0xae1bdc7f2e721641da05261844dad550517708284be2eed847adb64706bdb305.
-//
-// Solidity: event ContradictoryPreVotes(address indexed validator)
-func (_AccusationEvents *AccusationEventsFilterer) WatchContradictoryPreVotes(opts *bind.WatchOpts, sink chan<- *AccusationEventsContradictoryPreVotes, validator []common.Address) (event.Subscription, error) {
-
-	var validatorRule []interface{}
-	for _, validatorItem := range validator {
-		validatorRule = append(validatorRule, validatorItem)
-	}
-
-	logs, sub, err := _AccusationEvents.contract.WatchLogs(opts, "ContradictoryPreVotes", validatorRule)
-	if err != nil {
-		return nil, err
-	}
-	return event.NewSubscription(func(quit <-chan struct{}) error {
-		defer sub.Unsubscribe()
-		for {
-			select {
-			case log := <-logs:
-				// New log arrived, parse the event and forward to the user
-				event := new(AccusationEventsContradictoryPreVotes)
-				if err := _AccusationEvents.contract.UnpackLog(event, "ContradictoryPreVotes", log); err != nil {
-					return err
-				}
-				event.Raw = log
-
-				select {
-				case sink <- event:
-				case err := <-sub.Err():
-					return err
-				case <-quit:
-					return nil
-				}
-			case err := <-sub.Err():
-				return err
-			case <-quit:
-				return nil
-			}
-		}
-	}), nil
-}
-
-// ParseContradictoryPreVotes is a log parse operation binding the contract event 0xae1bdc7f2e721641da05261844dad550517708284be2eed847adb64706bdb305.
-//
-// Solidity: event ContradictoryPreVotes(address indexed validator)
-func (_AccusationEvents *AccusationEventsFilterer) ParseContradictoryPreVotes(log types.Log) (*AccusationEventsContradictoryPreVotes, error) {
-	event := new(AccusationEventsContradictoryPreVotes)
-	if err := _AccusationEvents.contract.UnpackLog(event, "ContradictoryPreVotes", log); err != nil {
-		return nil, err
-	}
-	event.Raw = log
-	return event, nil
-}
-
-// AccusationEventsInvalidProposerIterator is returned from FilterInvalidProposer and is used to iterate over the raw logs and unpacked data for InvalidProposer events raised by the AccusationEvents contract.
-type AccusationEventsInvalidProposerIterator struct {
-	Event *AccusationEventsInvalidProposer // Event containing the contract specifics and raw log
-
-	contract *bind.BoundContract // Generic contract to use for unpacking event data
-	event    string              // Event name to use for unpacking event data
-
-	logs chan types.Log        // Log channel receiving the found contract events
-	sub  ethereum.Subscription // Subscription for errors, completion and termination
-	done bool                  // Whether the subscription completed delivering logs
-	fail error                 // Occurred error to stop iteration
-}
-
-// Next advances the iterator to the subsequent event, returning whether there
-// are any more events found. In case of a retrieval or parsing error, false is
-// returned and Error() can be queried for the exact failure.
-func (it *AccusationEventsInvalidProposerIterator) Next() bool {
-	// If the iterator failed, stop iterating
-	if it.fail != nil {
-		return false
-	}
-	// If the iterator completed, deliver directly whatever's available
-	if it.done {
-		select {
-		case log := <-it.logs:
-			it.Event = new(AccusationEventsInvalidProposer)
-			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
-				it.fail = err
-				return false
-			}
-			it.Event.Raw = log
-			return true
-
-		default:
-			return false
-		}
-	}
-	// Iterator still in progress, wait for either a data or an error event
-	select {
-	case log := <-it.logs:
-		it.Event = new(AccusationEventsInvalidProposer)
-		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
-			it.fail = err
-			return false
-		}
-		it.Event.Raw = log
-		return true
-
-	case err := <-it.sub.Err():
-		it.done = true
-		it.fail = err
-		return it.Next()
-	}
-}
-
-// Error returns any retrieval or parsing error occurred during filtering.
-func (it *AccusationEventsInvalidProposerIterator) Error() error {
-	return it.fail
-}
-
-// Close terminates the iteration process, releasing any pending underlying
-// resources.
-func (it *AccusationEventsInvalidProposerIterator) Close() error {
-	it.sub.Unsubscribe()
-	return nil
-}
-
-// AccusationEventsInvalidProposer represents a InvalidProposer event raised by the AccusationEvents contract.
-type AccusationEventsInvalidProposer struct {
-	Validator common.Address
-	Raw       types.Log // Blockchain specific contextual infos
-}
-
-// FilterInvalidProposer is a free log retrieval operation binding the contract event 0x77f1708f5eab350545b273a6bbd5e819925e387446cb922c7ef0d25a7782769e.
-//
-// Solidity: event InvalidProposer(address indexed validator)
-func (_AccusationEvents *AccusationEventsFilterer) FilterInvalidProposer(opts *bind.FilterOpts, validator []common.Address) (*AccusationEventsInvalidProposerIterator, error) {
-
-	var validatorRule []interface{}
-	for _, validatorItem := range validator {
-		validatorRule = append(validatorRule, validatorItem)
-	}
-
-	logs, sub, err := _AccusationEvents.contract.FilterLogs(opts, "InvalidProposer", validatorRule)
-	if err != nil {
-		return nil, err
-	}
-	return &AccusationEventsInvalidProposerIterator{contract: _AccusationEvents.contract, event: "InvalidProposer", logs: logs, sub: sub}, nil
-}
-
-// WatchInvalidProposer is a free log subscription operation binding the contract event 0x77f1708f5eab350545b273a6bbd5e819925e387446cb922c7ef0d25a7782769e.
-//
-// Solidity: event InvalidProposer(address indexed validator)
-func (_AccusationEvents *AccusationEventsFilterer) WatchInvalidProposer(opts *bind.WatchOpts, sink chan<- *AccusationEventsInvalidProposer, validator []common.Address) (event.Subscription, error) {
-
-	var validatorRule []interface{}
-	for _, validatorItem := range validator {
-		validatorRule = append(validatorRule, validatorItem)
-	}
-
-	logs, sub, err := _AccusationEvents.contract.WatchLogs(opts, "InvalidProposer", validatorRule)
-	if err != nil {
-		return nil, err
-	}
-	return event.NewSubscription(func(quit <-chan struct{}) error {
-		defer sub.Unsubscribe()
-		for {
-			select {
-			case log := <-logs:
-				// New log arrived, parse the event and forward to the user
-				event := new(AccusationEventsInvalidProposer)
-				if err := _AccusationEvents.contract.UnpackLog(event, "InvalidProposer", log); err != nil {
-					return err
-				}
-				event.Raw = log
-
-				select {
-				case sink <- event:
-				case err := <-sub.Err():
-					return err
-				case <-quit:
-					return nil
-				}
-			case err := <-sub.Err():
-				return err
-			case <-quit:
-				return nil
-			}
-		}
-	}), nil
-}
-
-// ParseInvalidProposer is a log parse operation binding the contract event 0x77f1708f5eab350545b273a6bbd5e819925e387446cb922c7ef0d25a7782769e.
-//
-// Solidity: event InvalidProposer(address indexed validator)
-func (_AccusationEvents *AccusationEventsFilterer) ParseInvalidProposer(log types.Log) (*AccusationEventsInvalidProposer, error) {
-	event := new(AccusationEventsInvalidProposer)
-	if err := _AccusationEvents.contract.UnpackLog(event, "InvalidProposer", log); err != nil {
-		return nil, err
-	}
-	event.Raw = log
-	return event, nil
-}
-
-// AccusationEventsInvalidStateTransitionIterator is returned from FilterInvalidStateTransition and is used to iterate over the raw logs and unpacked data for InvalidStateTransition events raised by the AccusationEvents contract.
-type AccusationEventsInvalidStateTransitionIterator struct {
-	Event *AccusationEventsInvalidStateTransition // Event containing the contract specifics and raw log
-
-	contract *bind.BoundContract // Generic contract to use for unpacking event data
-	event    string              // Event name to use for unpacking event data
-
-	logs chan types.Log        // Log channel receiving the found contract events
-	sub  ethereum.Subscription // Subscription for errors, completion and termination
-	done bool                  // Whether the subscription completed delivering logs
-	fail error                 // Occurred error to stop iteration
-}
-
-// Next advances the iterator to the subsequent event, returning whether there
-// are any more events found. In case of a retrieval or parsing error, false is
-// returned and Error() can be queried for the exact failure.
-func (it *AccusationEventsInvalidStateTransitionIterator) Next() bool {
-	// If the iterator failed, stop iterating
-	if it.fail != nil {
-		return false
-	}
-	// If the iterator completed, deliver directly whatever's available
-	if it.done {
-		select {
-		case log := <-it.logs:
-			it.Event = new(AccusationEventsInvalidStateTransition)
-			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
-				it.fail = err
-				return false
-			}
-			it.Event.Raw = log
-			return true
-
-		default:
-			return false
-		}
-	}
-	// Iterator still in progress, wait for either a data or an error event
-	select {
-	case log := <-it.logs:
-		it.Event = new(AccusationEventsInvalidStateTransition)
-		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
-			it.fail = err
-			return false
-		}
-		it.Event.Raw = log
-		return true
-
-	case err := <-it.sub.Err():
-		it.done = true
-		it.fail = err
-		return it.Next()
-	}
-}
-
-// Error returns any retrieval or parsing error occurred during filtering.
-func (it *AccusationEventsInvalidStateTransitionIterator) Error() error {
-	return it.fail
-}
-
-// Close terminates the iteration process, releasing any pending underlying
-// resources.
-func (it *AccusationEventsInvalidStateTransitionIterator) Close() error {
-	it.sub.Unsubscribe()
-	return nil
-}
-
-// AccusationEventsInvalidStateTransition represents a InvalidStateTransition event raised by the AccusationEvents contract.
-type AccusationEventsInvalidStateTransition struct {
-	Validator common.Address
-	Raw       types.Log // Blockchain specific contextual infos
-}
-
-// FilterInvalidStateTransition is a free log retrieval operation binding the contract event 0x7544322a8cfb3d0c5e657c3895677c1b7dc3e68d9854a14d105a7e37ea5d3dd2.
-//
-// Solidity: event InvalidStateTransition(address indexed validator)
-func (_AccusationEvents *AccusationEventsFilterer) FilterInvalidStateTransition(opts *bind.FilterOpts, validator []common.Address) (*AccusationEventsInvalidStateTransitionIterator, error) {
-
-	var validatorRule []interface{}
-	for _, validatorItem := range validator {
-		validatorRule = append(validatorRule, validatorItem)
-	}
-
-	logs, sub, err := _AccusationEvents.contract.FilterLogs(opts, "InvalidStateTransition", validatorRule)
-	if err != nil {
-		return nil, err
-	}
-	return &AccusationEventsInvalidStateTransitionIterator{contract: _AccusationEvents.contract, event: "InvalidStateTransition", logs: logs, sub: sub}, nil
-}
-
-// WatchInvalidStateTransition is a free log subscription operation binding the contract event 0x7544322a8cfb3d0c5e657c3895677c1b7dc3e68d9854a14d105a7e37ea5d3dd2.
-//
-// Solidity: event InvalidStateTransition(address indexed validator)
-func (_AccusationEvents *AccusationEventsFilterer) WatchInvalidStateTransition(opts *bind.WatchOpts, sink chan<- *AccusationEventsInvalidStateTransition, validator []common.Address) (event.Subscription, error) {
-
-	var validatorRule []interface{}
-	for _, validatorItem := range validator {
-		validatorRule = append(validatorRule, validatorItem)
-	}
-
-	logs, sub, err := _AccusationEvents.contract.WatchLogs(opts, "InvalidStateTransition", validatorRule)
-	if err != nil {
-		return nil, err
-	}
-	return event.NewSubscription(func(quit <-chan struct{}) error {
-		defer sub.Unsubscribe()
-		for {
-			select {
-			case log := <-logs:
-				// New log arrived, parse the event and forward to the user
-				event := new(AccusationEventsInvalidStateTransition)
-				if err := _AccusationEvents.contract.UnpackLog(event, "InvalidStateTransition", log); err != nil {
-					return err
-				}
-				event.Raw = log
-
-				select {
-				case sink <- event:
-				case err := <-sub.Err():
-					return err
-				case <-quit:
-					return nil
-				}
-			case err := <-sub.Err():
-				return err
-			case <-quit:
-				return nil
-			}
-		}
-	}), nil
-}
-
-// ParseInvalidStateTransition is a log parse operation binding the contract event 0x7544322a8cfb3d0c5e657c3895677c1b7dc3e68d9854a14d105a7e37ea5d3dd2.
-//
-// Solidity: event InvalidStateTransition(address indexed validator)
-func (_AccusationEvents *AccusationEventsFilterer) ParseInvalidStateTransition(log types.Log) (*AccusationEventsInvalidStateTransition, error) {
-	event := new(AccusationEventsInvalidStateTransition)
-	if err := _AccusationEvents.contract.UnpackLog(event, "InvalidStateTransition", log); err != nil {
-		return nil, err
-	}
-	event.Raw = log
-	return event, nil
-}
-
-// AccusationEventsMultiplePreVotesIterator is returned from FilterMultiplePreVotes and is used to iterate over the raw logs and unpacked data for MultiplePreVotes events raised by the AccusationEvents contract.
-type AccusationEventsMultiplePreVotesIterator struct {
-	Event *AccusationEventsMultiplePreVotes // Event containing the contract specifics and raw log
-
-	contract *bind.BoundContract // Generic contract to use for unpacking event data
-	event    string              // Event name to use for unpacking event data
-
-	logs chan types.Log        // Log channel receiving the found contract events
-	sub  ethereum.Subscription // Subscription for errors, completion and termination
-	done bool                  // Whether the subscription completed delivering logs
-	fail error                 // Occurred error to stop iteration
-}
-
-// Next advances the iterator to the subsequent event, returning whether there
-// are any more events found. In case of a retrieval or parsing error, false is
-// returned and Error() can be queried for the exact failure.
-func (it *AccusationEventsMultiplePreVotesIterator) Next() bool {
-	// If the iterator failed, stop iterating
-	if it.fail != nil {
-		return false
-	}
-	// If the iterator completed, deliver directly whatever's available
-	if it.done {
-		select {
-		case log := <-it.logs:
-			it.Event = new(AccusationEventsMultiplePreVotes)
-			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
-				it.fail = err
-				return false
-			}
-			it.Event.Raw = log
-			return true
-
-		default:
-			return false
-		}
-	}
-	// Iterator still in progress, wait for either a data or an error event
-	select {
-	case log := <-it.logs:
-		it.Event = new(AccusationEventsMultiplePreVotes)
-		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
-			it.fail = err
-			return false
-		}
-		it.Event.Raw = log
-		return true
-
-	case err := <-it.sub.Err():
-		it.done = true
-		it.fail = err
-		return it.Next()
-	}
-}
-
-// Error returns any retrieval or parsing error occurred during filtering.
-func (it *AccusationEventsMultiplePreVotesIterator) Error() error {
-	return it.fail
-}
-
-// Close terminates the iteration process, releasing any pending underlying
-// resources.
-func (it *AccusationEventsMultiplePreVotesIterator) Close() error {
-	it.sub.Unsubscribe()
-	return nil
-}
-
-// AccusationEventsMultiplePreVotes represents a MultiplePreVotes event raised by the AccusationEvents contract.
-type AccusationEventsMultiplePreVotes struct {
-	Validator common.Address
-	Raw       types.Log // Blockchain specific contextual infos
-}
-
-// FilterMultiplePreVotes is a free log retrieval operation binding the contract event 0x9be6f9fc82afc51051c1d95446f326431da376c54af2bcd3d9eb4117f41c82c3.
-//
-// Solidity: event MultiplePreVotes(address indexed validator)
-func (_AccusationEvents *AccusationEventsFilterer) FilterMultiplePreVotes(opts *bind.FilterOpts, validator []common.Address) (*AccusationEventsMultiplePreVotesIterator, error) {
-
-	var validatorRule []interface{}
-	for _, validatorItem := range validator {
-		validatorRule = append(validatorRule, validatorItem)
-	}
-
-	logs, sub, err := _AccusationEvents.contract.FilterLogs(opts, "MultiplePreVotes", validatorRule)
-	if err != nil {
-		return nil, err
-	}
-	return &AccusationEventsMultiplePreVotesIterator{contract: _AccusationEvents.contract, event: "MultiplePreVotes", logs: logs, sub: sub}, nil
-}
-
-// WatchMultiplePreVotes is a free log subscription operation binding the contract event 0x9be6f9fc82afc51051c1d95446f326431da376c54af2bcd3d9eb4117f41c82c3.
-//
-// Solidity: event MultiplePreVotes(address indexed validator)
-func (_AccusationEvents *AccusationEventsFilterer) WatchMultiplePreVotes(opts *bind.WatchOpts, sink chan<- *AccusationEventsMultiplePreVotes, validator []common.Address) (event.Subscription, error) {
-
-	var validatorRule []interface{}
-	for _, validatorItem := range validator {
-		validatorRule = append(validatorRule, validatorItem)
-	}
-
-	logs, sub, err := _AccusationEvents.contract.WatchLogs(opts, "MultiplePreVotes", validatorRule)
-	if err != nil {
-		return nil, err
-	}
-	return event.NewSubscription(func(quit <-chan struct{}) error {
-		defer sub.Unsubscribe()
-		for {
-			select {
-			case log := <-logs:
-				// New log arrived, parse the event and forward to the user
-				event := new(AccusationEventsMultiplePreVotes)
-				if err := _AccusationEvents.contract.UnpackLog(event, "MultiplePreVotes", log); err != nil {
-					return err
-				}
-				event.Raw = log
-
-				select {
-				case sink <- event:
-				case err := <-sub.Err():
-					return err
-				case <-quit:
-					return nil
-				}
-			case err := <-sub.Err():
-				return err
-			case <-quit:
-				return nil
-			}
-		}
-	}), nil
-}
-
-// ParseMultiplePreVotes is a log parse operation binding the contract event 0x9be6f9fc82afc51051c1d95446f326431da376c54af2bcd3d9eb4117f41c82c3.
-//
-// Solidity: event MultiplePreVotes(address indexed validator)
-func (_AccusationEvents *AccusationEventsFilterer) ParseMultiplePreVotes(log types.Log) (*AccusationEventsMultiplePreVotes, error) {
-	event := new(AccusationEventsMultiplePreVotes)
-	if err := _AccusationEvents.contract.UnpackLog(event, "MultiplePreVotes", log); err != nil {
+// Solidity: event InvalidTransactionConsumption(address indexed validator)
+func (_AccusationEvents *AccusationEventsFilterer) ParseInvalidTransactionConsumption(log types.Log) (*AccusationEventsInvalidTransactionConsumption, error) {
+	event := new(AccusationEventsInvalidTransactionConsumption)
+	if err := _AccusationEvents.contract.UnpackLog(event, "InvalidTransactionConsumption", log); err != nil {
 		return nil, err
 	}
 	event.Raw = log
