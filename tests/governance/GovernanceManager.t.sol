@@ -9,8 +9,7 @@ import "src/governance/GovernanceProposal.sol";
 import "src/governance/GovernanceStorage.sol";
 import "src/governance/Governance.sol";
 import "src/tokens/StakeNFT.sol";
-import "src/tokens/interfaces/INFTStake.sol";
-import "lib/openzeppelin/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 uint256 constant ONE_MADTOKEN = 10**18;
 
@@ -20,7 +19,7 @@ contract MadTokenMock is ERC20 {
     }
 }
 
-contract MinerStake is INFTStake {
+contract MinerStake {
 
     StakeNFT stakeNFT;
 
@@ -28,7 +27,7 @@ contract MinerStake is INFTStake {
         stakeNFT = stakeNFT_;
     }
 
-    function lockPosition(address caller_, uint256 tokenID_, uint256 lockDuration_) external override returns(uint256 numberShares) {
+    function lockPosition(address caller_, uint256 tokenID_, uint256 lockDuration_) external returns(uint256 numberShares) {
         return stakeNFT.lockPosition(caller_, tokenID_, lockDuration_);
     }
 
@@ -199,11 +198,15 @@ contract GovernanceManagerTest is DSTest {
         AdminAccount adminMiner = new AdminAccount();
         madToken = new MadTokenMock(address(this));
         stakeNFT = new StakeNFT(
+            "Stake",
+            "MAD",
             IERC20Transferable(address(madToken)),
             address(admin),
             address(address(0x0))
         );
         minerStake = MinerStake(address (new StakeNFT(
+            "Stake",
+            "MAD",
             IERC20Transferable(address(madToken)),
             address(adminMiner),
             address(address(0x0))
