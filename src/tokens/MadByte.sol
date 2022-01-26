@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT-open-group
 pragma solidity ^0.8.0;
 
-import "../../lib/openzeppelin/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "./utils/Admin.sol";
 import "./utils/Mutex.sol";
 import "./utils/MagicEthTransfer.sol";
@@ -285,14 +285,14 @@ contract MadByte is ERC20, Admin, Mutex, MagicEthTransfer, EthSafeTransfer, Sigm
         _safeTransferEthWithMagic(_minerStaking, minerAmount);
         _safeTransferEthWithMagic(_madStaking, stakingAmount);
         _safeTransferEthWithMagic(_lpStaking, lpStakingAmount);
-        require(address(this).balance >= poolBalance);
+        require(address(this).balance >= poolBalance, "MadByte: Address balance should be always greater than the pool balance!");
 
         // invariants hold
         return (minerAmount, stakingAmount, lpStakingAmount, foundationAmount);
     }
 
     // Check if addr_ is EOA (Externally Owned Account) or a contract.
-    function _isContract(address addr_) internal returns (bool) {
+    function _isContract(address addr_) internal view returns (bool) {
         uint256 size;
         assembly{
             size := extcodesize(addr_)

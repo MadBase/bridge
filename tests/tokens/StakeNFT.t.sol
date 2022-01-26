@@ -300,7 +300,7 @@ contract StakeNFTHugeAccumulator is StakeNFT {
     uint256 public constant offsetToOverflow = 1_000000000000000000;
 
     constructor(
-        IERC20Transfer MadToken_,
+        IERC20Transferable MadToken_,
         address admin_,
         address governance_
     ) StakeNFT(MadToken_, admin_, governance_) {
@@ -327,7 +327,7 @@ contract StakeNFTTest is DSTest {
         admin = new AdminAccount();
         madToken = new MadTokenMock(address(this));
         stakeNFT = new StakeNFT(
-            IERC20Transfer(address(madToken)),
+            IERC20Transferable(address(madToken)),
             address(admin),
             address(governance)
         );
@@ -349,7 +349,7 @@ contract StakeNFTTest is DSTest {
         admin = new AdminAccount();
         madToken = new MadTokenMock(address(this));
         stakeNFT = new StakeNFTHugeAccumulator(
-            IERC20Transfer(address(madToken)),
+            IERC20Transferable(address(madToken)),
             address(admin),
             address(governance)
         );
@@ -371,7 +371,7 @@ contract StakeNFTTest is DSTest {
         admin = new AdminAccountReEntrant();
         madToken = new MadTokenMock(address(this));
         stakeNFT = new StakeNFT(
-            IERC20Transfer(address(madToken)),
+            IERC20Transferable(address(madToken)),
             address(admin),
             address(governance)
         );

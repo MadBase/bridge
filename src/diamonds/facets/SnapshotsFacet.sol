@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT-open-group
-pragma solidity >=0.6.4;
+pragma solidity ^0.8.0;
 pragma abicoder v2;
 
 import "../interfaces/SnapshotsEvents.sol";

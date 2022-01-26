@@ -49,6 +49,7 @@ const config: HardhatUserConfig = {
       allowUnlimitedContractSize: true,
       mining: {
         auto: false,
+        interval: 1000,
         mempool: {
           order: "fifo"
         }
@@ -58,7 +59,7 @@ const config: HardhatUserConfig = {
           // address: 0x546F99F244b7B58B855330AE0E2BC1b30b41302F
           // admin & validator4
           privateKey: "0x6aea45ee1273170fb525da34015e4f20ba39fe792f486ba74020bcacc9badfc1",
-          balance: "10000000000000000000000", // 10000 eth
+          balance: "1000000000000000000000000", // 1000000 eth
         },
         {
           // address: 0x9AC1c9afBAec85278679fF75Ef109217f26b1417
@@ -66,7 +67,6 @@ const config: HardhatUserConfig = {
           privateKey: "0x8de84c4eb40a9d32804ebc4005075eed5d64efc92ba26b6ec04d399f5a9b7bd1",
           balance: "10000000000000000000000", // 10000 eth
         },
-        
         {
           // address: 0x615695C4a4D6a60830e5fca4901FbA099DF26271
           // validator1
@@ -127,12 +127,18 @@ const config: HardhatUserConfig = {
           privateKey: "0xc62fd5e127b007a90478de7259b20b0281d20e8c8aa713bdbf819337cf8712df",
           balance: "10000000000000000000000", // 10000 eth
         },
+        {
+          // address: 0x18be4d5d73995fe29149f7ab48c614ddedc7a2fa
+          // user
+          privateKey: "0xff030000000000000000000000000000000000000000000000000000000000ff",
+          balance: "10000000000000000000000", // 10000 eth
+        },
       ],
     }
   },
   solidity: {
     compilers: [{
-      version: "0.8.9",
+      version: "0.8.11",
       settings: {
         optimizer: {
           enabled: true,
@@ -159,6 +165,9 @@ const config: HardhatUserConfig = {
     currency: "ETH",
     gasPrice: 1000000,
   },
+  mocha: {
+    timeout: 600000
+  }
 };
 
 
