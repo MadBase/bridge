@@ -272,7 +272,6 @@ contract StakeNFT is
         tokenID = _mintNFT(to_, amount_);
         if (lockDuration_ > 0) {
             _lockPosition(tokenID, lockDuration_);
-            _lockWithdraw(tokenID, lockDuration_);
         }
         return tokenID;
     }
