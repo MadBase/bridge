@@ -12,7 +12,8 @@ import "hardhat-contract-sizer";
 import "hardhat-gas-reporter";
 import "solidity-coverage";
 import "@nomiclabs/hardhat-truffle5";
-import'solidity-coverage';
+
+
 /**
  * @type import('hardhat/config').HardhatUserConfig
  */
@@ -144,6 +145,25 @@ const config: HardhatUserConfig = {
     compilers: [{
       version: "0.8.11",
       settings: {
+        outputSelection: {
+          "*":{
+            "*": [
+              "metadata",
+              "evm.bytecode",
+              "evm.bytecode.sourceMap",
+            ],
+            "": [
+              "ast" // Enable the AST output of every single file.
+            ]
+          },
+          // Enable the abi and opcodes output of MyContract defined in file def.
+          def: {
+            MyContract: [ "abi", "evm.bytecode.opcodes" ]
+          }
+        },
+        metadata: {
+          useLiteralContent: true,
+        },
         optimizer: {
           enabled: true,
           runs: 0,
@@ -151,6 +171,7 @@ const config: HardhatUserConfig = {
       },
     }],
   },
+
   paths: {
     sources: "./src",
     tests: "./tests",

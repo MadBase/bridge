@@ -1,3 +1,6 @@
+const {deployUpgradeable, upgradeDeployment, deployNonUpgradeable} = require("../scripts/lib/MadnetFactory");
+
+
 //const { contracts } = require("@openzeppelin/cli/lib/prompts/choices");
 const { BN, expectEvent, expectRevert} = require('@openzeppelin/test-helpers');
 const { expect } = require("chai");
@@ -12,20 +15,25 @@ const MockSD = artifacts.require("MockSD")
 const Utils = artifacts.require("utils");
 
 
-
-const DeployedStatic = "DeployedStatic";
-const DeployedProxy = "DeployedProxy";
-const DeployedRaw = "DeployedRaw";
-const DeployedTemplate = "DeployedTemplate";
-const Deployed = "Deployed";
-const salt = "salt";
-const contractAddr = "contractAddr";
+const logicAddrKey = "LogicAddress";
+const proxyAddrKey = "ProxyAddress"
+const metaAddrKey = "MetaAddress"
+const templateAddrKey = "TemplateAddress"
+const deployedStaticKey = "DeployedStatic";
+const deployedProxyKey = "DeployedProxy";
+const deployedRawKey = "DeployedRaw";
+const deployedTemplateKey = "DeployedTemplate";
+const deployedKey = "Deployed";
+const contractAddrKey = "contractAddr";
+const madnetFactoryKey = "MadnetFactory";
+const mockContractKey = "Mock";
 contract("MADNET FACTORY", function (accounts){
     before(async function () {
         //get a instance of a ethereum provider
         this.provider = new ethers.providers.JsonRpcProvider();
         this.utils = await Utils.new();
     })
+
     it("DEPLOY FACTORY", async function(){
         //gets the initial transaction count for the address 
         let transactionCount = await this.provider.getTransactionCount(accounts[0]);
@@ -37,9 +45,59 @@ contract("MADNET FACTORY", function (accounts){
         //deploy the factory with its address as a constructor input
         this.factory = await MadnetFactory.new(this.futureFactoryAddress);
         this.factoryOwner = accounts[0];
-        let size = await this.utils.getCodeSize(this.factory.address)
-        expect(size.toNumber()).to.be.greaterThan(0);
+        let cSize = await this.utils.getCodeSize(this.factory.address);
+        expect(cSize.toNumber()).to.be.greaterThan(0);
     });
+
+    it("DEPLOYUPGRADEABLE", async function(){
+        let artifactPaths = await artifacts.getAllFullyQualifiedNames();
+        let logicPath;
+        for (let i = 0; i < artifactPaths.length; i++){
+            if (artifactPaths[i].split(":")[1] === madnetFactoryKey){
+                logicPath = artifactPaths[i].split(":")[0];
+                break;
+            } 
+        }
+        let res = await deployUpgradeable(logicPath, madnetFactoryKey, this.factory.address);
+        let cSize = await this.utils.getCodeSize(res[logicAddrKey])
+        expect(cSize.toNumber()).to.be.greaterThan(0);
+        cSize = await this.utils.getCodeSize(res[proxyAddrKey])
+        expect(cSize.toNumber()).to.be.greaterThan(0);
+    });
+
+    it("UPGRADEDEPLOYMENT", async function(){
+        let artifactPaths = await artifacts.getAllFullyQualifiedNames();
+        let logicPath;
+        for (let i = 0; i < artifactPaths.length; i++){
+            if (artifactPaths[i].split(":")[1] === madnetFactoryKey){
+                logicPath = artifactPaths[i].split(":")[0];
+                console.log(logicPath)
+                break;
+            } 
+        }
+        let res = await upgradeDeployment(logicPath, madnetFactoryKey, this.factory.address);
+        let logicSize = await this.utils.getCodeSize(res[logicAddrKey])
+        expect(logicSize.toNumber()).to.be.greaterThan(0);
+    
+    });
+
+    it("UPGRADENONUPGRADEABLE", async function(){
+        let artifactPaths = await artifacts.getAllFullyQualifiedNames();
+        let logicPath;
+        for (let i = 0; i < artifactPaths.length; i++){
+            if (artifactPaths[i].split(":")[1] === mockContractKey){
+                logicPath = artifactPaths[i].split(":")[0];
+                break;
+            } 
+        }
+        let res = await deployNonUpgradeable(logicPath, mockContractKey, this.factory.address);
+        let cSize = await this.utils.getCodeSize(res[templateAddrKey])
+        expect(cSize.toNumber()).to.be.greaterThan(0);
+        cSize = await this.utils.getCodeSize(res[metaAddrKey])
+        expect(cSize.toNumber()).to.be.greaterThan(0);
+    });
+
+    
     it("DEPLOY ENDPOINT", async function(){
         this.endPoint = await EndPoint.new(this.factory.address);
         let size = await this.utils.getCodeSize(this.endPoint.address)
@@ -59,17 +117,17 @@ contract("MADNET FACTORY", function (accounts){
         //sets the second account as owner 
         let receipt = await this.factory.setOwner(accounts[1], {from: this.factoryOwner});
         this.factoryOwner = accounts[1];
-        expect(await this.factory.owner_()).to.equal(this.factoryOwner);
+        expect(await this.factory.owner.call()).to.equal(this.factoryOwner);
         await this.factory.setOwner(accounts[0], {from: accounts[1]})
         this.factoryOwner = accounts[0]; 
-        expect(await this.factory.owner_()).to.equal(this.factoryOwner);
+        expect(await this.factory.owner.call()).to.equal(this.factoryOwner);
     });
 
     it("setDelegator: succeed", async function(){
         //sets the second account as delegator 
         await this.factory.setDelegator(accounts[1], {from: accounts[0]});
         this.factoryDelegator = accounts[1];
-        expect(await this.factory.delegator_()).to.equal(this.factoryDelegator);
+        expect(await this.factory.delegator()).to.equal(this.factoryDelegator);
     });
     it("SET OWNER WITH UNAUTHORIZED ACCOUNT EXPECT FAIL", async function(){
         await expectRevert(
@@ -108,7 +166,7 @@ contract("MADNET FACTORY", function (accounts){
         let expectedMockTempAddress = getCreateAddress(this.factory.address, transactionCount);
         let receipt = await this.factory.deployTemplate(deployBCode.data);
         expectTxSuccess(receipt);
-        this.mockTempAddress = await getEventVar(receipt, DeployedTemplate, contractAddr);
+        this.mockTempAddress = await getEventVar(receipt, deployedTemplateKey, contractAddrKey);
         expect(this.mockTempAddress).to.equal(expectedMockTempAddress)
         console.log("DEPLOYTEMPLATE GASUSED: ", receipt["receipt"]["gasUsed"]);
     });
@@ -125,9 +183,9 @@ contract("MADNET FACTORY", function (accounts){
         //get the utf8 bytes32 version of the salt 
         Salt = ethers.utils.formatBytes32String(salt.toString());
         let expectedMetaAddress = getMetamorphicAddress(this.factory.address, Salt);
-        let receipt = await this.factory.deployStatic(Salt);
+        let receipt = await this.factory.deployStatic(Salt, "0x");
         expectTxSuccess(receipt);
-        let metaAddr = await getEventVar(receipt, DeployedStatic, contractAddr);
+        let metaAddr = await getEventVar(receipt, deployedStaticKey, contractAddrKey);
         expect(metaAddr).to.equal(expectedMetaAddress);
         console.log("DEPLOYSTATIC GASUSED: ", receipt["receipt"]["gasUsed"]);
         metaMockLogicTest(Mock, metaAddr, this.factory.address);
@@ -151,7 +209,7 @@ contract("MADNET FACTORY", function (accounts){
         //check if transaction succeeds 
         expectTxSuccess(receipt);
         //get the deployed proxy contract address fom the DeployedProxy event 
-        let proxyAddr = await getEventVar(receipt, DeployedProxy, contractAddr);
+        let proxyAddr = await getEventVar(receipt, deployedProxyKey, contractAddrKey);
         //check if the deployed contract address match the calculated address 
         expect(proxyAddr).to.equal(expectedProxyAddr);
         this.proxyAddr = proxyAddr;
@@ -181,7 +239,7 @@ contract("MADNET FACTORY", function (accounts){
         let receipt = await this.factory.deployCreate(deployBCode.data);
         //check if the transaction is mined or failed 
         expectTxSuccess(receipt);
-        let dcMockAddress = getEventVar(receipt, DeployedRaw, contractAddr);
+        let dcMockAddress = getEventVar(receipt, deployedRawKey, contractAddrKey);
         //calculate the deployed address 
         let expectedMockAddr = ethers.utils.getContractAddress({
             from: this.factory.address,
@@ -208,19 +266,18 @@ contract("MADNET FACTORY", function (accounts){
         expectTxSuccess(receipt);
         console.log("UPGRADE PROXY GASUSED: ", receipt["receipt"]["gasUsed"]);
     });
-
+/*
     it("DEPLOYTEMPLATEWITHSD ", async function(){
          //ethers instance of Mock contract abstraction
          let mockCon = await ethers.getContractFactory("MockSD");
          //deploy code for mock with constructor args i = 2
          deployBCode = mockCon.getDeployTransaction(2, "0x");
-         deployBCode.data = deployBCode.data + "00000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000000";
          //deploy the mock Contract to deployTemplate
          let transactionCount = await this.provider.getTransactionCount(this.factory.address)
          let expectedMockTempAddress = getCreateAddress(this.factory.address, transactionCount);
          let receipt = await this.factory.deployTemplateWithSD(deployBCode.data);
          expectTxSuccess(receipt);
-         this.mockTempSDAddress = await getEventVar(receipt, DeployedTemplate, contractAddr);
+         this.mockTempSDAddress = await getEventVar(receipt, deployedTemplateKey, contractAddrKey);
          expect(this.mockTempSDAddress).to.equal(expectedMockTempAddress)
          
          expectTxSuccess(receipt);
@@ -237,7 +294,7 @@ contract("MADNET FACTORY", function (accounts){
         let expectedMetaAddress = getMetamorphicAddress(this.factory.address, Salt);
         let receipt = await this.factory.deploy("0x0000000000000000000000000000000000000000", Salt, "0x");
         expectTxSuccess(receipt);
-        let metaAddr = await getEventVar(receipt, Deployed, contractAddr);
+        let metaAddr = await getEventVar(receipt, deployedKey, contractAddrKey);
         expect(metaAddr).to.equal(expectedMetaAddress);
         console.log("DEPLOY GASUSED: ", receipt["receipt"]["gasUsed"]);
         await metaMockLogicTest(Mock, metaAddr, this.factory.address);
@@ -250,7 +307,7 @@ contract("MADNET FACTORY", function (accounts){
         expect(tempSDCSize.toNumber()).to.equal(0);
         console.log("DESTROY GASUSED: ", receipt["receipt"]["gasUsed"]);
     });
-
+*/
     it("UPGRADE PROXY TO POINT TO DCMOCKADDRESS W FACTORY USING UNAUTH ACC EXPECT FAIL", async function(){
         let receipt = this.factory.upgradeProxy(this.proxySalt, this.dcMockAddress, {from: this.factoryDelegator});
         await expectRevert(receipt, "unauthorized")
@@ -339,8 +396,8 @@ contract("MADNET FACTORY", function (accounts){
             //encoded function call to upgradeProxy
             let upgradeProxy = MadnetFactory.interface.encodeFunctionData("upgradeProxy", [Salt, expectedMockLogicAddr]);
             let receipt = await this.factory.multiCall([deployProxy, deployCreate, upgradeProxy]);
-            let mockLogicAddr = await getEventVar(receipt, DeployedRaw, contractAddr);
-            let proxyAddr = await getEventVar(receipt, DeployedProxy, contractAddr);
+            let mockLogicAddr = await getEventVar(receipt, deployedRawKey, contractAddrKey);
+            let proxyAddr = await getEventVar(receipt, deployedProxyKey, contractAddrKey);
             expect(mockLogicAddr).to.equal(expectedMockLogicAddr);
             console.log("MULTICALL DEPLOYPROXY, DEPLOYCREATE, UPGRADEPROXY GASUSED: ", receipt["receipt"]["gasUsed"]);
             //check the proxy behaviour 
@@ -370,16 +427,16 @@ contract("MADNET FACTORY", function (accounts){
             //encoded function call to deployTemplate 
             let deployTemplate = MadnetFactory.interface.encodeFunctionData("deployTemplate", [deployBCode.data]);
             //encoded function call to deployStatic
-            let deployStatic = MadnetFactory.interface.encodeFunctionData("deployStatic", [metaSalt]);
+            let deployStatic = MadnetFactory.interface.encodeFunctionData("deployStatic", [metaSalt, "0x"]);
             expect(proxySalt != metaSalt).to.equal(true);
             //encoded function call to upgradeProxy
             let upgradeProxy = MadnetFactory.interface.encodeFunctionData("upgradeProxy", [proxySalt, expectedMetaAddr]);
             let receipt = await this.factory.multiCall([deployProxy, deployTemplate, deployStatic, upgradeProxy]);
             //get the deployed template contract address from the event 
-            let tempSDAddr = await getEventVar(receipt, DeployedTemplate, contractAddr);
+            let tempSDAddr = await getEventVar(receipt, deployedTemplateKey, contractAddrKey);
             //get the deployed metamorphic contract address from the event 
-            let metaAddr = await getEventVar(receipt, DeployedStatic, contractAddr);
-            let proxyAddr = await getEventVar(receipt, DeployedProxy, contractAddr);
+            let metaAddr = await getEventVar(receipt, deployedStaticKey, contractAddrKey);
+            let proxyAddr = await getEventVar(receipt, deployedProxyKey, contractAddrKey);
             let proxyCsize = await this.utils.getCodeSize(proxyAddr);
             expect(proxyCsize.toNumber()).to.equal((Proxy.deployedBytecode.length-2)/2);
             await proxyMockLogicTest(Mock, proxySalt, proxyAddr, metaAddr, this.endPoint.address, this.factory.address);
@@ -404,12 +461,12 @@ contract("MADNET FACTORY", function (accounts){
             //encoded function call to deployTemplate 
             let deployTemplate = MadnetFactory.interface.encodeFunctionData("deployTemplate", [deployBCode.data]);
             //encoded function call to deployStatic
-            let deployStatic = MadnetFactory.interface.encodeFunctionData("deployStatic", [Salt]);
+            let deployStatic = MadnetFactory.interface.encodeFunctionData("deployStatic", [Salt, "0x"]);
             let receipt = await this.factory.multiCall([deployTemplate, deployStatic]);
             //get the deployed template contract address from the event 
-            let tempSDAddr = await getEventVar(receipt, DeployedTemplate, contractAddr);
+            let tempSDAddr = await getEventVar(receipt, deployedTemplateKey, contractAddrKey);
             //get the deployed metamorphic contract address from the event 
-            let metaAddr = await getEventVar(receipt, DeployedStatic, contractAddr);
+            let metaAddr = await getEventVar(receipt, deployedStaticKey, contractAddrKey);
             let tempCSize = await this.utils.getCodeSize.call(tempSDAddr);
             let staticCSize = await this.utils.getCodeSize.call(metaAddr);
             expect(tempCSize.toNumber()).to.be.greaterThan(0);
@@ -418,6 +475,7 @@ contract("MADNET FACTORY", function (accounts){
             await metaMockLogicTest(Mock, metaAddr, this.factory.address);
             console.log("MULTICALL DEPLOYTEMPLATE, DEPLOYSTATIC GASUSED: ", receipt["receipt"]["gasUsed"]);
         });
+        /*
         it("MULTICALL DEPLOYTEMPLATESD, DEPLOYSTATIC, DESTROY EXPECT SUCCESS", async function(){
             //set a new salt 
             let salt = new Date();
@@ -434,13 +492,12 @@ contract("MADNET FACTORY", function (accounts){
             let transactionCount = await this.provider.getTransactionCount(this.factory.address);
             deployTemplateSDAddress = getCreateAddress(this.factory.address, transactionCount);
             let deployTemplateSD = MadnetFactory.interface.encodeFunctionData("deployTemplateWithSD", [deployBCode.data]);
-            deployTemplateSD = deployTemplateSD + "00000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000000";
             //encoded function call to deployStatic
             let deployStatic = MadnetFactory.interface.encodeFunctionData("deployStatic", [this.mcsdSalt]);
             let destroy = MadnetFactory.interface.encodeFunctionData("destroy", [deployTemplateSDAddress]);
             let receipt = await this.factory.multiCall([deployTemplateSD, deployStatic, destroy]);
-            let tempSDAddr = await getEventVar(receipt, DeployedTemplate, contractAddr);
-            let metaAddr = await getEventVar(receipt, DeployedStatic, contractAddr);
+            let tempSDAddr = await getEventVar(receipt, deployedTemplateKey, contractAddrKey);
+            let metaAddr = await getEventVar(receipt, deployedStaticKey, contractAddrKey);
             let tempCSize = await this.utils.getCodeSize.call(tempSDAddr);
             let staticCSize = await this.utils.getCodeSize.call(metaAddr);
             expect(tempCSize.toNumber()).to.equal(0);
@@ -464,16 +521,16 @@ contract("MADNET FACTORY", function (accounts){
             let transactionCount = await this.provider.getTransactionCount(this.factory.address);
             deployTemplateSDAddress = getCreateAddress(this.factory.address, transactionCount);
             let deployTemplateSD = MadnetFactory.interface.encodeFunctionData("deployTemplateWithSD", [deployBCode.data]);
-            deployTemplateSD = deployTemplateSD + "00000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000000";
+
             //encoded function call to deployStatic
             let deploy = MadnetFactory.interface.encodeFunctionData("deploy", ["0x0000000000000000000000000000000000000000", this.mcsdddSalt, "0x"]);
             let destroy = MadnetFactory.interface.encodeFunctionData("destroy", [deployTemplateSDAddress]);
             let receipt = await this.factory.multiCall([deployTemplateSD, deploy, destroy]);
-            let tempSDAddr = await getEventVar(receipt, DeployedTemplate, contractAddr);
+            let tempSDAddr = await getEventVar(receipt, deployedTemplateKey, contractAddrKey);
             //metamorphic contract address
-            let metaAddr = await getEventVar(receipt, Deployed, contractAddr);
+            let metaAddr = await getEventVar(receipt, deployedKey, contractAddrKey);
             //metamorphic contract salt
-            let metaSalt = await getEventVar(receipt, Deployed, salt);
+            let metaSalt = await getEventVar(receipt, deployedKey, salt);
             let tempCSize = await this.utils.getCodeSize.call(tempSDAddr);
             let metaCSize = await this.utils.getCodeSize.call(metaAddr);
             expect(tempCSize.toNumber()).to.equal(0);
@@ -481,7 +538,9 @@ contract("MADNET FACTORY", function (accounts){
             console.log("MULTICALL DEPLOYTEMPLATESD, DEPLOY, DESTROY GASUSED: ", receipt["receipt"]["gasUsed"]);
             //test the logic at the metamorphic location 
             await metaMockLogicTest(MockSD, metaAddr, this.factory.address);
+    
         });
+        */
     });
 });
 

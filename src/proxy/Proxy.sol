@@ -394,7 +394,7 @@ abstract contract ProxyInternalUpgradeUnlock {
         }
     }
 }
-
+/// @custom:salt Mock
 contract Mock is ProxyInternalUpgradeLock, ProxyInternalUpgradeUnlock {
     address factory_;
     uint256 public v;
