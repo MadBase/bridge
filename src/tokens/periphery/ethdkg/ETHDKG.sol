@@ -188,7 +188,7 @@ contract ETHDKG is
 
         delete _masterPublicKey;
 
-        emit RegistrationOpened(block.number, _nonce, _phaseLength, _confirmationLength);
+        emit RegistrationOpened(block.number, _nonce);
     }
 
     function register(uint256[2] memory publicKey) external onlyValidator {

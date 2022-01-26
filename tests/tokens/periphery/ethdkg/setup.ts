@@ -457,8 +457,7 @@ export const initializeETHDKG = async (
 ) => {
   let nonce = await ethdkg.getNonce();
   await expect(validatorPool.initializeETHDKG())
-    .to.emit(ethdkg, "RegistrationOpened")
-    .withArgs((await ethers.provider.getBlockNumber()) + 1, nonce.add(1));
+    .to.emit(ethdkg, "RegistrationOpened");
   expect(await ethdkg.getNonce()).to.eq(nonce.add(1));
   await assertETHDKGPhase(ethdkg, Phase.RegistrationOpen);
 };
