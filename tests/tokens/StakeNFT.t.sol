@@ -303,7 +303,7 @@ contract StakeNFTHugeAccumulator is StakeNFT {
         IERC20Transferable MadToken_,
         address admin_,
         address governance_
-    ) StakeNFT(MadToken_, admin_, governance_) {
+    ) StakeNFT("Stake", "MAD", MadToken_, admin_, governance_) {
         _tokenState.accumulator = uint256(type(uint168).max - offsetToOverflow);
         _ethState.accumulator = uint256(type(uint168).max - offsetToOverflow);
     }
@@ -327,6 +327,8 @@ contract StakeNFTTest is DSTest {
         admin = new AdminAccount();
         madToken = new MadTokenMock(address(this));
         stakeNFT = new StakeNFT(
+            "Stake",
+            "MAD",
             IERC20Transferable(address(madToken)),
             address(admin),
             address(governance)
@@ -371,6 +373,8 @@ contract StakeNFTTest is DSTest {
         admin = new AdminAccountReEntrant();
         madToken = new MadTokenMock(address(this));
         stakeNFT = new StakeNFT(
+            "Stake",
+            "MAD",
             IERC20Transferable(address(madToken)),
             address(admin),
             address(governance)
@@ -533,8 +537,8 @@ contract StakeNFTTest is DSTest {
 
     function testBasicERC721() public {
         (StakeNFT stakeNFT, , , ) = getFixtureData();
-        assertEq(stakeNFT.name(), "MNStake");
-        assertEq(stakeNFT.symbol(), "MNS");
+        assertEq(stakeNFT.name(), "Stake");
+        assertEq(stakeNFT.symbol(), "MAD");
     }
 
     function testDeposit() public {
