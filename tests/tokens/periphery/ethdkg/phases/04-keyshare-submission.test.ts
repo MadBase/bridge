@@ -12,7 +12,6 @@ import {
 } from "../setup";
 
 describe("Submit Key share", () => {
-  // todo: write these tests without hardhat's evm_automine
   it("should not allow submission of key shares when not in KeyShareSubmission phase", async () => {
     let [ethdkg, validatorPool, expectedNonce] = await startAtDistributeShares(
       validators4

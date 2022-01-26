@@ -132,10 +132,6 @@ contract ValidatorPoolTrue is MagicValue, EthSafeTransfer, ERC20SafeTransfer {
         return _validators[index];
     }
 
-    function getValidators() public view returns(address[] memory) {
-        return _validators;
-    }
-
     function isValidator(address participant) public view returns(bool) {
         return _isValidator(participant);
     }

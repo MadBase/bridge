@@ -63,6 +63,7 @@ contract ValidatorPool {
         return _validators[index];
     }
 
+
     function getValidatorAddresses() external view returns (address[] memory addresses) {
         return _validators;
     }
