@@ -8,7 +8,9 @@
     "lib/ds-token/token.t.sol": { "urls": ["lib/ds-token/token.t.sol"] },
     "tests/CryptoLibrary.t.sol": { "urls": ["tests/CryptoLibrary.t.sol"] },
     "tests/Deposit.t.sol": { "urls": ["tests/Deposit.t.sol"] },
-    "tests/DirectGovernance.t.sol": { "urls": ["tests/DirectGovernance.t.sol"] },
+    "tests/DirectGovernance.t.sol": {
+      "urls": ["tests/DirectGovernance.t.sol"]
+    },
     "tests/QueueLibrary.t.sol": { "urls": ["tests/QueueLibrary.t.sol"] },
     "tests/Registry.t.sol": { "urls": ["tests/Registry.t.sol"] },
     "tests/Token.t.sol": { "urls": ["tests/Token.t.sol"] },
@@ -95,10 +97,16 @@
       ]
     },
     "tests/governance/proposals/GovernanceProposeRestartETHDKG.t.sol": {
-      "urls": ["tests/governance/proposals/GovernanceProposeRestartETHDKG.t.sol"]
+      "urls": [
+        "tests/governance/proposals/GovernanceProposeRestartETHDKG.t.sol"
+      ]
     }
   },
   "settings": {
+    "remappings": [
+      "@openzeppelin/=node_modules/@openzeppelin/",
+      "lib/openzeppelin/token/=node_modules/@openzeppelin/contracts/token/"
+    ],
     "outputSelection": {
       "*": {
         "*": [
