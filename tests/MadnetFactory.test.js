@@ -10,6 +10,9 @@ const MadnetFactory = artifacts.require("MadnetFactory");
 const Mock = artifacts.require("Mock");
 const MockSD = artifacts.require("MockSD")
 const Utils = artifacts.require("utils");
+
+
+
 const DeployedStatic = "DeployedStatic";
 const DeployedProxy = "DeployedProxy";
 const DeployedRaw = "DeployedRaw";
@@ -73,6 +76,26 @@ contract("MADNET FACTORY", function (accounts){
             this.factory.setOwner(accounts[0], {from: this.factoryDelegator}),
             "unauthorized"
         );
+    });
+
+    it("REQUIREAUTH", async function(){
+
+    });
+
+    it("CODESIZEZEROREVERT", async function(){
+
+    });
+
+    it("EXTCODESIZE", async function(){
+
+    });
+
+    it("GETCONTRACTADDRESS", async function(){
+
+    });
+
+    it("GETNUMCONTRACTS", async function(){
+
     });
 
     it("DEPLOY MOCK WITH DEPLOYTEMPLATE AS OWNER EXPECT SUCCEED", async function(){
@@ -281,6 +304,17 @@ contract("MADNET FACTORY", function (accounts){
     it("DEPLOY CREATE WITH VALID CODE, UNAUTHORIZED ACCOUNT EXPECT FAIL", async function(){
         const receipt = this.factory.deployCreate(EndPoint.bytecode, {from: accounts[2]});
         await expectRevert(receipt, "unauthorized")     
+    });
+
+    it("DEPLOYCREATE2", async function(){
+
+    });
+
+    it("CALLANY", async function(){
+           
+    });
+    it("DELEGATECALLANY", async function(){
+           
     });
 
     describe("MULTICALL DEPLOY PROXY", async function(){

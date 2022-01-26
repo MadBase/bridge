@@ -12,7 +12,7 @@ import "hardhat-contract-sizer";
 import "hardhat-gas-reporter";
 import "solidity-coverage";
 import "@nomiclabs/hardhat-truffle5";
-
+import'solidity-coverage';
 /**
  * @type import('hardhat/config').HardhatUserConfig
  */

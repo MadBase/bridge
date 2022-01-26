@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT-open-group
 pragma solidity  ^0.8.11;
-import "../lib/utils/DeterministicAddress.sol";
-import "./Proxy.sol";
+import "../../lib/utils/DeterministicAddress.sol";
+import "../proxy/Proxy.sol";
 
 interface MadnetFacInterface {
     function deploy(address _implementation, bytes32 _salt, bytes calldata _initCallData) external payable returns (address contractAddr);
@@ -111,21 +111,7 @@ contract MadnetFactory is DeterministicAddress, ProxyUpgrader {
     
     
     
-    /**  
-    * @dev multiCall allows EOA to make multiple function calls within a single transaction **in this contract**, and only returns the result of the last call 
-    * @param _cdata: array of function calls 
-    * returns the result of the last call 
-    */
-    function multiCall(bytes[] calldata _cdata) external onlyOwner {
-        for (uint256 i = 0; i < _cdata.length; i++) {
-            bytes memory cdata = _cdata[i];
-            callAnyInternal(address(this), 0, cdata);
-        }
-        assembly {
-            returndatacopy(0x00, 0x00, returndatasize())
-            return(0x00, returndatasize())
-        }
-    }
+    
 
     /**  
     * @dev requireAuth reverts if false and returns csize0 error message 
@@ -255,6 +241,13 @@ contract MadnetFactory is DeterministicAddress, ProxyUpgrader {
         implementation_ = contractAddr;
         return contractAddr;
     }
+
+    /**  
+     * @dev deployStatic deploys a template contract with the universal code copy constructor that deploys 
+     * the deploycode as the contracts runtime code.    
+     * @param _deployCode dfs
+     * @return contractAddr the address of the deployed template contract
+     */
     function deployStatic(bytes32 _salt) public onlyOwner returns (address contractAddr) {
         assembly {
             // store proxy template address as implementation,
@@ -326,7 +319,7 @@ contract MadnetFactory is DeterministicAddress, ProxyUpgrader {
         __upgrade(proxy, _newImpl);
     }
     /**  
-    * @dev deployCreate allows the owner to deploy contracts through the factory
+    * @dev deployCreate allows the owner to deploy raw contracts through the factory
     * @param _deployCode bytecode to deploy using create
     */
     function deployCreate(bytes calldata _deployCode) public onlyOwner returns (address contractAddr) {
@@ -428,6 +421,23 @@ contract MadnetFactory is DeterministicAddress, ProxyUpgrader {
             }
         }
     }
+   
+    /**  
+    * @dev multiCall allows EOA to make multiple function calls within a single transaction **in this contract**, and only returns the result of the last call 
+    * @param _cdata: array of function calls 
+    * returns the result of the last call 
+    */
+    function multiCall(bytes[] calldata _cdata) external onlyOwner {
+        for (uint256 i = 0; i < _cdata.length; i++) {
+            bytes memory cdata = _cdata[i];
+            callAnyInternal(address(this), 0, cdata);
+        }
+        assembly {
+            returndatacopy(0x00, 0x00, returndatasize())
+            return(0x00, returndatasize())
+        }
+    }
+   
     /**  
     * @dev delegateCallAny is a access restricted wrapper function for delegateCallAnyInternal
     * @param _target: the address of the contract to call

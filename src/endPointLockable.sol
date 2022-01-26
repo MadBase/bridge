@@ -1,6 +1,6 @@
 pragma solidity ^0.8.11;
 
-import "./Proxy.sol"; 
+import "./proxy/Proxy.sol"; 
 interface Iendpointlockable {
     function i() external view returns(uint256);
     function addOne() external;
