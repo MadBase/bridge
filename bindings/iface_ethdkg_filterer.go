@@ -8,8 +8,8 @@ import (
 	"github.com/ethereum/go-ethereum/event"
 )
 
-// IETHDKGFilterer ...
-type IETHDKGFilterer interface {
+// IEthDkgFilterer ...
+type IEthDkgFilterer interface {
 	// FilterKeyShareSubmission is a free log retrieval operation binding the contract event 0xb0ee36c3780de716eb6c83687f433ae2558a6923e090fd238b657fb6c896badc.
 	//
 	// Solidity: event KeyShareSubmission(address issuer, uint256[2] key_share_G1, uint256[2] key_share_G1_correctness_proof, uint256[4] key_share_G2)

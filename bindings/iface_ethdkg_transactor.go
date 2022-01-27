@@ -10,8 +10,8 @@ import (
 	"github.com/ethereum/go-ethereum/core/types"
 )
 
-// IETHDKGTransactor ...
-type IETHDKGTransactor interface {
+// IEthDkgTransactor ...
+type IEthDkgTransactor interface {
 	// GroupAccusationGPKj is a paid mutator transaction binding the contract method 0xa6872833.
 	//
 	// Solidity: function Group_Accusation_GPKj(uint256[] invArray, uint256[] honestIndices, uint256[] dishonestIndices) returns()

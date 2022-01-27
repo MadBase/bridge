@@ -91,6 +91,10 @@
     }
   },
   "settings": {
+    "remappings": [
+      "@openzeppelin/=node_modules/@openzeppelin/",
+      "lib/openzeppelin/token/=node_modules/@openzeppelin/contracts/token/"
+    ],
     "outputSelection": {
       "*": {
         "*": [

@@ -9,8 +9,8 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 )
 
-// IETHDKGCaller ...
-type IETHDKGCaller interface {
+// IEthDkgCaller ...
+type IEthDkgCaller interface {
 	// TDISPUTEEND is a free data retrieval call binding the contract method 0xd3cf6186.
 	//
 	// Solidity: function T_DISPUTE_END() view returns(uint256)
