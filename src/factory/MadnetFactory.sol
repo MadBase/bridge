@@ -29,7 +29,7 @@ contract MadnetFactory is DeterministicAddress, ProxyUpgrader {
 
     
     address private immutable proxyTemplate_;
-    
+
     bytes8 private constant universalDeployCode_ = 0x38585839386009f3;
     
     /**
@@ -106,7 +106,15 @@ contract MadnetFactory is DeterministicAddress, ProxyUpgrader {
         delegator_ = _new;
     }
 
-    function implementation() public view returns(address _v) {
+    function lookup(string memory _name) public view returns(address addr) {
+        bytes32 salt;
+        assembly {
+            salt := mload(add(_name, 32))
+        }
+        addr = getMetamorphicContractAddress(salt, address(this));
+    }
+
+    function implementation() public view returns (address _v) {
         _v = implementation_;
     }
 
@@ -186,9 +194,9 @@ contract MadnetFactory is DeterministicAddress, ProxyUpgrader {
         return contractAddr;        
     }
 
-     /**  
+     /*
     * @dev destroy calls the template contract with arbitrary call data which will cause it to self destruct 
-    * @param _contractAddr the address of the contract to self destruct 
+    * param _contractAddr the address of the contract to self destruct 
     */
 /*    function destroy(address _contractAddr) public onlyOwner {
         assembly{
