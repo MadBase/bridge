@@ -184,6 +184,7 @@ const config: HardhatUserConfig = {
     cache: "./cache",
     artifacts: "./artifacts",
   },
+  
   contractSizer: {
     alphaSort: true,
     disambiguatePaths: false,
