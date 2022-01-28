@@ -12,10 +12,10 @@ const EndPoint = artifacts.require("endPoint");
 const MadnetFactory = artifacts.require("MadnetFactory");
 const Mock = artifacts.require("Mock");
 const MockSD = artifacts.require("MockSD")
-const mockInitializable = artifacts.require("MockInitializable")
+const mockInit = artifacts.require("MockInitializable")
 const Utils = artifacts.require("utils");
 
-
+const MockInitializableKey = "MockInitializable";
 const logicAddrKey = "LogicAddress";
 const proxyAddrKey = "ProxyAddress"
 const metaAddrKey = "MetaAddress"
@@ -353,23 +353,37 @@ contract("MADNET FACTORY", function (accounts){
     });
     
     //fail on unauthorized with bad code 
-    it("DEPLOY CREATE WITH BAD CODE, UNAUTHORIZED ACCOUNT EXPECT FAIL ", async function(){
+    it("DEPLOYCREATE WITH BAD CODE, UNAUTHORIZED ACCOUNT EXPECT FAIL ", async function(){
         let receipt =  this.factory.deployCreate("0x6000", {from: accounts[2]});
         await expectRevert(receipt, "unauthorized")  
     });
 
     //fail on unauthorized with good code 
-    it("DEPLOY CREATE WITH VALID CODE, UNAUTHORIZED ACCOUNT EXPECT FAIL", async function(){
+    it("DEPLOYCREATE WITH VALID CODE, UNAUTHORIZED ACCOUNT EXPECT FAIL", async function(){
         const receipt = this.factory.deployCreate(EndPoint.bytecode, {from: accounts[2]});
         await expectRevert(receipt, "unauthorized")     
     });
 
     it("DEPLOYCREATE2 MOCKINITIALIZABLE", async function(){
-
+        //set a new salt 
+        let salt = new Date();
+        //use the time as the salt 
+        salt = salt.getTime();
+        //get the utf8 bytes32 version of the salt 
+        let Salt = ethers.utils.formatBytes32String(salt.toString());
+        let receipt = await this.factory.deployCreate2(0, Salt, mockInit.bytecode);
+        expectTxSuccess(receipt);
+        let mockInitAddr = await getEventVar(receipt, deployedRawKey, contractAddrKey);
+        expect(mockInitAddr).to.not.be.undefined;
+        this.mockInitAddr = mockInitAddr;
     });
 
     it("INITIALIZE MOCK CONTRACT", async function(){
-
+        let mockInitable = await ethers.getContractFactory(MockInitializableKey);
+        let initCallData = await mockInitable.interface.encodeFunctionData("__Mock_init", [2]);
+        let receipt = await this.factory.initializeContract(this.mockInitAddr, initCallData);
+        expectTxSuccess(receipt);
+        
     });
 
     it("CALLANY", async function(){
@@ -549,6 +563,11 @@ contract("MADNET FACTORY", function (accounts){
     });
 
     describe("FRONTEND GETTER FUNCTIONS", async function(){
+        it("IMPLEMENTATION", async function(){
+            let implAddr = await this.factory.implementation.call();
+            expect(implAddr).to.not.be.undefined;
+        });
+        
         it("CONTRACTS", async function(){
             this.saltsArray = await this.factory.contracts.call();
             expect(this.saltsArray.length).to.be.greaterThan(0);
