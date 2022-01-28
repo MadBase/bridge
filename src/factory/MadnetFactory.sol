@@ -117,7 +117,9 @@ contract MadnetFactory is DeterministicAddress, ProxyUpgrader {
         }
         addr = getMetamorphicContractAddress(salt, address(this));
     }
-
+    function getContractAddr(bytes32 _salt) public view returns(address addr) {
+        addr = getMetamorphicContractAddress(_salt, address(this));
+    }
 
     function implementation() public view returns (address _v) {
         _v = implementation_;
@@ -145,6 +147,8 @@ contract MadnetFactory is DeterministicAddress, ProxyUpgrader {
     * deployed with this factory     
     */
     function contracts() public view returns(bytes32[] memory _contracts) {
+        //implement pagination with offset and limit  
+        //num returns is min of length + offset or min of contracts.length + offset
         _contracts = contracts_;
     }
 

@@ -481,7 +481,7 @@ contract MockInitializable is ProxyInternalUpgradeLock, ProxyInternalUpgradeUnlo
         return !isContract(address(this));
     }
 
-    function __Mock_init(uint256 _i) internal onlyInitializing {
+    function __Mock_init(uint256 _i) external initializer onlyInitializing {
         __Mock_init_unchained(_i);
     }
 
