@@ -12,6 +12,7 @@ const EndPoint = artifacts.require("endPoint");
 const MadnetFactory = artifacts.require("MadnetFactory");
 const Mock = artifacts.require("Mock");
 const MockSD = artifacts.require("MockSD")
+const mockInitializable = artifacts.require("MockInitializable")
 const Utils = artifacts.require("utils");
 
 
@@ -136,23 +137,23 @@ contract("MADNET FACTORY", function (accounts){
         );
     });
 
+    
+
+    it("GET OWNER", async function(){
+        let owner = await this.factory.owner.call();
+        expect(owner).to.equal(this.factoryOwner);
+    });
+
+    it("GET DELEGATOR", async function(){
+        let delegator = await this.factory.delegator.call();
+        expect(delegator).to.equal(this.factoryDelegator);
+    });
+
+    
+
+    
+
     it("REQUIREAUTH", async function(){
-
-    });
-
-    it("CODESIZEZEROREVERT", async function(){
-
-    });
-
-    it("EXTCODESIZE", async function(){
-
-    });
-
-    it("GETCONTRACTADDRESS", async function(){
-
-    });
-
-    it("GETNUMCONTRACTS", async function(){
 
     });
 
@@ -363,7 +364,11 @@ contract("MADNET FACTORY", function (accounts){
         await expectRevert(receipt, "unauthorized")     
     });
 
-    it("DEPLOYCREATE2", async function(){
+    it("DEPLOYCREATE2 MOCKINITIALIZABLE", async function(){
+
+    });
+
+    it("INITIALIZE MOCK CONTRACT", async function(){
 
     });
 
@@ -542,6 +547,26 @@ contract("MADNET FACTORY", function (accounts){
         });
         */
     });
+
+    describe("FRONTEND GETTER FUNCTIONS", async function(){
+        it("CONTRACTS", async function(){
+            this.saltsArray = await this.factory.contracts.call();
+            expect(this.saltsArray.length).to.be.greaterThan(0);
+        });
+    
+        it("GETNUMCONTRACTS", async function(){
+            let numContracts = await this.factory.getNumContracts.call();
+            this.numContracts = numContracts.toNumber();
+            expect(this.numContracts).to.equal(this.saltsArray.length);
+        });
+        it("LOOKUP", async function(){
+            let saltStrings = bytes32ArrayToStringArray(this.saltsArray);
+            for(let i = 0; i < saltStrings.length; i++){
+                let address = await this.factory.lookup.call(saltStrings[i]);
+                expect(address).to.equal(getMetamorphicAddress(this.factory.address, this.saltsArray[i]))
+            }
+        });
+    });
 });
 
 async function proxyMockLogicTest(contract, salt, proxyAddress, mockLogicAddr, endPointAddr, factoryAddress){
@@ -621,6 +646,7 @@ function getEventVar(receipt, eventName, varName){
     }
     return result;
 }
+
 function expectTxSuccess(receipt){
     expect(receipt["receipt"]["status"]).to.equal(true);
 }
@@ -634,7 +660,15 @@ function getCreateAddress(Address, nonce){
         nonce: nonce
     });
 }
-function getMetamorphicAddress(address, salt ){
+function bytes32ArrayToStringArray(bytes32Array){
+    let ret = [];
+    for(let i = 0; i < bytes32Array.length; i++){
+        ret.push(ethers.utils.parseBytes32String(bytes32Array[i]));
+    }
+    return ret;
+}
+
+function getMetamorphicAddress(factoryAddress, salt ){
     let initCode = "0x6020363636335afa1536363636515af43d36363e3d36f3";
-    return ethers.utils.getCreate2Address(address, salt, ethers.utils.keccak256(initCode));
+    return ethers.utils.getCreate2Address(factoryAddress, salt, ethers.utils.keccak256(initCode));
 }

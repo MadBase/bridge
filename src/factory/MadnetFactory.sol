@@ -18,7 +18,7 @@ contract MadnetFactory is DeterministicAddress, ProxyUpgrader {
     address private delegator_;
 
     /**
-    @dev array to store list of contracts 
+    @dev array to store list of contract salts 
     */
     bytes32[] private contracts_;
     
@@ -96,16 +96,20 @@ contract MadnetFactory is DeterministicAddress, ProxyUpgrader {
     }
 
     /**
-    * @dev allows the owner of this contract to set a delegator_, 
+    * @dev allows the owner to set a delegator_, 
     * an account with some prvilidged access 
     * @param _new: address of new delegator account 
-    * (accidentally setting delegator_ to a contract address will not deadlock the system 
-    * since owner can change it back, but still think twice about doing that)
     */
     function setDelegator(address _new) public onlyOwner {
         delegator_ = _new;
     }
 
+    /**
+    * @dev lookup allows anyone interacting with the contract to  
+    * get the address of contract specified by its _name 
+    * @param _name: Custom NatSpec tag @custom:salt at the top of the contract
+    * solidity file 
+    */
     function lookup(string memory _name) public view returns(address addr) {
         bytes32 salt;
         assembly {
@@ -114,33 +118,40 @@ contract MadnetFactory is DeterministicAddress, ProxyUpgrader {
         addr = getMetamorphicContractAddress(salt, address(this));
     }
 
+
     function implementation() public view returns (address _v) {
         _v = implementation_;
     }
 
+    /**  
+    * @dev owner is public getter function for the owner_ account address
+    * @return _v address of the owner account    
+    */
     function owner() public view returns(address _v) {
         _v = owner_;
     }
 
+    /**  
+    * @dev delegator is public getter function for the delegator_ account address
+    * @return _v address of the delegator account    
+    */
     function delegator() public view returns(address _v) {
         _v = delegator_;
     }
 
-    function contracts() public view returns(bytes32[] memory _v) {
-        _v = contracts_;
+    /**  
+    * @dev delegator is public getter function for the delegator_ account address
+    * @return _contracts the array of salts associated with all the contracts 
+    * deployed with this factory     
+    */
+    function contracts() public view returns(bytes32[] memory _contracts) {
+        _contracts = contracts_;
     }
 
     /**  
-    * @dev getContractAddress retrieves the address of the contract specified by its 32 byte salt derived from its name  
-    * @param _salt the 32 byte ascii representation of the contract name  
-    * @return the address of the contract referenced by _salt    
-    */
-    function getContractAddress(bytes32 _salt) external view returns (address) {
-        return getMetamorphicContractAddress(_salt, address(this));
-    }
- 
-    /**  
-    * @dev getNumContracts retrieves the address of the contract specified by its 32 byte salt derived from its name    
+    * @dev getNumContracts getter function for retrieving the total number of contracts 
+    * deployed with this factory
+    * @return the length of the contract array   
     */
     function getNumContracts() external view returns (uint256) {
         return contracts_.length;
@@ -170,7 +181,8 @@ contract MadnetFactory is DeterministicAddress, ProxyUpgrader {
     }
 
     /**  
-    * @dev deployCreate2 deploys a contract from the factory address using create
+    * @dev deployCreate2 allows the owner to deploy contracts with deterministic address 
+    * through the factory 
     * @param _value endowment value for created contract
     * @param _salt salt for create2 deployment, used to distinguish contracts deployed from this factory 
     * @param _deployCode bytecode to deploy using create2
@@ -190,6 +202,8 @@ contract MadnetFactory is DeterministicAddress, ProxyUpgrader {
             contractAddr := create2(_value, basePtr, sub(ptr, basePtr), _salt)
         }
         codeSizeZeroRevert(uint160(contractAddr) != 0);
+        //record the contract salt to the contracts_ array for lookup
+        contracts_.push(_salt);
         emit DeployedRaw(contractAddr);
         return contractAddr;        
     }
@@ -297,6 +311,7 @@ contract MadnetFactory is DeterministicAddress, ProxyUpgrader {
             initializeContract(contractAddr, _initCallData);
         }
         codeSizeZeroRevert((extCodeSize(contractAddr) != 0));
+        contracts_.push(_salt);
         emit DeployedStatic(contractAddr);
         return contractAddr;
     }
@@ -314,6 +329,8 @@ contract MadnetFactory is DeterministicAddress, ProxyUpgrader {
             contractAddr := create2(0, ptr, 0x17, _salt)
         }
         codeSizeZeroRevert((extCodeSize(contractAddr) != 0));
+        //record the contract salt to the contracts array
+        contracts_.push(_salt);
         emit DeployedProxy(contractAddr);
         return contractAddr;
     }
@@ -427,6 +444,7 @@ contract MadnetFactory is DeterministicAddress, ProxyUpgrader {
     function codeSizeZeroRevert(bool _ok) internal pure {
         require(_ok, "csize0");
     }
+    
 
     function extCodeSize(address target) internal view returns (uint256 size){ 
         assembly {

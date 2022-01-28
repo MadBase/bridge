@@ -425,6 +425,91 @@ contract Mock is ProxyInternalUpgradeLock, ProxyInternalUpgradeUnlock {
     }
 }
 
+contract MockInitializable is ProxyInternalUpgradeLock, ProxyInternalUpgradeUnlock {
+    address factory_;
+    uint256 public v;
+    uint256 public i;
+   /**
+     * @dev Indicates that the contract has been initialized.
+     */
+    bool private _initialized;
+
+    /**
+     * @dev Indicates that the contract is in the process of being initialized.
+     */
+    bool private _initializing;
+
+    /**
+     * @dev Modifier to protect an initializer function from being invoked twice.
+     */
+    modifier initializer() {
+        // If the contract is initializing we ignore whether _initialized is set in order to support multiple
+        // inheritance patterns, but we only do this in the context of a constructor, because in other contexts the
+        // contract may have been reentered.
+        require(_initializing ? _isConstructor() : !_initialized, "Initializable: contract is already initialized");
+
+        bool isTopLevelCall = !_initializing;
+        if (isTopLevelCall) {
+            _initializing = true;
+            _initialized = true;
+        }
+
+        _;
+
+        if (isTopLevelCall) {
+            _initializing = false;
+        }
+    }
+
+    /**
+     * @dev Modifier to protect an initialization function so that it can only be invoked by functions with the
+     * {initializer} modifier, directly or indirectly.
+     */
+    modifier onlyInitializing() {
+        require(_initializing, "Initializable: contract is not initializing");
+        _;
+    }
+    function isContract(address account) internal view returns (bool) {
+        // This method relies on extcodesize/address.code.length, which returns 0
+        // for contracts in construction, since the code is only stored at the end
+        // of the constructor execution.
+
+        return account.code.length > 0;
+    }
+
+    function _isConstructor() private view returns (bool) {
+        return !isContract(address(this));
+    }
+
+    function __Mock_init(uint256 _i) internal onlyInitializing {
+        __Mock_init_unchained(_i);
+    }
+
+    function __Mock_init_unchained(uint256 _i) internal onlyInitializing {
+       i = _i;
+        factory_ = msg.sender;
+    }
+
+    function setv(uint256 _v) public {
+        v = _v;
+    }
+
+    function lock() public {
+        __lockImplementation();
+    }
+
+    function unlock() public {
+        __unlockImplementation();
+    }
+
+    function setFactory(address _factory) public {
+        factory_ = _factory;
+    }
+    function getFactory() external view returns (address) {
+        return factory_;
+    }
+}
+
 contract MockSD is ProxyInternalUpgradeLock, ProxyInternalUpgradeUnlock {
     address factory_;
     uint256 public v;
