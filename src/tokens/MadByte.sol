@@ -1,7 +1,9 @@
 // SPDX-License-Identifier: MIT-open-group
 pragma solidity ^0.8.0;
 
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
+
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "./utils/Admin.sol";
 import "./utils/Mutex.sol";
 import "./utils/MagicEthTransfer.sol";
@@ -9,7 +11,7 @@ import "./utils/EthSafeTransfer.sol";
 import "./math/Sigmoid.sol";
 
 
-contract MadByte is ERC20, Admin, Mutex, MagicEthTransfer, EthSafeTransfer, Sigmoid {
+contract MadByte is Initializable, ERC20Upgradeable, MagicEthTransfer, EthSafeTransfer, Sigmoid {
 
     /// @notice Event emitted when a deposit is received
     event DepositReceived(uint256 indexed depositID, address indexed depositor, uint256 amount);
@@ -46,6 +48,8 @@ contract MadByte is ERC20, Admin, Mutex, MagicEthTransfer, EthSafeTransfer, Sigm
     // MadBytes deposited in the Madnet are burned by this contract.
     uint256 _totalDeposited = 0;
 
+    address immutable private _factoryAddress;
+
     // Tracks the amount of each deposit. Key is deposit id, value is amount
     // deposited.
     mapping(uint256 => uint256) _deposits;
@@ -64,7 +68,54 @@ contract MadByte is ERC20, Admin, Mutex, MagicEthTransfer, EthSafeTransfer, Sigm
     // Foundation contract address
     IMagicEthTransfer _foundation;
 
-    constructor(address admin_, address madStaking_, address minerStaking_, address lpStaking_, address foundation_) ERC20("MadByte", "MB") Admin(admin_) Mutex() {
+    uint256 constant LOCKED = 1;
+    uint256 constant UNLOCKED = 2;
+    uint256 _mutex;
+
+     // _admin is a privileged role
+    address _admin;
+
+    /// @dev onlyAdmin enforces msg.sender is _admin
+    modifier onlyAdmin() {
+        require(msg.sender == _admin, "Must be admin");
+        _;
+    }
+
+    // assigns a new admin may only be called by _admin
+    function _setAdmin(address admin_) internal {
+        _admin = admin_;
+    }
+
+    /// @dev getAdmin returns the current _admin
+    function getAdmin() public view returns(address) {
+        return _admin;
+    }
+
+    /// @dev assigns a new admin may only be called by _admin
+    function setAdmin(address admin_) public virtual onlyAdmin {
+        _setAdmin(admin_);
+    }
+
+    modifier withLock() {
+        require(_mutex != LOCKED, "Mutex: Couldn't acquire the lock!");
+        _mutex = LOCKED;
+        _;
+        _mutex = UNLOCKED;
+    }
+
+    constructor(address factoryAddress_) {
+        _factoryAddress = factoryAddress_;
+    }
+
+    modifier onlyFactory {
+        require(msg.sender == _factoryAddress, "MADByte: Only factory allowed!");
+        _;
+    }
+
+    function initialize(address admin_, address madStaking_, address minerStaking_, address lpStaking_, address foundation_) public  initializer onlyFactory {
+        _mutex = UNLOCKED;
+        _admin = admin_;
+        ERC20Upgradeable.__ERC20_init("MadByte", "MB");
         _madStaking = IMagicEthTransfer(madStaking_);
         _minerStaking = IMagicEthTransfer(minerStaking_);
         _lpStaking = IMagicEthTransfer(lpStaking_);
@@ -306,7 +357,7 @@ contract MadByte is ERC20, Admin, Mutex, MagicEthTransfer, EthSafeTransfer, Sigm
     function _destroyTokens(uint256 nuMB_) internal returns (bool) {
         require(nuMB_ != 0, "MadByte: The number of MadBytes to be burn should be greater than 0!");
         _poolBalance -= _MBtoEth(_poolBalance, totalSupply(), nuMB_);
-        ERC20._burn(msg.sender, nuMB_);
+        ERC20Upgradeable._burn(msg.sender, nuMB_);
         return true;
     }
 
@@ -384,7 +435,7 @@ contract MadByte is ERC20, Admin, Mutex, MagicEthTransfer, EthSafeTransfer, Sigm
         require(nuMB >= minMB_, "MadByte: could not mint minimum MadBytes");
         poolBalance += numEth_;
         _poolBalance = poolBalance;
-        ERC20._mint(to_, nuMB);
+        ERC20Upgradeable._mint(to_, nuMB);
         return nuMB;
     }
 
@@ -397,7 +448,7 @@ contract MadByte is ERC20, Admin, Mutex, MagicEthTransfer, EthSafeTransfer, Sigm
         require(numEth >= minEth_, "MadByte: Couldn't burn the minEth amount");
         poolBalance -= numEth;
         _poolBalance = poolBalance;
-        ERC20._burn(from_, nuMB_);
+        ERC20Upgradeable._burn(from_, nuMB_);
         _safeTransferEth(to_, numEth);
         return numEth;
     }
