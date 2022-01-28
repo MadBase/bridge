@@ -11,6 +11,8 @@ import "@nomiclabs/hardhat-waffle"
 import "hardhat-contract-sizer";
 import "hardhat-gas-reporter";
 import "solidity-coverage";
+import "@nomiclabs/hardhat-truffle5";
+
 
 /**
  * @type import('hardhat/config').HardhatUserConfig
@@ -45,6 +47,15 @@ const config: HardhatUserConfig = {
   },
   //unnamedAccounts: [],
   networks: {
+    ganache: {
+      url: "HTTP://127.0.0.1:8545",
+      /*accounts: [
+        "9305771b3112a9a52cfcc4270bd0040ff5aefd2ae18cbbd972612bdb357a1074", 
+        "8441c5098bd9e6f06b5d2000176aec0d2332e6ac994a9c586aeb2dd8c4c20000",
+        "9782b38ce7b0ffccb07c621518b274cd018b43d0996a267c50541c31093ccdde"
+      ]
+*/
+      },
     hardhat: {
       allowUnlimitedContractSize: true,
       mining: {
@@ -140,13 +151,33 @@ const config: HardhatUserConfig = {
     compilers: [{
       version: "0.8.11",
       settings: {
+        outputSelection: {
+          "*":{
+            "*": [
+              "metadata",
+              "evm.bytecode",
+              "evm.bytecode.sourceMap",
+            ],
+            "": [
+              "ast" // Enable the AST output of every single file.
+            ]
+          },
+          // Enable the abi and opcodes output of MyContract defined in file def.
+          def: {
+            MyContract: [ "abi", "evm.bytecode.opcodes" ]
+          }
+        },
+        metadata: {
+          useLiteralContent: true,
+        },
         optimizer: {
           enabled: true,
-          runs: 2000000,
+          runs: 0,
         },
       },
     }],
   },
+
   paths: {
     sources: "./src",
     tests: "./tests",
