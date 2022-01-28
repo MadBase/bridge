@@ -189,9 +189,28 @@ contract StakeNFT is
         address caller_,
         uint256 tokenID_,
         uint256 lockDuration_
-    ) public override withCB onlyGovernance returns (uint256 numberShares) {
+    ) public override withCB onlyGovernance returns (uint256) {
         require(
             caller_ == ownerOf(tokenID_),
+            "StakeNFT: Error, token doesn't exist or doesn't belong to the caller!"
+        );
+        require(
+            lockDuration_ <= _maxGovernanceLock,
+            "StakeNFT: Lock Duration is greater than the amount allowed!"
+        );
+        return _lockPosition(tokenID_, lockDuration_);
+    }
+
+
+    /// This function will lock an owned Position for up to _maxGovernanceLock. This method may
+    /// only be called by the owner of the Position. This function will fail if the circuit breaker
+    /// is tripped
+    function lockOwnPosition(
+        uint256 tokenID_,
+        uint256 lockDuration_
+    ) public withCB returns (uint256) {
+        require(
+            msg.sender == ownerOf(tokenID_),
             "StakeNFT: Error, token doesn't exist or doesn't belong to the caller!"
         );
         require(
@@ -206,7 +225,7 @@ contract StakeNFT is
     function lockWithdraw(uint256 tokenID_, uint256 lockDuration_)
         public
         withCB
-        returns (uint256 numberShares)
+        returns (uint256)
     {
         require(
             msg.sender == ownerOf(tokenID_),

@@ -10,12 +10,13 @@ import "./ETHDKGStorage.sol";
 import "./utils/ETHDKGUtils.sol";
 
 contract ETHDKG is ETHDKGStorage, IETHDKG, IETHDKGEvents, ETHDKGUtils {
-    constructor(
-        address validatorPool,
-        address ethdkgAccusations,
-        address ethdkgPhases,
-        bytes memory hook
-    ) {
+    constructor(address factoryAddress) {}
+    // constructor must have input arguments:
+    // any number of args with no dynamic size arguments
+    // The last argument should be the factory
+
+
+    function initialize(address validatorPool, address ethdkgAccusations, address ethdkgPhases) public onlyOnce {
         _nonce = 0;
         _phaseStartBlock = 0;
         _phaseLength = 40;
@@ -31,6 +32,7 @@ contract ETHDKG is ETHDKGStorage, IETHDKG, IETHDKGEvents, ETHDKGUtils {
         _ethdkgPhases = ethdkgPhases;
         _admin = msg.sender;
     }
+    //initialize can take any number of args and any function select value
 
     modifier onlyAdmin() {
         require(msg.sender == _admin, "ETHDKG: requires admin privileges");
@@ -98,6 +100,7 @@ contract ETHDKG is ETHDKGStorage, IETHDKG, IETHDKGEvents, ETHDKGUtils {
         return _isETHDKGHalted();
     }
 
+    // todo: generate truth table
     function _isETHDKGHalted() internal view returns(bool) {
         bool ethdkgFailedInDisputePhase = (_ethdkgPhase == Phase.DisputeShareDistribution ||
             _ethdkgPhase == Phase.DisputeGPKJSubmission) &&
