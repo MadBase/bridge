@@ -10,7 +10,7 @@ import "src/governance/GovernanceStorage.sol";
 import "src/governance/Governance.sol";
 import "src/tokens/StakeNFT.sol";
 import "src/tokens/interfaces/INFTStake.sol";
-import "lib/openzeppelin/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "./GovernanceProposeModifySnapshot.t.sol";
 import "src/diamonds/facets/EthDKGLibrary.sol";
 
