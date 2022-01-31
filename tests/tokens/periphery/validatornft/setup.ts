@@ -63,42 +63,15 @@ export const assertAdminMinting = async (validatorNFT: ValidatorNFT, madToken: M
   expect(await validatorNFT.ownerOf(1)).to.equal(admin.address);
 };
 
-export const assertAdminMinting2 = async (validatorNFT: ValidatorNFT, madToken: MadToken, namedSigners: SignerWithAddress[]) => {
-  const [admin, notAdmin] = namedSigners;
-  // let iface = new ethers.utils.Interface(["function mint(uint256 amount_) public returns (uint256 tokenID)"]);
-  let iface = new ethers.utils.Interface(["event Transfer(address(0), to, tokenId)"]);
-  let amount = 1000
-  let signer = await ethers.getSigner(admin.address)
-  await madToken.approve(validatorNFT.address, amount)
-  let balanceBefore = await madToken.balanceOf(signer.address)
-  console.log(balanceBefore)
-  let tx = await validatorNFT
-    .connect(signer)
-    .mint(amount);
-    // let data = receipt.logs[1].data;
-    // let topics = receipt.logs[1].topics;
-    // let event = intrface.decodeEventLog("RegistrationComplete", data, topics);
-    // console.log(tx)
-    // console.log(tx.data)
-    // console.log(iface.decodeEventLog("Transfer", tx.data))
-    // let tokenID = BigNumber.from(iface.decodeFunctionData("mint", tx.data))
-    let balanceAfter = await madToken.balanceOf(signer.address)
-    console.log(balanceAfter)
-  expect(await validatorNFT.ownerOf(1)).to.equal(admin.address);
-  expect(balanceAfter).to.be.equal(Number(balanceBefore) - amount)
-};
-
 export const assertFailsNotAdminMinting = async (validatorNFT: ValidatorNFT, madToken: MadToken, namedSigners: SignerWithAddress[]) => {
   const [admin, notAdmin] = namedSigners;
   await madToken.approve(validatorNFT.address, 1)
-  // It seems that 'to.be.reverted' cannot access reason upon VM Exception so using rejectedWith instead
-  
   await expect(
     validatorNFT
       .connect(await ethers.getSigner(notAdmin.address))
       .mint(1)
   ).to.be
-    .revertedWith("Must be addmin");
+    .revertedWith("Must be admin");
 };
 
 export const assertAdminBurning = async (validatorNFT: ValidatorNFT, madToken: MadToken, namedSigners: SignerWithAddress[]) => {
