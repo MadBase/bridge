@@ -21,3 +21,6 @@ typechain-types/*
 coverage
 coverage.json
 typechain
+bin
+
+.openzeppelin/.session

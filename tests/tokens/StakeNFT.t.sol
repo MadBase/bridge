@@ -4,8 +4,8 @@ pragma solidity ^0.8.0;
 import "lib/ds-test/test.sol";
 
 import "src/tokens/StakeNFT.sol";
-import "lib/openzeppelin/token/ERC20/ERC20.sol";
-import "lib/openzeppelin/token/ERC721/IERC721Receiver.sol";
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 
 uint256 constant ONE_MADTOKEN = 10**18;
 
