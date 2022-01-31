@@ -26,7 +26,7 @@ contract ValidatorPoolTrue is IValidatorPoolEvents, MagicValue, EthSafeTransfer,
     // STAKENFT position
     uint256 public constant CLAIM_PERIOD = 3;
 
-    uint256 public constant MAX_SNAPSHOT_INTERVAL = 8192;
+    uint256 public constant MAX_NO_SNAPSHOT_INTERVAL = 8192;
 
     INFTStake internal immutable _stakeNFT;
     INFTStake internal immutable _validatorsNFT;
@@ -148,6 +148,7 @@ contract ValidatorPoolTrue is IValidatorPoolEvents, MagicValue, EthSafeTransfer,
 
     function registerValidators(address[] calldata validators, uint256[] calldata stakerTokenIDs) external onlyAdmin {
         require(validators.length <= _maxNumValidators - _validators.length(),"ValidatorPool: There are not enough free spots for all new validators!");
+        //todo: make sure len(validators) == len(stakerTokenIDs)
         for (uint256 i=0; i < validators.length; i++) {
             _registerValidator(validators[i], stakerTokenIDs[i]);
         }
@@ -222,7 +223,7 @@ contract ValidatorPoolTrue is IValidatorPoolEvents, MagicValue, EthSafeTransfer,
         }
     }
 
-    function unregisterAllValidators() public onlyAdmin {
+    function unregisterAllValidators() public onlyAdmin{
         while (_validators.length() > 0) {
             address validator = _validators.at(_validators.length()-1)._address;
             _unregisterValidator(validator);
@@ -230,8 +231,14 @@ contract ValidatorPoolTrue is IValidatorPoolEvents, MagicValue, EthSafeTransfer,
     }
 
     // todo: check async in Madnet
-    function pauseConsensus() public {
-        require(block.number > _snapshots.getHeightFromLatestSnapshot() + MAX_SNAPSHOT_INTERVAL || msg.sender == address(_snapshots), "ValidatorPool: Condition not met to stop consensus!");
+    function pauseConsensus(uint256 madnetHeight) public {
+        require(msg.sender == address(_snapshots), "ValidatorPool: Caller is not the  snapshots contract!");
+        _isConsensusRunning = false;
+        //todo: set arbitrary height for ethdkg ?
+    }
+
+    function pauseConsensusOnArbitraryHeight(uint256 madnetHeight) public onlyAdmin{
+        require(block.number > _snapshots.getHeightFromLatestSnapshot() + MAX_NO_SNAPSHOT_INTERVAL, "ValidatorPool: Condition not met to stop consensus!");
         _isConsensusRunning = false;
         //todo: set arbitrary height for ethdkg ?
     }

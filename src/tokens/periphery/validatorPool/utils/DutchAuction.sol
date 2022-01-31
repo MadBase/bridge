@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT-open-group
 pragma solidity 0.8.11;
 
-import "./interfaces/IValidatorPool.sol";
-import "./interfaces/IDutchAuction.sol";
-import "../ethdkg/interfaces/IETHDKG.sol";
+import "../interfaces/IValidatorPool.sol";
+import "../interfaces/IDutchAuction.sol";
+import "../../ethdkg/interfaces/IETHDKG.sol";
 
 contract DutchAuction is IDutchAuction {
     address internal _admin;

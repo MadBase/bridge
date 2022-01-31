@@ -10,13 +10,16 @@ import "./ETHDKGStorage.sol";
 import "./utils/ETHDKGUtils.sol";
 
 contract ETHDKG is ETHDKGStorage, IETHDKG, IETHDKGEvents, ETHDKGUtils {
-    constructor(address factoryAddress) {}
+    constructor(address factory_) {
+        _factory = factory_;
+    }
     // constructor must have input arguments:
     // any number of args with no dynamic size arguments
     // The last argument should be the factory
 
 
-    function initialize(address validatorPool, address ethdkgAccusations, address ethdkgPhases) public onlyOnce {
+    //todo: add onlyOnce initializer here
+    function initialize(address validatorPool, address ethdkgAccusations, address ethdkgPhases) public {
         _nonce = 0;
         _phaseStartBlock = 0;
         _phaseLength = 40;
@@ -63,12 +66,12 @@ contract ETHDKG is ETHDKGStorage, IETHDKG, IETHDKGEvents, ETHDKGUtils {
     }
 
     function setPhaseLength(uint16 phaseLength_) external onlyAdmin {
-        //todo: doesnt allow to change while an ethdkg round is going on
+        require(!_isETHDKGRunning(), "ETHDKG: This variable cannot be set if an ETHDKG round is running!");
         _phaseLength = phaseLength_;
     }
 
     function setConfirmationLength(uint16 confirmationLength_) external onlyAdmin {
-        //todo: doesnt allow to change while an ethdkg round is going on
+        require(!_isETHDKGRunning(), "ETHDKG: This variable cannot be set if an ETHDKG round is running!");
         _confirmationLength = confirmationLength_;
     }
 
@@ -81,6 +84,10 @@ contract ETHDKG is ETHDKGStorage, IETHDKG, IETHDKGEvents, ETHDKGUtils {
     }
 
     function isETHDKGRunning() public view returns (bool) {
+        return _isETHDKGRunning();
+    }
+
+    function _isETHDKGRunning() internal view returns (bool) {
         // Handling initial case
         if (_phaseStartBlock == 0) {
             return false;

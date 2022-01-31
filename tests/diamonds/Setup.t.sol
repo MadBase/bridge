@@ -44,7 +44,7 @@ contract Setup is Constants {
     BasicERC20 stakingToken;
     BasicERC20 utilityToken;
 
-    ETHDKG ethdkg;
+    IETHDKG ethdkg;
     Accusation accusation;
     Participants participants;
     Snapshots snapshots;
@@ -81,7 +81,7 @@ contract Setup is Constants {
         validatorLocations = ValidatorLocations(validatorsDiamond);
 
         address ethDKGDiamond = registry.lookup(ETHDKG_CONTRACT);
-        ethdkg = ETHDKG(ethDKGDiamond);
+        ethdkg = IETHDKG(ethDKGDiamond);
         sudoETHDKG = Sudo(ethDKGDiamond);
 
         // Initialize
@@ -199,23 +199,23 @@ contract Setup is Constants {
         address sudoFacet = address(new SudoFacet());
 
         // Wiring facets
-        update.addFacet(ETHDKG.Group_Accusation_GPKj.selector, accusationFacet);
-        update.addFacet(ETHDKG.Group_Accusation_GPKj_Comp.selector, accusationFacet);
+        update.addFacet(IETHDKG.Group_Accusation_GPKj.selector, accusationFacet);
+        update.addFacet(IETHDKG.Group_Accusation_GPKj_Comp.selector, accusationFacet);
 
-        update.addFacet(ETHDKG.Successful_Completion.selector, completionFacet);
-        update.addFacet(ETHDKG.initializeEthDKG.selector, initFacet);
-        update.addFacet(ETHDKG.updatePhaseLength.selector, initFacet);
-        update.addFacet(ETHDKG.submit_dispute.selector, disputeFacet);
-        update.addFacet(ETHDKG.submit_master_public_key.selector, mpkFacet);
+        update.addFacet(IETHDKG.Successful_Completion.selector, completionFacet);
+        update.addFacet(IETHDKG.initializeEthDKG.selector, initFacet);
+        update.addFacet(IETHDKG.updatePhaseLength.selector, initFacet);
+        update.addFacet(IETHDKG.submit_dispute.selector, disputeFacet);
+        update.addFacet(IETHDKG.submit_master_public_key.selector, mpkFacet);
 
-        update.addFacet(ETHDKG.register.selector, miscFacet);
-        update.addFacet(ETHDKG.distribute_shares.selector, miscFacet);
-        update.addFacet(ETHDKG.submit_key_share.selector, miscFacet);
-        update.addFacet(ETHDKG.Submit_GPKj.selector, miscFacet);
+        update.addFacet(IETHDKG.register.selector, miscFacet);
+        update.addFacet(IETHDKG.distribute_shares.selector, miscFacet);
+        update.addFacet(IETHDKG.submit_key_share.selector, miscFacet);
+        update.addFacet(IETHDKG.Submit_GPKj.selector, miscFacet);
 
-        update.addFacet(ETHDKG.master_public_key.selector, infoFacet);
-        update.addFacet(ETHDKG.gpkj_submissions.selector, infoFacet);
-        update.addFacet(ETHDKG.getPhaseLength.selector, infoFacet);
+        update.addFacet(IETHDKG.master_public_key.selector, infoFacet);
+        update.addFacet(IETHDKG.gpkj_submissions.selector, infoFacet);
+        update.addFacet(IETHDKG.getPhaseLength.selector, infoFacet);
 
         // SudoFacet Wiring
         update.addFacet(Sudo.modifyDiamondStorage.selector, sudoFacet);
