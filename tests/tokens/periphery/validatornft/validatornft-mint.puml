@@ -1,7 +1,0 @@
-@startuml
-title Mint
-Sender -> ValidatorNFT : mint(amount)
-ValidatorNFT -> StakeNFT : mint(sender, amount)
-StakeNFT -> MadToken : safeTranferFromERC20(sender, amount)
-Sender -> MadToken: MAD Token (amount) 
-StakeNFT -> Sender : NFT (tokenID)
