@@ -39,7 +39,7 @@ contract ValidatorPoolTrue is IValidatorPoolEvents, MagicValue, EthSafeTransfer,
     // minor fine value in WEIs
     uint256 internal _disputerReward;
 
-    bool internal _shouldChangeValidators;
+    bool internal _isMaintenanceScheduled;
     bool internal _isConsensusRunning;
 
     // validators Pool
@@ -147,8 +147,12 @@ contract ValidatorPoolTrue is IValidatorPoolEvents, MagicValue, EthSafeTransfer,
     }
 
     function scheduleMaintenance() public onlyAdmin {
-        _shouldChangeValidators = true;
+        _isMaintenanceScheduled = true;
         emit MaintenanceScheduled();
+    }
+
+    function isMaintenanceScheduled() public view returns(bool){
+        return _isMaintenanceScheduled;
     }
 
     function registerValidators(address[] calldata validators, uint256[] calldata stakerTokenIDs)
@@ -316,7 +320,7 @@ contract ValidatorPoolTrue is IValidatorPoolEvents, MagicValue, EthSafeTransfer,
     }
 
     function completeETHDKG() public onlyETHDKG {
-        _shouldChangeValidators = false;
+        _isMaintenanceScheduled = false;
         _isConsensusRunning = true;
     }
 

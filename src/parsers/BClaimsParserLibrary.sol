@@ -16,8 +16,8 @@ library BClaimsParserLibrary {
     struct BClaims {
         uint32 chainId;
         uint32 height;
-        bytes32 prevBlock;
         uint32 txCount;
+        bytes32 prevBlock;
         bytes32 txRoot;
         bytes32 stateRoot;
         bytes32 headerRoot;

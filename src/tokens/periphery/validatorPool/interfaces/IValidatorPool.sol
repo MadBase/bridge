@@ -23,4 +23,14 @@ interface IValidatorPool {
     function minorSlash(address participant) external;
 
     function initializeETHDKG() external;
+
+    function setMyLocation(string calldata ip) external;
+
+    function getLocation(address validator) external view returns (string memory);
+
+    function getAllLocations() external view returns (string[] memory);
+
+    function isMaintenanceScheduled() external view returns(bool);
+
+    function pauseConsensus(uint256 madnetHeight) external;
 }
