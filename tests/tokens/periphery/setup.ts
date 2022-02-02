@@ -168,25 +168,13 @@ export const getFixture = async () => {
   await validatorNFT.deployed();
   // console.log(`ValidatorNFT deployed at ${validatorNFT.address}`);
 
-  // ValidatorPool
-  // const ValidatorPool = await ethers.getContractFactory("ValidatorPool");
-  // const validatorPool = await ValidatorPool.deploy(
-  //   PLACEHOLDER_ADDRESS
-  // );
-  // await validatorPool.deployed();
-  // console.log(`ValidatorPool deployed at ${validatorPool.address}`);
-
-  // ValidatorPool
-  const ValidatorPoolTrue = await ethers.getContractFactory("ValidatorPoolTrue");
-  const validatorPoolTrue = await ValidatorPoolTrue.deploy(
-    stakeNFT.address,
-    validatorNFT.address,
-    madToken.address,
+  //ValidatorPool
+  const ValidatorPool = await ethers.getContractFactory("ValidatorPool");
+  const validatorPool = await ValidatorPool.deploy(
     PLACEHOLDER_ADDRESS
   );
-  await validatorPoolTrue.deployed();
+  await validatorPool.deployed();
   // console.log(`ValidatorPool deployed at ${validatorPool.address}`);
-
 
   // ETHDKG Accusations
   const ETHDKGAccusations = await ethers.getContractFactory("ETHDKGAccusations");
@@ -200,10 +188,26 @@ export const getFixture = async () => {
 
   // ETHDKG
   const ETHDKG = await ethers.getContractFactory("ETHDKG");
-  const ethdkg = await ETHDKG.deploy(validatorPool.address, ethdkgAccusations.address, ethdkgPhases.address, utils.formatBytes32String("0x0"));
+  const ethdkg = await ETHDKG.deploy(
+    PLACEHOLDER_ADDRESS
+  );
   await ethdkg.deployed();
   // console.log(`ETHDKG deployed at ${ethdkg.address}`);
   // console.log("finished core deployment");
+
+  // ValidatorPoolTrue
+  const ValidatorPoolTrue = await ethers.getContractFactory("ValidatorPoolTrue");
+  const validatorPoolTrue = await ValidatorPoolTrue.deploy(
+    stakeNFT.address,
+    validatorNFT.address,
+    madToken.address,
+    ethdkg.address,
+    PLACEHOLDER_ADDRESS,
+    PLACEHOLDER_ADDRESS
+  );
+  await validatorPoolTrue.deployed();
+  // console.log(`ValidatorPool deployed at ${validatorPool.address}`);
+
 
   return {
     madToken,

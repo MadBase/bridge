@@ -40,7 +40,7 @@ describe("Tests ValidatorPool methods", () => {
         .connect(notAdminSigner)
         .setMinimumStake(amount)
     ).to.be
-      .revertedWith("Validators: requires admin privileges");
+      .revertedWith("ValidatorsPool: Requires admin privileges");
   });
 
   it("Should set a maximum number of validators stake if sender is admin", async function () {
@@ -55,7 +55,7 @@ describe("Tests ValidatorPool methods", () => {
         .connect(notAdminSigner)
         .setMaxNumValidators(amount)
     ).to.be
-      .revertedWith("Validators: requires admin privileges");
+      .revertedWith("ValidatorsPool: Requires admin privileges");
   });
 
   // it("Should set a minimum stake if sender is admin", async function () {
