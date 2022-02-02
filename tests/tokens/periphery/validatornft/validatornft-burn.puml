@@ -1,0 +1,8 @@
+@startuml
+title Burn
+Sender -> ValidatorNFT : burn(tokenId)
+ValidatorNFT -> StakeNFT : burn(sender, sender, tokenId)
+StakeNFT -> MadToken : safeTransferERC20(amount)
+MadToken -> Sender : MAD Token (amount)
+StakeNFT -> BurnAddress : NFT(tokenId)
+StakeNFT -> Sender : ETH 
