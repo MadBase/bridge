@@ -28,8 +28,8 @@ contract ValidatorPoolTrue is IValidatorPoolEvents, MagicValue, EthSafeTransfer,
 
     INFTStake internal immutable _stakeNFT;
     INFTStake internal immutable _validatorsNFT;
-    IETHDKG internal immutable _ethdkg;
-    ISnapshots internal immutable _snapshots;
+    IETHDKG internal _ethdkg;
+    ISnapshots internal _snapshots;
     IERC20Transferable internal immutable _madToken;
 
     // Minimum amount to stake
@@ -86,6 +86,14 @@ contract ValidatorPoolTrue is IValidatorPoolEvents, MagicValue, EthSafeTransfer,
     modifier onlyETHDKG() {
         require(msg.sender == address(_ethdkg), "ValidatorPool: Only ETHDKG contract allowed");
         _;
+    }
+
+    function setETHDKG(address _address) public onlyAdmin {
+        _ethdkg= IETHDKG(_address);
+    }
+
+    function setSnapshot(address _address) public onlyAdmin {
+        _snapshots= ISnapshots(_address);
     }
 
     function setMinimumStake(uint256 minimumStake_) public onlyAdmin {

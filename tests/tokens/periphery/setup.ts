@@ -153,6 +153,10 @@ export const getFixture = async () => {
   );
   await validatorPoolTrue.deployed();
   // console.log(`ValidatorPool deployed at ${validatorPool.address}`);
+  await ethdkg.initialize(
+    validatorPoolTrue.address,
+    ethdkgAccusations.address,
+    ethdkgPhases.address)
 
 
   return {
