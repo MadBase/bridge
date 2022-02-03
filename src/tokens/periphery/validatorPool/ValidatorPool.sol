@@ -11,10 +11,10 @@ import "./interfaces/IValidatorPool.sol";
 import "./interfaces/IValidatorPoolEvents.sol";
 import "./interfaces/ISnapshots.sol";
 import "./interfaces/IDutchAuction.sol";
-
+import "@openzeppelin/contracts/token/ERC721/utils/ERC721Holder.sol";
 import "./utils/CustomEnumerableMaps.sol";
 
-contract ValidatorPoolTrue is IValidatorPoolEvents, MagicValue, EthSafeTransfer, ERC20SafeTransfer {
+contract ValidatorPoolTrue is IValidatorPoolEvents, MagicValue, EthSafeTransfer, ERC20SafeTransfer, ERC721Holder {
     using CustomEnumerableMaps for ValidatorDataMap;
 
     // POSITION_LOCK_PERIOD describes the maximum interval a STAKENFT Position may be locked after being
@@ -151,7 +151,7 @@ contract ValidatorPoolTrue is IValidatorPoolEvents, MagicValue, EthSafeTransfer,
         emit MaintenanceScheduled();
     }
 
-    function isMaintenanceScheduled() public view returns(bool){
+    function isMaintenanceScheduled() public view returns (bool) {
         return _isMaintenanceScheduled;
     }
 
@@ -173,7 +173,7 @@ contract ValidatorPoolTrue is IValidatorPoolEvents, MagicValue, EthSafeTransfer,
         }
     }
 
-    function _registerValidator(address validator_, uint256 stakerTokenID_)
+        function _registerValidator(address validator_, uint256 stakerTokenID_)
         internal
         returns (
             uint256 validatorTokenID,
