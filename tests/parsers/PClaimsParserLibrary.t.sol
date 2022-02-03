@@ -273,8 +273,8 @@ contract PClaimsParserLibraryTest is DSTest {
         return BClaimsParserLibrary.BClaims(
                 1,
                 2,
-                hex"f75f3eb17cd8136aeb15cca22b01ad5b45c795cb78787e74e55e088a7aa5fa16",
                 1,
+                hex"f75f3eb17cd8136aeb15cca22b01ad5b45c795cb78787e74e55e088a7aa5fa16",
                 hex"de8b68a6643fa528a513f99a1ea30379927197a097ca86d9108e4c29d684b1ec",
                 hex"c5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470",
                 hex"c5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470"
@@ -292,8 +292,8 @@ contract PClaimsParserLibraryTest is DSTest {
         return BClaimsParserLibrary.BClaims(
                 1,
                 2,
-                hex"41b1a0649752af1b28b3dc29a1556eee781e4a4c3a1f7f53f90fa834de098c4d",
                 0,
+                hex"41b1a0649752af1b28b3dc29a1556eee781e4a4c3a1f7f53f90fa834de098c4d",
                 hex"c5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470",
                 hex"b58904fe94d4dca4102566c56402dfa153037d18263b3f6d5574fd9e622e5627",
                 hex"3e9768bd0513722b012b99bccc3f9ccbff35302f7ec7d75439178e5a80b45800"

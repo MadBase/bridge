@@ -178,6 +178,14 @@ contract ETHDKG is ETHDKGStorage, IETHDKG, IETHDKGEvents, ETHDKGUtils {
         return participants;
     }
 
+    function tryGetParticipantIndex(address participant) public view returns(bool, uint256){
+        Participant memory participantData = _participants[participant];
+        if (participantData.nonce == _nonce) {
+            return (true, _participants[participant].index);
+        }
+        return (false, 0);
+    }
+
     function getMasterPublicKey() public view returns (uint256[4] memory) {
         return _masterPublicKey;
     }
