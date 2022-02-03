@@ -20,7 +20,7 @@ describe("Tests ValidatorNFT methods", () => {
   let notAdminSigner: SignerWithAddress;
   let amount = 1;
 
-  before(async function () {
+  beforeEach(async function () {
     fixture = await getFixture();
     const [admin, notAdmin] = fixture.namedSigners;
     adminSigner = await ethers.getSigner(admin.address);
