@@ -13,8 +13,7 @@ import {
 } from "ethers";
 
 describe("Tests ValidatorPool methods", () => {
-
-  let fixture: Fixture
+  let fixture: Fixture;
   let adminSigner: SignerWithAddress;
   let notAdmin1Signer: SignerWithAddress;
   let notAdmin2Signer: SignerWithAddress;
@@ -24,15 +23,15 @@ describe("Tests ValidatorPool methods", () => {
 
   beforeEach(async function () {
     fixture = await getFixture();
-    const [admin, notAdmin1, notAdmin2, notAdmin3, notAdmin4] = fixture.namedSigners;
+    const [admin, notAdmin1, notAdmin2, notAdmin3, notAdmin4] =
+      fixture.namedSigners;
     adminSigner = await ethers.getSigner(admin.address);
     notAdmin1Signer = await ethers.getSigner(notAdmin1.address);
     notAdmin2Signer = await ethers.getSigner(notAdmin2.address);
     notAdmin3Signer = await ethers.getSigner(notAdmin3.address);
     notAdmin4Signer = await ethers.getSigner(notAdmin4.address);
-    await fixture.madToken.approve(fixture.validatorPoolTrue.address, amount)
-
-  })
+    await fixture.madToken.approve(fixture.validatorPoolTrue.address, amount);
+  });
 
   it("Should set a minimum stake if sender is admin", async function () {
     await fixture.validatorPoolTrue
@@ -42,11 +41,8 @@ describe("Tests ValidatorPool methods", () => {
 
   it("Should not set a minimum stake if sender is not admin", async function () {
     await expect(
-      fixture.validatorPoolTrue
-        .connect(notAdmin1Signer)
-        .setMinimumStake(amount)
-    ).to.be
-      .revertedWith("ValidatorsPool: Requires admin privileges");
+      fixture.validatorPoolTrue.connect(notAdmin1Signer).setMinimumStake(amount)
+    ).to.be.revertedWith("ValidatorsPool: Requires admin privileges");
   });
 
   it("Should set a maximum number of validators stake if sender is admin", async function () {
@@ -60,22 +56,17 @@ describe("Tests ValidatorPool methods", () => {
       fixture.validatorPoolTrue
         .connect(notAdmin1Signer)
         .setMaxNumValidators(amount)
-    ).to.be
-      .revertedWith("ValidatorsPool: Requires admin privileges");
+    ).to.be.revertedWith("ValidatorsPool: Requires admin privileges");
   });
 
   it("Should schedule maintenance if sender is admin", async function () {
-    await fixture.validatorPoolTrue
-      .connect(adminSigner)
-      .scheduleMaintenance()
+    await fixture.validatorPoolTrue.connect(adminSigner).scheduleMaintenance();
   });
 
   it("Should not schedule maintenance if sender is not admin", async function () {
     await expect(
-      fixture.validatorPoolTrue
-        .connect(notAdmin1Signer)
-        .scheduleMaintenance()).to.be
-      .revertedWith("ValidatorsPool: Requires admin privileges");
+      fixture.validatorPoolTrue.connect(notAdmin1Signer).scheduleMaintenance()
+    ).to.be.revertedWith("ValidatorsPool: Requires admin privileges");
   });
 
   it.only("Should initialize ETHDKG if sender is admin", async function () {
@@ -86,27 +77,41 @@ describe("Tests ValidatorPool methods", () => {
       notAdmin1Signer.address,
       notAdmin2Signer.address,
       notAdmin3Signer.address,
-      notAdmin4Signer.address
-    ]
-    let stakingTokenIds = new Array()
-    let amount = 1000
-    let lockTime = 1
-    await fixture.madToken.approve(fixture.validatorNFT.address, 4 * amount);
+      notAdmin4Signer.address,
+    ];
+    let stakingTokenIds = new Array();
+    let amount = ethers.utils.parseUnits("20000", 18);
+    let lockTime = 1;
+    await fixture.madToken.approve(fixture.stakeNFT.address, amount.mul(4));
 
+    let abi = [
+      "event Transfer(address indexed from, address indexed to, uint256 indexed tokenId)",
+    ];
+    let iface = new ethers.utils.Interface(abi);
     for (const validator of validators) {
       // let provider = await ethers.getDefaultProvider()
-      let tx = await fixture.validatorNFT
+      let tx = await fixture.stakeNFT
         .connect(adminSigner)
         .mintTo(validator, amount, lockTime);
+
       //  await provider.waitForTransaction(tx.hash);
       let receipt = await ethers.provider.getTransactionReceipt(tx.hash);
 
-      let tokenId = receipt.logs[2].topics[3]
-      stakingTokenIds.push(tokenId)
+      let log = iface.parseLog(receipt.logs[2]); // here you can add your own logic to find the correct log
+      const { from, to, tokenId } = log.args;
+      console.log(from);
+      console.log(to);
+      console.log(tokenId);
+      // let tokenId = receipt.logs[2].topics[3]
+      stakingTokenIds.push(tokenId);
+
+      await fixture.stakeNFT
+        .connect(await ethers.getSigner(validator))
+        .setApprovalForAll(fixture.validatorPoolTrue.address, true);
     }
 
-    console.log(validators)
-    console.log(stakingTokenIds)
+    console.log(validators);
+    console.log(stakingTokenIds);
 
     // let receipt = await ethers.provider.getTransactionReceipt(tx.hash);
     // console.log(receipt.logs[1].data)
@@ -137,7 +142,6 @@ describe("Tests ValidatorPool methods", () => {
 
     // console.log(tx)
 
-
     //   await fixture.namedSigners.forEach(async (signer) => {
     //   // console.log(signer)
     //   await console.log("hola")
@@ -147,16 +151,17 @@ describe("Tests ValidatorPool methods", () => {
     //     .mint(1));
     //   // console.log("tx",tx);
 
-
     // })
-    await fixture.validatorPoolTrue.registerValidators(validators, stakingTokenIds)
+    let receipt2 = await fixture.validatorPoolTrue
+      .connect(adminSigner)
+      .registerValidators(validators, stakingTokenIds);
+    console.log("registerValidators ran and succeeded");
+    console.log(receipt2);
 
     // await fixture.ethdkg
     //   .connect(adminSigner)
     //   .initialize(fixture.validatorPoolTrue.address, fixture.validatorPoolTrue.address, fixture.validatorPoolTrue.address)
-    await fixture.validatorPoolTrue
-      .connect(adminSigner)
-      .initializeETHDKG()
+    await fixture.validatorPoolTrue.connect(adminSigner).initializeETHDKG();
   });
 
   // it("Should not initialize ETHDKG if sender is not admin", async function () {
@@ -166,6 +171,4 @@ describe("Tests ValidatorPool methods", () => {
   //       .initializeETHDKG()).to.be
   //     .revertedWith("ValidatorsPool: Requires admin privileges");
   // });
-
-
 });
