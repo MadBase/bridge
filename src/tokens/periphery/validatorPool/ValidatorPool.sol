@@ -14,17 +14,19 @@ import "./interfaces/IDutchAuction.sol";
 
 import "./utils/CustomEnumerableMaps.sol";
 
+
 contract ValidatorPoolTrue is IValidatorPoolEvents, MagicValue, EthSafeTransfer, ERC20SafeTransfer {
+
     using CustomEnumerableMaps for ValidatorDataMap;
 
-    // POSITION_LOCK_PERIOD describes the maximum interval a STAKENFT Position may be locked after being
+    // POSITION_LOCK describes the maximum interval a STAKENFT Position may be locked after being
     // given back to validator exiting the pool
-    uint256 public constant POSITION_LOCK_PERIOD = 172800;
+    uint256 public constant POSITION_LOCK = 172800;
     // Interval in Madnet Epochs that a validator exiting the pool should before claiming is
     // STAKENFT position
     uint256 public constant CLAIM_PERIOD = 3;
 
-    uint256 public constant MAX_INTERVAL_WITHOUT_SNAPSHOT = 8192;
+    uint256 public constant MAX_NO_SNAPSHOT_INTERVAL = 8192;
 
     INFTStake internal immutable _stakeNFT;
     INFTStake internal immutable _validatorsNFT;
@@ -33,21 +35,19 @@ contract ValidatorPoolTrue is IValidatorPoolEvents, MagicValue, EthSafeTransfer,
     IERC20Transferable internal immutable _madToken;
 
     // Minimum amount to stake
-    uint256 internal _stakeAmount;
+    uint256 internal _minimumStake;
     // Max number of validators in the pool
     uint256 internal _maxNumValidators;
     // minor fine value in WEIs
-    uint256 internal _disputerReward;
+    uint256 internal _minorFine;
 
-    bool internal _shouldChangeValidators;
+    bool internal _changeValidators;
     bool internal _isConsensusRunning;
 
     // validators Pool
     ValidatorDataMap internal _validators;
 
-    mapping(address => ExitingValidatorData) internal _exitingValidatorsData;
-
-    mapping(address => string) internal _ipLocations;
+    mapping(address=>ExitingValidatorData) internal _exitingValidatorsData;
 
     //todo: change this to use the Admin abstract contract
     address internal _admin;
@@ -61,9 +61,11 @@ contract ValidatorPoolTrue is IValidatorPoolEvents, MagicValue, EthSafeTransfer,
         bytes memory hook
     ) {
         //20000*10**18 MadWei = 20k MadTokens
-        _stakeAmount = 20000 * 10**18;
+        _minimumStake = 20000*10**18;
         _maxNumValidators = 5;
-        _disputerReward = 1;
+        _minorFine = 1;
+        _changeValidators = false;
+        _isConsensusRunning = false;
         _admin = msg.sender;
 
         _stakeNFT = stakeNFT_;
@@ -71,6 +73,7 @@ contract ValidatorPoolTrue is IValidatorPoolEvents, MagicValue, EthSafeTransfer,
         _ethdkg = ethdkg_;
         _snapshots = snapshots_;
         _madToken = madToken_;
+
     }
 
     modifier onlyAdmin() {
@@ -83,20 +86,15 @@ contract ValidatorPoolTrue is IValidatorPoolEvents, MagicValue, EthSafeTransfer,
         _;
     }
 
-    modifier onlyETHDKG() {
-        require(msg.sender == address(_ethdkg), "ValidatorPool: Only ETHDKG contract allowed");
-        _;
-    }
-
     function setMinimumStake(uint256 minimumStake_) public onlyAdmin {
-        _stakeAmount = minimumStake_;
+        _minimumStake = minimumStake_;
     }
 
     function setMaxNumValidators(uint256 maxNumValidators_) public onlyAdmin {
         _maxNumValidators = maxNumValidators_;
     }
 
-    function getValidatorsCount() public view returns (uint256) {
+    function getValidatorsCount() public view returns(uint256) {
         return _validators.length();
     }
 
@@ -109,90 +107,64 @@ contract ValidatorPoolTrue is IValidatorPoolEvents, MagicValue, EthSafeTransfer,
         return 1;
     }
 
-    function getValidator(uint256 index) public view returns (address) {
+    function getValidator(uint256 index) public view returns(address) {
         require(index < _validators.length(), "Index out boundaries!");
         return _validators.at(index)._address;
     }
 
-    function getValidatorData(uint256 index) public view returns (ValidatorData memory) {
+    function getValidatorData(uint256 index) public view returns(ValidatorData memory) {
         require(index < _validators.length(), "Index out boundaries!");
         return _validators.at(index);
     }
 
-    function isValidator(address participant) public view returns (bool) {
+    function isValidator(address participant) public view returns(bool) {
         return _isValidator(participant);
     }
 
-    function isAccusable(address participant) public view returns (bool) {
+    function isAccusable(address participant) public view returns(bool) {
         return _isAccusable(participant);
     }
 
-    function collectProfits()
-        external
-        onlyValidator
-        returns (uint256 payoutEth, uint256 payoutToken)
+    function collectProfits() external onlyValidator returns (uint256 payoutEth, uint256 payoutToken)
     {
         uint256 validatorTokenID = _validators.get(msg.sender)._tokenID;
         payoutEth = _validatorsNFT.collectEthTo(msg.sender, validatorTokenID);
         payoutToken = _validatorsNFT.collectTokenTo(msg.sender, validatorTokenID);
-        return (payoutEth, payoutToken);
+        return(payoutEth, payoutToken);
     }
 
-    function _isValidator(address participant) internal view returns (bool) {
+    function _isValidator(address participant) internal view returns(bool) {
         return _validators.contains(participant);
     }
 
-    function _isAccusable(address participant) internal view returns (bool) {
-        return _isValidator(participant) || _exitingValidatorsData[participant]._freeAfter > 0;
+    function _isAccusable(address participant) internal view returns(bool) {
+        return _isValidator(participant) || _exitingValidatorsData[participant]._freeAfter > 0 ;
     }
 
     function scheduleMaintenance() public onlyAdmin {
-        _shouldChangeValidators = true;
+        _changeValidators = true;
         emit MaintenanceScheduled();
     }
 
-    function registerValidators(address[] calldata validators, uint256[] calldata stakerTokenIDs)
-        external
-        onlyAdmin
-    {
-        require(
-            validators.length <= _maxNumValidators - _validators.length(),
-            "ValidatorPool: There are not enough free spots for all new validators!"
-        );
-        require(
-            validators.length == stakerTokenIDs.length,
-            "ValidatorPool: Both input array should have same length!"
-        );
-        //todo: check the ownership of the stakeNFT IDs?
-        for (uint256 i = 0; i < validators.length; i++) {
+    function registerValidators(address[] calldata validators, uint256[] calldata stakerTokenIDs) external onlyAdmin {
+        require(validators.length <= _maxNumValidators - _validators.length(),"ValidatorPool: There are not enough free spots for all new validators!");
+        //todo: make sure len(validators) == len(stakerTokenIDs)
+        for (uint256 i=0; i < validators.length; i++) {
             _registerValidator(validators[i], stakerTokenIDs[i]);
         }
     }
 
-    function _registerValidator(address validator_, uint256 stakerTokenID_)
-        internal
-        returns (
+    function _registerValidator(address validator_, uint256 stakerTokenID_) internal returns (
             uint256 validatorTokenID,
             uint256 payoutEth,
             uint256 payoutToken
-        )
-    {
+        ){
         require(!_isConsensusRunning, "ValidatorPool: Error Madnet Consensus should be halted!");
-        require(
-            _validators.length() <= _maxNumValidators,
-            "ValidatorPool: There are no free spots for new validators!"
-        );
+        require(_validators.length() < _maxNumValidators,"ValidatorPool: There are no free spots for new validators!");
         require(!_ethdkg.isETHDKGRunning(), "ValidatorPool: There's an ETHDKG round running!");
-        require(
-            !_isAccusable(validator_),
-            "ValidatorPool: Address is already a validator or it is in the exiting line!"
-        );
+        require(!_isAccusable(validator_), "ValidatorPool: Address is already a validator or it is in the exiting line!");
 
-        uint256 balanceBefore = _madToken.balanceOf(address(this));
-        (validatorTokenID, payoutEth, payoutToken) = _swapStakeNFTForValidatorNFT(
-            validator_,
-            stakerTokenID_
-        );
+        (validatorTokenID, payoutEth, payoutToken) = _swapStakeNFTForValidatorNFT(validator_, stakerTokenID_);
 
         //todo: total amount of Madtokens as invariance, check against overflow
         //todo: add balance checks
@@ -218,17 +190,13 @@ contract ValidatorPoolTrue is IValidatorPoolEvents, MagicValue, EthSafeTransfer,
             uint256 payoutToken
         )
     {
-        (uint256 stakeShares, , , , ) = _stakeNFT.getPosition(stakerTokenID_);
-        uint256 minimumStake = _stakeAmount;
+        (uint256 stakeShares,,,,) = _stakeNFT.getPosition(stakerTokenID_);
+        uint256 minimumStake = _minimumStake;
         require(
             stakeShares >= minimumStake,
             "ValidatorStakeNFT: Error, the Stake position doesn't have enough founds!"
         );
-        IERC721Transferable(address(_stakeNFT)).safeTransferFrom(
-            to_,
-            address(this),
-            stakerTokenID_
-        );
+        IERC721Transferable(address(_stakeNFT)).safeTransferFrom(to_, address(this), stakerTokenID_);
         (payoutEth, payoutToken) = _stakeNFT.burn(stakerTokenID_);
 
         // Subtracting the shares from StakeNFT profit. The shares will be used to mint the new
@@ -240,161 +208,72 @@ contract ValidatorPoolTrue is IValidatorPoolEvents, MagicValue, EthSafeTransfer,
         validatorTokenID = _validatorsNFT.mint(minimumStake);
 
         return (validatorTokenID, payoutEth, payoutToken);
+
     }
 
-    function _transferEthAndTokens(
-        address to_,
-        uint256 payoutEth,
-        uint256 payoutToken
-    ) internal {
+    function _transferEthAndTokens(address to_, uint256 payoutEth, uint256 payoutToken) internal {
         _safeTransferERC20(_madToken, to_, payoutToken);
         _safeTransferEth(to_, payoutEth);
     }
 
     function unregisterValidators(address[] calldata validators) external onlyAdmin {
-        require(!_isConsensusRunning, "ValidatorPool: Error Madnet Consensus should be halted!");
-        require(!_ethdkg.isETHDKGRunning(), "ValidatorPool: There's an ETHDKG round running!");
-        require(
-            validators.length <= _validators.length(),
-            "ValidatorPool: There are not enough validators to be removed!"
-        );
-        for (uint256 i = 0; i < validators.length; i++) {
+        require(validators.length <= _validators.length(), "ValidatorPool: There are not enough validators to be removed!");
+        for (uint256 i=0; i < validators.length; i++) {
             _unregisterValidator(validators[i]);
         }
     }
 
-    function unregisterAllValidators() public onlyAdmin {
-        require(!_isConsensusRunning, "ValidatorPool: Error Madnet Consensus should be halted!");
-        require(!_ethdkg.isETHDKGRunning(), "ValidatorPool: There's an ETHDKG round running!");
+    function unregisterAllValidators() public onlyAdmin{
         while (_validators.length() > 0) {
-            address validator = _validators.at(_validators.length() - 1)._address;
+            address validator = _validators.at(_validators.length()-1)._address;
             _unregisterValidator(validator);
         }
     }
 
     // todo: check async in Madnet
     function pauseConsensus(uint256 madnetHeight) public {
-        require(
-            msg.sender == address(_snapshots),
-            "ValidatorPool: Caller is not the snapshots contract!"
-        );
+        require(msg.sender == address(_snapshots), "ValidatorPool: Caller is not the  snapshots contract!");
         _isConsensusRunning = false;
         //todo: set arbitrary height for ethdkg ?
     }
 
-    function pauseConsensusOnArbitraryHeight(uint256 madnetHeight) public onlyAdmin {
-        require(
-            block.number > _snapshots.getHeightFromLatestSnapshot() + MAX_INTERVAL_WITHOUT_SNAPSHOT,
-            "ValidatorPool: Condition not met to stop consensus!"
-        );
+    function pauseConsensusOnArbitraryHeight(uint256 madnetHeight) public onlyAdmin{
+        require(block.number > _snapshots.getHeightFromLatestSnapshot() + MAX_NO_SNAPSHOT_INTERVAL, "ValidatorPool: Condition not met to stop consensus!");
         _isConsensusRunning = false;
         //todo: set arbitrary height for ethdkg ?
     }
 
-    function claimStakeNFTPosition() public returns (uint256) {
-        ExitingValidatorData memory data = _exitingValidatorsData[msg.sender];
-        require(
-            data._freeAfter > 0,
-            "ValidatorPool: No valid StakeNFT Position was found for address in the exitingQueue!"
-        );
-        require(
-            getCurrentMadnetEpoch() > data._freeAfter,
-            "ValidatorPool: The waiting period is not over yet!"
-        );
-
-        delete _exitingValidatorsData[msg.sender];
-
-        _stakeNFT.lockOwnPosition(data._tokenID, POSITION_LOCK_PERIOD);
-
-        IERC721Transferable(address(_stakeNFT)).safeTransferFrom(
-            address(this),
-            msg.sender,
-            data._tokenID
-        );
-
-        return data._tokenID;
-    }
-
-    function completeETHDKG() public onlyETHDKG {
-        _shouldChangeValidators = false;
-        _isConsensusRunning = true;
-    }
-
-    function collectRewards() public onlyValidator {
-        uint256 validatorTokenID = _validators.get(msg.sender)._tokenID;
-        _validatorsNFT.collectTokenTo(msg.sender, validatorTokenID);
-        _validatorsNFT.collectEthTo(msg.sender, validatorTokenID);
-    }
-
-    function majorSlash(address dishonestValidator_, address disputer_) public onlyETHDKG {
-        (uint256 minerShares, uint256 payoutEth, uint256 payoutToken) = _slash(dishonestValidator_);
-        _removeValidatorData(dishonestValidator_);
-        // redistribute the dishonest staking equally with the other validators
-        _validatorsNFT.depositToken(_getMagic(), minerShares);
-        // transfer to the disputer any profit that the dishonestValidator had when his
-        // position was burned + the disputerReward
-        _transferEthAndTokens(disputer_, payoutEth, payoutToken);
-        emit ValidatorMajorSlashed(dishonestValidator_);
-    }
-
-    function minorSlash(address dishonestValidator_, address disputer_) public onlyETHDKG {
-        (uint256 minerShares, uint256 payoutEth, uint256 payoutToken) = _slash(dishonestValidator_);
-        _moveToExitingQueue(dishonestValidator_, minerShares);
-        _transferEthAndTokens(disputer_, payoutEth, payoutToken);
-        emit ValidatorMinorSlashed(dishonestValidator_);
-    }
-
-    function setLocation(string calldata ip) public onlyValidator {
-        _ipLocations[msg.sender] = ip;
-    }
-
-    function getLocation(address validator) public view returns (string memory) {
-        return _ipLocations[validator];
-    }
-
-    function getLocations(address[] calldata validators_) internal view returns (string[] memory) {
-        string[] memory ret = new string[](validators_.length);
-        for (uint256 i = 0; i < validators_.length; i++) {
-            ret[i] = _ipLocations[validators_[i]];
-        }
-        return ret;
-    }
-
-    function _unregisterValidator(address validator_)
-        internal
-        returns (
-            uint256 stakeTokenID,
-            uint256 payoutEth,
-            uint256 payoutToken
-        )
-    {
+    function _unregisterValidator(address validator_) internal returns(uint256 stakeTokenID, uint256 payoutEth, uint256 payoutToken) {
+        require(!_isConsensusRunning, "ValidatorPool: Error Madnet Consensus should be halted!");
+        require(!_ethdkg.isETHDKGRunning(), "ValidatorPool: There's an ETHDKG round running!");
         require(_isValidator(validator_), "ValidatorPool: Address is not a validator_!");
 
         (stakeTokenID, payoutEth, payoutToken) = _swapValidatorNFTForStakeNFT(validator_);
 
-        _moveToExitingQueue(validator_, stakeTokenID);
+        _validators.remove(validator_);
+        _addToExitingQueue(validator_, stakeTokenID);
 
         // transfer back any profit that was available for the stakeNFT position by the time that we
         // burned it
         _transferEthAndTokens(validator_, payoutEth, payoutToken);
 
         emit ValidatorLeft(validator_, stakeTokenID);
+
     }
 
-    function _burnValidatorNFTPosition(address validator)
-        internal
-        returns (
+    function _burnValidatorNFTPosition(address validator) internal returns (
             uint256 minerShares,
             uint256 payoutEth,
             uint256 payoutToken
-        )
-    {
+        ){
         uint256 validatorTokenID = _validators.get(validator)._tokenID;
-        (minerShares, , , , ) = _validatorsNFT.getPosition(validatorTokenID);
+        (minerShares,,,,) = _validatorsNFT.getPosition(validatorTokenID);
         (payoutEth, payoutToken) = _validatorsNFT.burn(validatorTokenID);
     }
 
-    function _swapValidatorNFTForStakeNFT(address validator)
+    function _swapValidatorNFTForStakeNFT(
+        address validator
+    )
         internal
         returns (
             uint256,
@@ -402,9 +281,7 @@ contract ValidatorPoolTrue is IValidatorPoolEvents, MagicValue, EthSafeTransfer,
             uint256
         )
     {
-        (uint256 minerShares, uint256 payoutEth, uint256 payoutToken) = _burnValidatorNFTPosition(
-            validator
-        );
+        (uint256 minerShares, uint256 payoutEth, uint256 payoutToken) = _burnValidatorNFTPosition(validator);
         payoutToken -= minerShares;
 
         // We should approve the StakeNFT to transferFrom the tokens of this contract
@@ -416,30 +293,60 @@ contract ValidatorPoolTrue is IValidatorPoolEvents, MagicValue, EthSafeTransfer,
         return (stakeTokenID, payoutEth, payoutToken);
     }
 
-    function _moveToExitingQueue(address validator_, uint256 stakeTokenID) internal {
-        _removeValidatorData(validator_);
-        _exitingValidatorsData[validator_] = ExitingValidatorData(
-            uint128(stakeTokenID),
-            uint128(_snapshots.getEpoch() + CLAIM_PERIOD)
-        );
+    function _addToExitingQueue(address validator, uint256 stakeTokenID) internal {
+        _exitingValidatorsData[validator] = ExitingValidatorData(uint128(stakeTokenID), uint128(_snapshots.getEpoch() + CLAIM_PERIOD));
     }
 
-    function _slash(address dishonestValidator_)
-        internal
-        returns (
-            uint256 minerShares,
-            uint256 payoutEth,
-            uint256 payoutToken
-        )
-    {
-        require(_isAccusable(dishonestValidator_), "ValidatorPool: Address is not accusable!");
-        (minerShares, payoutEth, payoutToken) = _burnValidatorNFTPosition(dishonestValidator_);
-        minerShares -= _disputerReward;
-        payoutToken -= minerShares;
+    function claimStakeNFTPosition() public returns(uint256) {
+        ExitingValidatorData memory data = _exitingValidatorsData[msg.sender];
+        require(data._freeAfter > 0, "ValidatorPool: Caller doesn't have a valid StakeNFT Position!");
+        require(getCurrentMadnetEpoch() > data._freeAfter, "ValidatorPool: The waiting period is not over yet!");
+
+        delete _exitingValidatorsData[msg.sender];
+
+        _stakeNFT.lockOwnPosition(data._tokenID, POSITION_LOCK);
+
+        IERC721Transferable(address(_stakeNFT)).safeTransferFrom(address(this), msg.sender, data._tokenID);
+
+        return data._tokenID;
     }
 
-    function _removeValidatorData(address validator_) internal {
-        _validators.remove(validator_);
-        delete _ipLocations[validator_];
+    function completeETHDKG() public {
+        require(msg.sender == address(_ethdkg), "ValidatorPool: Only ETHDKG contract allowed");
+        _changeValidators = false;
+        _isConsensusRunning = true;
     }
+
+
+    // function _slash(address validator) internal returns(uint256 minerShares, uint256 payoutEth, uint256 payoutToken){
+    //     (minerShares, payoutEth, payoutToken) = _burnValidatorNFTPosition(validator);
+    //     _removeValidatorState(validator);
+    // }
+
+    // // todo: emit an event
+    // // todo: add balance checks in the ETHDKG accusation unit tests
+    // function majorSlash(address validator, address disputer) public onlyOperator {
+    //     (uint256 minerShares, uint256 payoutEth, uint256 payoutToken) = _slash(validator);
+    //     //todo: map a proper reward value
+    //     uint256 reward = payoutToken/10;
+    //     payoutToken -= reward;
+    //     uint8 magicNumber = _getMagic();
+    //     _validatorsNFT.depositEth{value: payoutEth}(magicNumber);
+    //     _validatorsNFT.depositToken(magicNumber, payoutToken);
+    //     _safeTransferERC20(_madToken, disputer, reward);
+    //     emit ValidatorMajorSlashed(validator);
+    // }
+
+
+    // // todo: reward caller for taking this awesome action
+    // // todo: should we receive an address to send the reward to?
+    // // todo: emit an event
+    // function minorSlash(address validator, address disputer) public onlyOperator {
+    //     (uint256 minerShares, uint256 payoutEth, uint256 payoutToken) = _slash(validator);
+    //     minerShares -= _minorFine;
+    //     payoutToken -= minerShares;
+    //     _addToExitingQueue(validator, minerShares);
+    //     _transferEthAndTokens(disputer, payoutEth, payoutToken);
+    //     emit ValidatorMinorSlashed(validator);
+    // }
 }
