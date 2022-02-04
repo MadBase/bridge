@@ -28,56 +28,56 @@ describe("Tests ValidatorPool methods", () => {
     adminSigner = await ethers.getSigner(admin.address);
     await fixture.validatorNFT.
       connect(adminSigner).
-      setAdmin(fixture.validatorPoolTrue.address);
+      setAdmin(fixture.validatorPool.address);
 
-    await fixture.validatorPoolTrue.
+    await fixture.validatorPool.
       connect(adminSigner).
       setETHDKG(fixture.ethdkg.address);
       // await fixture.validatorNFT.
       // connect(adminSigner).
-      // setSnapshot(fixture.snvalidatorPoolTrue.address);
+      // setSnapshot(fixture.snvalidatorPool.address);
 
 
       notAdmin1Signer = await ethers.getSigner(notAdmin1.address);
     notAdmin2Signer = await ethers.getSigner(notAdmin2.address);
     notAdmin3Signer = await ethers.getSigner(notAdmin3.address);
     notAdmin4Signer = await ethers.getSigner(notAdmin4.address);
-    await fixture.madToken.approve(fixture.validatorPoolTrue.address, amount);
+    await fixture.madToken.approve(fixture.validatorPool.address, amount);
   });
 
   it("Should set a minimum stake if sender is admin", async function () {
-    await fixture.validatorPoolTrue
+    await fixture.validatorPool
       .connect(adminSigner)
       .setMinimumStake(amount);
   });
 
   it("Should not set a minimum stake if sender is not admin", async function () {
     await expect(
-      fixture.validatorPoolTrue.connect(notAdmin1Signer).setMinimumStake(amount)
+      fixture.validatorPool.connect(notAdmin1Signer).setMinimumStake(amount)
     ).to.be.revertedWith("ValidatorsPool: Requires admin privileges");
   });
 
   it("Should set a maximum number of validators stake if sender is admin", async function () {
-    await fixture.validatorPoolTrue
+    await fixture.validatorPool
       .connect(adminSigner)
       .setMaxNumValidators(amount);
   });
 
   it("Should not set a maximum number of validators if sender is not admin", async function () {
     await expect(
-      fixture.validatorPoolTrue
+      fixture.validatorPool
         .connect(notAdmin1Signer)
         .setMaxNumValidators(amount)
     ).to.be.revertedWith("ValidatorsPool: Requires admin privileges");
   });
 
   it("Should schedule maintenance if sender is admin", async function () {
-    await fixture.validatorPoolTrue.connect(adminSigner).scheduleMaintenance();
+    await fixture.validatorPool.connect(adminSigner).scheduleMaintenance();
   });
 
   it("Should not schedule maintenance if sender is not admin", async function () {
     await expect(
-      fixture.validatorPoolTrue.connect(notAdmin1Signer).scheduleMaintenance()
+      fixture.validatorPool.connect(notAdmin1Signer).scheduleMaintenance()
     ).to.be.revertedWith("ValidatorsPool: Requires admin privileges");
   });
 
@@ -110,21 +110,21 @@ describe("Tests ValidatorPool methods", () => {
       stakingTokenIds.push(tokenId);
       await fixture.stakeNFT
         .connect(await ethers.getSigner(validator))
-        .setApprovalForAll(fixture.validatorPoolTrue.address, true);
+        .setApprovalForAll(fixture.validatorPool.address, true);
     }
 
-    let receipt2 = await fixture.validatorPoolTrue
+    let receipt2 = await fixture.validatorPool
       .connect(adminSigner)
       .registerValidators(validators, stakingTokenIds);
     // console.log("registerValidators ran and succeeded");
     // console.log(receipt2);
 
-    await fixture.validatorPoolTrue.connect(adminSigner).initializeETHDKG();
+    await fixture.validatorPool.connect(adminSigner).initializeETHDKG();
   });
 
   // it("Should not initialize ETHDKG if sender is not admin", async function () {
   //   await expect(
-  //     fixture.validatorPoolTrue
+  //     fixture.validatorPool
   //       .connect(notAdmin1Signer)
   //       .initializeETHDKG()).to.be
   //     .revertedWith("ValidatorsPool: Requires admin privileges");

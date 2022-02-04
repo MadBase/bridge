@@ -14,7 +14,7 @@ import "./interfaces/IDutchAuction.sol";
 import "@openzeppelin/contracts/token/ERC721/utils/ERC721Holder.sol";
 import "./utils/CustomEnumerableMaps.sol";
 
-contract ValidatorPoolTrue is IValidatorPoolEvents, MagicValue, EthSafeTransfer, ERC20SafeTransfer, ERC721Holder {
+contract ValidatorPool is IValidatorPoolEvents, MagicValue, EthSafeTransfer, ERC20SafeTransfer, ERC721Holder {
     using CustomEnumerableMaps for ValidatorDataMap;
 
     // POSITION_LOCK_PERIOD describes the maximum interval a STAKENFT Position may be locked after being
@@ -110,11 +110,6 @@ contract ValidatorPoolTrue is IValidatorPoolEvents, MagicValue, EthSafeTransfer,
 
     function getValidatorAddresses() external view returns (address[] memory) {
         return _validators.addressValues();
-    }
-
-    // todo: replace this with snapshot version
-    function getCurrentMadnetEpoch() public pure returns (uint256) {
-        return 1;
     }
 
     function getValidator(uint256 index) public view returns (address) {
@@ -296,7 +291,7 @@ contract ValidatorPoolTrue is IValidatorPoolEvents, MagicValue, EthSafeTransfer,
 
     function pauseConsensusOnArbitraryHeight(uint256 madnetHeight) public onlyAdmin {
         require(
-            block.number > _snapshots.getHeightFromLatestSnapshot() + MAX_INTERVAL_WITHOUT_SNAPSHOT,
+            block.number > _snapshots.getCommittedHeightFromLatestSnapshot() + MAX_INTERVAL_WITHOUT_SNAPSHOT,
             "ValidatorPool: Condition not met to stop consensus!"
         );
         _isConsensusRunning = false;
@@ -310,7 +305,7 @@ contract ValidatorPoolTrue is IValidatorPoolEvents, MagicValue, EthSafeTransfer,
             "ValidatorPool: No valid StakeNFT Position was found for address in the exitingQueue!"
         );
         require(
-            getCurrentMadnetEpoch() > data._freeAfter,
+            _snapshots.getEpoch() > data._freeAfter,
             "ValidatorPool: The waiting period is not over yet!"
         );
 

@@ -47,7 +47,7 @@ contract Setup is Constants {
     IETHDKG ethdkg;
     Accusation accusation;
     Participants participants;
-    Snapshots snapshots;
+    ISnapshots snapshots;
     Staking staking;
     Validators validators;
     Sudo sudo;
@@ -73,7 +73,7 @@ contract Setup is Constants {
 
         address validatorsDiamond = registry.lookup(VALIDATORS_CONTRACT);
         participants = Participants(validatorsDiamond);
-        snapshots = Snapshots(validatorsDiamond);
+        snapshots = ISnapshots(validatorsDiamond);
         staking = Staking(validatorsDiamond);
         validators = Validators(validatorsDiamond);
         accusation = Accusation(validatorsDiamond);
@@ -122,17 +122,17 @@ contract Setup is Constants {
         address validatorLocationsFacet = address(new ValidatorLocationsFacet());
 
         // SnapshotFacet Wiring
-        update.addFacet(Snapshots.initializeSnapshots.selector, snapshotsFacet);
-        update.addFacet(Snapshots.epoch.selector, snapshotsFacet);
-        update.addFacet(Snapshots.extractUint256.selector, snapshotsFacet);
-        update.addFacet(Snapshots.extractUint32.selector, snapshotsFacet);
-        update.addFacet(Snapshots.setEpoch.selector, snapshotsFacet);
-        update.addFacet(Snapshots.snapshot.selector, snapshotsFacet);
-        update.addFacet(Snapshots.getRawSignatureSnapshot.selector, snapshotsFacet);
-        update.addFacet(Snapshots.getRawBlockClaimsSnapshot.selector, snapshotsFacet);
-        update.addFacet(Snapshots.getMadHeightFromSnapshot.selector, snapshotsFacet);
-        update.addFacet(Snapshots.getHeightFromSnapshot.selector, snapshotsFacet);
-        update.addFacet(Snapshots.getChainIdFromSnapshot.selector, snapshotsFacet);
+        update.addFacet(ISnapshots.initializeSnapshots.selector, snapshotsFacet);
+        update.addFacet(ISnapshots.epoch.selector, snapshotsFacet);
+        update.addFacet(ISnapshots.extractUint256.selector, snapshotsFacet);
+        update.addFacet(ISnapshots.extractUint32.selector, snapshotsFacet);
+        update.addFacet(ISnapshots.setEpoch.selector, snapshotsFacet);
+        update.addFacet(ISnapshots.snapshot.selector, snapshotsFacet);
+        update.addFacet(ISnapshots.getRawSignatureSnapshot.selector, snapshotsFacet);
+        update.addFacet(ISnapshots.getRawBlockClaimsSnapshot.selector, snapshotsFacet);
+        update.addFacet(ISnapshots.getMadHeightFromSnapshot.selector, snapshotsFacet);
+        update.addFacet(ISnapshots.getHeightFromSnapshot.selector, snapshotsFacet);
+        update.addFacet(ISnapshots.getChainIdFromSnapshot.selector, snapshotsFacet);
 
         // StakingFacet Wiring
         update.addFacet(Staking.initializeStaking.selector, stakingFacet);

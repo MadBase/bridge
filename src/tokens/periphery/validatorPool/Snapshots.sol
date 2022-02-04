@@ -8,25 +8,9 @@ import "../../../parsers/RCertParserLibrary.sol";
 import "../../../parsers/BClaimsParserLibrary.sol";
 import "../../../CryptoLibrary.sol";
 
-contract Snapshots {
-    event SnapshotTaken(
-        uint256 chainId,
-        uint256 indexed epoch,
-        uint256 height,
-        address indexed validator,
-        bool safeToProceed
-    );
-
-    struct Snapshot {
-        uint256 committedAt;
-        BClaimsParserLibrary.BClaims blockClaims;
-        uint256[2] signature;
-    }
-
+contract Snapshots is ISnapshots {
     uint32 internal _epoch;
     uint32 internal _epochLength;
-    //todo: make immutable
-    uint32 internal _chainId;
 
     // after how many eth blocks of not having a snapshot will we start allowing more validators to
     // make it
@@ -41,11 +25,17 @@ contract Snapshots {
 
     IETHDKG internal immutable _ethdkg;
     IValidatorPool internal immutable _validatorPool;
+    uint256 internal immutable _chainId;
 
-    constructor(IETHDKG ethdkg_, IValidatorPool validatorPool_, address factory_) {
+    constructor(
+        IETHDKG ethdkg_,
+        IValidatorPool validatorPool_,
+        uint32 chainID_,
+        address factory_
+    ) {
         _ethdkg = ethdkg_;
         _validatorPool = validatorPool_;
-        _epoch =1;
+        _chainId = chainID_;
         _admin = msg.sender;
     }
 
@@ -58,7 +48,23 @@ contract Snapshots {
         _epochLength = epochLength_;
     }
 
-    function getChainId() public view returns (uint32) {
+    function setSnapshotDesperationDelay(uint32 desperationDelay_) public onlyAdmin {
+        _snapshotDesperationDelay = desperationDelay_;
+    }
+
+    function getSnapshotDesperationDelay() public view returns (uint256) {
+        return _snapshotDesperationDelay;
+    }
+
+    function setSnapshotDesperationFactor(uint32 desperationFactor_) public onlyAdmin {
+        _snapshotDesperationFactor = desperationFactor_;
+    }
+
+    function getSnapshotDesperationFactor() public view returns (uint256) {
+        return _snapshotDesperationFactor;
+    }
+
+    function getChainId() public view returns (uint256) {
         return _chainId;
     }
 
@@ -66,16 +72,32 @@ contract Snapshots {
         return _epoch;
     }
 
-    function getEpochLength() public view returns (uint32) {
+    function getEpochLength() public view returns (uint256) {
         return _epochLength;
     }
 
-    function getChainIDFromSnapshot(uint256 snapshotNumber) public view returns (uint32) {
+    function getChainIdFromSnapshot(uint256 snapshotNumber) public view returns (uint256) {
         return _snapshots[snapshotNumber].blockClaims.chainId;
     }
 
-    function getBlockClaimsFromSnapshot(uint256 snapshotNumber) public view returns (BClaimsParserLibrary.BClaims memory) {
+    function getChainIdFromLatestSnapshot() public view returns (uint256) {
+        return _snapshots[_epoch].blockClaims.chainId;
+    }
+
+    function getBlockClaimsFromSnapshot(uint256 snapshotNumber)
+        public
+        view
+        returns (BClaimsParserLibrary.BClaims memory)
+    {
         return _snapshots[snapshotNumber].blockClaims;
+    }
+
+    function getBlockClaimsFromLatestSnapshot()
+        public
+        view
+        returns (BClaimsParserLibrary.BClaims memory)
+    {
+        return _snapshots[_epoch].blockClaims;
     }
 
     function getSignatureFromSnapshot(uint256 snapshotNumber)
@@ -86,16 +108,32 @@ contract Snapshots {
         return _snapshots[snapshotNumber].signature;
     }
 
+    function getSignatureFromLatestSnapshot() public view returns (uint256[2] memory) {
+        return _snapshots[_epoch].signature;
+    }
+
     function getCommittedHeightFromSnapshot(uint256 snapshotNumber) public view returns (uint256) {
         return _snapshots[snapshotNumber].committedAt;
     }
 
-    function getMadnetHeightFromSnapshot(uint256 snapshotNumber) public view returns (uint32) {
+    function getCommittedHeightFromLatestSnapshot() public view returns (uint256) {
+        return _snapshots[_epoch].committedAt;
+    }
+
+    function getMadnetHeightFromSnapshot(uint256 snapshotNumber) public view returns (uint256) {
         return _snapshots[snapshotNumber].blockClaims.height;
+    }
+
+    function getMadnetHeightFromLatestSnapshot() public view returns (uint256) {
+        return _snapshots[_epoch].blockClaims.height;
     }
 
     function getSnapshot(uint256 snapshotNumber) public view returns (Snapshot memory) {
         return _snapshots[snapshotNumber];
+    }
+
+    function getLatestSnapshot() public view returns (Snapshot memory) {
+        return _snapshots[_epoch];
     }
 
     /// @notice Saves next snapshot
@@ -112,19 +150,16 @@ contract Snapshots {
         (bool success, uint256 validatorIndex) = _ethdkg.tryGetParticipantIndex(msg.sender);
         require(success, "Snapshots: Caller doesn't participated in the last ethdkg round");
 
-        //todo: are we going to snapshot on epoch 0
+        //todo: are we going to snapshot on epoch 0?
         uint32 epoch = _epoch + 1;
-        uint256 ethBlocksSinceLastSnapshot = 0;
-        // todo: how to handle initial case?
-        if (epoch > 1) {
-            ethBlocksSinceLastSnapshot = block.number - _snapshots[epoch - 1].committedAt;
-        }
-        int256 blocksSinceDesperation = int256(ethBlocksSinceLastSnapshot) - int256(uint256(_snapshotDesperationDelay));
+        uint256 ethBlocksSinceLastSnapshot = block.number - _snapshots[epoch - 1].committedAt;
+        int256 blocksSinceDesperation = int256(ethBlocksSinceLastSnapshot) -
+            int256(uint256(_snapshotDesperationDelay));
         // Check if sender is the elected validator allowed to make the snapshot
         require(
             _mayValidatorSnapshot(
                 int256(_validatorPool.getValidatorsCount()),
-                int256(validatorIndex),
+                int256(validatorIndex) - 1,
                 blocksSinceDesperation,
                 keccak256(bClaims_),
                 int256(uint256(_snapshotDesperationFactor))
@@ -140,11 +175,18 @@ contract Snapshots {
             "Snapshots: Signature verification failed!"
         );
 
+        //todo: check master publickey with signature?
+
         BClaimsParserLibrary.BClaims memory blockClaims = BClaimsParserLibrary.extractBClaims(
             bClaims_
         );
 
-        require(blockClaims.height % _epochLength == 0, "Snapshots: Incorrect Madnet height for snapshot!");
+        require(
+            blockClaims.height % _epochLength == 0,
+            "Snapshots: Incorrect Madnet height for snapshot!"
+        );
+
+        require(blockClaims.chainId == _chainId, "Snapshots: Incorrect chainID for snapshot!");
 
         bool isSafeToProceedConsensus = true;
         if (_validatorPool.isMaintenanceScheduled()) {
@@ -152,12 +194,34 @@ contract Snapshots {
             _validatorPool.pauseConsensus(blockClaims.height);
         }
 
-        emit SnapshotTaken(_chainId, epoch, blockClaims.height, msg.sender, isSafeToProceedConsensus);
-
         _snapshots[epoch] = Snapshot(block.number, blockClaims, signature);
         _epoch = epoch;
 
+        emit SnapshotTaken(
+            _chainId,
+            epoch,
+            blockClaims.height,
+            msg.sender,
+            isSafeToProceedConsensus
+        );
         return isSafeToProceedConsensus;
+    }
+
+    function mayValidatorSnapshot(
+        int256 numValidators,
+        int256 myIdx,
+        int256 blocksSinceDesperation,
+        bytes32 blsig,
+        int256 desperationFactor
+    ) public pure returns (bool) {
+        return
+            _mayValidatorSnapshot(
+                numValidators,
+                myIdx,
+                blocksSinceDesperation,
+                blsig,
+                desperationFactor
+            );
     }
 
     function _mayValidatorSnapshot(

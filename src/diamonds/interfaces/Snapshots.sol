@@ -5,7 +5,7 @@ import "./SnapshotsEvents.sol";
 
 import "../../Registry.sol";
 
-interface Snapshots is SnapshotsEvents {
+interface ISnapshots is SnapshotsEvents {
 
     function initializeSnapshots(Registry registry) external;
 

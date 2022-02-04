@@ -1,15 +1,6 @@
-import { expect, assert } from "../../chai-setup";
 import { ethers, network } from "hardhat";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-with-address";
 
-import {
-  BigNumber,
-  BigNumberish,
-  ContractTransaction,
-  Signer,
-  utils,
-  Wallet,
-} from "ethers";
 
 import {
   MadToken,
@@ -17,8 +8,8 @@ import {
   StakeNFT,
   ValidatorNFT,
   ETHDKG,
-  ValidatorPoolTrue,
   ValidatorPool,
+  Snapshots,
 } from "../../../typechain-types";
 
 export const PLACEHOLDER_ADDRESS = "0x0000000000000000000000000000000000000000";
@@ -31,42 +22,12 @@ export interface Fixture {
   stakeNFT: StakeNFT;
   validatorNFT: ValidatorNFT;
   validatorPool: ValidatorPool;
-  validatorPoolTrue: ValidatorPoolTrue;
+  snapshots: Snapshots;
   ethdkg: ETHDKG;
   namedSigners: SignerWithAddress[];
 }
 
-export enum Phase {
-  RegistrationOpen,
-  ShareDistribution,
-  DisputeShareDistribution,
-  KeyShareSubmission,
-  MPKSubmission,
-  GPKJSubmission,
-  DisputeGPKJSubmission,
-  Completion,
-}
-
-export interface ValidatorRawData {
-  privateKey?: string;
-  address: string;
-  madNetPublicKey: [BigNumberish, BigNumberish];
-  encryptedShares: BigNumberish[];
-  commitments: [BigNumberish, BigNumberish][];
-  keyShareG1: [BigNumberish, BigNumberish];
-  keyShareG1CorrectnessProof: [BigNumberish, BigNumberish];
-  keyShareG2: [BigNumberish, BigNumberish, BigNumberish, BigNumberish];
-  mpk: [BigNumberish, BigNumberish, BigNumberish, BigNumberish];
-  gpkj: [BigNumberish, BigNumberish, BigNumberish, BigNumberish];
-  sharedKey?: [BigNumberish, BigNumberish];
-  sharedKeyProof?: [BigNumberish, BigNumberish];
-  encryptedSharesHash?: BigNumberish[],
-  groupCommitments?: [BigNumberish, BigNumberish][][],
-
-}
-
-
-export const getFixture = async () => {
+export const getFixture = async (): Promise<Fixture> => {
   await network.provider.send("evm_setAutomine", [true]);
 
   const namedSigners = await ethers.getSigners();
@@ -114,16 +75,10 @@ export const getFixture = async () => {
   await validatorNFT.deployed();
   // console.log(`ValidatorNFT deployed at ${validatorNFT.address}`);
 
-  //ValidatorPool
-  const ValidatorPool = await ethers.getContractFactory("ValidatorPool");
-  const validatorPool = await ValidatorPool.deploy(
-    PLACEHOLDER_ADDRESS
-  );
-  await validatorPool.deployed();
-  // console.log(`ValidatorPool deployed at ${validatorPool.address}`);
-
   // ETHDKG Accusations
-  const ETHDKGAccusations = await ethers.getContractFactory("ETHDKGAccusations");
+  const ETHDKGAccusations = await ethers.getContractFactory(
+    "ETHDKGAccusations"
+  );
   const ethdkgAccusations = await ETHDKGAccusations.deploy();
   await ethdkgAccusations.deployed();
 
@@ -134,16 +89,16 @@ export const getFixture = async () => {
 
   // ETHDKG
   const ETHDKG = await ethers.getContractFactory("ETHDKG");
-  const ethdkg = await ETHDKG.deploy(
-    PLACEHOLDER_ADDRESS
-  );
+  const ethdkg = await ETHDKG.deploy(PLACEHOLDER_ADDRESS);
   await ethdkg.deployed();
   // console.log(`ETHDKG deployed at ${ethdkg.address}`);
   // console.log("finished core deployment");
 
   // ValidatorPoolTrue
-  const ValidatorPoolTrue = await ethers.getContractFactory("ValidatorPoolTrue");
-  const validatorPoolTrue = await ValidatorPoolTrue.deploy(
+  const ValidatorPool = await ethers.getContractFactory(
+    "ValidatorPool"
+  );
+  const validatorPool = await ValidatorPool.deploy(
     stakeNFT.address,
     validatorNFT.address,
     madToken.address,
@@ -151,13 +106,22 @@ export const getFixture = async () => {
     PLACEHOLDER_ADDRESS,
     PLACEHOLDER_ADDRESS
   );
-  await validatorPoolTrue.deployed();
+  await validatorPool.deployed();
   // console.log(`ValidatorPool deployed at ${validatorPool.address}`);
   await ethdkg.initialize(
-    validatorPoolTrue.address,
+    validatorPool.address,
     ethdkgAccusations.address,
-    ethdkgPhases.address)
+    ethdkgPhases.address
+  );
 
+  const Snapshots = await ethers.getContractFactory("Snapshots");
+  const snapshots = await Snapshots.deploy(
+    ethdkg.address,
+    validatorPool.address,
+    1,
+    PLACEHOLDER_ADDRESS
+  );
+  await snapshots.deployed();
 
   return {
     madToken,
@@ -165,7 +129,7 @@ export const getFixture = async () => {
     stakeNFT,
     validatorNFT,
     validatorPool,
-    validatorPoolTrue,
+    snapshots,
     ethdkg,
     namedSigners,
   };

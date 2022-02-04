@@ -1,48 +1,81 @@
 // SPDX-License-Identifier: MIT-open-group
 pragma solidity ^0.8.11;
 
+import "../../../../parsers/BClaimsParserLibrary.sol";
+
 interface ISnapshots {
-    function setMinEthSnapshotSize(uint256 minSize_) external;
+    event SnapshotTaken(
+        uint256 chainId,
+        uint256 indexed epoch,
+        uint256 height,
+        address indexed validator,
+        bool safeToProceedConsensus
+    );
 
-    function minEthSnapshotSize() external view returns (uint256);
+    struct Snapshot {
+        uint256 committedAt;
+        BClaimsParserLibrary.BClaims blockClaims;
+        uint256[2] signature;
+    }
 
-    function setSnapshotDesperationDelay(uint256 minSize_) external;
+    function setEpochLength(uint32 epochLength_) external;
 
-    function snapshotDesperationDelay() external view returns (uint256);
+    function setSnapshotDesperationDelay(uint32 desperationDelay_) external;
 
-    function setSnapshotDesperationFactor(uint256 minSize_) external;
+    function getSnapshotDesperationDelay() external view returns (uint256);
 
-    function snapshotDesperationFactor() external view returns (uint256);
+    function setSnapshotDesperationFactor(uint32 desperationFactor_) external;
 
-    function setMinMadSnapshotSize(uint256 minSize_) external;
+    function getSnapshotDesperationFactor() external view returns (uint256);
 
-    function minMadSnapshotSize() external view returns (uint256);
-
-    function setEpoch(uint256 ns) external;
+    function getChainId() external view returns (uint256);
 
     function getEpoch() external view returns (uint256);
 
-    function getChainIdFromSnapshot(uint256 snapshotNumber) external view returns (uint32);
+    function getEpochLength() external view returns (uint256);
 
-    function getRawBlockClaimsSnapshot(uint256 snapshotNumber) external view returns (bytes memory);
+    function getChainIdFromSnapshot(uint256 snapshotNumber) external view returns (uint256);
 
-    function getRawSignatureSnapshot(uint256 snapshotNumber) external view returns (bytes memory);
+    function getChainIdFromLatestSnapshot() external view returns (uint256);
 
-    function getHeightFromSnapshot(uint256 snapshotNumber) external view returns (uint32);
+    function getBlockClaimsFromSnapshot(uint256 snapshotNumber)
+        external
+        view
+        returns (BClaimsParserLibrary.BClaims memory);
 
-    function getMadHeightFromSnapshot(uint256 snapshotNumber) external view returns (uint32);
+    function getBlockClaimsFromLatestSnapshot()
+        external
+        view
+        returns (BClaimsParserLibrary.BClaims memory);
 
-    function getChainIdFromLatestSnapshot(uint256 snapshotNumber) external view returns (uint32);
+    function getSignatureFromSnapshot(uint256 snapshotNumber)
+        external
+        view
+        returns (uint256[2] memory);
 
-    function getRawBlockClaimsFromLatestSnapshot() external view returns (bytes memory);
+    function getSignatureFromLatestSnapshot() external view returns (uint256[2] memory);
 
-    function getRawSignatureFromLatestSnapshot() external view returns (bytes memory);
+    function getCommittedHeightFromSnapshot(uint256 snapshotNumber) external view returns (uint256);
 
-    function getHeightFromLatestSnapshot() external view returns (uint32);
+    function getCommittedHeightFromLatestSnapshot() external view returns (uint256);
 
-    function getMadHeightFromLatestSnapshot() external view returns (uint32);
+    function getMadnetHeightFromSnapshot(uint256 snapshotNumber) external view returns (uint256);
+
+    function getMadnetHeightFromLatestSnapshot() external view returns (uint256);
+
+    function getSnapshot(uint256 snapshotNumber) external view returns (Snapshot memory);
+
+    function getLatestSnapshot() external view returns (Snapshot memory);
 
     function snapshot(bytes calldata signatureGroup_, bytes calldata bClaims_)
         external
         returns (bool);
+
+    function mayValidatorSnapshot(
+        int256 numValidators,
+        int256 myIdx,
+        int256 blocksSinceDesperation,
+        bytes32 blsig,
+        int256 desperationFactor
+    ) external pure returns (bool);
 }

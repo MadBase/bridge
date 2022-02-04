@@ -3,7 +3,7 @@ pragma solidity ^0.8.9;
 
 import "../../ethdkg/ETHDKG.sol";
 
-contract ValidatorPool {
+contract ValidatorPoolMock {
 
     struct ValidatorData {
         uint128 index;
