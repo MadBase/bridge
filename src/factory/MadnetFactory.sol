@@ -4,7 +4,7 @@ import "../utils/DeterministicAddress.sol";
 import "../proxy/Proxy.sol";
 
 
-/// @custom:salt foobar
+/// @custom:salt MadnetFactory
 contract MadnetFactory is DeterministicAddress, ProxyUpgrader {
 
     /**
@@ -266,7 +266,6 @@ contract MadnetFactory is DeterministicAddress, ProxyUpgrader {
             // put address on constructor
             mstore(ptr, address())
             ptr := add(ptr, 0x20)
-            
             contractAddr := create(0, basePtr, sub(ptr, basePtr))
             if iszero(contractAddr) {
                 mstore(0, "yeet")
@@ -452,33 +451,4 @@ contract MadnetFactory is DeterministicAddress, ProxyUpgrader {
         }
         return size;
     }
-}
-
-
-contract utils {
-
-    function getCodeSize(address target) public view returns (uint256) {
-        uint256 csize;
-        assembly{
-            csize := extcodesize(target)
-        }
-        return csize;
-    }
-
-    function getCode(address _addr) public view returns (bytes memory o_code) {
-        assembly {
-            // retrieve the size of the code, this needs assembly
-            let size := extcodesize(_addr)
-            // allocate output byte array - this could also be done without assembly
-            // by using o_code = new bytes(size)
-            o_code := mload(0x40)
-            // new "memory end" including padding
-            mstore(0x40, add(o_code, and(add(add(size, 0x20), 0x1f), not(0x1f))))
-            // store length in memory
-            mstore(o_code, size)
-            // actually retrieve the code, this needs assembly
-            extcodecopy(_addr, add(o_code, 0x20), 0, size)
-        }
-    }
-    
 }

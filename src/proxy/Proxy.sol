@@ -394,13 +394,14 @@ abstract contract ProxyInternalUpgradeUnlock {
         }
     }
 }
-/// @custom:salt Mock
+/// @custom:salt kungfu
 contract Mock is ProxyInternalUpgradeLock, ProxyInternalUpgradeUnlock {
     address factory_;
     uint256 public v;
     uint256 public immutable i;
-    
-    constructor(uint256 _i) {
+    string p;
+    constructor(uint256 _i, string memory _p) {
+        p= _p;
         i = _i;
         factory_ = msg.sender;
     }
@@ -429,6 +430,7 @@ contract MockInitializable is ProxyInternalUpgradeLock, ProxyInternalUpgradeUnlo
     address factory_;
     uint256 public v;
     uint256 public i;
+    address public immutable factoryAddress = 0x0BBf39118fF9dAfDC8407c507068D47572623069;
    /**
      * @dev Indicates that the contract has been initialized.
      */
@@ -479,6 +481,10 @@ contract MockInitializable is ProxyInternalUpgradeLock, ProxyInternalUpgradeUnlo
 
     function _isConstructor() private view returns (bool) {
         return !isContract(address(this));
+    }
+
+    function initialize(uint256 i) public virtual initializer{
+        __Mock_init(i);
     }
 
     function __Mock_init(uint256 _i) internal onlyInitializing {
@@ -778,3 +784,5 @@ function deployTemplate(bytes calldata _deployCode) public returns (address cont
     }
 
 */
+
+
