@@ -245,7 +245,7 @@ contract MadnetFactory is DeterministicAddress, ProxyUpgrader {
     /**  
      * @dev deployTemplate deploys a template contract with the universal code copy constructor that deploys 
      * the deploycode as the contracts runtime code.    
-     * @param _deployCode dfs
+     * @param _deployCode the deploycode with the constructor args appended if any
      * @return contractAddr the address of the deployed template contract
      */
     function deployTemplate(bytes calldata _deployCode) public onlyOwner returns (address contractAddr) {
@@ -314,7 +314,9 @@ contract MadnetFactory is DeterministicAddress, ProxyUpgrader {
         emit DeployedStatic(contractAddr);
         return contractAddr;
     }
-    
+    /**
+     *
+     */
     function deployProxy(bytes32 _salt) public onlyOwner returns (address contractAddr) {
         address proxyTemplate = proxyTemplate_;
         assembly {
