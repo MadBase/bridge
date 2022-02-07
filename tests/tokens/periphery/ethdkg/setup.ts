@@ -8,7 +8,7 @@ import {
   utils,
   Wallet,
 } from "ethers";
-import { ETHDKG, ValidatorPool } from "../../../../typechain-types";
+import { ETHDKG, ValidatorPoolMock } from "../../../../typechain-types";
 
 export const PLACEHOLDER_ADDRESS = "0x0000000000000000000000000000000000000000";
 
@@ -146,11 +146,11 @@ export const getFixture = async () => {
   await validatorNFT.deployed();
   // console.log(`ValidatorNFT deployed at ${validatorNFT.address}`);
 
-  // ValidatorPool
-  const ValidatorPool = await ethers.getContractFactory("ValidatorPool");
-  const validatorPool = await ValidatorPool.deploy(utils.formatBytes32String("0x0"));
+  // ValidatorPoolMock
+  const ValidatorPoolMock = await ethers.getContractFactory("ValidatorPoolMock");
+  const validatorPool = await ValidatorPoolMock.deploy(utils.formatBytes32String("0x0"));
   await validatorPool.deployed();
-  // console.log(`ValidatorPool deployed at ${validatorPool.address}`);
+  // console.log(`ValidatorPoolMock deployed at ${validatorPool.address}`);
 
 
   // ETHDKG Accusations
@@ -165,8 +165,19 @@ export const getFixture = async () => {
 
    // ETHDKG
    const ETHDKG = await ethers.getContractFactory("ETHDKG");
-   const ethdkg = await ETHDKG.deploy(validatorPool.address, ethdkgAccusations.address, ethdkgPhases.address, utils.formatBytes32String("0x0"));
+   const ethdkg = await ETHDKG.deploy(validatorPool.address);
    await ethdkg.deployed();
+
+   const Snapshots = await ethers.getContractFactory("Snapshots");
+   const snapshots = await Snapshots.deploy(
+     ethdkg.address,
+     validatorPool.address,
+     1,
+     PLACEHOLDER_ADDRESS
+   );
+   await snapshots.deployed();
+
+   await ethdkg.initialize(validatorPool.address, snapshots.address, ethdkgAccusations.address, ethdkgPhases.address);
    // console.log(`ETHDKG deployed at ${ethdkg.address}`);
   // console.log("finished core deployment");
 
@@ -413,7 +424,7 @@ export const assertETHDKGPhase = async (
 
 // Aux functions
 export const addValidators = async (
-  validatorPool: ValidatorPool,
+  validatorPool: ValidatorPoolMock,
   validators: ValidatorRawData[]
 ) => {
   for (let validator of validators) {
@@ -453,7 +464,7 @@ export const waitNextPhaseStartDelay = async (ethdkg: ETHDKG) => {
 
 export const initializeETHDKG = async (
   ethdkg: ETHDKG,
-  validatorPool: ValidatorPool
+  validatorPool: ValidatorPoolMock
 ) => {
   let nonce = await ethdkg.getNonce();
   await expect(validatorPool.initializeETHDKG())
@@ -464,7 +475,7 @@ export const initializeETHDKG = async (
 
 export const registerValidators = async (
   ethdkg: ETHDKG,
-  validatorPool: ValidatorPool,
+  validatorPool: ValidatorPoolMock,
   validators: ValidatorRawData[],
   expectedNonce: number
 ) => {
@@ -501,7 +512,7 @@ export const registerValidators = async (
 
 export const distributeValidatorsShares = async (
   ethdkg: ETHDKG,
-  validatorPool: ValidatorPool,
+  validatorPool: ValidatorPoolMock,
   validators: ValidatorRawData[],
   expectedNonce: number
 ) => {
@@ -537,7 +548,7 @@ export const distributeValidatorsShares = async (
 
 export const submitValidatorsKeyShares = async (
   ethdkg: ETHDKG,
-  validatorPool: ValidatorPool,
+  validatorPool: ValidatorPoolMock,
   validators: ValidatorRawData[],
   expectedNonce: number
 ) => {
@@ -607,7 +618,7 @@ export const submitMasterPublicKey = async (
 
 export const submitValidatorsGPKJ = async (
   ethdkg: ETHDKG,
-  validatorPool: ValidatorPool,
+  validatorPool: ValidatorPoolMock,
   validators: ValidatorRawData[],
   expectedNonce: number,
   expectedEpoch: number
@@ -678,8 +689,8 @@ export const completeETHDKG = async (
 
 export const startAtDistributeShares = async (
   validators: ValidatorRawData[],
-  contracts?: { ethdkg: ETHDKG; validatorPool: ValidatorPool }
-): Promise<[ETHDKG, ValidatorPool, number]> => {
+  contracts?: { ethdkg: ETHDKG; validatorPool: ValidatorPoolMock }
+): Promise<[ETHDKG, ValidatorPoolMock, number]> => {
   const { ethdkg, validatorPool } =
     typeof contracts !== "undefined" ? contracts : await getFixture();
   // add validators
@@ -697,8 +708,8 @@ export const startAtDistributeShares = async (
 
 export const startAtSubmitKeyShares = async (
   validators: ValidatorRawData[],
-  contracts?: { ethdkg: ETHDKG; validatorPool: ValidatorPool }
-): Promise<[ETHDKG, ValidatorPool, number]> => {
+  contracts?: { ethdkg: ETHDKG; validatorPool: ValidatorPoolMock }
+): Promise<[ETHDKG, ValidatorPoolMock, number]> => {
   let [ethdkg, validatorPool, expectedNonce] = await startAtDistributeShares(
     validators,
     contracts
@@ -719,8 +730,8 @@ export const startAtSubmitKeyShares = async (
 
 export const startAtMPKSubmission = async (
   validators: ValidatorRawData[],
-  contracts?: { ethdkg: ETHDKG; validatorPool: ValidatorPool }
-): Promise<[ETHDKG, ValidatorPool, number]> => {
+  contracts?: { ethdkg: ETHDKG; validatorPool: ValidatorPoolMock }
+): Promise<[ETHDKG, ValidatorPoolMock, number]> => {
   let [ethdkg, validatorPool, expectedNonce] = await startAtSubmitKeyShares(
     validators,
     contracts
@@ -740,8 +751,8 @@ export const startAtMPKSubmission = async (
 
 export const startAtGPKJ = async (
   validators: ValidatorRawData[],
-  contracts?: { ethdkg: ETHDKG; validatorPool: ValidatorPool }
-): Promise<[ETHDKG, ValidatorPool, number]> => {
+  contracts?: { ethdkg: ETHDKG; validatorPool: ValidatorPoolMock }
+): Promise<[ETHDKG, ValidatorPoolMock, number]> => {
   let [ethdkg, validatorPool, expectedNonce] = await startAtMPKSubmission(
     validators,
     contracts
@@ -756,14 +767,14 @@ export const startAtGPKJ = async (
 
 export const completeETHDKGRound = async (
   validators: ValidatorRawData[],
-  contracts?: { ethdkg: ETHDKG; validatorPool: ValidatorPool }
-): Promise<[ETHDKG, ValidatorPool, number, number, number]> => {
+  contracts?: { ethdkg: ETHDKG; validatorPool: ValidatorPoolMock }
+): Promise<[ETHDKG, ValidatorPoolMock, number, number, number]> => {
   let [ethdkg, validatorPool, expectedNonce] = await startAtGPKJ(
     validators,
     contracts
   );
   const expectedEpoch = 1;
-  const expectedMadHeight = 1;
+  const expectedMadHeight = 0;
   // Submit GPKj for all validators
   await submitValidatorsGPKJ(
     ethdkg,

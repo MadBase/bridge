@@ -6,6 +6,6 @@ import "./Snapshots.sol";
 import "./Staking.sol";
 import "./ValidatorsEvents.sol";
 
-interface Validators is Participants, Snapshots, Staking, ValidatorsEvents {
+interface Validators is Participants, ISnapshots, Staking, ValidatorsEvents {
 
 }

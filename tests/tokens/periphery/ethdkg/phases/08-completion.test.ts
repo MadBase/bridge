@@ -43,7 +43,7 @@ describe("ETHDKG Completion", () => {
       expectedNonce,
       1,
       1,
-      1,
+      0,
       validators4[0].mpk
     );
   });
@@ -108,7 +108,7 @@ describe("ETHDKG Completion", () => {
       expectedNonce,
       1,
       1,
-      1,
+      0,
       validators4[0].mpk
     );
 
@@ -148,7 +148,7 @@ describe("ETHDKG Completion", () => {
       expectedNonce,
       1,
       1,
-      1,
+      0,
       validators4[0].mpk
     );
 

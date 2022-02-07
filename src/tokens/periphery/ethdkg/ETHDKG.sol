@@ -9,33 +9,42 @@ import "./interfaces/IETHDKG.sol";
 import "./ETHDKGStorage.sol";
 import "./utils/ETHDKGUtils.sol";
 
-contract ETHDKG is
-    ETHDKGStorage,
-    IETHDKG,
-    IETHDKGEvents,
-    ETHDKGUtils
-{
-    constructor(
+contract ETHDKG is ETHDKGStorage, IETHDKG, IETHDKGEvents, ETHDKGUtils {
+    constructor(address factory_) {
+        _factory = factory_;
+    }
+
+    // constructor must have input arguments:
+    // any number of args with no dynamic size arguments
+    // The last argument should be the factory
+
+    //todo: add onlyOnce initializer here
+    function initialize(
         address validatorPool,
+        address snapshots,
         address ethdkgAccusations,
-        address ethdkgPhases,
-        bytes memory hook
-    ) {
+        address ethdkgPhases
+    ) public {
+        //todo: remove this;
         _nonce = 0;
         _phaseStartBlock = 0;
-        _phaseLength = 40;
-        _confirmationLength = 6;
         _numParticipants = 0;
         _badParticipants = 0;
+        //
+        _phaseLength = 40;
+        _confirmationLength = 6;
         _minValidators = 4;
         // todo: use contract factory with create2
         _validatorPool = IValidatorPool(validatorPool);
+        _snapshots = ISnapshots(snapshots);
         // todo: use contract factory with create2
         _ethdkgAccusations = ethdkgAccusations;
         // todo: use contract factory with create2
         _ethdkgPhases = ethdkgPhases;
         _admin = msg.sender;
     }
+
+    //initialize can take any number of args and any function select value
 
     modifier onlyAdmin() {
         require(msg.sender == _admin, "ETHDKG: requires admin privileges");
@@ -56,7 +65,7 @@ contract ETHDKG is
     }
 
     /// @dev getAdmin returns the current _admin
-    function getAdmin() public view returns(address) {
+    function getAdmin() public view returns (address) {
         return _admin;
     }
 
@@ -66,12 +75,18 @@ contract ETHDKG is
     }
 
     function setPhaseLength(uint16 phaseLength_) external onlyAdmin {
-        //todo: doesnt allow to change while an ethdkg round is going on
+        require(
+            !_isETHDKGRunning(),
+            "ETHDKG: This variable cannot be set if an ETHDKG round is running!"
+        );
         _phaseLength = phaseLength_;
     }
 
     function setConfirmationLength(uint16 confirmationLength_) external onlyAdmin {
-        //todo: doesnt allow to change while an ethdkg round is going on
+        require(
+            !_isETHDKGRunning(),
+            "ETHDKG: This variable cannot be set if an ETHDKG round is running!"
+        );
         _confirmationLength = confirmationLength_;
     }
 
@@ -79,12 +94,61 @@ contract ETHDKG is
         _validatorPool = IValidatorPool(validatorPool);
     }
 
+    function setSnapshotsAddress(address snapshots) external onlyAdmin {
+        _snapshots = ISnapshots(snapshots);
+    }
+
+    function setCustomMadnetHeight(uint256 madnetHeight) external onlyValidatorPool {
+        _customMadnetHeight = madnetHeight;
+        emit ValidatorSetCompleted(
+            0,
+            _nonce,
+            _snapshots.getEpoch(),
+            _snapshots.getCommittedHeightFromLatestSnapshot(),
+            madnetHeight,
+            0x0,
+            0x0,
+            0x0,
+            0x0
+        );
+    }
+
     function setMinNumberOfValidator(uint16 minValidators_) external onlyAdmin {
         _minValidators = minValidators_;
     }
 
-    function isAccusationWindowOver() public view returns (bool) {
-        return block.number > _phaseStartBlock + 2 * _phaseLength;
+    function isETHDKGRunning() public view returns (bool) {
+        return _isETHDKGRunning();
+    }
+
+    function _isETHDKGRunning() internal view returns (bool) {
+        // Handling initial case
+        if (_phaseStartBlock == 0) {
+            return false;
+        }
+        return !_isETHDKGCompleted() && !_isETHDKGHalted();
+    }
+
+    function isETHDKGCompleted() public view returns (bool) {
+        return _isETHDKGCompleted();
+    }
+
+    function _isETHDKGCompleted() internal view returns (bool) {
+        return _ethdkgPhase == Phase.Completion;
+    }
+
+    function isETHDKGHalted() public view returns (bool) {
+        return _isETHDKGHalted();
+    }
+
+    // todo: generate truth table
+    function _isETHDKGHalted() internal view returns (bool) {
+        bool ethdkgFailedInDisputePhase = (_ethdkgPhase == Phase.DisputeShareDistribution ||
+            _ethdkgPhase == Phase.DisputeGPKJSubmission) &&
+            block.number >= _phaseStartBlock + _phaseLength &&
+            _badParticipants != 0;
+        bool ethdkgFailedInNormalPhase = block.number >= _phaseStartBlock + 2 * _phaseLength;
+        return ethdkgFailedInNormalPhase || ethdkgFailedInDisputePhase;
     }
 
     function isMasterPublicKeySet() public view returns (bool) {
@@ -134,6 +198,28 @@ contract ETHDKG is
         return _participants[participant];
     }
 
+    function getParticipantsInternalState(address[] calldata participantAddresses)
+        public
+        view
+        returns (Participant[] memory)
+    {
+        Participant[] memory participants = new Participant[](participantAddresses.length);
+
+        for (uint256 i = 0; i < participantAddresses.length; i++) {
+            participants[i] = _participants[participantAddresses[i]];
+        }
+
+        return participants;
+    }
+
+    function tryGetParticipantIndex(address participant) public view returns (bool, uint256) {
+        Participant memory participantData = _participants[participant];
+        if (participantData.nonce == _nonce) {
+            return (true, _participants[participant].index);
+        }
+        return (false, 0);
+    }
+
     function getMasterPublicKey() public view returns (uint256[4] memory) {
         return _masterPublicKey;
     }
@@ -174,8 +260,9 @@ contract ETHDKG is
 
     function _initializeETHDKG() internal {
         //todo: should we reward ppl here?
+        uint256 numberValidators = _validatorPool.getValidatorsCount();
         require(
-            _validatorPool.getValidatorsCount() >= _minValidators,
+            numberValidators >= _minValidators,
             "ETHDKG: Minimum number of validators staked not met!"
         );
 
@@ -188,7 +275,13 @@ contract ETHDKG is
 
         delete _masterPublicKey;
 
-        emit RegistrationOpened(block.number, _nonce);
+        emit RegistrationOpened(
+            block.number,
+            numberValidators,
+            _nonce,
+            _phaseLength,
+            _confirmationLength
+        );
     }
 
     function register(uint256[2] memory publicKey) external onlyValidator {

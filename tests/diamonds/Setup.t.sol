@@ -44,10 +44,10 @@ contract Setup is Constants {
     BasicERC20 stakingToken;
     BasicERC20 utilityToken;
 
-    ETHDKG ethdkg;
+    IETHDKG ethdkg;
     Accusation accusation;
     Participants participants;
-    Snapshots snapshots;
+    ISnapshots snapshots;
     Staking staking;
     Validators validators;
     Sudo sudo;
@@ -73,7 +73,7 @@ contract Setup is Constants {
 
         address validatorsDiamond = registry.lookup(VALIDATORS_CONTRACT);
         participants = Participants(validatorsDiamond);
-        snapshots = Snapshots(validatorsDiamond);
+        snapshots = ISnapshots(validatorsDiamond);
         staking = Staking(validatorsDiamond);
         validators = Validators(validatorsDiamond);
         accusation = Accusation(validatorsDiamond);
@@ -81,7 +81,7 @@ contract Setup is Constants {
         validatorLocations = ValidatorLocations(validatorsDiamond);
 
         address ethDKGDiamond = registry.lookup(ETHDKG_CONTRACT);
-        ethdkg = ETHDKG(ethDKGDiamond);
+        ethdkg = IETHDKG(ethDKGDiamond);
         sudoETHDKG = Sudo(ethDKGDiamond);
 
         // Initialize
@@ -122,17 +122,17 @@ contract Setup is Constants {
         address validatorLocationsFacet = address(new ValidatorLocationsFacet());
 
         // SnapshotFacet Wiring
-        update.addFacet(Snapshots.initializeSnapshots.selector, snapshotsFacet);
-        update.addFacet(Snapshots.epoch.selector, snapshotsFacet);
-        update.addFacet(Snapshots.extractUint256.selector, snapshotsFacet);
-        update.addFacet(Snapshots.extractUint32.selector, snapshotsFacet);
-        update.addFacet(Snapshots.setEpoch.selector, snapshotsFacet);
-        update.addFacet(Snapshots.snapshot.selector, snapshotsFacet);
-        update.addFacet(Snapshots.getRawSignatureSnapshot.selector, snapshotsFacet);
-        update.addFacet(Snapshots.getRawBlockClaimsSnapshot.selector, snapshotsFacet);
-        update.addFacet(Snapshots.getMadHeightFromSnapshot.selector, snapshotsFacet);
-        update.addFacet(Snapshots.getHeightFromSnapshot.selector, snapshotsFacet);
-        update.addFacet(Snapshots.getChainIdFromSnapshot.selector, snapshotsFacet);
+        update.addFacet(ISnapshots.initializeSnapshots.selector, snapshotsFacet);
+        update.addFacet(ISnapshots.epoch.selector, snapshotsFacet);
+        update.addFacet(ISnapshots.extractUint256.selector, snapshotsFacet);
+        update.addFacet(ISnapshots.extractUint32.selector, snapshotsFacet);
+        update.addFacet(ISnapshots.setEpoch.selector, snapshotsFacet);
+        update.addFacet(ISnapshots.snapshot.selector, snapshotsFacet);
+        update.addFacet(ISnapshots.getRawSignatureSnapshot.selector, snapshotsFacet);
+        update.addFacet(ISnapshots.getRawBlockClaimsSnapshot.selector, snapshotsFacet);
+        update.addFacet(ISnapshots.getMadHeightFromSnapshot.selector, snapshotsFacet);
+        update.addFacet(ISnapshots.getHeightFromSnapshot.selector, snapshotsFacet);
+        update.addFacet(ISnapshots.getChainIdFromSnapshot.selector, snapshotsFacet);
 
         // StakingFacet Wiring
         update.addFacet(Staking.initializeStaking.selector, stakingFacet);
@@ -199,23 +199,23 @@ contract Setup is Constants {
         address sudoFacet = address(new SudoFacet());
 
         // Wiring facets
-        update.addFacet(ETHDKG.Group_Accusation_GPKj.selector, accusationFacet);
-        update.addFacet(ETHDKG.Group_Accusation_GPKj_Comp.selector, accusationFacet);
+        update.addFacet(IETHDKG.Group_Accusation_GPKj.selector, accusationFacet);
+        update.addFacet(IETHDKG.Group_Accusation_GPKj_Comp.selector, accusationFacet);
 
-        update.addFacet(ETHDKG.Successful_Completion.selector, completionFacet);
-        update.addFacet(ETHDKG.initializeEthDKG.selector, initFacet);
-        update.addFacet(ETHDKG.updatePhaseLength.selector, initFacet);
-        update.addFacet(ETHDKG.submit_dispute.selector, disputeFacet);
-        update.addFacet(ETHDKG.submit_master_public_key.selector, mpkFacet);
+        update.addFacet(IETHDKG.Successful_Completion.selector, completionFacet);
+        update.addFacet(IETHDKG.initializeEthDKG.selector, initFacet);
+        update.addFacet(IETHDKG.updatePhaseLength.selector, initFacet);
+        update.addFacet(IETHDKG.submit_dispute.selector, disputeFacet);
+        update.addFacet(IETHDKG.submit_master_public_key.selector, mpkFacet);
 
-        update.addFacet(ETHDKG.register.selector, miscFacet);
-        update.addFacet(ETHDKG.distribute_shares.selector, miscFacet);
-        update.addFacet(ETHDKG.submit_key_share.selector, miscFacet);
-        update.addFacet(ETHDKG.Submit_GPKj.selector, miscFacet);
+        update.addFacet(IETHDKG.register.selector, miscFacet);
+        update.addFacet(IETHDKG.distribute_shares.selector, miscFacet);
+        update.addFacet(IETHDKG.submit_key_share.selector, miscFacet);
+        update.addFacet(IETHDKG.Submit_GPKj.selector, miscFacet);
 
-        update.addFacet(ETHDKG.master_public_key.selector, infoFacet);
-        update.addFacet(ETHDKG.gpkj_submissions.selector, infoFacet);
-        update.addFacet(ETHDKG.getPhaseLength.selector, infoFacet);
+        update.addFacet(IETHDKG.master_public_key.selector, infoFacet);
+        update.addFacet(IETHDKG.gpkj_submissions.selector, infoFacet);
+        update.addFacet(IETHDKG.getPhaseLength.selector, infoFacet);
 
         // SudoFacet Wiring
         update.addFacet(Sudo.modifyDiamondStorage.selector, sudoFacet);

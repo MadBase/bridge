@@ -2,6 +2,7 @@
 pragma solidity ^0.8.11;
 
 import "../validatorPool/interfaces/IValidatorPool.sol";
+import "../validatorPool/interfaces/ISnapshots.sol";
 
 enum Phase {
     RegistrationOpen,
@@ -36,12 +37,22 @@ abstract contract ETHDKGStorage {
     uint16 internal _minValidators;
     uint16 internal _phaseLength;
     uint16 internal _confirmationLength;
+
+    // Madnet height used to start the new validator set in arbitrary height points if the Madnet
+    // Consensus is halted
+    uint256 internal _customMadnetHeight;
+
+    // todo: use contract factory with create2 to get rid of this
+    ISnapshots internal _snapshots;
+    // todo: use contract factory with create2 to get rid of this
     IValidatorPool internal _validatorPool;
     // todo: use contract factory with create2 to get rid of this
     address internal _ethdkgAccusations;
 
     // todo: use contract factory with create2 to get rid of this
     address internal _ethdkgPhases;
+
+    address internal _factory;
 
     address internal _admin;
 

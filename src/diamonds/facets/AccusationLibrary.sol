@@ -77,6 +77,7 @@ library AccusationLibrary {
 
         // Require that Proposal was signed by active validator.
         address signerAccount = recoverMadNetSigner(_pClaimsSig, _pClaims);
+        //todo: Once this is migrated to the new contracts, use isAccusable instead of isValidator!
         require(ParticipantsLibrary.isValidator(signerAccount), "AccusationLibrary: the signer of these proposal is not a valid validator!");
 
         // Validate ProofInclusionTxRoot against PClaims.BClaims.TxRoot.
@@ -147,6 +148,7 @@ library AccusationLibrary {
         require(pClaims0.rCert.rClaims.chainId == chainId, "AccusationLibrary: the chainId is invalid for this chain!");
 
         // ensure both accounts are applicable to a currently locked validator - Note<may be done in different layer?>
+        //todo: Once this is migrated to the new contracts, use isAccusable instead of isValidator!
         require(ParticipantsLibrary.isValidator(signerAccount0), "AccusationLibrary: the signer of these proposals is not a valid validator!");
 
         return signerAccount0;
