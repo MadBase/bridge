@@ -5,11 +5,26 @@ export interface FactoryData{
     address: string|any;
 }
 
+export interface DeployCreateData{
+    name:string;
+    address:string;
+    factoryName:string;
+    factoryAddress:string;
+    constructorArgs?:any
+}
+export interface MetaContractData{
+    metaAddress:string;
+    salt: string;
+    factoryName:string;
+    templateName:string;
+    templateAddress:string;
+    factoryAddress:string;
+}
 export interface TemplateData {
     name: string;
     address: string;
-    factoryName?: string;
-    factoryAddress?: string;
+    factoryName: string;
+    factoryAddress: string;
     constructorArgs?: string;
 }
 
@@ -17,10 +32,12 @@ export interface FactoryConfig {
     [key: string]: any
 }
 export interface ProxyData {
+    proxyAddress: string;
+    salt: string;
+    factoryAddress: string;
     logicName: string;
     logicAddress: string;
-    salt: string;
-    proxyAddress: string;
+    
 }
 
 export async function getFactoryConfigData() {
@@ -40,7 +57,12 @@ async function writeFactoryConfig(factoryConfig: FactoryConfig) {
 export async function updateDefaultFactoryData(name: string, address: string) {
     let config = await getFactoryConfigData();
     if (config.defaultFactoryData !== undefined) {
-        config.Factories.push(config.defaultFactoryData);
+        if(config.factories === undefined){
+            config.factories = [];
+            config.factories.push(config.defaultFactoryData);
+        }else{
+            config.factories.push(config.defaultFactoryData);
+        }
     }
     config.defaultFactoryData = {
         name: name,
@@ -49,11 +71,31 @@ export async function updateDefaultFactoryData(name: string, address: string) {
     await writeFactoryConfig(config);
 }
 
+export async function updateDeployCreateList(data:DeployCreateData) {
+    //fetch whats in the factory config file 
+    let config = await getFactoryConfigData();
+    if(config.deployCreates === undefined){
+        config.deployCreates = [];
+        //Add the proxy Data to theoxies array 
+        config.deployCreates.push(data);
+    }else{
+        config.deployCreates.push(data);
+    }
+    // write new data to config file
+    await writeFactoryConfig(config);
+}
+
 export async function updateTemplateList(data: TemplateData) {
     //fetch whats in the factory config file 
     let config = await getFactoryConfigData();
-    //Add the proxy Data to the proxies array 
-    config.Proxies.push(data);
+    if(config.templates === undefined){
+        
+        config.templates = [];
+        //Add the proxy Data to the proxies array 
+        config.templates.push(data);
+    }else{
+        config.templates.push(data);
+    }
     // write new data to config file
     await writeFactoryConfig(config);
 }
@@ -67,10 +109,29 @@ export async function updateTemplateList(data: TemplateData) {
 export async function updateProxyList(data: ProxyData) {
     //fetch whats in the factory config file 
     let config = await getFactoryConfigData();
-    //Add the proxy Data to the proxies array 
-    config.Proxies.push(data);
+    if(config.proxies === undefined){
+        
+        config.proxies = [];
+        //Add the proxy Data to the proxies array 
+        config.proxies.push(data);
+    }else{
+        config.proxies.push(data);
+    }
     // write new data to config file
     await writeFactoryConfig(config);
 }
 
-
+export async function updateMetaList(data: MetaContractData) {
+    //fetch whats in the factory config file 
+    let config = await getFactoryConfigData();
+    if(config.staticContracts === undefined){
+        
+        config.staticContracts = [];
+        //Add the proxy Data to the proxies array 
+        config.staticContracts.push(data);
+    }else{
+        config.staticContracts.push(data);
+    }
+    // write new data to config file
+    await writeFactoryConfig(config);
+}

@@ -532,18 +532,22 @@ contract("MadnetFactory", async (accounts) => {
         });
 
         it("DEPLOY FACTORY WITH CLI", async () => {        
-            let futureFactoryAddress = predictFactoryAddress(ownerAccount)
+            let futureFactoryAddress = await predictFactoryAddress(ownerAccount)
             let factoryAddress = await hre.run("deployFactory", {factoryName: madnetFactoryKey});
             //check if the address is the predicted 
             expect(factoryAddress).to.equal(futureFactoryAddress);
             let config = await getFactoryConfigData();
-            expect(config.defaultFactory.address).to.equal(factoryAddress);
+            expect(config.defaultFactoryData.address).to.equal(factoryAddress);
         });
 
         it("DEPLOY UPGRADEABLE PROXY", async () => {
-            let receipt = await hre.run("deployUpgradeableProxy", {contractName: mockContractKey, constructorArgs: [2, "peep"]})
+            let receipt = await hre.run("deployUpgradeableProxy", {contractName: mockContractKey, constructorArgs: ['2', 'peep']})
             console.log("pData: ", receipt);
-        })
+        });
+        it("DEPLOY MOCK WITH DEPLOYSTATIC", async () => {
+            await hre.run("deployMetamorphic", {contractName: "endPoint", constructorArgs: ['0x92D3A65c5890a5623F3d73Bf3a30c973043eE90C']});
+            
+        });
         
     });
 
@@ -588,22 +592,18 @@ contract("MadnetFactory", async (accounts) => {
             expect(cSize.toNumber()).to.be.greaterThan(0);
         });
     });
-   
-    
-
-    
 });
 
-
-function predictFactoryAddress(ownerAddress){
-    console.log(ethers.provider)
-    let txCount = ethers.provider.getTransactionCount(ownerAddress);
+async function predictFactoryAddress(ownerAddress){
+    let txCount = await ethers.provider.getTransactionCount(ownerAddress);
+    console.log(txCount)
     let futureFactoryAddress = hre.ethers.utils.getContractAddress({
         from: ownerAddress,
         nonce: txCount
       });
     return futureFactoryAddress;
 }
+
 async function proxyMockLogicTest(contract, salt, proxyAddress, mockLogicAddr, endPointAddr, factoryAddress){
     const factory = await MadnetFactory.at(factoryAddress)
     const mockProxy = await contract.at(proxyAddress);
