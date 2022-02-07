@@ -108,11 +108,6 @@ export const getFixture = async (): Promise<Fixture> => {
   );
   await validatorPool.deployed();
   // console.log(`ValidatorPool deployed at ${validatorPool.address}`);
-  await ethdkg.initialize(
-    validatorPool.address,
-    ethdkgAccusations.address,
-    ethdkgPhases.address
-  );
 
   const Snapshots = await ethers.getContractFactory("Snapshots");
   const snapshots = await Snapshots.deploy(
@@ -122,6 +117,13 @@ export const getFixture = async (): Promise<Fixture> => {
     PLACEHOLDER_ADDRESS
   );
   await snapshots.deployed();
+
+  await ethdkg.initialize(
+    validatorPool.address,
+    snapshots.address,
+    ethdkgAccusations.address,
+    ethdkgPhases.address
+  );
 
   return {
     madToken,
