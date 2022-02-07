@@ -8,7 +8,14 @@ const { isTemplateExpression, factory } = require('typescript');
 const { check } = require("prettier");
 const { hrtime } = require("process");
 const { upgradeProxy, deployStatic, deployUpgradeable }=require("../../scripts/lib/MadnetFactory");
-
+const { 
+    getFactoryConfigData,
+    updateTemplateList, 
+    updateDefaultFactoryData, 
+    updateProxyList,
+    TemplateData,
+    ProxyData, 
+  } = require("../../scripts/lib/factoryUtils"); 
 let Proxy;
 let EndPoint;
 let MadnetFactory;
@@ -518,32 +525,26 @@ contract("MadnetFactory", async (accounts) => {
             //set owner and delegator
             ownerAccount = accounts[0];
             delegatorAccount = accounts[1];
-            Proxy = await hre.artifacts.require("Proxy");
-            EndPoint = await hre.artifacts.require("endPoint");
-            MadnetFactory = await hre.artifacts.require("MadnetFactory");
-            Mock = await hre.artifacts.require("Mock");
-            MockSD = await hre.artifacts.require("MockSD");
-            mockInit = await hre.artifacts.require("MockInitializable");
-            mockFactory = await hre.artifacts.require("MockFactory");
             Utils = await hre.artifacts.require("utils");
             //get a instance of a ethereum provider
             //this.provider = new ethers.providers.JsonRpcProvider();
             this.utils = await Utils.new();
-            this.factory = await deployFactory(madnetFactoryKey);
         });
-        it("TEST IMUTTABLE FACTORY", async()=>{
-            let mock = await mockInit.new();
-            let address = await mock.factoryAddress.call();
-            console.log(address)
-        })
-        it("DEPLOY FACTORY WITH CLI", async () =>{
+
+        it("DEPLOY FACTORY WITH CLI", async () => {        
+            let futureFactoryAddress = predictFactoryAddress(ownerAccount)
             let factoryAddress = await hre.run("deployFactory", {factoryName: madnetFactoryKey});
-            console.log("Factory Address", factoryAddress);
+            //check if the address is the predicted 
+            expect(factoryAddress).to.equal(futureFactoryAddress);
+            let config = await getFactoryConfigData();
+            expect(config.defaultFactory.address).to.equal(factoryAddress);
         });
+
         it("DEPLOY UPGRADEABLE PROXY", async () => {
             let receipt = await hre.run("deployUpgradeableProxy", {contractName: mockContractKey, constructorArgs: [2, "peep"]})
             console.log("pData: ", receipt);
         })
+        
     });
 
     describe("MADNETFACTORY API TEST", async () => {
@@ -593,6 +594,16 @@ contract("MadnetFactory", async (accounts) => {
     
 });
 
+
+function predictFactoryAddress(ownerAddress){
+    console.log(ethers.provider)
+    let txCount = ethers.provider.getTransactionCount(ownerAddress);
+    let futureFactoryAddress = hre.ethers.utils.getContractAddress({
+        from: ownerAddress,
+        nonce: txCount
+      });
+    return futureFactoryAddress;
+}
 async function proxyMockLogicTest(contract, salt, proxyAddress, mockLogicAddr, endPointAddr, factoryAddress){
     const factory = await MadnetFactory.at(factoryAddress)
     const mockProxy = await contract.at(proxyAddress);

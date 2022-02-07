@@ -29,10 +29,7 @@ task("accounts", "Prints the list of accounts", async (taskArgs, hre) => {
   }
 });
 const config: HardhatUserConfig = {
-  defaultFactory: {
-    name: "MadnetFactory",
-    address: "0x0BBf39118fF9dAfDC8407c507068D47572623069"
-  },
+
   namedAccounts: {
     'admin': 0,
     'validator0': 1,

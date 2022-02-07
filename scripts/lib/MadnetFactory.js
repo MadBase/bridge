@@ -127,7 +127,7 @@ async function getSalt(contractName){
     return ethers.utils.formatBytes32String(salt.toString());
 }
 
-async function getDeployType(contractName){
+async function getDeployTypeWithContractName(contractName){
     let qualifiedName = await getFullyQaulifiedName(contractName);
     let buildInfo = await artifacts.getBuildInfo(qualifiedName);
     let filePath = await extractPath(qualifiedName);
