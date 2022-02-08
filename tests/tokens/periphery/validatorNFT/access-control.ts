@@ -13,7 +13,7 @@ import {
 } from "ethers";
 import { getAdminAddress } from "@openzeppelin/upgrades-core";
 
-describe("Tests ValidatorNFT methods", () => {
+describe("Tests ValidatorNFT Access Control", () => {
 
   let fixture: Fixture
   let adminSigner: SignerWithAddress;
@@ -26,7 +26,6 @@ describe("Tests ValidatorNFT methods", () => {
     const [admin, notAdmin] = fixture.namedSigners;
     adminSigner = await ethers.getSigner(admin.address);
     notAdminSigner = await ethers.getSigner(notAdmin.address);
-    console.log(adminSigner.address,notAdminSigner.address)
     await fixture.madToken.approve(fixture.validatorNFT.address, amount)
   });
 
@@ -86,12 +85,8 @@ describe("Tests ValidatorNFT methods", () => {
   it.only("Should burn a token and send staking funds to an address if sender is admin", async function () {
     let tx = await fixture.validatorNFT
       .connect(adminSigner)
-      .mintTo(notAdminSigner.address, amount, lockTime);
+      .mint(amount);
     let tokenId = await getTokenIdFromTx(tx)
-    console.log(await fixture.validatorNFT.ownerOf(tokenId))
-    // await fixture.stakeNFT
-    // .connect(adminSigner)
-    // .setApprovalForAll(fixture.validatorNFT.address, true);
     await fixture.validatorNFT
       .connect(adminSigner)
       .burnTo(notAdminSigner.address, tokenId);

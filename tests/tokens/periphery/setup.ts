@@ -117,6 +117,8 @@ export const getFixture = async (): Promise<Fixture> => {
     PLACEHOLDER_ADDRESS
   );
   await snapshots.deployed();
+  
+  await validatorPool.setSnapshot(snapshots.address)
 
   await ethdkg.initialize(
     validatorPool.address,

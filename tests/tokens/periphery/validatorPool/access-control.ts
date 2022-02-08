@@ -12,7 +12,7 @@ import {
   Wallet,
 } from "ethers";
 
-describe("Tests ValidatorPool methods", () => {
+describe("Testing ValidatorPool Access Control ", () => {
 
   let fixture: Fixture;
   let adminSigner: SignerWithAddress;
@@ -63,140 +63,141 @@ describe("Tests ValidatorPool methods", () => {
 
   });
 
-  it("Should set a minimum stake if sender is admin", async function () {
-    await fixture.validatorPool
-      .connect(adminSigner)
-      .setMinimumStake(minimunStake);
-  });
+  describe("A user that has admin role", async function () {
 
-  it("Should not set a minimum stake if sender is not admin", async function () {
-    await expect(
-      fixture.validatorPool.
-        connect(notAdmin1Signer).
-        setMinimumStake(minimunStake)
-    ).to.be.revertedWith("ValidatorsPool: Requires admin privileges");
-  });
+    it("Should be able to set a minimum stake", async function () {
+      await fixture.validatorPool
+        .connect(adminSigner)
+        .setStakeAmount(stakeAmount);
+    });
+    it("Should be able to set a maximum number of validators stake", async function () {
+      await fixture.validatorPool
+        .connect(adminSigner)
+        .setMaxNumValidators(maxNumValidators);
+    });
+    it("Should be able to set snapshot", async function () {
+      await fixture.validatorPool
+        .connect(adminSigner)
+        .setSnapshot(fixture.snapshots.address);
+    });
 
-  it("Should set a maximum number of validators stake if sender is admin", async function () {
-    await fixture.validatorPool
-      .connect(adminSigner)
-      .setMaxNumValidators(maxNumValidators);
-  });
+    it("Should be able to set ETHDKG", async function () {
+      await fixture.validatorPool
+        .connect(adminSigner)
+        .setETHDKG(fixture.ethdkg.address);
+    });
 
-  it("Should not set a maximum number of validators if sender is not admin", async function () {
-    await expect(
-      fixture.validatorPool
-        .connect(notAdmin1Signer)
-        .setMaxNumValidators(maxNumValidators)
-    ).to.be.revertedWith("ValidatorsPool: Requires admin privileges");
-  });
+    it("Should be able to schedule maintenance", async function () {
+      await fixture.validatorPool.
+        connect(adminSigner).
+        scheduleMaintenance();
+    });
 
-  it("Should set snapshot if sender is admin", async function () {
-    await fixture.validatorPool
-      .connect(adminSigner)
-      .setSnapshot(fixture.snapshots.address);
-  });
+    it("Should be able to register validators", async function () {
+      await fixture.validatorPool
+        .connect(adminSigner)
+        .registerValidators(validators, stakingTokenIds);
+    });
 
-  it("Should not set snapshot if sender is not admin", async function () {
-    await expect(
-      fixture.validatorPool
-        .connect(notAdmin1Signer)
-        .setSnapshot(fixture.snapshots.address)
-    ).to.be.revertedWith("ValidatorsPool: Requires admin privileges");
-  });
+    it("Should be able to initialize ETHDKG", async function () {
+      await fixture.validatorPool
+        .connect(adminSigner)
+        .registerValidators(validators, stakingTokenIds);
+      await fixture.validatorPool.
+        connect(adminSigner).
+        initializeETHDKG();
+    });
 
-  it("Should set ETHDKG if sender is admin", async function () {
-    await fixture.validatorPool
-      .connect(adminSigner)
-      .setETHDKG(fixture.ethdkg.address);
-  });
+    it("Should be able to unregister validators", async function () {
+      await fixture.validatorPool
+        .connect(adminSigner)
+        .registerValidators(validators, stakingTokenIds);
+      await fixture.validatorPool
+        .connect(adminSigner)
+        .unregisterValidators(validators);
+    });
 
-  it("Should not set ETHDKG if sender is not admin", async function () {
-    await expect(
-      fixture.validatorPool
-        .connect(notAdmin1Signer)
-        .setETHDKG(fixture.ethdkg.address)
-    ).to.be.revertedWith("ValidatorsPool: Requires admin privileges");
-  });
+    it("Should be able to pause consensus", async function () {
+      await expect(
+        fixture.validatorPool
+          .connect(adminSigner)
+          .pauseConsensusOnArbitraryHeight(1)
+      ).to.be.revertedWith("ValidatorPool: Condition not met to stop consensus!");
+      // await fixture.validatorPool
+      //   .connect(adminSigner)
+      //   .unregisterValidators(validators);
+    });
+  })
 
-  it("Should schedule maintenance if sender is admin", async function () {
-    await fixture.validatorPool.
-      connect(adminSigner).
-      scheduleMaintenance();
-  });
+  describe("As a user that has not admin role", async function () {
+    it("Should not be able to set a minimum stake", async function () {
+      await expect(
+        fixture.validatorPool.
+          connect(notAdmin1Signer).
+          setStakeAmount(stakeAmount)
+      ).to.be.revertedWith("ValidatorsPool: Requires admin privileges");
+    });
+    it("Should not be able to set a maximum number of validators", async function () {
+      await expect(
+        fixture.validatorPool
+          .connect(notAdmin1Signer)
+          .setMaxNumValidators(maxNumValidators)
+      ).to.be.revertedWith("ValidatorsPool: Requires admin privileges");
+    });
+    it("Should not be able to set snapshot", async function () {
+      await expect(
+        fixture.validatorPool
+          .connect(notAdmin1Signer)
+          .setSnapshot(fixture.snapshots.address)
+      ).to.be.revertedWith("ValidatorsPool: Requires admin privileges");
+    });
+    it("Should not be able to set ETHDKG", async function () {
+      await expect(
+        fixture.validatorPool
+          .connect(notAdmin1Signer)
+          .setETHDKG(fixture.ethdkg.address)
+      ).to.be.revertedWith("ValidatorsPool: Requires admin privileges");
+    });
+    it("Should not be able to schedule maintenance", async function () {
+      await expect(
+        fixture.validatorPool.
+          connect(notAdmin1Signer).
+          scheduleMaintenance()
+      ).to.be.revertedWith("ValidatorsPool: Requires admin privileges");
+    });
+    it("Should not be able to register validators", async function () {
+      await expect(
+        fixture.validatorPool
+          .connect(notAdmin1Signer)
+          .registerValidators(validators, stakingTokenIds)
+      ).to.be.revertedWith("ValidatorsPool: Requires admin privileges");
+    });
 
-  it("Should not schedule maintenance if sender is not admin", async function () {
-    await expect(
-      fixture.validatorPool.
-        connect(notAdmin1Signer).
-        scheduleMaintenance()
-    ).to.be.revertedWith("ValidatorsPool: Requires admin privileges");
-  });
+    it("Should not be able to initialize ETHDKG", async function () {
+      await expect(
+        fixture.validatorPool
+          .connect(notAdmin1Signer)
+          .initializeETHDKG()).
+        to.be.revertedWith("ValidatorsPool: Requires admin privileges");
+    });
 
-  it("Should register validators if sender is admin", async function () {
-    await fixture.validatorPool
-      .connect(adminSigner)
-      .registerValidators(validators, stakingTokenIds);
-  });
+    it("Should not be able to unregister validators", async function () {
+      await expect(
+        fixture.validatorPool
+          .connect(notAdmin1Signer)
+          .unregisterValidators(validators)
+      ).to.be.revertedWith("ValidatorsPool: Requires admin privileges");
+    });
 
-  it("Should not register validators if sender is not admin", async function () {
-    await expect(
-      fixture.validatorPool
-        .connect(notAdmin1Signer)
-        .registerValidators(validators, stakingTokenIds)
-    ).to.be.revertedWith("ValidatorsPool: Requires admin privileges");
-  });
+    it("Should not be able to pause consensus", async function () {
+      await expect(
+        fixture.validatorPool
+          .connect(notAdmin1Signer)
+          .pauseConsensusOnArbitraryHeight(1)
+      ).to.be.revertedWith("ValidatorsPool: Requires admin privileges");
+    });
 
-  it("Should initialize ETHDKG if sender is admin", async function () {
-    await fixture.validatorPool
-      .connect(adminSigner)
-      .registerValidators(validators, stakingTokenIds);
-    await fixture.validatorPool.
-      connect(adminSigner).
-      initializeETHDKG();
-  });
-
-  it("Should not initialize ETHDKG if sender is not admin", async function () {
-    await expect(
-      fixture.validatorPool
-        .connect(notAdmin1Signer)
-        .initializeETHDKG()).
-      to.be.revertedWith("ValidatorsPool: Requires admin privileges");
-  });
-
-  it("Should unregister validators if sender is admin", async function () {
-    await fixture.validatorPool
-      .connect(adminSigner)
-      .registerValidators(validators, stakingTokenIds);
-    await fixture.validatorPool
-      .connect(adminSigner)
-      .unregisterValidators(validators);
-  });
-
-  it("Should not unregister validators if sender is not admin", async function () {
-    await expect(
-      fixture.validatorPool
-        .connect(notAdmin1Signer)
-        .unregisterValidators(validators)
-    ).to.be.revertedWith("ValidatorsPool: Requires admin privileges");
-  });
-
-  it("Should pause consesus if sender is admin", async function () {
-    await fixture.validatorPool
-      .connect(adminSigner)
-      .pauseConsensusOnArbitraryHeight(1);
-    await fixture.validatorPool
-      .connect(adminSigner)
-      .unregisterValidators(validators);
-  });
-
-  it("Should not pause consensus if sender is not admin", async function () {
-    await expect(
-      fixture.validatorPool
-        .connect(notAdmin1Signer)
-        .pauseConsensusOnArbitraryHeight(1)
-    ).to.be.revertedWith("ValidatorsPool: Requires admin privileges");
-  });
+  })
 
   after(async function () {
     validators.map(async (validator) => {
