@@ -3,6 +3,12 @@ pragma solidity ^0.8.11;
 
 import "../../../../parsers/BClaimsParserLibrary.sol";
 
+struct Snapshot {
+    uint256 committedAt;
+    BClaimsParserLibrary.BClaims blockClaims;
+    uint256[2] signature;
+}
+
 interface ISnapshots {
     event SnapshotTaken(
         uint256 chainId,
@@ -11,12 +17,6 @@ interface ISnapshots {
         address indexed validator,
         bool safeToProceedConsensus
     );
-
-    struct Snapshot {
-        uint256 committedAt;
-        BClaimsParserLibrary.BClaims blockClaims;
-        uint256[2] signature;
-    }
 
     function setEpochLength(uint32 epochLength_) external;
 

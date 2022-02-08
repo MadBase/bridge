@@ -312,10 +312,18 @@ contract ETHDKGPhases is ETHDKGStorage, IETHDKGEvents, ETHDKGUtils {
 
         // Since we had a dispute stage prior this state we need to set global state in here
         _setPhase(Phase.Completion);
-        //todo:fix this once we have the snapshot logic!!!!!
-        uint32 epoch = 1; //uint32(es.validators.epoch()) - 1; // validators is always set to the _next_ epoch
-        uint32 ethHeight = 1; //uint32(es.validators.getHeightFromSnapshot(epoch));
-        uint32 madHeight = 0; // uint32(es.validators.getMadHeightFromSnapshot(epoch));
+
+        _validatorPool.completeETHDKG();
+
+        uint256 epoch = _snapshots.getEpoch();
+        uint256 ethHeight = _snapshots.getCommittedHeightFromLatestSnapshot();
+        uint256 madHeight;
+        if (_customMadnetHeight == 0) {
+            madHeight = _snapshots.getMadnetHeightFromLatestSnapshot();
+        } else {
+            madHeight = _customMadnetHeight;
+            _customMadnetHeight = 0;
+        }
         emit ValidatorSetCompleted(
             uint8(_validatorPool.getValidatorsCount()),
             _nonce,

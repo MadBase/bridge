@@ -13,28 +13,37 @@ contract ETHDKG is ETHDKGStorage, IETHDKG, IETHDKGEvents, ETHDKGUtils {
     constructor(address factory_) {
         _factory = factory_;
     }
+
     // constructor must have input arguments:
     // any number of args with no dynamic size arguments
     // The last argument should be the factory
 
-
     //todo: add onlyOnce initializer here
-    function initialize(address validatorPool, address ethdkgAccusations, address ethdkgPhases) public {
+    function initialize(
+        address validatorPool,
+        address snapshots,
+        address ethdkgAccusations,
+        address ethdkgPhases
+    ) public {
+        //todo: remove this;
         _nonce = 0;
         _phaseStartBlock = 0;
-        _phaseLength = 40;
-        _confirmationLength = 6;
         _numParticipants = 0;
         _badParticipants = 0;
+        //
+        _phaseLength = 40;
+        _confirmationLength = 6;
         _minValidators = 4;
         // todo: use contract factory with create2
         _validatorPool = IValidatorPool(validatorPool);
+        _snapshots = ISnapshots(snapshots);
         // todo: use contract factory with create2
         _ethdkgAccusations = ethdkgAccusations;
         // todo: use contract factory with create2
         _ethdkgPhases = ethdkgPhases;
         _admin = msg.sender;
     }
+
     //initialize can take any number of args and any function select value
 
     modifier onlyAdmin() {
@@ -66,17 +75,42 @@ contract ETHDKG is ETHDKGStorage, IETHDKG, IETHDKGEvents, ETHDKGUtils {
     }
 
     function setPhaseLength(uint16 phaseLength_) external onlyAdmin {
-        require(!_isETHDKGRunning(), "ETHDKG: This variable cannot be set if an ETHDKG round is running!");
+        require(
+            !_isETHDKGRunning(),
+            "ETHDKG: This variable cannot be set if an ETHDKG round is running!"
+        );
         _phaseLength = phaseLength_;
     }
 
     function setConfirmationLength(uint16 confirmationLength_) external onlyAdmin {
-        require(!_isETHDKGRunning(), "ETHDKG: This variable cannot be set if an ETHDKG round is running!");
+        require(
+            !_isETHDKGRunning(),
+            "ETHDKG: This variable cannot be set if an ETHDKG round is running!"
+        );
         _confirmationLength = confirmationLength_;
     }
 
     function setValidatorPoolAddress(address validatorPool) external onlyAdmin {
         _validatorPool = IValidatorPool(validatorPool);
+    }
+
+    function setSnapshotsAddress(address snapshots) external onlyAdmin {
+        _snapshots = ISnapshots(snapshots);
+    }
+
+    function setCustomMadnetHeight(uint256 madnetHeight) external onlyValidatorPool {
+        _customMadnetHeight = madnetHeight;
+        emit ValidatorSetCompleted(
+            0,
+            _nonce,
+            _snapshots.getEpoch(),
+            _snapshots.getCommittedHeightFromLatestSnapshot(),
+            madnetHeight,
+            0x0,
+            0x0,
+            0x0,
+            0x0
+        );
     }
 
     function setMinNumberOfValidator(uint16 minValidators_) external onlyAdmin {
@@ -95,20 +129,20 @@ contract ETHDKG is ETHDKGStorage, IETHDKG, IETHDKGEvents, ETHDKGUtils {
         return !_isETHDKGCompleted() && !_isETHDKGHalted();
     }
 
-    function isETHDKGCompleted() public view returns(bool) {
+    function isETHDKGCompleted() public view returns (bool) {
         return _isETHDKGCompleted();
     }
 
-    function _isETHDKGCompleted() internal view returns(bool) {
+    function _isETHDKGCompleted() internal view returns (bool) {
         return _ethdkgPhase == Phase.Completion;
     }
 
-    function isETHDKGHalted() public view returns(bool) {
+    function isETHDKGHalted() public view returns (bool) {
         return _isETHDKGHalted();
     }
 
     // todo: generate truth table
-    function _isETHDKGHalted() internal view returns(bool) {
+    function _isETHDKGHalted() internal view returns (bool) {
         bool ethdkgFailedInDisputePhase = (_ethdkgPhase == Phase.DisputeShareDistribution ||
             _ethdkgPhase == Phase.DisputeGPKJSubmission) &&
             block.number >= _phaseStartBlock + _phaseLength &&
@@ -178,7 +212,7 @@ contract ETHDKG is ETHDKGStorage, IETHDKG, IETHDKGEvents, ETHDKGUtils {
         return participants;
     }
 
-    function tryGetParticipantIndex(address participant) public view returns(bool, uint256){
+    function tryGetParticipantIndex(address participant) public view returns (bool, uint256) {
         Participant memory participantData = _participants[participant];
         if (participantData.nonce == _nonce) {
             return (true, _participants[participant].index);

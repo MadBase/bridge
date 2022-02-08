@@ -148,7 +148,7 @@ contract Snapshots is ISnapshots {
         require(!_ethdkg.isETHDKGRunning(), "Snapshots: There's an ETHDKG round running!");
 
         (bool success, uint256 validatorIndex) = _ethdkg.tryGetParticipantIndex(msg.sender);
-        require(success, "Snapshots: Caller doesn't participated in the last ethdkg round");
+        require(success, "Snapshots: Caller didn't participate in the last ethdkg round!");
 
         //todo: are we going to snapshot on epoch 0?
         uint32 epoch = _epoch + 1;
@@ -167,15 +167,19 @@ contract Snapshots is ISnapshots {
             "Snapshots: Validator not elected to do snapshot!"
         );
 
-        (uint256[4] memory publicKey, uint256[2] memory signature) = RCertParserLibrary
+        (uint256[4] memory masterPublicKey, uint256[2] memory signature) = RCertParserLibrary
             .extractSigGroup(signatureGroup_, 0);
 
         require(
-            CryptoLibrary.Verify(abi.encodePacked(keccak256(bClaims_)), signature, publicKey),
-            "Snapshots: Signature verification failed!"
+            keccak256(abi.encodePacked(masterPublicKey)) ==
+                keccak256(abi.encodePacked(_ethdkg.getMasterPublicKey())),
+            "Snapshots: Wrong master public key!"
         );
 
-        //todo: check master publickey with signature?
+        require(
+            CryptoLibrary.Verify(abi.encodePacked(keccak256(bClaims_)), signature, masterPublicKey),
+            "Snapshots: Signature verification failed!"
+        );
 
         BClaimsParserLibrary.BClaims memory blockClaims = BClaimsParserLibrary.extractBClaims(
             bClaims_
@@ -191,7 +195,7 @@ contract Snapshots is ISnapshots {
         bool isSafeToProceedConsensus = true;
         if (_validatorPool.isMaintenanceScheduled()) {
             isSafeToProceedConsensus = false;
-            _validatorPool.pauseConsensus(blockClaims.height);
+            _validatorPool.pauseConsensus();
         }
 
         _snapshots[epoch] = Snapshot(block.number, blockClaims, signature);
@@ -240,6 +244,7 @@ contract Snapshots is ISnapshots {
             if (numValidatorsAllowed > numValidators / 3) break;
         }
 
+        //blocksSinceDesperation - desperationFactor - desperationFactor/2 - desperationFactor/3
         uint256 rand = uint256(blsig);
         int256 start = int256(rand % uint256(numValidators));
         int256 end = (start + numValidatorsAllowed) % numValidators;
