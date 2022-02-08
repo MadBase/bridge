@@ -100,7 +100,7 @@ contract MadByte is ERC20, Admin, Mutex, MagicEthTransfer, EthSafeTransfer, Sigm
         _madStakingSplit = madStakingSplit_;
         _lpStakingSplit = lpStakingSplit_;
         _protocolFee = protocolFee_;
-    }
+    } 
 
     /// Converts an amount of Madbytes in ether given a point in the bonding
     /// curve (poolbalance and totalsupply at given time).

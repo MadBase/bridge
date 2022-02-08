@@ -166,30 +166,26 @@ subtask("upgradeDeployedProxy", "deploys a contract from the factory using creat
   .addParam("factoryAddress", "factory deploying the contract")
   .addParam("logicAddress", "address of the new logic contract to upgrade the proxy to")
   .setAction(async (taskArgs, hre) => {
-    try{
-      let factoryData = await getFactoryData(taskArgs);
-      let MadnetFactory = await hre.artifacts.require("MadnetFactory");
-      //grab the salt from the logic contract
-      let Salt = await getBytes32Salt(taskArgs.contractName, hre)
-      //get logic contract interface
-      let lcInstance = hre.artifacts.require(taskArgs.contractName);
-      let logicContract:any = await hre.ethers.getContractFactory(taskArgs.contractName);
-      const factory = await MadnetFactory.at(factoryData.address);
-      let receipt = await factory.upgradeProxy(Salt, taskArgs.newLogicAddress); 
-      //Data to return to the main task 
-      let proxyData:ProxyData = {
-        factoryAddress: taskArgs.factoryAddress,
-        logicName: taskArgs.contractName,
-        logicAddress: taskArgs.logicAddress,
-        salt: Salt,
-        proxyAddress: getMetamorphicAddress(factoryData.address, Salt, hre)
-      };
-      await updateProxyList(proxyData);
-      return proxyData;
-    }
-    catch (error){
-      console.log(error)
-    }
+  
+    let factoryData = await getFactoryData(taskArgs);
+    let MadnetFactory = await hre.artifacts.require("MadnetFactory");
+    //grab the salt from the logic contract
+    let Salt = await getBytes32Salt(taskArgs.contractName, hre)
+    //get logic contract interface
+    let lcInstance = hre.artifacts.require(taskArgs.contractName);
+    let logicContract:any = await hre.ethers.getContractFactory(taskArgs.contractName);
+    const factory = await MadnetFactory.at(factoryData.address);
+    let receipt = await factory.upgradeProxy(Salt, taskArgs.newLogicAddress); 
+    //Data to return to the main task 
+    let proxyData:ProxyData = {
+      factoryAddress: taskArgs.factoryAddress,
+      logicName: taskArgs.contractName,
+      logicAddress: taskArgs.logicAddress,
+      salt: Salt,
+      proxyAddress: getMetamorphicAddress(factoryData.address, Salt, hre)
+    };
+    await updateProxyList(proxyData);
+    return proxyData;
   });
 
 subtask("deployTemplate", "deploys a template contract with the universal code copy constructor that deploys")
@@ -203,26 +199,21 @@ subtask("deployTemplate", "deploys a template contract with the universal code c
     templateData.factoryName = factoryData.name;
     templateData.factoryAddress = factoryData.address;
     let MadnetFactory = await hre.artifacts.require(factoryData.name);
-    try{
-      let logicContract:any = await hre.ethers.getContractFactory(templateData.name);
-      //encode deployBcode 
-      let deployBytecode = logicContract.getDeployTransaction(...taskArgs.constructorArgs)
-      deployBytecode = deployBytecode.data
-      //get a factory instance connected to the factory addr
-      const factory = await MadnetFactory.at(factoryData.address);
-      let receipt = await factory.deployTemplate(deployBytecode);
-      templateData.address = await getEventVar(receipt, "DeployedTemplate", contractAddrKey);
-      if(taskArgs.constructorArgs !== undefined){
-        templateData.constructorArgs = taskArgs.constructorArgs; 
-      }
-      console.log("Deployed ", taskArgs.contractName, " contract at ", templateData.address);
-      updateTemplateList(templateData);
-      return templateData;
+  
+    let logicContract:any = await hre.ethers.getContractFactory(templateData.name);
+    //encode deployBcode 
+    let deployBytecode = logicContract.getDeployTransaction(...taskArgs.constructorArgs)
+    deployBytecode = deployBytecode.data
+    //get a factory instance connected to the factory addr
+    const factory = await MadnetFactory.at(factoryData.address);
+    let receipt = await factory.deployTemplate(deployBytecode);
+    templateData.address = await getEventVar(receipt, "DeployedTemplate", contractAddrKey);
+    if(taskArgs.constructorArgs !== undefined){
+      templateData.constructorArgs = taskArgs.constructorArgs; 
     }
-    catch (error){
-      console.log(error)
-    }
-    
+    console.log("Deployed ", taskArgs.contractName, " contract at ", templateData.address);
+    updateTemplateList(templateData);
+    return templateData;
   });
 
 
@@ -233,26 +224,22 @@ subtask("deployStatic", "deploys a template contract with the universal code cop
   .addOptionalParam("initCallData")
   .setAction(async (taskArgs, hre) => {
     
-    try{
-      let factoryData = await getFactoryData(taskArgs);
-      let MadnetFactory = await hre.artifacts.require(factoryData.name);
-      let Salt = await getBytes32Salt(taskArgs.contractName, hre);
-      let initCallData:string;
-      if(taskArgs.initCallData === undefined){
-        initCallData = "0x"
-      }else{
-        initCallData = taskArgs.initCallData;
-      }
-      //get a factory instance connected to the factory addr
-      const factory = await MadnetFactory.at(factoryData.address);
-      let receipt = await factory.deployStatic(Salt, initCallData);
-      let contractAddr = await getEventVar(receipt, "DeployedStatic", contractAddrKey);
-      console.log("Deployed ", taskArgs.contractName, " contract at ", contractAddr);
-      return contractAddr;
+  
+    let factoryData = await getFactoryData(taskArgs);
+    let MadnetFactory = await hre.artifacts.require(factoryData.name);
+    let Salt = await getBytes32Salt(taskArgs.contractName, hre);
+    let initCallData:string;
+    if(taskArgs.initCallData === undefined){
+      initCallData = "0x"
+    }else{
+      initCallData = taskArgs.initCallData;
     }
-    catch (error){
-      console.log(error)
-    }
+    //get a factory instance connected to the factory addr
+    const factory = await MadnetFactory.at(factoryData.address);
+    let receipt = await factory.deployStatic(Salt, initCallData);
+    let contractAddr = await getEventVar(receipt, "DeployedStatic", contractAddrKey);
+    console.log("Deployed ", taskArgs.contractName, " contract at ", contractAddr);
+    return contractAddr;
     
   });  
 

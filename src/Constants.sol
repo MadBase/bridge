@@ -2,7 +2,6 @@
 pragma solidity >=0.5.15;
 
 contract Constants {
-
     string constant CRYPTO_CONTRACT = "crypto/v1";
     string constant ETHDKG_CONTRACT = "ethdkg/v1";
     string constant DEPOSIT_CONTRACT = "deposit/v1";
