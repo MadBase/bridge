@@ -9,6 +9,8 @@ import "./utils/EthSafeTransfer.sol";
 import "./math/Sigmoid.sol";
 
 
+/// @custom:salt MadByte
+/// @custom:deployType deployStatic
 contract MadByte is ERC20, Admin, Mutex, MagicEthTransfer, EthSafeTransfer, Sigmoid {
 
     /// @notice Event emitted when a deposit is received

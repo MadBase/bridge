@@ -5,6 +5,7 @@ import "../proxy/Proxy.sol";
 
 
 /// @custom:salt MadnetFactory
+/// @custom:deployType externalAccount
 contract MadnetFactory is DeterministicAddress, ProxyUpgrader {
 
     /**
