@@ -134,3 +134,14 @@ export const getFixture = async (): Promise<Fixture> => {
     namedSigners,
   };
 };
+
+export async function getTokenIdFromTx(tx: any) {
+  let abi = [
+    "event Transfer(address indexed from, address indexed to, uint256 indexed tokenId)",
+  ];
+  let iface = new ethers.utils.Interface(abi);
+  let receipt = await ethers.provider.getTransactionReceipt(tx.hash);
+  let log = iface.parseLog(receipt.logs[2]);
+  const { from, to, tokenId } = log.args;
+  return tokenId
+}

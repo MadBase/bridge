@@ -1,4 +1,4 @@
-import { Fixture, getFixture } from "../setup";
+import { Fixture, getFixture, getTokenIdFromTx } from "../setup";
 import { ethers } from "hardhat";
 import { expect, assert } from "../../../chai-setup";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
@@ -19,98 +19,93 @@ describe("Tests ValidatorNFT methods", () => {
   let adminSigner: SignerWithAddress;
   let notAdminSigner: SignerWithAddress;
   let amount = 1;
+  let lockTime = 1;
 
   beforeEach(async function () {
     fixture = await getFixture();
     const [admin, notAdmin] = fixture.namedSigners;
     adminSigner = await ethers.getSigner(admin.address);
     notAdminSigner = await ethers.getSigner(notAdmin.address);
+    console.log(adminSigner.address,notAdminSigner.address)
     await fixture.madToken.approve(fixture.validatorNFT.address, amount)
   });
 
   it("Should mint a token and send staking funds from sender address if sender is admin", async function () {
     await fixture.validatorNFT
       .connect(adminSigner)
-      .mint(1);
-    expect(await fixture.validatorNFT.ownerOf(1)).to.equal(adminSigner.address);
+      .mint(amount);
   });
 
   it("Should fail to mint a token and send staking funds from sender address if sender is not admin", async function () {
     await expect(
       fixture.validatorNFT
         .connect(notAdminSigner)
-        .mint(1)
+        .mint(amount)
     ).to.be
       .revertedWith("Must be admin");
   });
 
   it("Should burn a token and send staking funds to sender address if sender is admin", async function () {
-    const [admin, notAdmin] = fixture.namedSigners;
-    await fixture.madToken.approve(fixture.validatorNFT.address, amount)
+    let tx = await fixture.validatorNFT
+      .connect(adminSigner)
+      .mint(amount);
+    let tokenId = await getTokenIdFromTx(tx)
     await fixture.validatorNFT
       .connect(adminSigner)
-      .mint(1);
-    await fixture.validatorNFT
-      .connect(adminSigner)
-      .burn(1);
-    expect(
-      fixture.validatorNFT.ownerOf(1)
-    ).to.be
-      .revertedWith("ERC721: owner query for nonexistent token");
+      .burn(tokenId)
   });
 
   it("Should fail to burn a token and send staking funds to sender address if sender is not admin", async function () {
+    let tx = await fixture.validatorNFT
+      .connect(adminSigner)
+      .mint(amount);
+    let tokenId = await getTokenIdFromTx(tx)
     expect(
       fixture.validatorNFT
         .connect(notAdminSigner)
-        .burn(1)
+        .burn(tokenId)
     ).to.be
       .revertedWith("Must be admin");
   });
 
   it("Should mint a token and send staking funds from an address if sender is admin", async function () {
-    await fixture.madToken.approve(fixture.validatorNFT.address, amount)
     await fixture.validatorNFT
       .connect(adminSigner)
-      .mintTo(notAdminSigner.address, 1, 1);
-    expect(
-      await fixture.validatorNFT.ownerOf(1))
-      .to.equal(notAdminSigner.address);
+      .mintTo(notAdminSigner.address, amount, lockTime);
   });
 
   it("Should fail to mint a token and send staking funds from an address if sender is not admin", async function () {
     expect(
       fixture.validatorNFT
         .connect(notAdminSigner)
-        .mintTo(notAdminSigner.address, 1, 1)
+        .mintTo(notAdminSigner.address, amount, lockTime)
     ).to.be
       .revertedWith("Must be admin");
   });
 
-  it("Should burn a token and send staking funds to an address if sender is admin", async function () {
-    const [admin, notAdmin] = fixture.namedSigners;
-    await fixture.madToken.approve(fixture.validatorNFT.address, 1)
+  it.only("Should burn a token and send staking funds to an address if sender is admin", async function () {
+    let tx = await fixture.validatorNFT
+      .connect(adminSigner)
+      .mintTo(notAdminSigner.address, amount, lockTime);
+    let tokenId = await getTokenIdFromTx(tx)
+    console.log(await fixture.validatorNFT.ownerOf(tokenId))
+    // await fixture.stakeNFT
+    // .connect(adminSigner)
+    // .setApprovalForAll(fixture.validatorNFT.address, true);
     await fixture.validatorNFT
-      .connect(await ethers.getSigner(admin.address))
-      .mint(1);
-    await fixture.validatorNFT
-      .connect(await ethers.getSigner(admin.address))
-      .burnTo(notAdmin.address, 1);
-    expect(
-      fixture.validatorNFT.ownerOf(1)
-    ).to.be
-    .revertedWith("ERC721: owner query for nonexistent token");
+      .connect(adminSigner)
+      .burnTo(notAdminSigner.address, tokenId);
   });
 
   it("Should fail to burn a token and send staking funds to an address if sender is not admin", async function () {
-    await fixture.madToken.approve(fixture.validatorNFT.address, amount)
-    await fixture.validatorNFT
+    let tx = await fixture.validatorNFT
       .connect(adminSigner)
-      .mintTo(notAdminSigner.address, 1, 1);
+      .mintTo(notAdminSigner.address, amount, lockTime);
+    let tokenId = await getTokenIdFromTx(tx)
     expect(
       fixture.validatorNFT
         .connect(notAdminSigner)
-        .burnTo(notAdminSigner.address, 1)
+        .burnTo(notAdminSigner.address, tokenId)
     ).to.be
       .revertedWith("Must be admin");
   });
