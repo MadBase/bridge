@@ -1,9 +1,6 @@
-// SPDX-License-Identifier: MIT-open-group
-pragma solidity ^0.8.0;
-
-import "./GovernanceStorage.sol";
-import "./Governance.sol";
-import "../tokens/interfaces/INFTStake.sol";
+interface IGovernanceManager {
+    allowedProposal() external view returns(address);
+}
 
 contract GovernanceManager is GovernanceStorage {
 
