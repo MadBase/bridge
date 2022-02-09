@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT-open-group
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.11;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "./utils/Admin.sol";
@@ -10,7 +10,7 @@ import "./math/Sigmoid.sol";
 
 
 /// @custom:salt MadByte
-/// @custom:deployType deployStatic
+/// @custom:deploy-type deployStatic
 contract MadByte is ERC20, Admin, Mutex, MagicEthTransfer, EthSafeTransfer, Sigmoid {
 
     /// @notice Event emitted when a deposit is received

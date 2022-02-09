@@ -1,10 +1,11 @@
 // SPDX-License-Identifier: MIT-open-group
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.11;
 
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "../governance/GovernanceMaxLock.sol";
 import "../utils/DeterministicAddress.sol";
+import "../governance/GovernanceManager.sol";
 import "./utils/EthSafeTransfer.sol";
 import "./utils/ERC20SafeTransfer.sol";
 import "./utils/MagicValue.sol";
@@ -12,9 +13,6 @@ import "./interfaces/ICBOpener.sol";
 import "./interfaces/INFTStake.sol";
 
 
-abstract contract MNERC721 is ERC721 {
- constructor() ERC721("MNSTAKE", "MNS") {}
-}
 
 abstract contract StakeNFTStorage {
 
@@ -45,41 +43,41 @@ abstract contract StakeNFTStorage {
     }
 
     // _admin is a privileged role
-    address _admin;
+    address internal _admin;
 
     // monotonically increasing counter
-    uint256 _counter;
+    uint256 internal _counter;
 
      // cb is the circuit breaker
     // cb is a set only object
-    bool _cb;
+    bool internal _cb;
 
     // _shares stores total amount of MadToken staked in contract
-    uint256 _shares;
+    uint256 internal _shares;
 
     // _tokenState tracks distribution of MadToken that originate from slashing
     // events
-    Accumulator _tokenState;
+    Accumulator internal _tokenState;
 
     // _ethState tracks the distribution of Eth that originate from the sale of
     // MadBytes
-    Accumulator _ethState;
+    Accumulator internal _ethState;
 
     // _positions tracks all staked positions based on tokenID
-    mapping(uint256 => Position) _positions;
+    mapping(uint256 => Position) internal _positions;
 
     // state to keep track of the amount of Eth deposited and collected from the
     // contract
-    uint256 _reserveEth;
+    uint256 internal _reserveEth;
 
     // state to keep track of the amount of MadTokens deposited and collected
     // from the contract
-    uint256 _reserveToken;
+    uint256 internal _reserveToken;
 
 }
 
-contract StakeNFT is
-    MNERC721,
+abstract contract StakeNFTBase is
+    ERC721,
     StakeNFTStorage,
     DeterministicAddress,
     MagicValue,
@@ -104,14 +102,11 @@ contract StakeNFT is
     // simple wrapper around MadToken ERC20 contract
     IERC20Transferable immutable _MadToken;
 
-    constructor(address factory_) MNERC721() {
+    constructor(string memory name_, string memory symbol_, address factory_) ERC721(name_, symbol_) { 
         _factory = factory_;
         _admin = factory_;
-        _MadToken = getMetamorphicContractAddress(0x4d6164546f6b656e000000000000000000000000000000000000000000000000);
-        _governance = getMetamorphicContractAddress(0x476f7665726e616e636500000000000000000000000000000000000000000000);
-        if (_cb == 0) {
-            _cb = closed;
-        }
+        _MadToken = IERC20Transferable(getMetamorphicContractAddress(0x4d6164546f6b656e000000000000000000000000000000000000000000000000, factory_));
+        _governance = getMetamorphicContractAddress(0x476f7665726e616e636500000000000000000000000000000000000000000000, factory_);
     }
 
     //  onlyGovernance is a modifier that enforces a call
@@ -213,11 +208,6 @@ contract StakeNFT is
     /// @dev tripCB opens the circuit breaker may only be called by _admin
     function tripCB() public override onlyAdmin {
         _tripCB();
-    }
-
-    /// @dev sets the governance contract, must only be called by _admin
-    function setGovernance(address governance_) public onlyAdmin {
-        _setGovernance(governance_);
     }
 
     /// skimExcessEth will send to the address passed as to_ any amount of Eth
@@ -742,11 +732,6 @@ contract StakeNFT is
         return IGovernanceManager(_governance).allowedProposal() == addr;
     }
 
-    // setGovernance allows governance address to be updated
-    function _setGovernance(address governance_) internal {
-        _governance = governance_;
-    }
-
     function _tripCB() internal {
         require(_cb == closed, "CircuitBreaker: The Circuit breaker is opened!");
         _cb = open;
@@ -772,5 +757,11 @@ contract StakeNFT is
     // assigns a new admin may only be called by _admin
     function _setAdmin(address admin_) internal {
         _admin = admin_;
+    }
+}
+
+contract StakeNFT is StakeNFTBase {
+    constructor(address factory_) StakeNFTBase("MNSNFT", "MNS", factory_) {
+        
     }
 }

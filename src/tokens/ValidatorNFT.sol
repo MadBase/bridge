@@ -1,17 +1,11 @@
 // SPDX-License-Identifier: MIT-open-group
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.11;
 
 import "./StakeNFT.sol";
 
-contract ValidatorNFT is StakeNFT {
+contract ValidatorNFT is StakeNFTBase {
     // solhint-disable no-empty-blocks
-    constructor(
-        string memory name_,
-        string memory symbol_,
-        IERC20Transferable madToken_,
-        address admin_,
-        address governance_
-    ) StakeNFT(name_, symbol_, madToken_, admin_, governance_) {}
+    constructor(address factory_) StakeNFTBase("MNVSNFT", "MNVS", factory_) {}
 
     /// mint allows a staking position to be opened. This function
     /// requires the caller to have performed an approve invocation against

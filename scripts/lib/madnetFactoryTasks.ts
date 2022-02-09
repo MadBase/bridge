@@ -216,7 +216,7 @@ subtask("deployTemplate", "deploys a template contract with the universal code c
     return templateData;
   });
 
-
+//takes in optional 
 subtask("deployStatic", "deploys a template contract with the universal code copy constructor that deploys")
   .addParam("contractName", "logic contract name")
   .addParam("factoryName", "Name of the factory contract")
@@ -396,7 +396,6 @@ function getAccounts(signers: Array<SignerWithAddress>){
     return accounts;
 }
 
-
 async function getFullyQaulifiedName(contractName: string, hre:HardhatRuntimeEnvironment) {    
     let artifactPaths = await hre.artifacts.getAllFullyQualifiedNames();
     for (let i = 0; i < artifactPaths.length; i++){
@@ -447,7 +446,6 @@ function getEventVar(receipt:any, eventName:string, varName:string){
  */
 async function getSalt(contractName:string, hre:HardhatRuntimeEnvironment){
     let qualifiedName:any = await getFullyQaulifiedName(contractName, hre);
-    console.log(qualifiedName)
     let buildInfo= await hre.artifacts.getBuildInfo(qualifiedName);
     let path = extractPath(qualifiedName)
     let salt:any = buildInfo?.output.contracts[path][contractName];

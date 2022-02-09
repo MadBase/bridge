@@ -1,11 +1,11 @@
-import "@typechain/hardhat"
-// import {HardhatUserConfig} from 'hardhat/types';
+
+
+import "@nomiclabs/hardhat-ethers";
 import "hardhat-deploy";
 // import "@nomiclabs/hardhat-etherscan";
-import "@nomiclabs/hardhat-ethers";
+
 //import "hardhat-deploy-ethers";
 import "@typechain/hardhat";
-import "@openzeppelin/hardhat-upgrades";
 import { HardhatUserConfig, task, extendEnvironment } from "hardhat/config";
 import "@nomiclabs/hardhat-waffle"
 import "hardhat-contract-sizer";
@@ -143,7 +143,9 @@ const config: HardhatUserConfig = {
     }
   },
   solidity: {
+    
     compilers: [{
+      
       version: "0.8.11",
       settings: {
         outputSelection: {
@@ -175,7 +177,7 @@ const config: HardhatUserConfig = {
 
   paths: {
     sources: "./src",
-    tests: "./tests",
+    //tests: "./tests",
     cache: "./cache",
     artifacts: "./artifacts",
   },
@@ -191,6 +193,9 @@ const config: HardhatUserConfig = {
   gasReporter: {
     currency: "ETH",
     gasPrice: 1000000,
+    excludeContracts: [
+      "*.t.sol"
+    ],
   },
   mocha: {
     timeout: 600000

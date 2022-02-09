@@ -3,10 +3,8 @@
 const { BN, expectEvent, expectRevert} = require('@openzeppelin/test-helpers');
 const { expect } = require("chai");
 const hre  = require("hardhat");
-const { get } = require('http');
 const { isTemplateExpression, factory } = require('typescript');
-const { check } = require("prettier");
-const { hrtime } = require("process");
+
 const { upgradeProxy, deployStatic, deployUpgradeable }=require("../../scripts/lib/MadnetFactory");
 const { 
     getFactoryConfigData,
@@ -546,7 +544,6 @@ contract("MadnetFactory", async (accounts) => {
         });
         it("DEPLOY MOCK WITH DEPLOYSTATIC", async () => {
             await hre.run("deployMetamorphic", {contractName: "endPoint", constructorArgs: ['0x92D3A65c5890a5623F3d73Bf3a30c973043eE90C']});
-            
         });
         
     });
