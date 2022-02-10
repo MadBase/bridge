@@ -268,7 +268,6 @@ contract Factory is DeterministicAddress, ProxyUpgrader {
             
             contractAddr := create(0, basePtr, sub(ptr, basePtr))
             if iszero(contractAddr) {
-                mstore(0, "yeet")
                 revert(0, 0x20)
             }
         }
@@ -750,7 +749,6 @@ function deployTemplate(bytes calldata _deployCode) public returns (address cont
             ptr := add(ptr, 0x01)
             contractAddr := create(0, basePtr, sub(ptr, basePtr))
             if iszero(contractAddr) {
-                mstore(0, "yeet")
                 revert(0, 0x20)
             }
         }
