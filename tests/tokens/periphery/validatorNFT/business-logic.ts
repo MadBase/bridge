@@ -19,7 +19,7 @@ describe("Tests ValidatorNFT Business Logic methods", () => {
   let adminSigner: SignerWithAddress;
   let notAdminSigner: SignerWithAddress;
   let amount = 1;
-  let lockTime = 1;
+  let lockTime = 0;
 
 
   beforeEach(async function () {
@@ -30,78 +30,83 @@ describe("Tests ValidatorNFT Business Logic methods", () => {
     await fixture.madToken.approve(fixture.validatorNFT.address, amount)
   });
 
-  it("Should mint a token and sender should be the owner", async function () {
-    let tx = await fixture.validatorNFT
+  it("Should mint a token and sender should be the payer and owner", async function () {
+    let madBalanceBefore = await fixture.madToken.balanceOf(adminSigner.address)
+    let nftBalanceBefore = await fixture.validatorNFT.balanceOf(adminSigner.address)
+    await fixture.validatorNFT
       .connect(adminSigner)
       .mint(amount);
-    let tokenId = await getTokenIdFromTx(tx)
-    expect(await fixture.validatorNFT.
-      ownerOf(tokenId)).
-      to.equal(adminSigner.address);
+    expect(await fixture.validatorNFT. //NFT +1
+      balanceOf(adminSigner.address)).
+      to.equal(nftBalanceBefore.add(1));
+    expect(await fixture.madToken.  //MAD -= amount
+      balanceOf(adminSigner.address)).
+      to.equal(madBalanceBefore.sub(amount))
   });
 
-  it("Should burn a token and token should not exist any more", async function () {
+  it("Should burn a token and sender should receive funds", async function () {
     let tx = await fixture.validatorNFT
       .connect(adminSigner)
       .mint(amount);
     let tokenId = await getTokenIdFromTx(tx)
+    let nftBalanceBefore = await fixture.validatorNFT.balanceOf(adminSigner.address)
+    let madBalanceBefore = await fixture.madToken.balanceOf(adminSigner.address)
     await fixture.validatorNFT
       .connect(adminSigner)
       .burn(tokenId);
-    expect(
-      fixture.validatorNFT.ownerOf(tokenId)
-    ).to.be
-      .revertedWith("ERC721: owner query for nonexistent token");
+    expect(await fixture.validatorNFT. //NFT -1
+      balanceOf(adminSigner.address)).
+      to.equal(nftBalanceBefore.sub(1));
+    expect(await fixture.madToken.  //MAD +=amount
+      balanceOf(adminSigner.address)).
+      to.equal(madBalanceBefore.add(amount))
   });
 
-  it.only("Should mint a token to an address and send staking funds from this address to the contract", async function () {
-    await showBalances("Before");
-    let userMADBalanceBefore = await fixture.madToken.balanceOf(notAdminSigner.address)
-    let validatorNFTMADBalanceBefore = await fixture.madToken.balanceOf(fixture.validatorNFT.address)
-    let tx = await fixture.validatorNFT
-      .connect(adminSigner)
-      .mintTo(notAdminSigner.address, amount, lockTime);
-    let tokenId = await getTokenIdFromTx(tx)
-    await showBalances("After");
-    expect(
-      await fixture.validatorNFT.ownerOf(tokenId))
-      .to.equal(notAdminSigner.address);
-    expect(
-      await fixture.madToken.balanceOf(fixture.validatorNFT.address))
-      .to.be.equal(validatorNFTMADBalanceBefore.add(amount));
-    //failing cause MAD is going to 'from' and not 'to' 
-    // expect( 
-    // await fixture.madToken.balanceOf(notAdminSigner.address))
-    // .to.be.equal(userMADBalanceBefore.sub(amount));
-
-  });
-
-  it("Should burn a token and send staking funds to an address", async function () {
-    await showBalances("Before");
-    let tx = await fixture.validatorNFT
-      .connect(adminSigner)
-      .mintTo(notAdminSigner.address, amount, lockTime);
-    let tokenId = await getTokenIdFromTx(tx)
+  it("Should mint a token to an address and send staking funds from sender address", async function () {
+    let madBalanceBefore = await fixture.madToken.balanceOf(adminSigner.address)
+    let nftBalanceBefore = await fixture.validatorNFT.balanceOf(notAdminSigner.address)
     await fixture.validatorNFT
       .connect(adminSigner)
-      .burnTo(notAdminSigner.address, tokenId);
-    await showBalances("After");
+      .mintTo(notAdminSigner.address, amount, lockTime);
+      expect(await fixture.validatorNFT. //NFT +1
+        balanceOf(notAdminSigner.address)).
+        to.equal(nftBalanceBefore.add(1));
+      expect(await fixture.madToken.  //MAD -= amount
+        balanceOf(adminSigner.address)).
+        to.equal(madBalanceBefore.sub(amount))
+  });
 
-    expect(
-      fixture.validatorNFT.ownerOf(tokenId)
-    ).to.be
-      .revertedWith("ERC721: owner query for nonexistent token");
+  it.only("Should burn a token from an address and return staking funds", async function () {
+    //Cannot test with notAdmin since burnTo requires connect and "to" address to be admin
+    let tx = await fixture.validatorNFT
+      .connect(adminSigner)
+      .mintTo(adminSigner.address,amount,lockTime); // TODO testing with locktime > 0
+    let tokenId = await getTokenIdFromTx(tx)
+    let nftBalanceBefore = await fixture.validatorNFT.balanceOf(adminSigner.address)
+    let madBalanceBefore = await fixture.madToken.balanceOf(adminSigner.address)
+    await fixture.validatorNFT
+      .connect(adminSigner)
+      .burnTo(adminSigner.address, tokenId);
+    expect(await fixture.validatorNFT. //NFT -1
+      balanceOf(adminSigner.address)).
+      to.equal(nftBalanceBefore.sub(1));
+    expect(await fixture.madToken.  //MAD +=amount
+      balanceOf(adminSigner.address)).
+      to.equal(madBalanceBefore.add(amount))
   });
 
   async function showBalances(when: string) {
-    console.log("Showing balances", when,"-------------------------------")
+    console.log("Showing balances", when, "-------------------------------")
     console.log("admin        MAD", (await fixture.madToken.balanceOf(adminSigner.address)).toString())
     // console.log("admin        ETH", (await ethers.provider.getBalance(adminSigner.address)).toString())
     console.log("notAdmin     MAD", (await fixture.madToken.balanceOf(notAdminSigner.address)).toString())
     // console.log("notAdmin     ETH", (await ethers.provider.getBalance(notAdminSigner.address)).toString())
     console.log("validatorNFT MAD", (await fixture.madToken.balanceOf(fixture.validatorNFT.address)).toString())
     // console.log("validatorNFT ETH", (await ethers.provider.getBalance(fixture.validatorNFT.address)).toString())
+    console.log("admin        NFT", (await fixture.validatorNFT.balanceOf(adminSigner.address)).toString())
+    console.log("notAdmin     NFT", (await fixture.validatorNFT.balanceOf(notAdminSigner.address)).toString())
   }
+
 
 });
 
