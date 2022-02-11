@@ -1,7 +1,9 @@
+import {staticDeployment, factoryDeployment, upgradeableDeployment} from "./constants"
 import { run, artifacts, ethers, contract} from "hardhat";
 import { BuildInfo, CompilerOutputContract } from "hardhat/types";
+import { getDeploymentConstructorArgs, getDeploymentInitializerArgs } from "./deployArgUtils";
 import { 
-    getFactoryConfigData,
+    readFactoryStateData,
     updateTemplateList, 
     updateDefaultFactoryData, 
     updateProxyList,
@@ -12,7 +14,7 @@ import {
     MetaContractData,
     updateMetaList,
     DeployCreateData,
-  } from "./factoryUtils";
+  } from "./factoryStateUtils";
 
 export interface InitData{
     constructorArgs: {[key:string]:any};
@@ -23,22 +25,49 @@ export interface ArgTemplate {
     type:string;
 }
 
-//deployment Types
-export const staticDeployment:string = "deployStatic"
-export const upgradeableDeployment:string = "deployUpgradeable"
+
 
 
 //function to deploy the factory 
 export async function deployFactory(){
     return await run("deployFactory", {factoryName: "MadnetFactory"});
 }
-//function to deploy stakenft.sol conArg factory
-export async function deployStaticStakeNFT(factorAddress:string){
-    return await run("deployMetamorphic", {contractName: "StakeNFT", constructorArgs: [factorAddress]})
+
+export async function deployStatic(fullyQualifiedName:string) {
+    let argCount = await getConstructorArgCount(fullyQualifiedName);
+    let name = await extractName(fullyQualifiedName);
+    let initializerArgs:Array<string> = [];
+    let initCallData = "0x";
+    if (await isInitializable(fullyQualifiedName)){
+        initializerArgs = await getDeploymentInitializerArgs(fullyQualifiedName);
+        initCallData = await getEncodedInitCallData(name, initializerArgs);
+    }
+    return await run("deployMetamorphic", {contractName: name, initCallData: initCallData});
 }
 
-export async function deployUpgradeableStakeNFT(factorAddress:string){
-    return run("deployUpgradeableProxy", {contractName: "StakeNFT", constructorArgs: [factorAddress]})
+export async function deployUpgradeableProxy(fullyQualifiedName:string) {
+    let name:string = extractName(fullyQualifiedName);
+    let initializerArgs:Array<string> = [];
+    let initCallData = undefined
+    if (await isInitializable(fullyQualifiedName)){
+        initializerArgs = await getDeploymentInitializerArgs(fullyQualifiedName);
+        initCallData = await getEncodedInitCallData(name, initializerArgs)
+    }
+    return run("deployUpgradeableProxy", {contractName: name, initCallData: initCallData})
+}
+
+export async function isInitializable(fullyQualifiedName:string){
+    let i = await getInitializerArgCount(fullyQualifiedName);
+    if(i > 0){
+        return true;
+    }else{
+        return false;
+    }
+}
+
+export async function getEncodedInitCallData(contractName: string, args:Array<string>){ 
+    let contractFactory = ethers.getContractFactory(contractName);
+    return (await contractFactory).interface.encodeFunctionData("initialize", args);
 }
 
 export async function getContract(name:string) {
@@ -72,10 +101,9 @@ export function parseArgsArray(args:ArgData[]){
     return output;
 }
 
-export async function getConstructorArgsABI(contractName: string){
+export async function getConstructorArgsABI(fullName: string){
     let args:Array<ArgData> = [];
-    let fullName  = await getContract(contractName) as string;
-    let buildInfo:any = await artifacts.getBuildInfo(fullName as string);
+    let buildInfo:any = await artifacts.getBuildInfo(fullName);
     let path = extractPath(fullName);
     let name = extractName(fullName)
     let methods = buildInfo.output.contracts[path][name].abi;
@@ -96,10 +124,9 @@ export async function getConstructorArgsABI(contractName: string){
 }
 
 
-export async function getInitializerArgsABI(contractName: string){
+export async function getInitializerArgsABI(fullName: string){
     let args:Array<ArgData> = [];
-    let fullName  = await getContract(contractName) as string;
-    let buildInfo:any = await artifacts.getBuildInfo(fullName as string);
+    let buildInfo:any = await artifacts.getBuildInfo(fullName);
     let path = extractPath(fullName);
     let name = extractName(fullName)
     let methods = buildInfo.output.contracts[path][name].abi;
@@ -116,10 +143,27 @@ export async function getInitializerArgsABI(contractName: string){
     return args
 }
 
-export function getConstructorArgCount(contract: any){
-    for (let funcObj of contract.abi){
-      if(funcObj.type === "constructor"){
-        return funcObj.inputs.length;
+export async function getConstructorArgCount(fullName: string){
+    let buildInfo:any = await artifacts.getBuildInfo(fullName);
+    let path = extractPath(fullName);
+    let name = extractName(fullName)
+    let methods = buildInfo.output.contracts[path][name].abi;
+    for (let method of methods){
+      if(method.type === "constructor"){
+        return method.inputs.length;
+      }
+    }
+    return 0;
+}
+
+export async function getInitializerArgCount(fullName: string){
+    let buildInfo:any = await artifacts.getBuildInfo(fullName);
+    let path = extractPath(fullName);
+    let name = extractName(fullName)
+    let methods = buildInfo.output.contracts[path][name].abi;
+    for (let method of methods){
+      if(method.name === "initializer"){
+        return method.inputs.length;
       }
     }
     return 0;
@@ -160,13 +204,7 @@ export async function getBytes32Salt() {
 
 
 
-export async function deployStatic() {
 
-}
-
-export async function deployUpgradeableProxy() {
-
-}
 
 export async function upgradeProxy(){
 

@@ -5,7 +5,7 @@ import "../proxy/Proxy.sol";
 
 
 /// @custom:salt MadnetFactory
-/// @custom:deploy-type externalAccount
+/// @custom:deploy-type factory
 abstract contract MadnetFactoryBase is DeterministicAddress, ProxyUpgrader {
 
     /**
@@ -101,7 +101,9 @@ abstract contract MadnetFactoryBase is DeterministicAddress, ProxyUpgrader {
         }
         addr = getMetamorphicContractAddress(salt, address(this));
     }
-
+    function getImplementation() public view returns (address){
+        return implementation_; 
+    }
     function setImplementation(address _v) public onlyOwnerOrDelegator {
         implementation_ = _v;
     }

@@ -2,7 +2,6 @@ import fs from "fs"
 import {artifacts} from "hardhat";
 import {
     deployFactory,
-    deployStaticStakeNFT,
     getAllContracts,
     getContract,
     getSalt,
@@ -15,7 +14,7 @@ import {
     getInitializerArgsABI,
     parseArgsArray,
     InitData,
-} from "./lib/contractUtils"
+} from "./lib/deploymentUtils"
 
 
 
@@ -30,21 +29,24 @@ async function main() {
     let contracts = await getAllContracts();
    
     for (let contract of contracts){
-        let name = extractName(contract);
-        //check each contract for a constructor and 
-        let cArgs:Array<ArgData> = await getConstructorArgsABI(name);
-        let iArgs:Array<ArgData> = await getInitializerArgsABI(name);
-        let cTemplate = parseArgsArray(cArgs);
-        let iTemplate = parseArgsArray(iArgs);
-        if(cArgs.length != 0){
-           outputData.constructorArgs[name] = cTemplate;
+        let deployType = await getDeployType(contract)
+        if(deployType !== undefined){
+            //check each contract for a constructor and 
+            let cArgs:Array<ArgData> = await getConstructorArgsABI(contract);
+            let iArgs:Array<ArgData> = await getInitializerArgsABI(contract);
+            let cTemplate = parseArgsArray(cArgs);
+            let iTemplate = parseArgsArray(iArgs);
+            if(cArgs.length != 0){
+               outputData.constructorArgs[contract] = cTemplate;
+            }
+            if(iArgs.length != 0){
+                outputData.initializerArgs[contract] = iTemplate;
+            }
         }
-        if(iArgs.length != 0){
-            outputData.initializerArgs[name] = iTemplate;
-        }
+        
     }
   
-    fs.writeFileSync("./deployArgs.json", JSON.stringify(outputData))
+    fs.writeFileSync("./deployments/deployArgs.json", JSON.stringify(outputData))
     
     
     /*let contracts = await getAllContracts()

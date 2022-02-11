@@ -97,10 +97,6 @@ contract AdminAccount is BaseMock {
         stakeNFT.tripCB();
     }
 
-    function setGovernance(address governance_) public {
-        stakeNFT.setGovernance(governance_);
-    }
-
     function skimExcessEth(address to_) public returns(uint256 excess) {
         return stakeNFT.skimExcessEth(to_);
     }

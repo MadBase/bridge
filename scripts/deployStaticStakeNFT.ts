@@ -1,7 +1,7 @@
 import {
     deployFactory,
     deployStaticStakeNFT
-} from "./lib/contractUtils"
+} from "./lib/deploymentUtils"
 
  
 

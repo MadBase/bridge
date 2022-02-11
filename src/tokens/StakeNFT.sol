@@ -85,8 +85,7 @@ abstract contract StakeNFTBase is
     ERC20SafeTransfer,
     GovernanceMaxLock,
     ICBOpener,
-    INFTStake
-{
+    INFTStake{
     // _maxMintLock describes the maximum interval a Position may be locked
     // during a call to mintTo
     uint256 constant _maxMintLock = 1051200;
@@ -102,11 +101,11 @@ abstract contract StakeNFTBase is
     // simple wrapper around MadToken ERC20 contract
     IERC20Transferable immutable _MadToken;
 
-    constructor(string memory name_, string memory symbol_, address factory_) ERC721(name_, symbol_) { 
-        _factory = factory_;
-        _admin = factory_;
-        _MadToken = IERC20Transferable(getMetamorphicContractAddress(0x4d6164546f6b656e000000000000000000000000000000000000000000000000, factory_));
-        _governance = getMetamorphicContractAddress(0x476f7665726e616e636500000000000000000000000000000000000000000000, factory_);
+    constructor(string memory name_, string memory symbol_) ERC721(name_, symbol_) { 
+        _factory = msg.sender;
+        _admin = _factory;
+        _MadToken = IERC20Transferable(getMetamorphicContractAddress(0x4d6164546f6b656e000000000000000000000000000000000000000000000000, _factory));
+        _governance = getMetamorphicContractAddress(0x476f7665726e616e636500000000000000000000000000000000000000000000, _factory);
     }
 
     //  onlyGovernance is a modifier that enforces a call
@@ -760,8 +759,10 @@ abstract contract StakeNFTBase is
     }
 }
 
+/// @custom:salt MadByte
+/// @custom:deploy-type deployStatic
 contract StakeNFT is StakeNFTBase {
-    constructor(address factory_) StakeNFTBase("MNSNFT", "MNS", factory_) {
+    constructor() StakeNFTBase("MNSNFT", "MNS") {
         
     }
 }

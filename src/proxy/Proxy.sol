@@ -21,8 +21,8 @@ import "../utils/DeterministicAddress.sol";
  */
 contract Proxy {
     address private immutable factory_;
-    constructor(address _factory) {
-        factory_ = _factory;
+    constructor() {
+        factory_ = msg.sender;
     }
 
     fallback() external payable {

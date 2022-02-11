@@ -10,7 +10,7 @@ import "./math/Sigmoid.sol";
 
 
 /// @custom:salt MadByte
-/// @custom:deploy-type deployStatic
+// @custom:deploy-type deployStatic
 contract MadByte is ERC20, Admin, Mutex, MagicEthTransfer, EthSafeTransfer, Sigmoid {
 
     /// @notice Event emitted when a deposit is received
@@ -67,11 +67,13 @@ contract MadByte is ERC20, Admin, Mutex, MagicEthTransfer, EthSafeTransfer, Sigm
     IMagicEthTransfer _foundation;
 
     constructor(address admin_, address madStaking_, address minerStaking_, address lpStaking_, address foundation_) ERC20("MadByte", "MB") Admin(admin_) Mutex() {
-        _madStaking = IMagicEthTransfer(madStaking_);
+        _madStaking = IMagicEthTransfer(madStaking_); 
         _minerStaking = IMagicEthTransfer(minerStaking_);
         _lpStaking = IMagicEthTransfer(lpStaking_);
         _foundation = IMagicEthTransfer(foundation_);
     }
+
+
 
     /// @dev sets the miner staking contract, must only be called by _admin.
     function setMinerStaking(address minerStaking_) public onlyAdmin {

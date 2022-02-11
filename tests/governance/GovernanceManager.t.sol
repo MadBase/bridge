@@ -162,12 +162,9 @@ contract AdminAccount is BaseMock {
         stakeNFT = stakeNFT_;
         madToken = madToken_;
         governanceManager = governanceManager_;
-        setGovernance(address(governanceManager_));
     }
 
-    function setGovernance(address governance_) public {
-        stakeNFT.setGovernance(governance_);
-    }
+    
 }
 
 contract UserAccount is BaseMock {

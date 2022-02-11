@@ -5,7 +5,7 @@ import "./StakeNFT.sol";
 
 contract ValidatorNFT is StakeNFTBase {
     // solhint-disable no-empty-blocks
-    constructor(address factory_) StakeNFTBase("MNVSNFT", "MNVS", factory_) {}
+    constructor(address factory_) StakeNFTBase("MNVSNFT", "MNVS") {}
 
     /// mint allows a staking position to be opened. This function
     /// requires the caller to have performed an approve invocation against
