@@ -1,5 +1,6 @@
 import fs from "fs"
 import {artifacts} from "hardhat";
+import { env } from "./lib/constants";
 import {
     deployFactory,
     getAllContracts,
@@ -46,7 +47,7 @@ async function main() {
         
     }
   
-    fs.writeFileSync("./deployments/deployArgs.json", JSON.stringify(outputData))
+    fs.writeFileSync(`./deployments/${env}/deploymentArgs.json`, JSON.stringify(outputData))
     
     
     /*let contracts = await getAllContracts()

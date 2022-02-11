@@ -65,7 +65,7 @@ export async function getDeploymentInitializerArgs(fullName:string){
 export async function readDeploymentArgs() {
     //this output object allows dynamic addition of fields 
     let output: DeployArgs = {};
-    let rawData = fs.readFileSync(`./Deployments/${env}/factoryConfig.json`);
+    let rawData = fs.readFileSync(`./Deployments/${env}/deploymentArgs.json`);
     output = await JSON.parse(rawData.toString("utf8"));
     return output;
 }
