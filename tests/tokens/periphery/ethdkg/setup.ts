@@ -178,6 +178,12 @@ export const getFixture = async () => {
    await snapshots.deployed();
 
    await ethdkg.initialize(validatorPool.address, snapshots.address, ethdkgAccusations.address, ethdkgPhases.address);
+
+   let blockNumber = await ethers.provider.getBlockNumber()
+   let phaseLength = await ethdkg.getPhaseLength()
+   if (phaseLength.toNumber() >= blockNumber) {
+        await mineBlocks(phaseLength.toNumber())
+   }
    // console.log(`ETHDKG deployed at ${ethdkg.address}`);
   // console.log("finished core deployment");
 
@@ -429,7 +435,7 @@ export const addValidators = async (
 ) => {
   for (let validator of validators) {
     expect(await validatorPool.isValidator(validator.address)).to.equal(false);
-    await validatorPool.addValidator(validator.address);
+    await validatorPool.registerValidators([validator.address]);
     expect(await validatorPool.isValidator(validator.address)).to.equal(true);
   }
 };
@@ -670,7 +676,7 @@ export const completeETHDKG = async (
     validators.length,
     expectedNonce,
     expectedEpoch,
-    1,
+    0,
     expectedMadHeight,
     validators[index].mpk
   );
@@ -773,7 +779,7 @@ export const completeETHDKGRound = async (
     validators,
     contracts
   );
-  const expectedEpoch = 1;
+  const expectedEpoch = 0;
   const expectedMadHeight = 0;
   // Submit GPKj for all validators
   await submitValidatorsGPKJ(

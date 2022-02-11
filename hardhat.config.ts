@@ -1,10 +1,6 @@
 import "@typechain/hardhat"
-// import {HardhatUserConfig} from 'hardhat/types';
 import "hardhat-deploy";
-// import "@nomiclabs/hardhat-etherscan";
 import "@nomiclabs/hardhat-ethers";
-//import "hardhat-deploy-ethers";
-import "@typechain/hardhat";
 import "@openzeppelin/hardhat-upgrades";
 import { HardhatUserConfig, task } from "hardhat/config";
 import "@nomiclabs/hardhat-waffle"
@@ -50,7 +46,7 @@ const config: HardhatUserConfig = {
     ganache: {
       url: "HTTP://127.0.0.1:8545",
       /*accounts: [
-        "9305771b3112a9a52cfcc4270bd0040ff5aefd2ae18cbbd972612bdb357a1074", 
+        "9305771b3112a9a52cfcc4270bd0040ff5aefd2ae18cbbd972612bdb357a1074",
         "8441c5098bd9e6f06b5d2000176aec0d2332e6ac994a9c586aeb2dd8c4c20000",
         "9782b38ce7b0ffccb07c621518b274cd018b43d0996a267c50541c31093ccdde"
       ]
@@ -179,12 +175,12 @@ const config: HardhatUserConfig = {
   },
 
   paths: {
-    sources: "./src",
+    sources: "./src/tokens",
     tests: "./tests",
     cache: "./cache",
     artifacts: "./artifacts",
   },
-  
+
   contractSizer: {
     alphaSort: true,
     disambiguatePaths: false,

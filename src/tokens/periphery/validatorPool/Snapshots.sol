@@ -8,6 +8,7 @@ import "../../../parsers/RCertParserLibrary.sol";
 import "../../../parsers/BClaimsParserLibrary.sol";
 import "../../../CryptoLibrary.sol";
 
+
 contract Snapshots is ISnapshots {
     uint32 internal _epoch;
     uint32 internal _epochLength;
@@ -36,6 +37,7 @@ contract Snapshots is ISnapshots {
         _ethdkg = ethdkg_;
         _validatorPool = validatorPool_;
         _chainId = chainID_;
+        _epochLength = 1024;
         _admin = msg.sender;
     }
 
@@ -137,10 +139,10 @@ contract Snapshots is ISnapshots {
     }
 
     /// @notice Saves next snapshot
-    /// @param signatureGroup_ The signature
+    /// @param groupSignature_ The group signature used to sign the snapshots' block claims
     /// @param bClaims_ The claims being made about given block
     /// @return Flag whether we should kick off another round of key generation
-    function snapshot(bytes calldata signatureGroup_, bytes calldata bClaims_)
+    function snapshot(bytes calldata groupSignature_, bytes calldata bClaims_)
         public
         returns (bool)
     {
@@ -168,7 +170,7 @@ contract Snapshots is ISnapshots {
         );
 
         (uint256[4] memory masterPublicKey, uint256[2] memory signature) = RCertParserLibrary
-            .extractSigGroup(signatureGroup_, 0);
+            .extractSigGroup(groupSignature_, 0);
 
         require(
             keccak256(abi.encodePacked(masterPublicKey)) ==

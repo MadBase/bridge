@@ -5,17 +5,17 @@ import { completeETHDKGRound, expect, registerValidators } from "./setup";
 
 describe("Complete an ETHDKG Round and change validators", () => {
   it("completes ETHDKG with 10 validators then change to 4 validators", async function () {
-    let [ethdkg, validatorPool, , expectedNonce] = await completeETHDKGRound(
+    let [ethdkg, validatorPool, expectedNonce, ] = await completeETHDKGRound(
       validators10
     );
     expect(expectedNonce).eq(1);
-    await validatorPool.removeAllValidators();
+    await validatorPool.unregisterAllValidators();
     [, , expectedNonce] = await completeETHDKGRound(validators4, {ethdkg, validatorPool});
     expect(expectedNonce).eq(2);
   });
 
   it("completes ETHDKG with 10 validators then a validator try to register without registration open", async function () {
-    let [ethdkg, validatorPool, , expectedNonce] = await completeETHDKGRound(
+    let [ethdkg, validatorPool, expectedNonce ,] = await completeETHDKGRound(
       validators10
     );
 

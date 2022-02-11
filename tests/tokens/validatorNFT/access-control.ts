@@ -1,6 +1,6 @@
-import { Fixture, getFixture, getTokenIdFromTx } from "../setup";
+import { Fixture, getFixture, getTokenIdFromTx } from "../periphery/setup";
 import { ethers } from "hardhat";
-import { expect, assert } from "../../../chai-setup";
+import { expect, assert } from "../../chai-setup";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 
 import {

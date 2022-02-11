@@ -83,7 +83,7 @@ describe("Dispute bad shares", () => {
     .to.be.revertedWith("ETHDKG: Dispute failed! Contract is not in dispute phase!")
 
     // submit GPKj
-    await submitValidatorsGPKJ(ethdkg, validatorPool, validators4, expectedNonce, 1)
+    await submitValidatorsGPKJ(ethdkg, validatorPool, validators4, expectedNonce, 0)
 
     await assertETHDKGPhase(ethdkg, Phase.DisputeGPKJSubmission)
 
@@ -98,7 +98,7 @@ describe("Dispute bad shares", () => {
     .to.be.revertedWith("ETHDKG: Dispute failed! Contract is not in dispute phase!")
 
     // complete ethdkg
-    await completeETHDKG(ethdkg, validators4, expectedNonce, 1, 0)
+    await completeETHDKG(ethdkg, validators4, expectedNonce, 0, 0)
 
     await assertETHDKGPhase(ethdkg, Phase.Completion)
 

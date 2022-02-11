@@ -16,6 +16,12 @@ export const PLACEHOLDER_ADDRESS = "0x0000000000000000000000000000000000000000";
 
 export { expect, assert } from "../../chai-setup";
 
+
+export interface Snapshot {
+    BClaims: string,
+    GroupSignature: string,
+  }
+
 export interface Fixture {
   madToken: MadToken;
   madByte: MadByte;

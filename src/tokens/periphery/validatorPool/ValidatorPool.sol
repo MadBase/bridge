@@ -12,9 +12,9 @@ import "./interfaces/IValidatorPoolEvents.sol";
 import "./interfaces/ISnapshots.sol";
 import "./interfaces/IDutchAuction.sol";
 import "@openzeppelin/contracts/token/ERC721/utils/ERC721Holder.sol";
-
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "./utils/CustomEnumerableMaps.sol";
+
 
 contract ValidatorPool is
     IValidatorPoolEvents,
@@ -34,7 +34,6 @@ contract ValidatorPool is
 
     // Maximum number the ethereum blocks allowed without a validator committing a snapshot
     uint256 public constant MAX_INTERVAL_WITHOUT_SNAPSHOT = 8192;
-
 
     // todo: replace this with CREATE2
     INFTStake internal immutable _stakeNFT;
@@ -340,10 +339,12 @@ contract ValidatorPool is
         uint256 balanceBeforeEth = address(this).balance;
 
         (uint256 minerShares, uint256 payoutEth, uint256 payoutToken) = _slash(dishonestValidator_);
+        uint256 stakeTokenID;
         // In case there's not enough shares to create a new stakeNFT position, state is just
         // cleaned and the rest of the funds is sent to the disputer
         if (minerShares > 0) {
-            _moveToExitingQueue(dishonestValidator_, minerShares);
+            stakeTokenID = _mintStakeNFTPosition(minerShares);
+            _moveToExitingQueue(dishonestValidator_, stakeTokenID);
         } else {
             _removeExitingQueueData(dishonestValidator_);
         }
@@ -358,7 +359,7 @@ contract ValidatorPool is
             "ValidatorPool: Invalid transaction, eth balance of the contract changed!"
         );
 
-        emit ValidatorMinorSlashed(dishonestValidator_);
+        emit ValidatorMinorSlashed(dishonestValidator_, stakeTokenID);
     }
 
     function _isValidator(address account_) internal view returns (bool) {
@@ -434,19 +435,9 @@ contract ValidatorPool is
 
         uint256 balanceBeforeToken = _madToken.balanceOf(address(this));
         uint256 balanceBeforeEth = address(this).balance;
-        (uint256 minerShares, uint256 payoutEth, uint256 payoutToken) = _burnValidatorNFTPosition(
-            validator_
-        );
-        //payoutToken should always have the minerShares in it!
-        require(
-            payoutToken >= minerShares,
-            "ValidatorPool: Miner shares greater then the total payout in tokens!"
-        );
-        payoutToken -= minerShares;
+        (stakeTokenID, payoutEth, payoutToken) = _swapValidatorNFTForStakeNFT(validator_);
 
-        // (stakeTokenID, payoutEth, payoutToken) = _swapValidatorNFTForStakeNFT(validator_);
-
-        _moveToExitingQueue(validator_, minerShares);
+        _moveToExitingQueue(validator_, stakeTokenID);
 
         // transfer back any profit that was available for the stakeNFT position by the time that we
         // burned it
@@ -496,6 +487,29 @@ contract ValidatorPool is
         validatorTokenID = _mintValidatorNFTPosition(stakeAmount);
 
         return (validatorTokenID, payoutEth, payoutToken);
+    }
+
+    function _swapValidatorNFTForStakeNFT(address validator_)
+        internal
+        returns (
+            uint256,
+            uint256,
+            uint256
+        )
+    {
+        (uint256 minerShares, uint256 payoutEth, uint256 payoutToken) = _burnValidatorNFTPosition(
+            validator_
+        );
+        //payoutToken should always have the minerShares in it!
+        require(
+            payoutToken >= minerShares,
+            "ValidatorPool: Miner shares greater then the total payout in tokens!"
+        );
+        payoutToken -= minerShares;
+
+        uint256 stakeTokenID = _mintStakeNFTPosition(minerShares);
+
+        return (stakeTokenID, payoutEth, payoutToken);
     }
 
     function _mintValidatorNFTPosition(uint256 minerShares_) internal returns(uint256 validatorTokenID) {
@@ -580,13 +594,12 @@ contract ValidatorPool is
         payoutToken -= minerShares;
     }
 
-    function _moveToExitingQueue(address validator_, uint256 minerShares_) internal {
+    function _moveToExitingQueue(address validator_, uint256 stakeTokenID_) internal {
         if (_isValidator(validator_)) {
             _removeValidatorData(validator_);
         }
-        uint256 stakeTokenID = _mintStakeNFTPosition(minerShares_);
         _exitingValidatorsData[validator_] = ExitingValidatorData(
-            uint128(stakeTokenID),
+            uint128(stakeTokenID_),
             uint128(_snapshots.getEpoch() + CLAIM_PERIOD)
         );
     }

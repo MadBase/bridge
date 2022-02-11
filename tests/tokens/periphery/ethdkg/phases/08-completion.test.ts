@@ -22,7 +22,7 @@ describe("ETHDKG Completion", () => {
       validatorPool,
       validators4,
       expectedNonce,
-      1
+      0
     );
 
     await expect(
@@ -41,8 +41,8 @@ describe("ETHDKG Completion", () => {
       tx,
       validators4.length,
       expectedNonce,
-      1,
-      1,
+      0,
+      0,
       0,
       validators4[0].mpk
     );
@@ -57,7 +57,7 @@ describe("ETHDKG Completion", () => {
       validatorPool,
       validators4,
       expectedNonce,
-      1
+      0
     );
 
     await expect(
@@ -87,7 +87,7 @@ describe("ETHDKG Completion", () => {
       validatorPool,
       validators4,
       expectedNonce,
-      1
+      0
     );
 
     await expect(
@@ -106,8 +106,8 @@ describe("ETHDKG Completion", () => {
       tx,
       validators4.length,
       expectedNonce,
-      1,
-      1,
+      0,
+      0,
       0,
       validators4[0].mpk
     );
@@ -127,7 +127,7 @@ describe("ETHDKG Completion", () => {
       validatorPool,
       validators4,
       expectedNonce,
-      1
+      0
     );
 
     await expect(
@@ -146,8 +146,8 @@ describe("ETHDKG Completion", () => {
       tx,
       validators4.length,
       expectedNonce,
-      1,
-      1,
+      0,
+      0,
       0,
       validators4[0].mpk
     );

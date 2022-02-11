@@ -1,6 +1,6 @@
-import { Fixture, getFixture, getTokenIdFromTx } from "../setup";
+import { Fixture, getFixture, getTokenIdFromTx } from "../periphery/setup";
 import { ethers } from "hardhat";
-import { expect, assert } from "../../../chai-setup";
+import { expect, assert } from "../../chai-setup";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 
 import {
@@ -76,7 +76,7 @@ describe("Tests ValidatorNFT Business Logic methods", () => {
         to.equal(madBalanceBefore.sub(amount))
   });
 
-  it.only("Should burn a token from an address and return staking funds", async function () {
+  it("Should burn a token from an address and return staking funds", async function () {
     //Cannot test with notAdmin since burnTo requires connect and "to" address to be admin
     let tx = await fixture.validatorNFT
       .connect(adminSigner)

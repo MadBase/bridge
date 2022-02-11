@@ -278,7 +278,7 @@ contract ETHDKGPhases is ETHDKGStorage, IETHDKGEvents, ETHDKGUtils {
             msg.sender,
             participant.index,
             participant.nonce,
-            1, //todo: es.validators.epoch(),
+            _snapshots.getEpoch(),
             participant.gpkj[0],
             participant.gpkj[1],
             participant.gpkj[2],

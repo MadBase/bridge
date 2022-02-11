@@ -12,7 +12,7 @@ import {
   Wallet,
 } from "ethers";
 
-describe("Testing ValidatorPool Access Control ", () => {
+describe("Testing ValidatorPool Business Logic ", () => {
 
   let fixture: Fixture;
   let adminSigner: SignerWithAddress;

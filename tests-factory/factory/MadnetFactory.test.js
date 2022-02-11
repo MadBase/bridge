@@ -1,4 +1,4 @@
-const {deployUpgradeable, upgradeDeployment, deployNonUpgradeable} = require("../scripts/lib/MadnetFactory");
+const {deployUpgradeable, upgradeDeployment, deployNonUpgradeable} = require("../../scripts/lib/MadnetFactory");
 
 
 //const { contracts } = require("@openzeppelin/cli/lib/prompts/choices");
