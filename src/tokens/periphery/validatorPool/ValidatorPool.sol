@@ -434,9 +434,19 @@ contract ValidatorPool is
 
         uint256 balanceBeforeToken = _madToken.balanceOf(address(this));
         uint256 balanceBeforeEth = address(this).balance;
-        (stakeTokenID, payoutEth, payoutToken) = _swapValidatorNFTForStakeNFT(validator_);
+        (uint256 minerShares, uint256 payoutEth, uint256 payoutToken) = _burnValidatorNFTPosition(
+            validator_
+        );
+        //payoutToken should always have the minerShares in it!
+        require(
+            payoutToken >= minerShares,
+            "ValidatorPool: Miner shares greater then the total payout in tokens!"
+        );
+        payoutToken -= minerShares;
 
-        _moveToExitingQueue(validator_, stakeTokenID);
+        // (stakeTokenID, payoutEth, payoutToken) = _swapValidatorNFTForStakeNFT(validator_);
+
+        _moveToExitingQueue(validator_, minerShares);
 
         // transfer back any profit that was available for the stakeNFT position by the time that we
         // burned it
@@ -486,29 +496,6 @@ contract ValidatorPool is
         validatorTokenID = _mintValidatorNFTPosition(stakeAmount);
 
         return (validatorTokenID, payoutEth, payoutToken);
-    }
-
-    function _swapValidatorNFTForStakeNFT(address validator_)
-        internal
-        returns (
-            uint256,
-            uint256,
-            uint256
-        )
-    {
-        (uint256 minerShares, uint256 payoutEth, uint256 payoutToken) = _burnValidatorNFTPosition(
-            validator_
-        );
-        //payoutToken should always have the minerShares in it!
-        require(
-            payoutToken >= minerShares,
-            "ValidatorPool: Miner shares greater then the total payout in tokens!"
-        );
-        payoutToken -= minerShares;
-
-        uint256 stakeTokenID = _mintStakeNFTPosition(minerShares);
-
-        return (stakeTokenID, payoutEth, payoutToken);
     }
 
     function _mintValidatorNFTPosition(uint256 minerShares_) internal returns(uint256 validatorTokenID) {

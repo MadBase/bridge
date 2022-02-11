@@ -61,7 +61,7 @@ export const getFixture = async (): Promise<Fixture> => {
     PLACEHOLDER_ADDRESS
   );
   await stakeNFT.deployed();
-  // console.log(`StakeNFT deployed at ${stakeNFT.address}`);
+  console.log(`StakeNFT deployed at ${stakeNFT.address}`);
 
   // ValidatorNFT
   const ValidatorNFT = await ethers.getContractFactory("ValidatorNFT");
@@ -73,7 +73,7 @@ export const getFixture = async (): Promise<Fixture> => {
     PLACEHOLDER_ADDRESS
   );
   await validatorNFT.deployed();
-  // console.log(`ValidatorNFT deployed at ${validatorNFT.address}`);
+   console.log(`ValidatorNFT deployed at ${validatorNFT.address}`);
 
   // ETHDKG Accusations
   const ETHDKGAccusations = await ethers.getContractFactory(
@@ -107,7 +107,7 @@ export const getFixture = async (): Promise<Fixture> => {
     PLACEHOLDER_ADDRESS
   );
   await validatorPool.deployed();
-  // console.log(`ValidatorPool deployed at ${validatorPool.address}`);
+  console.log(`ValidatorPool deployed at ${validatorPool.address}`);
 
   const Snapshots = await ethers.getContractFactory("Snapshots");
   const snapshots = await Snapshots.deploy(
