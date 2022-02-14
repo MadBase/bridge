@@ -154,20 +154,6 @@ contract Snapshots is ISnapshots {
 
         //todo: are we going to snapshot on epoch 0?
         uint32 epoch = _epoch + 1;
-        uint256 ethBlocksSinceLastSnapshot = block.number - _snapshots[epoch - 1].committedAt;
-        int256 blocksSinceDesperation = int256(ethBlocksSinceLastSnapshot) -
-            int256(uint256(_snapshotDesperationDelay));
-        // Check if sender is the elected validator allowed to make the snapshot
-        require(
-            _mayValidatorSnapshot(
-                int256(_validatorPool.getValidatorsCount()),
-                int256(validatorIndex) - 1,
-                blocksSinceDesperation,
-                keccak256(bClaims_),
-                int256(uint256(_snapshotDesperationFactor))
-            ),
-            "Snapshots: Validator not elected to do snapshot!"
-        );
 
         (uint256[4] memory masterPublicKey, uint256[2] memory signature) = RCertParserLibrary
             .extractSigGroup(groupSignature_, 0);
@@ -211,50 +197,5 @@ contract Snapshots is ISnapshots {
             isSafeToProceedConsensus
         );
         return isSafeToProceedConsensus;
-    }
-
-    function mayValidatorSnapshot(
-        int256 numValidators,
-        int256 myIdx,
-        int256 blocksSinceDesperation,
-        bytes32 blsig,
-        int256 desperationFactor
-    ) public pure returns (bool) {
-        return
-            _mayValidatorSnapshot(
-                numValidators,
-                myIdx,
-                blocksSinceDesperation,
-                blsig,
-                desperationFactor
-            );
-    }
-
-    function _mayValidatorSnapshot(
-        int256 numValidators,
-        int256 myIdx,
-        int256 blocksSinceDesperation,
-        bytes32 blsig,
-        int256 desperationFactor
-    ) internal pure returns (bool) {
-        int256 numValidatorsAllowed = 1;
-
-        for (int256 i = blocksSinceDesperation; i >= 0; ) {
-            i -= desperationFactor / numValidatorsAllowed;
-            numValidatorsAllowed++;
-
-            if (numValidatorsAllowed > numValidators / 3) break;
-        }
-
-        //blocksSinceDesperation - desperationFactor - desperationFactor/2 - desperationFactor/3
-        uint256 rand = uint256(blsig);
-        int256 start = int256(rand % uint256(numValidators));
-        int256 end = (start + numValidatorsAllowed) % numValidators;
-
-        if (end > start) {
-            return myIdx >= start && myIdx < end;
-        } else {
-            return myIdx >= start || myIdx < end;
-        }
     }
 }
