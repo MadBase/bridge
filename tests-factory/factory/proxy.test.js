@@ -1,4 +1,4 @@
-const { contracts } = require("@openzeppelin/cli/lib/prompts/choices");
+// const { contracts } = require("@openzeppelin/cli/lib/prompts/choices");
 const { BN, expectEvent} = require('@openzeppelin/test-helpers');
 const {expect} = require("chai");
 const { ethers } = require("hardhat");

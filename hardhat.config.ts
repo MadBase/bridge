@@ -1,12 +1,8 @@
-
-
-import "@nomiclabs/hardhat-ethers";
+import "@typechain/hardhat"
 import "hardhat-deploy";
-// import "@nomiclabs/hardhat-etherscan";
-
-//import "hardhat-deploy-ethers";
-import "@typechain/hardhat";
-import { HardhatUserConfig, task, extendEnvironment } from "hardhat/config";
+import "@nomiclabs/hardhat-ethers";
+import "@openzeppelin/hardhat-upgrades";
+import { HardhatUserConfig, task } from "hardhat/config";
 import "@nomiclabs/hardhat-waffle"
 import "hardhat-contract-sizer";
 import "hardhat-gas-reporter";
@@ -55,10 +51,7 @@ const config: HardhatUserConfig = {
       allowUnlimitedContractSize: true,
       mining: {
         auto: false,
-        interval: 1000,
-        mempool: {
-          order: "fifo"
-        }
+        interval: 15000,
       },
       accounts: [
         {
@@ -181,7 +174,7 @@ const config: HardhatUserConfig = {
     cache: "./cache",
     artifacts: "./artifacts",
   },
-  
+
   contractSizer: {
     alphaSort: true,
     disambiguatePaths: false,

@@ -20,7 +20,7 @@ describe("Accuse participant of not submitting GPKj", () => {
       validatorPool,
       validators4.slice(0, 1),
       expectedNonce,
-      1
+      0
     );
 
     await endCurrentPhase(ethdkg);
@@ -48,7 +48,7 @@ describe("Accuse participant of not submitting GPKj", () => {
       validatorPool,
       validators4.slice(0, 1),
       expectedNonce,
-      1
+      0
     );
 
     await endCurrentPhase(ethdkg);
@@ -72,7 +72,7 @@ describe("Accuse participant of not submitting GPKj", () => {
       validatorPool,
       validators4.slice(0, 1),
       expectedNonce,
-      1
+      0
     );
 
     await endCurrentPhase(ethdkg);
@@ -114,7 +114,7 @@ describe("Accuse participant of not submitting GPKj", () => {
       validatorPool,
       validators4.slice(0, 1),
       expectedNonce,
-      1
+      0
     );
 
     await endCurrentPhase(ethdkg);
@@ -126,7 +126,7 @@ describe("Accuse participant of not submitting GPKj", () => {
         validatorPool,
         validators4.slice(1, 2),
         expectedNonce,
-        1
+        0
       )
     ).to.be.revertedWith("ETHDKG: Not in GPKJ submission phase");
 
@@ -141,7 +141,7 @@ describe("Accuse participant of not submitting GPKj", () => {
       validatorPool,
       validators4.slice(0, 1),
       expectedNonce,
-      1
+      0
     );
 
     await endCurrentPhase(ethdkg);
@@ -163,7 +163,7 @@ describe("Accuse participant of not submitting GPKj", () => {
       validatorPool,
       validators4.slice(0, 1),
       expectedNonce,
-      1
+      0
     );
 
     await endCurrentPhase(ethdkg);
@@ -189,7 +189,7 @@ describe("Accuse participant of not submitting GPKj", () => {
       validatorPool,
       validators4.slice(0, 1),
       expectedNonce,
-      1
+      0
     );
 
     await endCurrentPhase(ethdkg);
@@ -215,7 +215,7 @@ describe("Accuse participant of not submitting GPKj", () => {
       validatorPool,
       validators4.slice(0, 1),
       expectedNonce,
-      1
+      0
     );
 
     await waitNextPhaseStartDelay(ethdkg);
@@ -239,7 +239,7 @@ describe("Accuse participant of not submitting GPKj", () => {
       validatorPool,
       validators4.slice(0, 1),
       expectedNonce,
-      1
+      0
     );
 
     await endCurrentPhase(ethdkg);
@@ -268,7 +268,7 @@ describe("Accuse participant of not submitting GPKj", () => {
       validatorPool,
       validators4.slice(0, 1),
       expectedNonce,
-      1
+      0
     );
 
     await endCurrentPhase(ethdkg);

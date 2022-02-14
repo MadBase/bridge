@@ -36,7 +36,7 @@ describe("Dispute GPKj", () => {
       validatorPool,
       validators,
       expectedNonce,
-      1
+      0
     );
 
     await waitNextPhaseStartDelay(ethdkg);
@@ -96,7 +96,7 @@ describe("Dispute GPKj", () => {
       validatorPool,
       validators,
       expectedNonce,
-      1
+      0
     );
 
     await waitNextPhaseStartDelay(ethdkg);
@@ -177,7 +177,7 @@ describe("Dispute GPKj", () => {
       validatorPool,
       validators,
       expectedNonce,
-      1
+      0
     );
 
     await waitNextPhaseStartDelay(ethdkg);
@@ -238,7 +238,7 @@ describe("Dispute GPKj", () => {
       validatorPool,
       validators.slice(1, 10),
       expectedNonce,
-      1
+      0
     );
 
     await endCurrentPhase(ethdkg);
@@ -392,7 +392,7 @@ describe("Dispute GPKj", () => {
       validatorPool,
       validators4,
       expectedNonce,
-      1
+      0
     );
 
     await assertETHDKGPhase(ethdkg, Phase.DisputeGPKJSubmission);
@@ -424,7 +424,7 @@ describe("Dispute GPKj", () => {
     ).to.be.revertedWith("ETHDKG: Dispute Failed! Should be in post-GPKJSubmission phase!");
 
     // complete ethdkg
-    await completeETHDKG(ethdkg, validators4, expectedNonce, 1, 0);
+    await completeETHDKG(ethdkg, validators4, expectedNonce, 0, 0);
 
     await assertETHDKGPhase(ethdkg, Phase.Completion);
 
@@ -452,7 +452,7 @@ describe("Dispute GPKj", () => {
       validatorPool,
       validators4.slice(0, 3),
       expectedNonce,
-      1
+      0
     );
 
     await endCurrentPhase(ethdkg);
@@ -483,7 +483,7 @@ describe("Dispute GPKj", () => {
       validatorPool,
       validators4.slice(0, 3),
       expectedNonce,
-      1
+      0
     );
 
     await endCurrentPhase(ethdkg);
@@ -514,7 +514,7 @@ describe("Dispute GPKj", () => {
       validatorPool,
       validators4,
       expectedNonce,
-      1
+      0
     );
 
     //await endCurrentPhase(ethdkg)
@@ -645,7 +645,7 @@ describe("Dispute GPKj", () => {
       validatorPool,
       validators,
       expectedNonce,
-      1
+      0
     );
 
     await assertETHDKGPhase(ethdkg, Phase.DisputeGPKJSubmission);
@@ -683,7 +683,7 @@ describe("Dispute GPKj", () => {
       validatorPool,
       validators,
       expectedNonce,
-      1
+      0
     );
 
     await waitNextPhaseStartDelay(ethdkg);
@@ -731,7 +731,7 @@ describe("Dispute GPKj", () => {
       validatorPool,
       validators,
       expectedNonce,
-      1
+      0
     );
 
     await waitNextPhaseStartDelay(ethdkg);

@@ -72,10 +72,10 @@ interface ISnapshots {
         returns (bool);
 
     function mayValidatorSnapshot(
-        int256 numValidators,
-        int256 myIdx,
-        int256 blocksSinceDesperation,
+        uint256 numValidators,
+        uint256 myIdx,
+        uint256 blocksSinceDesperation,
         bytes32 blsig,
-        int256 desperationFactor
+        uint256 desperationFactor
     ) external pure returns (bool);
 }

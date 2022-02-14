@@ -39,7 +39,7 @@ describe("GPKj submission", () => {
       validatorPool,
       validators4.slice(0, 1),
       expectedNonce,
-      1
+      0
     );
 
     await expect(
@@ -48,7 +48,7 @@ describe("GPKj submission", () => {
         validatorPool,
         validators4.slice(0, 1),
         expectedNonce,
-        1
+        0
       )
     ).to.be.revertedWith(
       "ETHDKG: Participant already submitted GPKj this ETHDKG round!"

@@ -410,7 +410,7 @@ describe("Missing registration Accusation", () => {
     await addValidators(validatorPool, validators10);
 
     // add validator 11
-    await validatorPool.addValidator(validator11);
+    await validatorPool.registerValidators([validator11]);
     expect(await validatorPool.isValidator(validator11)).to.equal(true);
 
     // start ETHDKG
