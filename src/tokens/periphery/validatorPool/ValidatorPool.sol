@@ -15,8 +15,8 @@ import "@openzeppelin/contracts/token/ERC721/utils/ERC721Holder.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "./utils/CustomEnumerableMaps.sol";
 
-
 contract ValidatorPool is
+    IValidatorPool,
     IValidatorPoolEvents,
     MagicValue,
     EthSafeTransfer,
@@ -115,12 +115,12 @@ contract ValidatorPool is
         _;
     }
 
-    function setETHDKG(IETHDKG ethdkg_) public onlyAdmin {
-        _ethdkg = ethdkg_;
+    function setETHDKG(address ethdkg_) public onlyAdmin {
+        _ethdkg = IETHDKG(ethdkg_);
     }
 
-    function setSnapshot(ISnapshots snapshots_) public onlyAdmin {
-        _snapshots = snapshots_;
+    function setSnapshot(address snapshots_) public onlyAdmin {
+        _snapshots = ISnapshots(snapshots_);
     }
 
     function setStakeAmount(uint256 stakeAmount_) public onlyAdmin {
@@ -228,7 +228,7 @@ contract ValidatorPool is
         require(!_ethdkg.isETHDKGRunning(), "ValidatorPool: There's an ETHDKG round running!");
         for (uint256 i = 0; i < validators_.length; i++) {
             require(
-                validators_[i] ==  IERC721(address(_stakeNFT)).ownerOf(stakerTokenIDs_[i]),
+                validators_[i] == IERC721(address(_stakeNFT)).ownerOf(stakerTokenIDs_[i]),
                 "ValidatorPool: The address should be the owner of the StakeNFT position!"
             );
             _registerValidator(validators_[i], stakerTokenIDs_[i]);
@@ -282,10 +282,7 @@ contract ValidatorPool is
 
     function claimStakeNFTPosition() public returns (uint256) {
         ExitingValidatorData memory data = _exitingValidatorsData[msg.sender];
-        require(
-            data._freeAfter > 0,
-            "ValidatorPool: Address not in the exitingQueue!"
-        );
+        require(data._freeAfter > 0, "ValidatorPool: Address not in the exitingQueue!");
         require(
             _snapshots.getEpoch() > data._freeAfter,
             "ValidatorPool: The waiting period is not over yet!"
@@ -512,13 +509,16 @@ contract ValidatorPool is
         return (stakeTokenID, payoutEth, payoutToken);
     }
 
-    function _mintValidatorNFTPosition(uint256 minerShares_) internal returns(uint256 validatorTokenID) {
+    function _mintValidatorNFTPosition(uint256 minerShares_)
+        internal
+        returns (uint256 validatorTokenID)
+    {
         // We should approve the ValidatorNFT to transferFrom the tokens of this contract
         _madToken.approve(address(_validatorsNFT), minerShares_);
         validatorTokenID = _validatorsNFT.mint(minerShares_);
     }
 
-    function _mintStakeNFTPosition(uint256 minerShares_) internal returns(uint256 stakeTokenID){
+    function _mintStakeNFTPosition(uint256 minerShares_) internal returns (uint256 stakeTokenID) {
         // We should approve the StakeNFT to transferFrom the tokens of this contract
         _madToken.approve(address(_stakeNFT), minerShares_);
         stakeTokenID = _stakeNFT.mint(minerShares_);

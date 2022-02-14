@@ -20,7 +20,8 @@ export { expect, assert } from '../../chai-setup'
 export interface Snapshot {
   BClaims: string
   GroupSignature: string
-  height: BigNumberish
+  height: BigNumberish,
+  validatorIndex: number
 }
 
 export interface Fixture {

@@ -23,8 +23,13 @@ import {
 } from 'ethers'
 import {
   validatorsSnapshots,
-  validSnapshot1024
+  validSnapshot1024,
+  invalidSnapshot500,
+  invalidSnapshotChainID2,
+  invalidSnapshotIncorrectSig,
+  validSnapshot2048
 } from './assets/4-validators-snapshots-1'
+import { IValidatorPool, Snapshots } from '../../../../typechain-types'
 
 describe('Tests Snapshots methods', () => {
   let fixture: Fixture
@@ -118,45 +123,110 @@ describe('Tests Snapshots methods', () => {
     ).to.be.revertedWith(`Snapshots: Validator not elected to do snapshot!`)
   })
 
-  it('Does not allow snapshot caller did not participate in the last ETHDKG round', async function () {
-    let junkData =
-      '0x0000000000000000000000000000000000000000000000000000006d6168616d'
-    let validValidator = await getValidatorEthAccount(validatorsSnapshots[0])
-    await expect(
-      fixture.snapshots.connect(validValidator).snapshot(junkData, junkData)
-    ).to.be.revertedWith(
-      `Snapshots: Caller didn't participate in the last ethdkg round!`
-    )
-  })
+  describe('With successful ETHDKG round completed', () => {
+    let snapshots: Snapshots
+    beforeEach(async function () {
+      let mock = await completeETHDKGRound(validatorsSnapshots, {
+        ethdkg: fixture.ethdkg,
+        validatorPool: fixture.validatorPool
+      })
 
-  it('Successfully performs snapshot', async function () {
-    const expectedChainId = 1
-    const expectedEpoch = 1
-    const expectedHeight = validSnapshot1024.height
-    const expectedSafeToProceedConsensus = true
-    let mock = await completeETHDKGRound(validatorsSnapshots)
-
-    const Snapshots = await ethers.getContractFactory('Snapshots')
-    const snapshots = await Snapshots.deploy(
-      mock[0].address,
-      mock[1].address,
-      1,
-      mock[1].address
-    )
-    await snapshots.deployed()
-
-    await expect(
-      snapshots
-        .connect(await getValidatorEthAccount(validatorsSnapshots[0]))
-        .snapshot(validSnapshot1024.GroupSignature, validSnapshot1024.BClaims)
-    )
-      .to.emit(snapshots, `SnapshotTaken`)
-      .withArgs(
-        expectedChainId,
-        expectedEpoch,
-        expectedHeight,
-        ethers.utils.getAddress(validatorsSnapshots[0].address),
-        expectedSafeToProceedConsensus
+      const Snapshots = await ethers.getContractFactory('Snapshots')
+      snapshots = await Snapshots.deploy(
+        mock[0].address,
+        mock[1].address,
+        1,
+        mock[1].address
       )
+      await snapshots.deployed()
+    })
+
+    // it('Does not allow snapshot caller did not participate in the last ETHDKG round', async function () {
+    //   await expect(
+    //     snapshots
+    //       .connect(await getValidatorEthAccount(validatorsSnapshots[0]))
+    //       .snapshot(validSnapshot1024.GroupSignature, validSnapshot1024.BClaims)
+    //   ).to.be.revertedWith(
+    //     `Snapshots: Caller didn't participate in the last ethdkg round!`
+    //   )
+    // })
+
+    it('Reverts when snapshot data contains invalid height', async function () {
+      await expect(
+        snapshots
+          .connect(
+            await getValidatorEthAccount(
+              validatorsSnapshots[invalidSnapshot500.validatorIndex]
+            )
+          )
+          .snapshot(
+            invalidSnapshot500.GroupSignature,
+            invalidSnapshot500.BClaims
+          )
+      ).to.be.revertedWith(`Snapshots: Incorrect Madnet height for snapshot!`)
+    })
+
+    it('Reverts when snapshot data contains invalid chain id', async function () {
+      await expect(
+        snapshots
+          .connect(
+            await getValidatorEthAccount(
+              validatorsSnapshots[invalidSnapshotChainID2.validatorIndex]
+            )
+          )
+          .snapshot(
+            invalidSnapshotChainID2.GroupSignature,
+            invalidSnapshotChainID2.BClaims
+          )
+      ).to.be.revertedWith(`Snapshots: Incorrect chainID for snapshot!`)
+    })
+
+    // todo wrong public key failure happens first with this data
+    // it('Reverts when snapshot data contains incorrect signature', async function () {
+    //   await expect(
+    //     snapshots
+    //       .connect(await getValidatorEthAccount(validatorsSnapshots[invalidSnapshotIncorrectSig.validatorIndex]))
+    //       .snapshot(
+    //         invalidSnapshotIncorrectSig.GroupSignature,
+    //         invalidSnapshotIncorrectSig.BClaims
+    //       )
+    //   ).to.be.revertedWith(`Snapshots: Signature verification failed!`)
+    // })
+
+    it('Reverts when snapshot data contains incorrect public key', async function () {
+      await expect(
+        snapshots
+          .connect(
+            await getValidatorEthAccount(
+              validatorsSnapshots[invalidSnapshotIncorrectSig.validatorIndex]
+            )
+          )
+          .snapshot(
+            invalidSnapshotIncorrectSig.GroupSignature,
+            invalidSnapshotIncorrectSig.BClaims
+          )
+      ).to.be.revertedWith(`Snapshots: Wrong master public key!`)
+    })
+
+    it('Successfully performs snapshot', async function () {
+      const expectedChainId = 1
+      const expectedEpoch = 1
+      const expectedHeight = validSnapshot1024.height
+      const expectedSafeToProceedConsensus = true
+
+      await expect(
+        snapshots
+          .connect(await getValidatorEthAccount(validatorsSnapshots[0]))
+          .snapshot(validSnapshot1024.GroupSignature, validSnapshot1024.BClaims)
+      )
+        .to.emit(snapshots, `SnapshotTaken`)
+        .withArgs(
+          expectedChainId,
+          expectedEpoch,
+          expectedHeight,
+          ethers.utils.getAddress(validatorsSnapshots[0].address),
+          expectedSafeToProceedConsensus
+        )
+    })
   })
 })

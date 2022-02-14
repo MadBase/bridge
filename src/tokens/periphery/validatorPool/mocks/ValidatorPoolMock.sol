@@ -5,9 +5,9 @@ import "../../ethdkg/ETHDKG.sol";
 import "../Snapshots.sol";
 
 import "../utils/CustomEnumerableMaps.sol";
+import "../interfaces/IValidatorPool.sol";
 
-contract ValidatorPoolMock {
-
+contract ValidatorPoolMock is IValidatorPool {
     using CustomEnumerableMaps for ValidatorDataMap;
 
     uint256 internal _tokenIDCounter = 0;
@@ -58,7 +58,7 @@ contract ValidatorPoolMock {
         return _validators.contains(participant);
     }
 
-    function registerValidators(address[] memory v) external {
+    function registerValidators(address[] memory v) internal {
         for (uint256 idx; idx < v.length; idx++) {
             uint256 tokenID = _tokenIDCounter + 1;
             _validators.add(ValidatorData(v[idx], tokenID));
@@ -120,5 +120,53 @@ contract ValidatorPoolMock {
 
     function isMaintenanceScheduled() public view returns (bool) {
         return _isMaintenanceScheduled;
+    }
+
+    function claimStakeNFTPosition() public returns (uint256) {
+        return 0;
+    }
+
+    function collectProfits() public returns (uint256 payoutEth, uint256 payoutToken) {
+        return (0, 0);
+    }
+
+    function getLocations(address[] calldata validators_) external view returns (string[] memory) {
+        return new string[](1);
+    }
+
+    function getValidatorData(uint256 index) external view returns (ValidatorData memory) {
+        return _validators.at(index);
+    }
+
+    function setStakeAmount(uint256 stakeAmount_) external {}
+
+    function setSnapshot(address _address) external {}
+
+    function setMaxNumValidators(uint256 maxNumValidators_) public {}
+
+    function setLocation(string calldata ip) external {}
+
+    function registerValidators(address[] calldata validators, uint256[] calldata stakerTokenIDs)
+        public
+    {
+        registerValidators(validators);
+    }
+
+    function pauseConsensusOnArbitraryHeight(uint256 madnetHeight) external {}
+
+    function isInExitingQueue(address participant) external view returns (bool) {
+        return false;
+    }
+
+    function isAccusable(address participant) external view returns (bool) {
+        return false;
+    }
+
+    function getLocation(address validator) external view returns (string memory) {
+        return "";
+    }
+
+    function isMock() public view returns (bool) {
+        return true;
     }
 }
