@@ -17,7 +17,7 @@ describe("mayValidatorSnapshot", () => {
   })
 
   describe("When desperation has not been reached", () => {
-    const blocksSinceDesperation = -1
+    const blocksSinceDesperation = 0
 
     it("Allows one validator to snapshot", async () => {
       expect(await mayValidatorSnapshot(numValidators, 7, blocksSinceDesperation, blockSignature, desperationFactor)).to.equal(true)
@@ -30,7 +30,7 @@ describe("mayValidatorSnapshot", () => {
   })
 
   describe("When desperation has just been reached", () => {
-    const blocksSinceDesperation = 0
+    const blocksSinceDesperation = 1
 
     it("Allows two validators to snapshot", async () => {
       expect(await mayValidatorSnapshot(numValidators, 7, blocksSinceDesperation, blockSignature, desperationFactor)).to.equal(true)
@@ -44,7 +44,7 @@ describe("mayValidatorSnapshot", () => {
   })
 
   describe("When desperationFactor has not been reached yet", () => {
-    const blocksSinceDesperation = desperationFactor-1
+    const blocksSinceDesperation = desperationFactor
 
     it("Allows two validators to snapshot", async () => {
       expect(await mayValidatorSnapshot(numValidators, 7, blocksSinceDesperation, blockSignature, desperationFactor)).to.equal(true)
@@ -58,7 +58,7 @@ describe("mayValidatorSnapshot", () => {
   })
 
   describe("When desperationFactor has just been reached", () => {
-    const blocksSinceDesperation = desperationFactor
+    const blocksSinceDesperation = desperationFactor+1
 
     it("Allows three validators to snapshot", async () => {
       expect(await mayValidatorSnapshot(numValidators, 7, blocksSinceDesperation, blockSignature, desperationFactor)).to.equal(true)
@@ -73,7 +73,7 @@ describe("mayValidatorSnapshot", () => {
   })
 
   describe("When desperationFactor has not been reached twice yet", () => {
-    const blocksSinceDesperation = desperationFactor + Math.floor(desperationFactor/2) - 1
+    const blocksSinceDesperation = desperationFactor + Math.floor(desperationFactor/2)
 
     it("Allows three validators to snapshot", async () => {
       expect(await mayValidatorSnapshot(numValidators, 7, blocksSinceDesperation, blockSignature, desperationFactor)).to.equal(true)
@@ -88,7 +88,7 @@ describe("mayValidatorSnapshot", () => {
   })
 
   describe("When desperationFactor has just been reached twice", () => {
-    const blocksSinceDesperation = desperationFactor + Math.floor(desperationFactor/2) // note: desperationFactor works exponentially
+    const blocksSinceDesperation = desperationFactor + Math.floor(desperationFactor/2) + 1 // note: desperationFactor works exponentially
 
     it("Allows four validators to snapshot", async () => {
       expect(await mayValidatorSnapshot(numValidators, 7, blocksSinceDesperation, blockSignature, desperationFactor)).to.equal(true)
@@ -123,7 +123,7 @@ describe("mayValidatorSnapshot", () => {
 
   describe("When blockSignature changes", () => {
     const blockSignature2 = `0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470`
-    const blocksSinceDesperation = 0
+    const blocksSinceDesperation = 1
 
     it("Elects a different range of validators", async () => {
       expect(await mayValidatorSnapshot(numValidators, 1, blocksSinceDesperation, blockSignature2, desperationFactor)).to.equal(false)
