@@ -44,7 +44,6 @@ async function main() {
                 outputData.initializerArgs[contract] = iTemplate;
             }
         }
-        
     }
   
     fs.writeFileSync(`./deployments/${env}/deploymentArgs.json`, JSON.stringify(outputData))
