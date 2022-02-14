@@ -70,4 +70,12 @@ interface ISnapshots {
     function snapshot(bytes calldata signatureGroup_, bytes calldata bClaims_)
         external
         returns (bool);
+
+    function mayValidatorSnapshot(
+        int256 numValidators,
+        int256 myIdx,
+        int256 blocksSinceDesperation,
+        bytes32 blsig,
+        int256 desperationFactor
+    ) external pure returns (bool);
 }
