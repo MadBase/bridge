@@ -1,4 +1,9 @@
-import { Fixture, getFixture, getTokenIdFromTx, PLACEHOLDER_ADDRESS } from '../setup'
+import {
+  Fixture,
+  getFixture,
+  getTokenIdFromTx,
+  PLACEHOLDER_ADDRESS
+} from '../setup'
 import { ethers } from 'hardhat'
 import { expect, assert } from '../../../chai-setup'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
@@ -16,7 +21,10 @@ import {
   utils,
   Wallet
 } from 'ethers'
-import { validatorsSnapshots, validSnapshot1024 } from './assets/4-validators-snapshots-1'
+import {
+  validatorsSnapshots,
+  validSnapshot1024
+} from './assets/4-validators-snapshots-1'
 
 describe('Tests Snapshots methods', () => {
   let fixture: Fixture
@@ -54,8 +62,8 @@ describe('Tests Snapshots methods', () => {
     notAdmin1Signer = await getValidatorEthAccount(notAdmin1.address)
     randomerSigner = await getValidatorEthAccount(randomer.address)
 
-    for (const validator of validatorsSnapshots ) {
-        validators.push(validator.address)
+    for (const validator of validatorsSnapshots) {
+      validators.push(validator.address)
     }
 
     await fixture.madToken.approve(
@@ -110,7 +118,7 @@ describe('Tests Snapshots methods', () => {
     ).to.be.revertedWith(`Snapshots: Validator not elected to do snapshot!`)
   })
 
-  it('Does not allow snapshot caller did not particopate in the last ETHDKG round', async function () {
+  it('Does not allow snapshot caller did not participate in the last ETHDKG round', async function () {
     let junkData =
       '0x0000000000000000000000000000000000000000000000000000006d6168616d'
     let validValidator = await getValidatorEthAccount(validatorsSnapshots[0])
@@ -121,18 +129,34 @@ describe('Tests Snapshots methods', () => {
     )
   })
 
-  it('Do a snapshot', async function () {
-    let mock = await completeETHDKGRound(validatorsSnapshots);
+  it('Successfully performs snapshot', async function () {
+    const expectedChainId = 1
+    const expectedEpoch = 1
+    const expectedHeight = validSnapshot1024.height
+    const expectedSafeToProceedConsensus = true
+    let mock = await completeETHDKGRound(validatorsSnapshots)
 
-    const Snapshots = await ethers.getContractFactory("Snapshots");
+    const Snapshots = await ethers.getContractFactory('Snapshots')
     const snapshots = await Snapshots.deploy(
-        mock[0].address,
-        mock[1].address,
-        1,
-        mock[1].address
-    );
-    await snapshots.deployed();
+      mock[0].address,
+      mock[1].address,
+      1,
+      mock[1].address
+    )
+    await snapshots.deployed()
 
-    let tx = await snapshots.connect(await getValidatorEthAccount(validatorsSnapshots[0])).snapshot(validSnapshot1024.GroupSignature, validSnapshot1024.BClaims)
+    await expect(
+      snapshots
+        .connect(await getValidatorEthAccount(validatorsSnapshots[0]))
+        .snapshot(validSnapshot1024.GroupSignature, validSnapshot1024.BClaims)
+    )
+      .to.emit(snapshots, `SnapshotTaken`)
+      .withArgs(
+        expectedChainId,
+        expectedEpoch,
+        expectedHeight,
+        ethers.utils.getAddress(validatorsSnapshots[0].address),
+        expectedSafeToProceedConsensus
+      )
   })
 })
