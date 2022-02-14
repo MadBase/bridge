@@ -3,10 +3,14 @@ pragma solidity ^0.8.11;
 
 import "./StakeNFT.sol";
 
+/// @custom:salt ValidatorNFT
+/// @custom:deploy-type deployStatic
 contract ValidatorNFT is StakeNFTBase {
     // solhint-disable no-empty-blocks
-    constructor(address factory_) StakeNFTBase("MNVSNFT", "MNVS") {}
-
+    constructor() StakeNFTBase() {}
+    function initialize() public initializer onlyAdmin {
+        __StakeNFTBase_init("MNVSNFT", "MNVS");
+    }
     /// mint allows a staking position to be opened. This function
     /// requires the caller to have performed an approve invocation against
     /// MadToken into this contract. This function will fail if the circuit

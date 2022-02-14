@@ -24,3 +24,5 @@ typechain
 bin
 
 .openzeppelin/.session
+
+deployments/*

@@ -176,12 +176,7 @@ abstract contract MadnetFactoryBase is DeterministicAddress, ProxyUpgrader {
         emit DeployedRaw(contractAddr);
         return contractAddr;        
     }
-////
 
-//make set Implementation
-//make setOwner and delegator
-
-////
     /**  
     * @dev deployCreate2 allows the owner to deploy contracts with deterministic address 
     * through the factory 

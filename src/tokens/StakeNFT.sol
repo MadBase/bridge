@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT-open-group
 pragma solidity ^0.8.11;
 
-import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
-import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol";
 import "../governance/GovernanceMaxLock.sol";
 import "../utils/DeterministicAddress.sol";
 import "../governance/GovernanceManager.sol";
@@ -11,8 +11,6 @@ import "./utils/ERC20SafeTransfer.sol";
 import "./utils/MagicValue.sol";
 import "./interfaces/ICBOpener.sol";
 import "./interfaces/INFTStake.sol";
-
-
 
 abstract contract StakeNFTStorage {
 
@@ -77,7 +75,8 @@ abstract contract StakeNFTStorage {
 }
 
 abstract contract StakeNFTBase is
-    ERC721,
+    Initializable,
+    ERC721Upgradeable,
     StakeNFTStorage,
     DeterministicAddress,
     MagicValue,
@@ -101,12 +100,13 @@ abstract contract StakeNFTBase is
     // simple wrapper around MadToken ERC20 contract
     IERC20Transferable immutable _MadToken;
 
-    constructor(string memory name_, string memory symbol_) ERC721(name_, symbol_) { 
+    constructor(){ 
         _factory = msg.sender;
         _admin = _factory;
         _MadToken = IERC20Transferable(getMetamorphicContractAddress(0x4d6164546f6b656e000000000000000000000000000000000000000000000000, _factory));
         _governance = getMetamorphicContractAddress(0x476f7665726e616e636500000000000000000000000000000000000000000000, _factory);
     }
+    
 
     //  onlyGovernance is a modifier that enforces a call
     // must be performed by the governance contract
@@ -126,6 +126,10 @@ abstract contract StakeNFTBase is
     modifier onlyAdmin() {
         require(msg.sender == _admin, "Must be admin");
         _;
+    }
+
+    function __StakeNFTBase_init(string memory name_, string memory symbol_) internal {
+        __ERC721_init(name_, symbol_);
     }
 
     // get getGovernance returns the current Governance contract
@@ -535,7 +539,7 @@ abstract contract StakeNFTBase is
         );
         _reserveToken += amount_;
         // invoke inherited method and return
-        ERC721._mint(to_, tokenID);
+        ERC721Upgradeable._mint(to_, tokenID);
         return tokenID;
     }
 
@@ -574,7 +578,7 @@ abstract contract StakeNFTBase is
         delete _positions[tokenID_];
 
         // invoke inherited burn method
-        ERC721._burn(tokenID_);
+        ERC721Upgradeable._burn(tokenID_);
 
         // transfer out all eth and tokens owed
         _safeTransferERC20(_MadToken, to_, payoutToken);
@@ -759,10 +763,10 @@ abstract contract StakeNFTBase is
     }
 }
 
-/// @custom:salt MadByte
+/// @custom:salt StakeNFT
 /// @custom:deploy-type deployStatic
 contract StakeNFT is StakeNFTBase {
-    constructor() StakeNFTBase("MNSNFT", "MNS") {
-        
+    function initialize() public onlyAdmin initializer {
+        __StakeNFTBase_init("MNSNFT", "MNS");
     }
 }

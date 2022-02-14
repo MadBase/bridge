@@ -38,7 +38,8 @@ export async function deployStatic(fullyQualifiedName:string) {
     let name = await extractName(fullyQualifiedName);
     let initializerArgs:Array<string> = [];
     let initCallData = "0x";
-    if (await isInitializable(fullyQualifiedName)){
+    let initAble = await isInitializable(fullyQualifiedName);
+    if (initAble){
         initializerArgs = await getDeploymentInitializerArgs(fullyQualifiedName);
         initCallData = await getEncodedInitCallData(name, initializerArgs);
     }
@@ -57,17 +58,21 @@ export async function deployUpgradeableProxy(fullyQualifiedName:string) {
 }
 
 export async function isInitializable(fullyQualifiedName:string){
-    let i = await getInitializerArgCount(fullyQualifiedName);
-    if(i > 0){
+    let buildInfo:any = await artifacts.getBuildInfo(fullyQualifiedName);
+    let path = extractPath(fullyQualifiedName);
+    let name = extractName(fullyQualifiedName)
+    let methods = buildInfo.output.contracts[path][name].abi;
+    for (let method of methods){
+      if(method.name === "initialize"){
         return true;
-    }else{
-        return false;
+      }
     }
+    return false;
 }
 
 export async function getEncodedInitCallData(contractName: string, args:Array<string>){ 
-    let contractFactory = ethers.getContractFactory(contractName);
-    return (await contractFactory).interface.encodeFunctionData("initialize", args);
+    let contractFactory = await ethers.getContractFactory(contractName);
+    return contractFactory.interface.encodeFunctionData("initialize", args);
 }
 
 export async function getContract(name:string) {
@@ -162,7 +167,7 @@ export async function getInitializerArgCount(fullName: string){
     let name = extractName(fullName)
     let methods = buildInfo.output.contracts[path][name].abi;
     for (let method of methods){
-      if(method.name === "initializer"){
+      if(method.name === "initialize"){
         return method.inputs.length;
       }
     }

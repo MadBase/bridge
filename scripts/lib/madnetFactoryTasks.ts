@@ -97,25 +97,20 @@ task("deployMetamorphic", "deploys template contract, and then deploys metamorph
   .addOptionalParam("initCallData", "call data used to initialize initializable contracts")
   .addOptionalVariadicPositionalParam("constructorArgs", "array that holds all arguements for constructor")
   .setAction(async (taskArgs, hre) => {
-    try{
-      let metaContractData = <MetaContractData>{};
-      let factoryData = await getFactoryData(taskArgs);
-      metaContractData.factoryAddress = factoryData.address;
-      //uses the factory Data and logic contractName and returns deploybytecode and any constructor args attached       
-      let callArgs:DeployArgs = await getDeployTemplateArgs(taskArgs);
-      //deploy create the logic contract
-      metaContractData.templateName = taskArgs.contractName; 
-      metaContractData.templateAddress = await hre.run("deployTemplate", callArgs);
-      console.log("Deploy Static logicAddress:", metaContractData.templateAddress);
-      callArgs = await getDeployStaticSubtaskArgs(taskArgs);
-      metaContractData.metaAddress = await hre.run("deployStatic", callArgs);
-      console.log("deployed Metamorphic at: ", metaContractData.metaAddress, "with logic from,", metaContractData.templateAddress);
-      await updateMetaList(metaContractData);
-      return metaContractData;
-    }
-    catch(error){
-      console.log(error);
-    }
+    let metaContractData = <MetaContractData>{};
+    let factoryData = await getFactoryData(taskArgs);
+    metaContractData.factoryAddress = factoryData.address;
+    //uses the factory Data and logic contractName and returns deploybytecode and any constructor args attached       
+    let callArgs:DeployArgs = await getDeployTemplateArgs(taskArgs);
+    //deploy create the logic contract
+    metaContractData.templateName = taskArgs.contractName; 
+    metaContractData.templateAddress = await hre.run("deployTemplate", callArgs);
+    console.log("Deploy Static logicAddress:", metaContractData.templateAddress);
+    callArgs = await getDeployStaticSubtaskArgs(taskArgs);
+    metaContractData.metaAddress = await hre.run("deployStatic", callArgs);
+    console.log("deployed Metamorphic at: ", metaContractData.metaAddress, "with logic from,", metaContractData.templateAddress);
+    await updateMetaList(metaContractData);
+    return metaContractData;
   });
 
   //factoryName param doesnt do anything right now
@@ -223,24 +218,22 @@ subtask("deployStatic", "deploys a template contract with the universal code cop
     let factoryData = await getFactoryData(taskArgs);
     let MadnetFactory = await hre.artifacts.require(factoryData.name);
     let Salt = await getBytes32Salt(taskArgs.contractName, hre);
-    let initCallData:string;
-    if(taskArgs.initCallData === undefined){
-      initCallData = "0x"
-    }else{
-      initCallData = taskArgs.initCallData;
-    }
+    console.log("INITCALLDATA", taskArgs.initCallData)
     //get a factory instance connected to the factory addr
     const factory = await MadnetFactory.at(factoryData.address);
-    let receipt = await factory.deployStatic(Salt, initCallData);
+    
+    let receipt = await factory.deployStatic(Salt, taskArgs.initCallData);
+    console.log("SALT:", Salt)
     let contractAddr = await getEventVar(receipt, "DeployedStatic", contractAddrKey);
     console.log("Deployed ", taskArgs.contractName, " contract at ", contractAddr);
+    let tmplAddress = await factory.getImplementation.call();
     let outputData:MetaContractData = {
       metaAddress: contractAddr,
       salt: Salt,
       templateName: taskArgs.contractName,
-      templateAddress: await factory.getImplementation.call(),
+      templateAddress: tmplAddress,
       factoryAddress: factory.address,
-      initCallData: initCallData
+      initCallData: taskArgs.initCallData
     }
     await updateMetaList(outputData)
     return contractAddr;
@@ -370,8 +363,10 @@ async function getDeployTemplateArgs(taskArgs: any){
 async function getDeployStaticSubtaskArgs(taskArgs: any){
   let factoryData = await getFactoryData(taskArgs);
   let initCallData:string = "0x"
+  console.log("getDeployStaticSubtaskArgs task.initCallData:", taskArgs.initCallData);
   if(taskArgs.initCallData !== undefined){
     initCallData = taskArgs.initCallData;
+    console.log("initCallData:", initCallData)
   }
   return <DeployArgs>{
     contractName: taskArgs.contractName,
