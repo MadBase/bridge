@@ -8,7 +8,6 @@ import "../../../parsers/RCertParserLibrary.sol";
 import "../../../parsers/BClaimsParserLibrary.sol";
 import "../../../CryptoLibrary.sol";
 
-
 contract Snapshots is ISnapshots {
     uint32 internal _epoch;
     uint32 internal _epochLength;
@@ -155,11 +154,11 @@ contract Snapshots is ISnapshots {
         //todo: are we going to snapshot on epoch 0?
         uint32 epoch = _epoch + 1;
         uint256 ethBlocksSinceLastSnapshot = block.number - _snapshots[epoch - 1].committedAt;
-        
+
         uint256 blocksSinceDesperation = ethBlocksSinceLastSnapshot >= _snapshotDesperationDelay
             ? ethBlocksSinceLastSnapshot - _snapshotDesperationDelay
             : 0;
-        
+
         // Check if sender is the elected validator allowed to make the snapshot
         require(
             _mayValidatorSnapshot(

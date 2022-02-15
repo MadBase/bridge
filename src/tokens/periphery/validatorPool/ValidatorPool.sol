@@ -165,6 +165,22 @@ contract ValidatorPool is
         return ret;
     }
 
+
+    /// @notice Try to get the NFT tokenID for an account.
+    /// @param account_ address of the account to try to retrieve the tokenID
+    /// @return tuple (bool, address, uint256). Return true if the value was found, false if not.
+    /// Returns the address of the NFT contract and the tokenID. In case the value was not found, tokenID
+    /// and address are 0.
+    function tryGetTokenID(address account_) public view returns(bool, address, uint256) {
+        if (_isValidator(account_)) {
+            return (true, address(_validatorsNFT), _validators.get(account_)._tokenID);
+        } else if (_isInExitingQueue(account_)) {
+            return (true, address(_stakeNFT), _exitingValidatorsData[account_]._tokenID);
+        } else {
+            return (false, address(0), 0);
+        }
+    }
+
     function isValidator(address account_) public view returns (bool) {
         return _isValidator(account_);
     }
