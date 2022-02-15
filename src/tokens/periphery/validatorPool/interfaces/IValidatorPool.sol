@@ -55,7 +55,7 @@ interface IValidatorPool {
 
     function collectProfits() external returns (uint256 payoutEth, uint256 payoutToken);
 
-    function claimStakeNFTPosition() external returns (uint256);
+    function claimExitingNFTPosition() external returns (uint256);
 
     function majorSlash(address dishonestValidator_, address disputer_) external;
 

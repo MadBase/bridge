@@ -122,8 +122,20 @@ contract ValidatorPoolMock is IValidatorPool {
         return _isMaintenanceScheduled;
     }
 
-    function claimStakeNFTPosition() public returns (uint256) {
+    function claimExitingNFTPosition() public returns (uint256) {
         return 0;
+    }
+
+    function tryGetTokenID(address account_)
+        public
+        view
+        returns (
+            bool,
+            address,
+            uint256
+        )
+    {
+        return (false, address(0), 0);
     }
 
     function collectProfits() public returns (uint256 payoutEth, uint256 payoutToken) {

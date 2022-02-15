@@ -277,6 +277,8 @@ contract ValidatorPool is
         onlyValidator
         returns (uint256 payoutEth, uint256 payoutToken)
     {
+        require(_isConsensusRunning, "ValidatorPool: Profits can only be claimable when consensus is running!");
+
         uint256 balanceBeforeToken = _madToken.balanceOf(address(this));
         uint256 balanceBeforeEth = address(this).balance;
 
@@ -296,7 +298,7 @@ contract ValidatorPool is
         return (payoutEth, payoutToken);
     }
 
-    function claimStakeNFTPosition() public returns (uint256) {
+    function claimExitingNFTPosition() public returns (uint256) {
         ExitingValidatorData memory data = _exitingValidatorsData[msg.sender];
         require(data._freeAfter > 0, "ValidatorPool: Address not in the exitingQueue!");
         require(

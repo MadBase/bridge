@@ -190,7 +190,7 @@ contract Snapshots is ISnapshots {
         );
 
         require(
-            blockClaims.height % _epochLength == 0,
+            epoch * _epochLength == blockClaims.height,
             "Snapshots: Incorrect Madnet height for snapshot!"
         );
 
