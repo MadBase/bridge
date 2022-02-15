@@ -8,6 +8,8 @@ import "hardhat-contract-sizer";
 import "hardhat-gas-reporter";
 import "solidity-coverage";
 import "@nomiclabs/hardhat-truffle5";
+import "./scripts/lib/madnetFactoryTasks"
+
 
 
 /**
@@ -18,13 +20,12 @@ import "@nomiclabs/hardhat-truffle5";
 // https://hardhat.org/guides/create-task.html
 task("accounts", "Prints the list of accounts", async (taskArgs, hre) => {
   const accounts = await hre.ethers.getSigners();
-
   for (const account of accounts) {
     console.log(account.address);
   }
 });
-
 const config: HardhatUserConfig = {
+
   namedAccounts: {
     'admin': 0,
     'validator0': 1,
@@ -44,14 +45,8 @@ const config: HardhatUserConfig = {
   //unnamedAccounts: [],
   networks: {
     ganache: {
-      url: "HTTP://127.0.0.1:8545",
-      /*accounts: [
-        "9305771b3112a9a52cfcc4270bd0040ff5aefd2ae18cbbd972612bdb357a1074",
-        "8441c5098bd9e6f06b5d2000176aec0d2332e6ac994a9c586aeb2dd8c4c20000",
-        "9782b38ce7b0ffccb07c621518b274cd018b43d0996a267c50541c31093ccdde"
-      ]
-*/
-      },
+      url: "HTTP://127.0.0.1:8545"
+    },
     hardhat: {
       allowUnlimitedContractSize: true,
       mining: {
@@ -141,7 +136,9 @@ const config: HardhatUserConfig = {
     }
   },
   solidity: {
+    
     compilers: [{
+      
       version: "0.8.11",
       settings: {
         outputSelection: {
@@ -172,8 +169,8 @@ const config: HardhatUserConfig = {
   },
 
   paths: {
-    sources: "./src/tokens",
-    tests: "./tests",
+    sources: "./src",
+    //tests: "./tests",
     cache: "./cache",
     artifacts: "./artifacts",
   },
@@ -189,6 +186,9 @@ const config: HardhatUserConfig = {
   gasReporter: {
     currency: "ETH",
     gasPrice: 1000000,
+    excludeContracts: [
+      "*.t.sol"
+    ],
   },
   mocha: {
     timeout: 600000

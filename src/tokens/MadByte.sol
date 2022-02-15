@@ -1,15 +1,18 @@
 // SPDX-License-Identifier: MIT-open-group
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.11;
 
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
 import "./utils/Admin.sol";
 import "./utils/Mutex.sol";
 import "./utils/MagicEthTransfer.sol";
 import "./utils/EthSafeTransfer.sol";
 import "./math/Sigmoid.sol";
+import "../utils/DeterministicAddress.sol";
 
 
-contract MadByte is ERC20, Admin, Mutex, MagicEthTransfer, EthSafeTransfer, Sigmoid {
+/// @custom:salt MadByte
+/// @custom:deploy-type deployStatic
+contract MadByte is ERC20Upgradeable, Admin, Mutex, MagicEthTransfer, EthSafeTransfer, Sigmoid, DeterministicAddress {
 
     /// @notice Event emitted when a deposit is received
     event DepositReceived(uint256 indexed depositID, address indexed depositor, uint256 amount);
@@ -27,10 +30,10 @@ contract MadByte is ERC20, Admin, Mutex, MagicEthTransfer, EthSafeTransfer, Sigm
     // Value of the percentages that will send to each staking contract. Divide
     // this value by madUnitOne = 1000 to get the corresponding percentages.
     // These values must sum to 1000.
-    uint256 _minerStakingSplit = 333;
-    uint256 _madStakingSplit = 332;
-    uint256 _lpStakingSplit = 332;
-    uint256 _protocolFee = 3;
+    uint256 _minerStakingSplit;
+    uint256 _madStakingSplit;
+    uint256 _lpStakingSplit;
+    uint256 _protocolFee;
 
     // struct to define a BNAddress
     struct BNAddress {
@@ -57,6 +60,7 @@ contract MadByte is ERC20, Admin, Mutex, MagicEthTransfer, EthSafeTransfer, Sigm
     // (4x bytes32) of owner of a deposit.
     mapping(uint256 => BNAddress) _depositorsBN;
 
+    address immutable _factory;
     // Staking contracts addresses
     IMagicEthTransfer _madStaking;
     IMagicEthTransfer _minerStaking;
@@ -64,11 +68,21 @@ contract MadByte is ERC20, Admin, Mutex, MagicEthTransfer, EthSafeTransfer, Sigm
     // Foundation contract address
     IMagicEthTransfer _foundation;
 
-    constructor(address admin_, address madStaking_, address minerStaking_, address lpStaking_, address foundation_) ERC20("MadByte", "MB") Admin(admin_) Mutex() {
-        _madStaking = IMagicEthTransfer(madStaking_);
-        _minerStaking = IMagicEthTransfer(minerStaking_);
-        _lpStaking = IMagicEthTransfer(lpStaking_);
-        _foundation = IMagicEthTransfer(foundation_);
+    constructor() Admin(msg.sender) Mutex() {
+        _factory = msg.sender;
+    } 
+
+    //add onlyFactory Modifier
+    function initialize() public onlyAdmin initializer {
+        __ERC20_init("MadByte", "MB");
+        _madStaking = IMagicEthTransfer(getMetamorphicContractAddress(bytes32("StakeNFT"), _factory)); 
+        _minerStaking = IMagicEthTransfer(getMetamorphicContractAddress(bytes32("ValidatorStakeNFT"), _factory));
+        _lpStaking = IMagicEthTransfer(getMetamorphicContractAddress(bytes32("StakeNFTLP"), _factory));
+        _foundation = IMagicEthTransfer(getMetamorphicContractAddress(bytes32("Foundation"), _factory));
+        _minerStakingSplit = 333;
+        _madStakingSplit = 332;
+        _lpStakingSplit = 332;
+        _protocolFee = 3;
     }
 
     /// @dev sets the miner staking contract, must only be called by _admin.
@@ -100,7 +114,7 @@ contract MadByte is ERC20, Admin, Mutex, MagicEthTransfer, EthSafeTransfer, Sigm
         _madStakingSplit = madStakingSplit_;
         _lpStakingSplit = lpStakingSplit_;
         _protocolFee = protocolFee_;
-    }
+    } 
 
     /// Converts an amount of Madbytes in ether given a point in the bonding
     /// curve (poolbalance and totalsupply at given time).
@@ -306,7 +320,7 @@ contract MadByte is ERC20, Admin, Mutex, MagicEthTransfer, EthSafeTransfer, Sigm
     function _destroyTokens(uint256 nuMB_) internal returns (bool) {
         require(nuMB_ != 0, "MadByte: The number of MadBytes to be burn should be greater than 0!");
         _poolBalance -= _MBtoEth(_poolBalance, totalSupply(), nuMB_);
-        ERC20._burn(msg.sender, nuMB_);
+        ERC20Upgradeable._burn(msg.sender, nuMB_);
         return true;
     }
 
@@ -384,7 +398,7 @@ contract MadByte is ERC20, Admin, Mutex, MagicEthTransfer, EthSafeTransfer, Sigm
         require(nuMB >= minMB_, "MadByte: could not mint minimum MadBytes");
         poolBalance += numEth_;
         _poolBalance = poolBalance;
-        ERC20._mint(to_, nuMB);
+        ERC20Upgradeable._mint(to_, nuMB);
         return nuMB;
     }
 
@@ -397,7 +411,7 @@ contract MadByte is ERC20, Admin, Mutex, MagicEthTransfer, EthSafeTransfer, Sigm
         require(numEth >= minEth_, "MadByte: Couldn't burn the minEth amount");
         poolBalance -= numEth;
         _poolBalance = poolBalance;
-        ERC20._burn(from_, nuMB_);
+        ERC20Upgradeable._burn(from_, nuMB_);
         _safeTransferEth(to_, numEth);
         return numEth;
     }

@@ -5,8 +5,8 @@ import "../proxy/Proxy.sol";
 
 
 /// @custom:salt MadnetFactory
-/// @custom:deploy-type factory
-abstract contract MadnetFactoryBase is DeterministicAddress, ProxyUpgrader {
+/// @custom:deploy-type externalAccount
+contract MadnetFactory is DeterministicAddress, ProxyUpgrader {
 
     /**
     @dev owner role for priveledged access to functions  
@@ -41,16 +41,15 @@ abstract contract MadnetFactoryBase is DeterministicAddress, ProxyUpgrader {
     event DeployedStatic(address contractAddr);
     event DeployedRaw(address contractAddr);
     event DeployedProxy(address contractAddr);
-
     // modifier restricts caller to owner or self via multicall
     modifier onlyOwner() {
-        requireAuth(msg.sender == address(this) || msg.sender == owner());
+        requireAuth(msg.sender == address(this) || msg.sender == owner_);
         _;
     }
 
     // modifier restricts caller to owner or self via multicall
     modifier onlyOwnerOrDelegator() {
-        requireAuth(msg.sender == address(this) || msg.sender == owner()|| msg.sender == delegator());
+        requireAuth(msg.sender == address(this) || msg.sender == owner_ || msg.sender == delegator_);
         _;
     }
 
@@ -89,6 +88,24 @@ abstract contract MadnetFactoryBase is DeterministicAddress, ProxyUpgrader {
     }
 
     /**
+    * @dev setOwner allows the owner of this contract to change ownership to _new account 
+    * @param _new: address of new owner 
+    * (WARNING! setting owner_ to a contract address without proper functionality can deadlock everything)
+    */
+    function setOwner(address _new) public onlyOwner {
+        owner_ = _new;
+    }
+
+    /**
+    * @dev allows the owner to set a delegator_, 
+    * an account with some prvilidged access 
+    * @param _new: address of new delegator account 
+    */
+    function setDelegator(address _new) public onlyOwner {
+        delegator_ = _new;
+    }
+
+    /**
     * @dev lookup allows anyone interacting with the contract to  
     * get the address of contract specified by its _name 
     * @param _name: Custom NatSpec tag @custom:salt at the top of the contract
@@ -101,20 +118,7 @@ abstract contract MadnetFactoryBase is DeterministicAddress, ProxyUpgrader {
         }
         addr = getMetamorphicContractAddress(salt, address(this));
     }
-    function getImplementation() public view returns (address){
-        return implementation_; 
-    }
-    function setImplementation(address _v) public onlyOwnerOrDelegator {
-        implementation_ = _v;
-    }
 
-    function setOwner(address _v) public onlyOwner{
-        owner_ = _v;
-    }
-
-    function setDelegator(address _v) public onlyOwner {
-        delegator_ = _v;
-    }
 
     function implementation() public view returns (address _v) {
         _v = implementation_;
@@ -158,7 +162,7 @@ abstract contract MadnetFactoryBase is DeterministicAddress, ProxyUpgrader {
     * @dev deployCreate allows the owner to deploy raw contracts through the factory
     * @param _deployCode bytecode to deploy using create
     */
-    function deployCreateInternal(bytes calldata _deployCode) internal returns (address contractAddr) {
+    function deployCreate(bytes calldata _deployCode) public onlyOwner returns (address contractAddr) {
         assembly{
             //get the next free pointer
             let basePtr := mload(0x40)
@@ -184,7 +188,7 @@ abstract contract MadnetFactoryBase is DeterministicAddress, ProxyUpgrader {
     * @param _salt salt for create2 deployment, used to distinguish contracts deployed from this factory 
     * @param _deployCode bytecode to deploy using create2
     */
-    function deployCreate2Internal (uint256 _value, bytes32 _salt, bytes calldata _deployCode) internal returns (address contractAddr) {
+    function deployCreate2(uint256 _value, bytes32 _salt, bytes calldata _deployCode) public payable onlyOwner returns (address contractAddr) {
         assembly{
             //get the next free pointer
             let basePtr := mload(0x40)
@@ -205,11 +209,25 @@ abstract contract MadnetFactoryBase is DeterministicAddress, ProxyUpgrader {
         return contractAddr;        
     }
 
-    /*
+     /*
     * @dev destroy calls the template contract with arbitrary call data which will cause it to self destruct 
     * param _contractAddr the address of the contract to self destruct 
     */
-    function initializeContractInternal(address _contract, bytes calldata _initCallData) internal  {
+/*    function destroy(address _contractAddr) public onlyOwner {
+        assembly{
+            if iszero(_contractAddr) {
+                _contractAddr := sload(implementation_.slot)
+            }
+            let ret := call(gas(), _contractAddr, 0, 0x40, 0x20, 0x00, 0x00) 
+            if iszero(ret) {
+                revert(0x00, 0x00)
+            }
+        }
+        codeSizeZeroRevert((extCodeSize(_contractAddr) == 0));
+    }
+*/
+
+    function initializeContract(address _contract, bytes calldata _initCallData) public onlyOwnerOrDelegator {
         assembly {
             if iszero(iszero(_initCallData.length)) {
                 let ptr := mload(0x40)
@@ -231,12 +249,13 @@ abstract contract MadnetFactoryBase is DeterministicAddress, ProxyUpgrader {
      * @param _deployCode the deploycode with the constructor args appended if any
      * @return contractAddr the address of the deployed template contract
      */
-    function deployTemplateInternal(bytes calldata _deployCode) internal returns (address contractAddr) {
+    function deployTemplate(bytes calldata _deployCode) public onlyOwner returns (address contractAddr) {
         assembly {
             //get the next free pointer
             let basePtr := mload(0x40)
             mstore(0x40, add(basePtr, add(_deployCode.length, 0x28)))
             let ptr := basePtr
+            // modify runtime to contain the tail jump operation
             //codesize, pc,  pc, codecopy, codesize, push1 09, return push2 <codesize> 56 5b
             mstore(ptr, hex"38585839386009f3")
             //0x38585839386009f3
@@ -249,9 +268,15 @@ abstract contract MadnetFactoryBase is DeterministicAddress, ProxyUpgrader {
             mstore(ptr, address())
             ptr := add(ptr, 0x20)
             contractAddr := create(0, basePtr, sub(ptr, basePtr))
+            if iszero(contractAddr) {
+                mstore(0, "yeet")
+                revert(0, 0x20)
+            }
         }
         codeSizeZeroRevert((extCodeSize(contractAddr) != 0));
         emit DeployedTemplate(contractAddr);
+        //TODO: ONLY FOR TESTING?
+        //template_ = contractAddr;
         implementation_ = contractAddr;
         return contractAddr;
     }
@@ -262,7 +287,7 @@ abstract contract MadnetFactoryBase is DeterministicAddress, ProxyUpgrader {
      * @param _salt sda
      * @return contractAddr the address of the deployed template contract
      */
-    function deployStaticInternal(bytes32 _salt, bytes calldata _initCallData) internal returns (address contractAddr) {
+    function deployStatic(bytes32 _salt, bytes calldata _initCallData) public onlyOwner returns (address contractAddr) {
         assembly {
             // store proxy template address as implementation,
             //sstore(implementation_.slot, _impl)
@@ -283,18 +308,17 @@ abstract contract MadnetFactoryBase is DeterministicAddress, ProxyUpgrader {
             }
         }
         if (_initCallData.length > 0) {
-            initializeContractInternal(contractAddr, _initCallData);
+            initializeContract(contractAddr, _initCallData);
         }
         codeSizeZeroRevert((extCodeSize(contractAddr) != 0));
         contracts_.push(_salt);
         emit DeployedStatic(contractAddr);
         return contractAddr;
     }
-
     /**
      *
      */
-    function deployProxyInternal(bytes32 _salt) internal returns (address contractAddr) {
+    function deployProxy(bytes32 _salt) public onlyOwner returns (address contractAddr) {
         address proxyTemplate = proxyTemplate_;
         assembly {
             // store proxy template address as implementation,
@@ -313,23 +337,54 @@ abstract contract MadnetFactoryBase is DeterministicAddress, ProxyUpgrader {
         return contractAddr;
     }
 
-    function upgradeProxyInternal(bytes32 _salt, address _newImpl, bytes calldata _initCallData) internal {
+    function upgradeProxy(bytes32 _salt, address _newImpl) public onlyOwner {
         address proxy = DeterministicAddress.getMetamorphicContractAddress(_salt, address(this));
         __upgrade(proxy, _newImpl);
-        initializeContractInternal(proxy, _initCallData);
     }
    
     /**  
-    * @dev multiCallInternal allows EOA to make multiple function calls within a single transaction **in this contract**, and only returns the result of the last call 
+    * @dev delegateCallAny is a access restricted wrapper function for delegateCallAnyInternal
+    * @param _target: the address of the contract to call
+    * @param _cdata: the call data for the delegate call
+    */
+    function delegateCallAny(address _target, bytes calldata _cdata) public onlyOwnerOrDelegator {
+        bytes memory cdata = _cdata;
+        delegateCallAnyInternal(_target, cdata);
+        returnAvailableData();
+    }
+    /**  
+    * @dev callAny is a access restricted wrapper function for callAnyInternal 
+    * @param _target: the address of the contract to call
+    * @param _value: value to send with the call
+    * @param _cdata: the call data for the delegate call
+    */
+    function callAny(address _target, uint256 _value, bytes calldata _cdata) public onlyOwner {
+        bytes memory cdata = _cdata;
+        callAnyInternal(_target, _value, cdata);
+        returnAvailableData();
+    }
+
+    /**  
+    * @dev multiCall allows EOA to make multiple function calls within a single transaction **in this contract**, and only returns the result of the last call 
     * @param _cdata: array of function calls 
     * returns the result of the last call 
     */
-    function multiCallInternal(bytes[] calldata _cdata) internal {
+    function multiCall(bytes[] calldata _cdata) external onlyOwner {
         for (uint256 i = 0; i < _cdata.length; i++) {
             bytes memory cdata = _cdata[i];
             callAnyInternal(address(this), 0, cdata);
         }
         returnAvailableData();
+    }
+    
+    /**  
+    * @dev fallback function returns the address of the most recent deployment of a template 
+    */
+    fallback() external {
+        assembly {
+            mstore(returndatasize(), sload(implementation_.slot))
+            return(returndatasize(), 0x20)
+        }
     }
 
     function returnAvailableData() internal pure{
@@ -358,7 +413,7 @@ abstract contract MadnetFactoryBase is DeterministicAddress, ProxyUpgrader {
             }
         }
     }
- 
+
     /**  
     * @dev callAnyInternal internal functions that allows the factory contract to make arbitray calls to other contracts 
     * @param _target: the address of the contract to call
@@ -399,127 +454,4 @@ abstract contract MadnetFactoryBase is DeterministicAddress, ProxyUpgrader {
         }
         return size;
     }
-
-     /**  
-    * @dev fallback function returns the address of the most recent deployment of a template 
-    */
-    fallback() external{
-        assembly {
-            mstore(returndatasize(), sload(implementation_.slot))
-            return(returndatasize(), 0x20)
-        }
-    }
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-
-contract MadnetFactory is MadnetFactoryBase{
-    
-  
-
-    /**
-    * @dev The constructor encodes the proxy deploy byte code with the universal deploycode at
-    * the head and the factory address at the tail, and deploys the proxy byte code using create 
-    * The result of this deployment will be a contract with the proxy contract deployment bytecode 
-    * with its constructor at the head, runtime code in the body and constructor args at the tail.
-    * the constructor then sets proxyTemplate_ state var to the deployed proxy template address 
-    * the deploy account will be set as the first owner of the factory. 
-    * @param selfAddr_ is the factory contracts address (address of itself)
-    */
-    constructor(address selfAddr_)MadnetFactoryBase(selfAddr_){}
-
-    /**  
-    * @dev deployCreate allows the owner to deploy raw contracts through the factory
-    * @param _deployCode bytecode to deploy using create
-    */
-    function deployCreate(bytes calldata _deployCode) public onlyOwner returns (address contractAddr) {       
-        return deployCreateInternal(_deployCode);
-    }
-
-    /**   
-    * @dev deployCreate2 allows the owner to deploy contracts with deterministic address 
-    * through the factory 
-    * @param _value endowment value for created contract
-    * @param _salt salt for create2 deployment, used to distinguish contracts deployed from this factory 
-    * @param _deployCode bytecode to deploy using create2
-    */
-    function deployCreate2(uint256 _value, bytes32 _salt, bytes calldata _deployCode) public payable onlyOwner returns (address contractAddr) {
-        contractAddr = deployCreate2Internal(_value, _salt, _deployCode);
-    }
-
-    function initializeContract(address _contract, bytes calldata _initCallData) public onlyOwnerOrDelegator {
-        initializeContractInternal(_contract, _initCallData);
-    }
-
-    /**  
-     * @dev deployTemplate deploys a template contract with the universal code copy constructor that deploys 
-     * the deploycode as the contracts runtime code.    
-     * @param _deployCode the deploycode with the constructor args appended if any
-     * @return contractAddr the address of the deployed template contract
-     */
-    function deployTemplate(bytes calldata _deployCode) public onlyOwner returns (address contractAddr) {
-        contractAddr = deployTemplateInternal(_deployCode);
-    }
-
-    /**  
-     * @dev deployStatic deploys a template contract with the universal code copy constructor that deploys 
-     * the deploycode as the contracts runtime code.    
-     * @param _salt sda
-     * @return contractAddr the address of the deployed template contract
-     */
-    function deployStatic(bytes32 _salt, bytes calldata _initCallData) public onlyOwner returns (address contractAddr) {
-        contractAddr = deployStaticInternal(_salt, _initCallData);
-    }
-    /**
-     *
-     */
-    function deployProxy(bytes32 _salt) public onlyOwner returns (address contractAddr) {
-       contractAddr = deployProxyInternal(_salt);
-    }
-
-    function upgradeProxy(bytes32 _salt, address _newImpl, bytes calldata _initCallData) public onlyOwner {
-        upgradeProxyInternal(_salt, _newImpl, _initCallData);
-    }
-   
-    /**  
-    * @dev delegateCallAny is a access restricted wrapper function for delegateCallAnyInternal
-    * @param _target: the address of the contract to call
-    * @param _cdata: the call data for the delegate call
-    */
-    function delegateCallAny(address _target, bytes calldata _cdata) public onlyOwnerOrDelegator {
-        bytes memory cdata = _cdata;
-        delegateCallAnyInternal(_target, cdata);
-        returnAvailableData();
-    }
-    /**  
-    * @dev callAny is a access restricted wrapper function for callAnyInternal 
-    * @param _target: the address of the contract to call
-    * @param _value: value to send with the call
-    * @param _cdata: the call data for the delegate call
-    */
-    function callAny(address _target, uint256 _value, bytes calldata _cdata) public onlyOwner {
-        bytes memory cdata = _cdata;
-        callAnyInternal(_target, _value, cdata);
-        returnAvailableData();
-    }
-
-    /**  
-    * @dev multiCall allows EOA to make multiple function calls within a single transaction **in this contract**, and only returns the result of the last call 
-    * @param _cdata: array of function calls 
-    * returns the result of the last call 
-    */
-    function multiCall(bytes[] calldata _cdata) external onlyOwner {
-        multiCallInternal(_cdata);
-    }
-    
-   
-
 }

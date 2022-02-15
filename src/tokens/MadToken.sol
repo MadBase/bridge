@@ -1,12 +1,20 @@
 // SPDX-License-Identifier: MIT-open-group
 pragma solidity ^0.8.0;
 
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
+import "./utils/Admin.sol";
 
+abstract contract MadTokenBase is ERC20Upgradeable, Admin {
+    
+}
 
-contract MadToken is ERC20 {
-
-    constructor(string memory name_, string memory symbol_) ERC20(name_, symbol_) {
+/// @custom:salt MadToken
+/// @custom:deploy-type deployStatic
+contract MadToken is MadTokenBase {
+    constructor() Admin(msg.sender){
+    }
+    function initialize() public onlyAdmin initializer {
+        __ERC20_init("MadToken", "MT");
         _mint(msg.sender, 220000000 * 10 ** decimals());
     }
 }

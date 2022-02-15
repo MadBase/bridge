@@ -6,7 +6,7 @@ interface Iendpoint {
     function addTwo() external;
     function factory() external returns(address);
 }
-
+/// @custom:salt endPoint
 contract endPoint {
     address public immutable factory_;
     address public owner;
