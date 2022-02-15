@@ -10,7 +10,7 @@ import "../interfaces/IValidatorPool.sol";
 contract ValidatorPoolMock is IValidatorPool {
     using CustomEnumerableMaps for ValidatorDataMap;
 
-    uint256 internal _tokenIDCounter = 0;
+    uint256 internal _tokenIDCounter;
     ETHDKG internal _ethdkg;
     Snapshots internal _snapshots;
 
@@ -21,9 +21,7 @@ contract ValidatorPoolMock is IValidatorPool {
     bool internal _isMaintenanceScheduled;
     bool internal _isConsensusRunning;
 
-    constructor(bytes memory hook) {
-        _tokenIDCounter = 0;
-    }
+    constructor() {}
 
     function setETHDKG(address ethdkg) external {
         _ethdkg = ETHDKG(ethdkg);
@@ -176,6 +174,9 @@ contract ValidatorPoolMock is IValidatorPool {
 
     function getLocation(address validator) external view returns (string memory) {
         return "";
+    }
+
+    function setDisputerReward(uint256 disputerReward_) public {
     }
 
     function isMock() public view returns (bool) {

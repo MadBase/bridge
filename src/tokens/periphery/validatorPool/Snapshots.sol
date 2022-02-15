@@ -7,36 +7,16 @@ import "../ethdkg/interfaces/IETHDKG.sol";
 import "../../../parsers/RCertParserLibrary.sol";
 import "../../../parsers/BClaimsParserLibrary.sol";
 import "../../../CryptoLibrary.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 
-contract Snapshots is ISnapshots {
-    uint32 internal _epoch;
-    uint32 internal _epochLength;
+import "../../../utils/DeterministicAddress.sol";
 
-    // after how many eth blocks of not having a snapshot will we start allowing more validators to
-    // make it
-    uint32 internal _snapshotDesperationDelay;
-    // how quickly more validators will be allowed to make a snapshot, once
-    // _snapshotDesperationDelay has passed
-    uint32 internal _snapshotDesperationFactor;
+import "./SnapshotsStorage.sol";
 
-    mapping(uint256 => Snapshot) internal _snapshots;
-
-    address internal _admin;
-
-    IETHDKG internal immutable _ethdkg;
-    IValidatorPool internal immutable _validatorPool;
-    uint256 internal immutable _chainId;
-
-    constructor(
-        IETHDKG ethdkg_,
-        IValidatorPool validatorPool_,
-        uint32 chainID_,
-        address factory_
-    ) {
-        _ethdkg = ethdkg_;
-        _validatorPool = validatorPool_;
-        _chainId = chainID_;
-        _epochLength = 1024;
+/// @custom:salt Snapshots
+/// @custom:deploy-type deployUpgradeable
+contract Snapshots is Initializable, SnapshotsStorage, ISnapshots {
+    constructor(uint32 chainID_, uint32 epochLength_) SnapshotsStorage(chainID_, epochLength_){
         _admin = msg.sender;
     }
 
@@ -45,8 +25,19 @@ contract Snapshots is ISnapshots {
         _;
     }
 
-    function setEpochLength(uint32 epochLength_) public onlyAdmin {
-        _epochLength = epochLength_;
+    function initialize(uint32 desperationDelay_, uint32 desperationFactor_) public onlyAdmin initializer {
+        _snapshotDesperationDelay = desperationDelay_;
+        _snapshotDesperationFactor = desperationFactor_;
+    }
+
+    /// @dev getAdmin returns the current _admin
+    function getAdmin() public view returns (address) {
+        return _admin;
+    }
+
+    /// @dev assigns a new admin may only be called by _admin
+    function setAdmin(address admin_) public onlyAdmin {
+        _admin = admin_;
     }
 
     function setSnapshotDesperationDelay(uint32 desperationDelay_) public onlyAdmin {

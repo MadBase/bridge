@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT-open-group
+// SPDX-License-Identifier: MIT-circuitBreakerOpen-group
 pragma solidity ^0.8.11;
 
 import "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol";
@@ -14,7 +14,7 @@ import "./interfaces/INFTStake.sol";
 
 abstract contract StakeNFTStorage {
 
-        // Position describes a staked position
+    // Position describes a staked position
     struct Position {
         // number of madToken
         uint224 shares;
@@ -46,9 +46,9 @@ abstract contract StakeNFTStorage {
     // monotonically increasing counter
     uint256 internal _counter;
 
-     // cb is the circuit breaker
+    // cb is the circuit breaker
     // cb is a set only object
-    bool internal _cb;
+    bool internal _circuitBreaker;
 
     // _shares stores total amount of MadToken staked in contract
     uint256 internal _shares;
@@ -87,12 +87,12 @@ abstract contract StakeNFTBase is
     INFTStake{
     // _maxMintLock describes the maximum interval a Position may be locked
     // during a call to mintTo
-    uint256 constant _maxMintLock = 1051200;
+    uint256 immutable _maxMintLock;
     // 10**18
-    uint256 constant _accumulatorScaleFactor = 1000000000000000000;
+    uint256 immutable internal _accumulatorScaleFactor;
     // constants for the cb state
-    bool constant open = true;
-    bool constant closed = false;
+    bool immutable circuitBreakerOpen;
+    bool immutable circuitBreakerClosed;
     // _governance is a privileged contract
     address immutable _governance;
     // _governance is a privileged contract
@@ -100,13 +100,17 @@ abstract contract StakeNFTBase is
     // simple wrapper around MadToken ERC20 contract
     IERC20Transferable immutable _MadToken;
 
-    constructor(){ 
+    constructor(){
         _factory = msg.sender;
         _admin = _factory;
+        _maxMintLock = 1051200;
+        _accumulatorScaleFactor = 1000000000000000000;
+        circuitBreakerOpen = true;
+        circuitBreakerClosed = false;
         _MadToken = IERC20Transferable(getMetamorphicContractAddress(0x4d6164546f6b656e000000000000000000000000000000000000000000000000, _factory));
         _governance = getMetamorphicContractAddress(0x476f7665726e616e636500000000000000000000000000000000000000000000, _factory);
     }
-    
+
 
     //  onlyGovernance is a modifier that enforces a call
     // must be performed by the governance contract
@@ -115,20 +119,20 @@ abstract contract StakeNFTBase is
         _;
     }
 
-    // withCB is a modifier to enforce the CB must
+    // withCircuitBreaker is a modifier to enforce the CircuitBreaker must
     // be set for a call to succeed
-    modifier withCB() {
-        require(_cb == closed, "CircuitBreaker: The Circuit breaker is opened!");
+    modifier withCircuitBreaker() {
+        require(_circuitBreaker == circuitBreakerClosed, "CircuitBreaker: The Circuit breaker is opened!");
         _;
     }
-    
+
     /// @dev onlyAdmin enforces msg.sender is _admin
     modifier onlyAdmin() {
         require(msg.sender == _admin, "Must be admin");
         _;
     }
 
-    function __StakeNFTBase_init(string memory name_, string memory symbol_) internal {
+    function __StakeNFTBase_init(string memory name_, string memory symbol_) internal onlyInitializing {
         __ERC721_init(name_, symbol_);
     }
 
@@ -140,10 +144,9 @@ abstract contract StakeNFTBase is
     function isAllowedProposal(address addr) public view returns(bool) {
         return _isAllowedProposal(addr);
     }
-    
 
-    function cbState() public view returns(bool) {
-        return _cb;
+    function circuitBreakerState() public view returns(bool) {
+        return _circuitBreaker;
     }
 
     /// @dev getAdmin returns the current _admin
@@ -153,7 +156,7 @@ abstract contract StakeNFTBase is
 
     /// gets the _accumulatorScaleFactor used to scale the ether and tokens
     /// deposited on this contract to reduce the integer division errors.
-    function accumulatorScaleFactor() public pure returns (uint256) {
+    function getAccumulatorScaleFactor() public view returns (uint256) {
         return _accumulatorScaleFactor;
     }
 
@@ -246,7 +249,7 @@ abstract contract StakeNFTBase is
         address caller_,
         uint256 tokenID_,
         uint256 lockDuration_
-    ) public override withCB onlyGovernance returns (uint256) {
+    ) public override withCircuitBreaker onlyGovernance returns (uint256) {
         require(
             caller_ == ownerOf(tokenID_),
             "StakeNFT: Error, token doesn't exist or doesn't belong to the caller!"
@@ -265,7 +268,7 @@ abstract contract StakeNFTBase is
     function lockOwnPosition(
         uint256 tokenID_,
         uint256 lockDuration_
-    ) public withCB returns (uint256) {
+    ) public withCircuitBreaker returns (uint256) {
         require(
             msg.sender == ownerOf(tokenID_),
             "StakeNFT: Error, token doesn't exist or doesn't belong to the caller!"
@@ -281,7 +284,7 @@ abstract contract StakeNFTBase is
     /// _maxGovernanceLock. This function will fail if the circuit breaker is tripped
     function lockWithdraw(uint256 tokenID_, uint256 lockDuration_)
         public
-        withCB
+        withCircuitBreaker
         returns (uint256)
     {
         require(
@@ -302,7 +305,7 @@ abstract contract StakeNFTBase is
     /// fail if the circuit breaker is tripped. The magic_ parameter is intended
     /// to stop some one from successfully interacting with this method without
     /// first reading the source code and hopefully this comment
-    function depositToken(uint8 magic_, uint256 amount_) public withCB checkMagic(magic_) {
+    function depositToken(uint8 magic_, uint256 amount_) public withCircuitBreaker checkMagic(magic_) {
         // collect tokens
         _safeTransferFromERC20(_MadToken, msg.sender, amount_);
         // update state
@@ -317,7 +320,7 @@ abstract contract StakeNFTBase is
     /// breaker is tripped the magic_ parameter is intended to stop some one from
     /// successfully interacting with this method without first reading the
     /// source code and hopefully this comment
-    function depositEth(uint8 magic_) public payable withCB checkMagic(magic_) {
+    function depositEth(uint8 magic_) public payable withCircuitBreaker checkMagic(magic_) {
         _ethState = _deposit(_shares, msg.value, _ethState);
         _reserveEth += msg.value;
     }
@@ -326,7 +329,7 @@ abstract contract StakeNFTBase is
     /// requires the caller to have performed an approve invocation against
     /// MadToken into this contract. This function will fail if the circuit
     /// breaker is tripped.
-    function mint(uint256 amount_) public virtual withCB returns (uint256 tokenID) {
+    function mint(uint256 amount_) public virtual withCircuitBreaker returns (uint256 tokenID) {
         return _mintNFT(msg.sender, amount_);
     }
 
@@ -340,7 +343,7 @@ abstract contract StakeNFTBase is
         address to_,
         uint256 amount_,
         uint256 lockDuration_
-    ) public virtual withCB returns (uint256 tokenID) {
+    ) public virtual withCircuitBreaker returns (uint256 tokenID) {
         require(
             lockDuration_ <= _maxMintLock,
             "StakeNFT: The lock duration must be less or equal than the maxMintLock!"
@@ -648,7 +651,7 @@ abstract contract StakeNFTBase is
         uint256 positionAccumulatorValue_
     )
         internal
-        pure
+        view
         returns (
             Accumulator memory,
             Position memory,
@@ -693,7 +696,7 @@ abstract contract StakeNFTBase is
         uint256 shares_,
         uint256 delta_,
         Accumulator memory state_
-    ) internal pure returns (Accumulator memory) {
+    ) internal view returns (Accumulator memory) {
         state_.slush += (delta_ * _accumulatorScaleFactor);
 
         if (shares_ > 0) {
@@ -736,13 +739,13 @@ abstract contract StakeNFTBase is
     }
 
     function _tripCB() internal {
-        require(_cb == closed, "CircuitBreaker: The Circuit breaker is opened!");
-        _cb = open;
+        require(_circuitBreaker == circuitBreakerClosed, "CircuitBreaker: The Circuit breaker is opened!");
+        _circuitBreaker = circuitBreakerOpen;
     }
 
     function _resetCB() internal {
-        require(_cb == open, "CircuitBreaker: The Circuit breaker is closed!");
-        _cb = closed;
+        require(_circuitBreaker == circuitBreakerOpen, "CircuitBreaker: The Circuit breaker is closed!");
+        _circuitBreaker = circuitBreakerClosed;
     }
 
     // _newTokenID increments the counter and returns the new value

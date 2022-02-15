@@ -19,13 +19,13 @@ contract MadByte is ERC20Upgradeable, Admin, Mutex, MagicEthTransfer, EthSafeTra
     event DepositReceivedBN(uint256 indexed depositID, uint256 to0, uint256 to1, uint256 to2, uint256 to3, uint256 amount);
 
     // multiply factor for the selling/minting bonding curve
-    uint256 constant marketSpread = 4;
+    uint256 immutable marketSpread;
 
     // Scaling factor to get the staking percentages
-    uint256 constant madUnitOne = 1000;
+    uint256 immutable madUnitOne;
 
     // Balance in ether that is hold in the contract after minting and burning
-    uint256 _poolBalance = 0;
+    uint256 _poolBalance;
 
     // Value of the percentages that will send to each staking contract. Divide
     // this value by madUnitOne = 1000 to get the corresponding percentages.
@@ -44,10 +44,10 @@ contract MadByte is ERC20Upgradeable, Admin, Mutex, MagicEthTransfer, EthSafeTra
     }
 
     // Monotonically increasing variable to track the MadBytes deposits.
-    uint256 _depositID = 0;
+    uint256 _depositID;
     // Total amount of MadBytes that were deposited in the MadNet chain. The
     // MadBytes deposited in the Madnet are burned by this contract.
-    uint256 _totalDeposited = 0;
+    uint256 _totalDeposited;
 
     // Tracks the amount of each deposit. Key is deposit id, value is amount
     // deposited.
@@ -70,12 +70,14 @@ contract MadByte is ERC20Upgradeable, Admin, Mutex, MagicEthTransfer, EthSafeTra
 
     constructor() Admin(msg.sender) Mutex() {
         _factory = msg.sender;
-    } 
+        marketSpread = 4;
+        madUnitOne = 1000;
+    }
 
     //add onlyFactory Modifier
     function initialize() public onlyAdmin initializer {
         __ERC20_init("MadByte", "MB");
-        _madStaking = IMagicEthTransfer(getMetamorphicContractAddress(bytes32("StakeNFT"), _factory)); 
+        _madStaking = IMagicEthTransfer(getMetamorphicContractAddress(bytes32("StakeNFT"), _factory));
         _minerStaking = IMagicEthTransfer(getMetamorphicContractAddress(bytes32("ValidatorStakeNFT"), _factory));
         _lpStaking = IMagicEthTransfer(getMetamorphicContractAddress(bytes32("StakeNFTLP"), _factory));
         _foundation = IMagicEthTransfer(getMetamorphicContractAddress(bytes32("Foundation"), _factory));
@@ -83,6 +85,9 @@ contract MadByte is ERC20Upgradeable, Admin, Mutex, MagicEthTransfer, EthSafeTra
         _madStakingSplit = 332;
         _lpStakingSplit = 332;
         _protocolFee = 3;
+        _poolBalance = 0;
+        _depositID = 0;
+        _totalDeposited = 0;
     }
 
     /// @dev sets the miner staking contract, must only be called by _admin.
@@ -114,7 +119,7 @@ contract MadByte is ERC20Upgradeable, Admin, Mutex, MagicEthTransfer, EthSafeTra
         _madStakingSplit = madStakingSplit_;
         _lpStakingSplit = lpStakingSplit_;
         _protocolFee = protocolFee_;
-    } 
+    }
 
     /// Converts an amount of Madbytes in ether given a point in the bonding
     /// curve (poolbalance and totalsupply at given time).

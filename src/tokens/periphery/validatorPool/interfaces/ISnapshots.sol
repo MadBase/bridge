@@ -18,8 +18,6 @@ interface ISnapshots {
         bool safeToProceedConsensus
     );
 
-    function setEpochLength(uint32 epochLength_) external;
-
     function setSnapshotDesperationDelay(uint32 desperationDelay_) external;
 
     function getSnapshotDesperationDelay() external view returns (uint256);

@@ -8,43 +8,20 @@ import "./interfaces/IETHDKGEvents.sol";
 import "./interfaces/IETHDKG.sol";
 import "./ETHDKGStorage.sol";
 import "./utils/ETHDKGUtils.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import "../../../utils/DeterministicAddress.sol";
 
-contract ETHDKG is ETHDKGStorage, IETHDKG, IETHDKGEvents, ETHDKGUtils {
-    constructor(address factory_) {
-        _factory = factory_;
-    }
-
-    // constructor must have input arguments:
-    // any number of args with no dynamic size arguments
-    // The last argument should be the factory
-
-    //todo: add onlyOnce initializer here
-    function initialize(
-        address validatorPool,
-        address snapshots,
-        address ethdkgAccusations,
-        address ethdkgPhases
-    ) public {
-        //todo: remove this;
-        _nonce = 0;
-        _phaseStartBlock = 0;
-        _numParticipants = 0;
-        _badParticipants = 0;
-        //
-        _phaseLength = 40;
-        _confirmationLength = 6;
-        _minValidators = 4;
-        // todo: use contract factory with create2
-        _validatorPool = IValidatorPool(validatorPool);
-        _snapshots = ISnapshots(snapshots);
-        // todo: use contract factory with create2
-        _ethdkgAccusations = ethdkgAccusations;
-        // todo: use contract factory with create2
-        _ethdkgPhases = ethdkgPhases;
+/// @custom:salt ETHDKG
+/// @custom:deploy-type deployUpgradeable
+contract ETHDKG is Initializable, ETHDKGStorage, IETHDKG, IETHDKGEvents, ETHDKGUtils {
+    constructor() ETHDKGStorage() {
         _admin = msg.sender;
     }
 
-    //initialize can take any number of args and any function select value
+    function initialize() public initializer {
+        _phaseLength = 40;
+        _confirmationLength = 6;
+    }
 
     modifier onlyAdmin() {
         require(msg.sender == _admin, "ETHDKG: requires admin privileges");
@@ -90,14 +67,6 @@ contract ETHDKG is ETHDKGStorage, IETHDKG, IETHDKGEvents, ETHDKGUtils {
         _confirmationLength = confirmationLength_;
     }
 
-    function setValidatorPoolAddress(address validatorPool) external onlyAdmin {
-        _validatorPool = IValidatorPool(validatorPool);
-    }
-
-    function setSnapshotsAddress(address snapshots) external onlyAdmin {
-        _snapshots = ISnapshots(snapshots);
-    }
-
     function setCustomMadnetHeight(uint256 madnetHeight) external onlyValidatorPool {
         _customMadnetHeight = madnetHeight;
         emit ValidatorSetCompleted(
@@ -111,10 +80,6 @@ contract ETHDKG is ETHDKGStorage, IETHDKG, IETHDKGEvents, ETHDKGUtils {
             0x0,
             0x0
         );
-    }
-
-    function setMinNumberOfValidator(uint16 minValidators_) external onlyAdmin {
-        _minValidators = minValidators_;
     }
 
     function isETHDKGRunning() public view returns (bool) {
@@ -229,7 +194,6 @@ contract ETHDKG is ETHDKGStorage, IETHDKG, IETHDKGEvents, ETHDKGUtils {
     }
 
     function _callAccusationContract(bytes memory callData) internal returns (bytes memory) {
-        // todo: change logic to use create2 address
         (bool success, bytes memory returnData) = _ethdkgAccusations.delegatecall(callData);
         if (!success) {
             // solhint-disable no-inline-assembly
@@ -244,7 +208,6 @@ contract ETHDKG is ETHDKGStorage, IETHDKG, IETHDKGEvents, ETHDKGUtils {
     }
 
     function _callPhaseContract(bytes memory callData) internal returns (bytes memory) {
-        // todo: change logic to use create2 address
         (bool success, bytes memory returnData) = _ethdkgPhases.delegatecall(callData);
         if (!success) {
             // solhint-disable no-inline-assembly

@@ -15,7 +15,7 @@ contract ValidatorNFT is StakeNFTBase {
     /// requires the caller to have performed an approve invocation against
     /// MadToken into this contract. This function will fail if the circuit
     /// breaker is tripped.
-    function mint(uint256 amount_) public override withCB onlyAdmin returns (uint256 tokenID) {
+    function mint(uint256 amount_) public override withCircuitBreaker onlyAdmin returns (uint256 tokenID) {
         return _mintNFT(msg.sender, amount_);
     }
 
@@ -29,7 +29,7 @@ contract ValidatorNFT is StakeNFTBase {
         address to_,
         uint256 amount_,
         uint256 lockDuration_
-    ) public override withCB onlyAdmin returns (uint256 tokenID) {
+    ) public override withCircuitBreaker onlyAdmin returns (uint256 tokenID) {
         require(
             lockDuration_ <= _maxMintLock,
             "StakeNFT: The lock duration must be less or equal than the maxMintLock!"

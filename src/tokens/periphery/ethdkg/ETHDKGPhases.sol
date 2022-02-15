@@ -7,7 +7,12 @@ import "./interfaces/IETHDKG.sol";
 import "./ETHDKGStorage.sol";
 import "./utils/ETHDKGUtils.sol";
 
+///@custom:salt ETHDKGPhases
+///@custom:deploy-type deployUpgradeable
 contract ETHDKGPhases is ETHDKGStorage, IETHDKGEvents, ETHDKGUtils {
+    constructor() ETHDKGStorage(){
+        _admin = msg.sender;
+    }
 
     function register(uint256[2] memory publicKey) external {
         require(

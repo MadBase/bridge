@@ -10,12 +10,18 @@ import "../../utils/MagicValue.sol";
 import "./interfaces/IValidatorPool.sol";
 import "./interfaces/IValidatorPoolEvents.sol";
 import "./interfaces/ISnapshots.sol";
-import "./interfaces/IDutchAuction.sol";
 import "@openzeppelin/contracts/token/ERC721/utils/ERC721Holder.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "./utils/CustomEnumerableMaps.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 
+import "./ValidatorPoolStorage.sol";
+
+/// @custom:salt ValidatorPool
+/// @custom:deploy-type deployUpgradeable
 contract ValidatorPool is
+    Initializable,
+    ValidatorPoolStorage,
     IValidatorPool,
     IValidatorPoolEvents,
     MagicValue,
@@ -25,71 +31,15 @@ contract ValidatorPool is
 {
     using CustomEnumerableMaps for ValidatorDataMap;
 
-    // POSITION_LOCK_PERIOD describes the maximum interval a STAKENFT Position may be locked after being
-    // given back to validator exiting the pool
-    uint256 public constant POSITION_LOCK_PERIOD = 172800;
-    // Interval in Madnet Epochs that a validator exiting the pool should before claiming is
-    // STAKENFT position
-    uint256 public constant CLAIM_PERIOD = 3;
+    constructor() ValidatorPoolStorage() {
+        _admin = msg.sender;
+    }
 
-    // Maximum number the ethereum blocks allowed without a validator committing a snapshot
-    uint256 public constant MAX_INTERVAL_WITHOUT_SNAPSHOT = 8192;
-
-    // todo: replace this with CREATE2
-    INFTStake internal immutable _stakeNFT;
-    INFTStake internal immutable _validatorsNFT;
-    IETHDKG internal _ethdkg;
-    ISnapshots internal _snapshots;
-    IERC20Transferable internal immutable _madToken;
-
-    // Minimum amount to stake
-    uint256 internal _stakeAmount;
-    // Max number of validators allowed in the pool
-    uint256 internal _maxNumValidators;
-    // Value in WEIs to be discounted of dishonest validator in case of slashing event. This value
-    // is usually sent back to the disputer
-    uint256 internal _disputerReward;
-
-    // Boolean flag to be read by the snapshot contract in order to decide if the validator set
-    // needs to be changed or not (i.e if a validator is going to be removed or added).
-    bool internal _isMaintenanceScheduled;
-    // Boolean flag to keep track if the consensus is running in the side chain or not. Validators
-    // can only join or leave the pool in case this value is false.
-    bool internal _isConsensusRunning;
-
-    // The internal iterable mapping that tracks all ACTIVE validators in the Pool
-    ValidatorDataMap internal _validators;
-
-    // Mapping that keeps track of the validators leaving the Pool. Validators assets are hold by
-    // `CLAIM_PERIOD` epochs before the user being able to claim the assets back in the form a new
-    // STAKENFT position.
-    mapping(address => ExitingValidatorData) internal _exitingValidatorsData;
-
-    // Mapping to keep track of the active validators IPs.
-    mapping(address => string) internal _ipLocations;
-
-    //todo: change this to use the Admin abstract contract
-    address internal _admin;
-
-    constructor(
-        INFTStake stakeNFT_,
-        INFTStake validatorNFT_,
-        IERC20Transferable madToken_,
-        IETHDKG ethdkg_,
-        ISnapshots snapshots_,
-        bytes memory hook
-    ) {
+    function initialize() public onlyAdmin initializer {
         //20000*10**18 MadWei = 20k MadTokens
         _stakeAmount = 20000 * 10**18;
         _maxNumValidators = 5;
         _disputerReward = 1;
-        _admin = msg.sender;
-
-        _stakeNFT = stakeNFT_;
-        _validatorsNFT = validatorNFT_;
-        _ethdkg = ethdkg_;
-        _snapshots = snapshots_;
-        _madToken = madToken_;
     }
 
     modifier onlyAdmin() {
@@ -115,20 +65,16 @@ contract ValidatorPool is
         _;
     }
 
-    function setETHDKG(address ethdkg_) public onlyAdmin {
-        _ethdkg = IETHDKG(ethdkg_);
-    }
-
-    function setSnapshot(address snapshots_) public onlyAdmin {
-        _snapshots = ISnapshots(snapshots_);
-    }
-
     function setStakeAmount(uint256 stakeAmount_) public onlyAdmin {
         _stakeAmount = stakeAmount_;
     }
 
     function setMaxNumValidators(uint256 maxNumValidators_) public onlyAdmin {
         _maxNumValidators = maxNumValidators_;
+    }
+
+    function setDisputerReward(uint256 disputerReward_) public onlyAdmin {
+        _disputerReward = disputerReward_;
     }
 
     function setLocation(string calldata ip_) public onlyValidator {
@@ -165,13 +111,20 @@ contract ValidatorPool is
         return ret;
     }
 
-
     /// @notice Try to get the NFT tokenID for an account.
     /// @param account_ address of the account to try to retrieve the tokenID
     /// @return tuple (bool, address, uint256). Return true if the value was found, false if not.
     /// Returns the address of the NFT contract and the tokenID. In case the value was not found, tokenID
     /// and address are 0.
-    function tryGetTokenID(address account_) public view returns(bool, address, uint256) {
+    function tryGetTokenID(address account_)
+        public
+        view
+        returns (
+            bool,
+            address,
+            uint256
+        )
+    {
         if (_isValidator(account_)) {
             return (true, address(_validatorsNFT), _validators.get(account_)._tokenID);
         } else if (_isInExitingQueue(account_)) {
@@ -221,7 +174,7 @@ contract ValidatorPool is
     function pauseConsensusOnArbitraryHeight(uint256 madnetHeight_) public onlyAdmin {
         require(
             block.number >
-                _snapshots.getCommittedHeightFromLatestSnapshot() + MAX_INTERVAL_WITHOUT_SNAPSHOT,
+                _snapshots.getCommittedHeightFromLatestSnapshot() + _maxIntervalWithoutSnapshot,
             "ValidatorPool: Condition not met to stop consensus!"
         );
         _isConsensusRunning = false;
@@ -277,7 +230,10 @@ contract ValidatorPool is
         onlyValidator
         returns (uint256 payoutEth, uint256 payoutToken)
     {
-        require(_isConsensusRunning, "ValidatorPool: Profits can only be claimable when consensus is running!");
+        require(
+            _isConsensusRunning,
+            "ValidatorPool: Profits can only be claimable when consensus is running!"
+        );
 
         uint256 balanceBeforeToken = _madToken.balanceOf(address(this));
         uint256 balanceBeforeEth = address(this).balance;
@@ -308,7 +264,7 @@ contract ValidatorPool is
 
         _removeExitingQueueData(msg.sender);
 
-        _stakeNFT.lockOwnPosition(data._tokenID, POSITION_LOCK_PERIOD);
+        _stakeNFT.lockOwnPosition(data._tokenID, _positionLockPeriod);
 
         IERC721Transferable(address(_stakeNFT)).safeTransferFrom(
             address(this),
@@ -618,7 +574,7 @@ contract ValidatorPool is
         }
         _exitingValidatorsData[validator_] = ExitingValidatorData(
             uint128(stakeTokenID_),
-            uint128(_snapshots.getEpoch() + CLAIM_PERIOD)
+            uint128(_snapshots.getEpoch() + _claimPeriod)
         );
     }
 

@@ -8,12 +8,6 @@ interface IETHDKG {
 
     function setConfirmationLength(uint16 confirmationLength_) external;
 
-    function setValidatorPoolAddress(address validatorPool) external;
-
-    function setSnapshotsAddress(address snapshots) external;
-
-    function setMinNumberOfValidator(uint16 minValidators_) external;
-
     function setCustomMadnetHeight(uint256 madnetHeight) external;
 
     function isETHDKGRunning() external view returns (bool);

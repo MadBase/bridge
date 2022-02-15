@@ -2,7 +2,7 @@
 pragma solidity ^0.8.0;
 
 interface INFTStake {
-    function accumulatorScaleFactor() external pure returns (uint256);
+    function getAccumulatorScaleFactor() external view returns (uint256);
 
     function getTotalShares() external view returns (uint256);
 

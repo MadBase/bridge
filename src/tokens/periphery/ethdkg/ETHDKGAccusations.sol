@@ -8,8 +8,13 @@ import "./utils/ETHDKGUtils.sol";
 
 import "../../../CryptoLibrary.sol";
 
-// todo: change this to work with the contract factory and have a deterministic address
+/// @custom:salt ETHDKGAccusations
+/// @custom:deploy-type deployUpgradeable
 contract ETHDKGAccusations is ETHDKGStorage, IETHDKGEvents, ETHDKGUtils {
+
+    constructor() ETHDKGStorage(){
+        _admin = msg.sender;
+    }
     function accuseParticipantNotRegistered(address[] memory dishonestAddresses) external {
         require(
             _ethdkgPhase == Phase.RegistrationOpen &&

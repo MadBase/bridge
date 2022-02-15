@@ -4,13 +4,12 @@ pragma solidity ^0.8.11;
 import "../utils/CustomEnumerableMaps.sol";
 
 interface IValidatorPool {
-    function setETHDKG(address _address) external;
-
-    function setSnapshot(address _address) external;
 
     function setStakeAmount(uint256 stakeAmount_) external;
 
     function setMaxNumValidators(uint256 maxNumValidators_) external;
+
+    function setDisputerReward(uint256 disputerReward_) external;
 
     function setLocation(string calldata ip) external;
 
