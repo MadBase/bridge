@@ -244,16 +244,16 @@ export const getFixture = async () => {
   )) as ValidatorNFT;
 
   // ValidatorPoolMock
-  const validatorPoolMock = (await deployUpgradeableWithFactory(
+  const validatorPool = (await deployUpgradeableWithFactory(
     factory,
     "ValidatorPoolMock"
   )) as ValidatorPoolMock;
 
-  // ValidatorPool
-  const validatorPool = (await deployUpgradeableWithFactory(
-    factory,
-    "ValidatorPool"
-  )) as ValidatorPool;
+//   // ValidatorPool
+//   const validatorPool = (await deployUpgradeableWithFactory(
+//     factory,
+//     "ValidatorPool"
+//   )) as ValidatorPool;
 
   // ETHDKG Accusations
   const ethdkgAccusations = (await deployUpgradeableWithFactory(
@@ -290,7 +290,6 @@ export const getFixture = async () => {
     madByte,
     stakeNFT,
     validatorNFT,
-    validatorPoolMock,
     validatorPool,
     ethdkg,
     namedSigners,
@@ -808,7 +807,6 @@ export const startAtDistributeShares = async (
   const { ethdkg, validatorPool} = 
     typeof contracts !== "undefined" ? contracts : await getFixture();
   // add validators
-  await validatorPool.setETHDKG(ethdkg.address);
   if ((<ValidatorPoolMock>validatorPool).isMock) {
     await addValidators(validatorPool, validators);
   }
