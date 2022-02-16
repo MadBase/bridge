@@ -1,17 +1,11 @@
 import {
-    factoryDeployment,
     staticDeployment,
     upgradeableDeployment,
 } from "./lib/constants"
-import {artifacts} from "hardhat";
 import {
     deployFactory,
     getAllContracts,
-    getContract,
-    getSalt,
-    getBytes32Salt,
     getDeployType,
-    extractName,
     deployUpgradeableProxy,
     deployStatic,
 } from "./lib/deploymentUtils"

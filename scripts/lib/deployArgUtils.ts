@@ -18,25 +18,13 @@ export async function getDeploymentConstructorArgs(fullName:string){
     //get the deployment args
     let deploymentArgs:DeployArgs = await readDeploymentArgs();
     let args = deploymentArgs.constructorArgs[fullName]
-    for(let arg of args){
-        let name:string = Object.keys(arg)[0];
-        switch(name){
-            case "factory_":
-                let address = await getDefaultFactoryAddress();
-                output.push(address);
-                break;
-            case "_factory":
-                address = await getDefaultFactoryAddress();
-                output.push(address);
-                break;
-            case "factory":
-                address = await getDefaultFactoryAddress();
-                output.push(address);
-                break;
-            default:
-                output.push(arg[name]);
-                break;
+    if(args !== undefined){
+        for(let arg of args){
+            let name:string = Object.keys(arg)[0];
+            output.push(arg[name]);
         }
+    } else {
+        output = [];
     }
     return output;
 } 
@@ -49,23 +37,7 @@ export async function getDeploymentInitializerArgs(fullName:string){
     if(args !== undefined){
         for(let arg of args){
             let name:string = Object.keys(arg)[0];
-            switch(name){
-                case "factory_":
-                    let address = await getDefaultFactoryAddress();
-                    output.push(address);
-                    break;
-                case "_factory":
-                    address = await getDefaultFactoryAddress();
-                    output.push(address);
-                    break;
-                case "factory":
-                    address = await getDefaultFactoryAddress();
-                    output.push(address);
-                    break;
-                default:
-                    output.push(arg[name]);
-                    break;
-            }
+            output.push(arg[name]);
         }
     } else {
         output = [];

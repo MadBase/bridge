@@ -291,6 +291,7 @@ export const getFixture = async () => {
     stakeNFT,
     validatorNFT,
     validatorPoolMock,
+    validatorPool,
     ethdkg,
     namedSigners,
   };
@@ -804,7 +805,7 @@ export const startAtDistributeShares = async (
     validatorPool: ValidatorPoolMock | ValidatorPool;
   }
 ): Promise<[ETHDKG, ValidatorPoolMock | ValidatorPool, number]> => {
-  const { ethdkg, validatorPool } =
+  const { ethdkg, validatorPool} = 
     typeof contracts !== "undefined" ? contracts : await getFixture();
   // add validators
   await validatorPool.setETHDKG(ethdkg.address);

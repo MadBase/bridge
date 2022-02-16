@@ -1,4 +1,10 @@
 
+import { 
+  defaultFactoryName,
+  deployedProxyKey,
+  deployedRawKey,
+  contractAddrKey,
+} from "./constants";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { subtask, task } from "hardhat/config";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
@@ -7,6 +13,7 @@ import {
   DeployCreateData,
   FactoryConfig, FactoryData, MetaContractData, ProxyData, readFactoryStateData, TemplateData, updateDefaultFactoryData, updateDeployCreateList, updateMetaList, updateProxyList, updateTemplateList
 } from "./factoryStateUtils";
+import { ContractFactory } from "ethers";
 
 
 //Should look into extending types into the hardhat type lib
@@ -27,10 +34,7 @@ type DeployArgs = {
   constructorArgs?: any;
 }
 
-const contractAddrKey = "contractAddr";
-const deployedProxyKey = "DeployedProxy";
-const deployedRawKey = "DeployedRaw";
-let defaultFactoryName = "MadnetFactory";
+
 let defaultFactoryAddress:string;
 
 task("getSalt", "gets salt from contract")
@@ -57,7 +61,6 @@ task("deployFactory", "Deploys an instance of a factory contract specified by it
         //deploys the factory
         let factory = await factoryContractInstance.new(futureFactoryAddress);
         defaultFactoryAddress = factory.address;
-        defaultFactoryName = factoryName;
         //record the data in a json file to be used in other tasks 
         await updateDefaultFactoryData(defaultFactoryName, defaultFactoryAddress);
         console.log("Deployed:", factoryName, "at address:", factory.address);
@@ -73,21 +76,16 @@ task("deployUpgradeableProxy", "deploys logic contract, proxy contract, and poin
   .addOptionalParam("initCallData", "initialization call data for initializable contracts")
   .addOptionalVariadicPositionalParam("constructorArgs", "array that holds all arguements for constructor")
   .setAction(async (taskArgs, hre) => {
-    try{
-      let factoryData = await getFactoryData(taskArgs);
-      //uses the factory Data and logic contractName and returns deploybytecode and any constructor args attached       
-      let callArgs:DeployArgs = await getDeployCreateArgs(taskArgs);
-      //deploy create the logic contract 
-      let result:DeployCreateData = await hre.run("deployCreate", callArgs);
-      console.log("deployUpgradeableProxy logicAddress: ", result.address);
-      let mcCallArgs:DeployProxyMCArgs = await getMultiCallDeployProxySubtaskArgs(taskArgs, result.address);
-      let proxyData = await hre.run("multiCallDeployProxy", mcCallArgs);
-      console.log("deployed Proxy at: ", proxyData)
-      return proxyData;
-    }
-    catch(error){
-      console.log(error);
-    }
+    let factoryData = await getFactoryData(taskArgs);
+    //uses the factory Data and logic contractName and returns deploybytecode and any constructor args attached       
+    let callArgs:DeployArgs = await getDeployCreateArgs(taskArgs);
+    //deploy create the logic contract 
+    let result:DeployCreateData = await hre.run("deployCreate", callArgs);
+    console.log("deployUpgradeableProxy logicAddress: ", result.address);
+    let mcCallArgs:DeployProxyMCArgs = await getMultiCallDeployProxySubtaskArgs(taskArgs, result.address);
+    let proxyData = await hre.run("multiCallDeployProxy", mcCallArgs);
+    console.log("deployed Proxy at: ", proxyData)
+    return proxyData;
   });
 
 task("deployMetamorphic", "deploys template contract, and then deploys metamorphic contract, and points the proxy to the logic contract")
@@ -122,29 +120,23 @@ subtask("deployCreate", "deploys a contract from the factory using create")
   .setAction(async (taskArgs, hre) => {
     let factoryData = await getFactoryData(taskArgs);
     let MadnetFactory = await hre.artifacts.require("MadnetFactory");
-    try{
-      //get logic contract interface
-      let deployCreateData = <DeployCreateData>{};
-      deployCreateData.name = taskArgs.contractName;
-      deployCreateData.constructorArgs = taskArgs?.constructorArgs;
-      deployCreateData.factoryAddress = factoryData.address;
-      let logicContract:any = await hre.ethers.getContractFactory(taskArgs.contractName);
-      //encode deployBcode 
-      console.log("deploy Create constructor args:", taskArgs.constructorArgs)
-      let deployBytecode = logicContract.getDeployTransaction(...taskArgs.constructorArgs)
-      deployBytecode = deployBytecode.data
-      console.log(deployBytecode)
-      //get a factory instance connected to the factory addr
-      const factory = await MadnetFactory.at(factoryData.address);
-      let receipt = await factory.deployCreate(deployBytecode);
-      deployCreateData.address = await getEventVar(receipt, deployedRawKey, contractAddrKey);
-      await updateDeployCreateList(deployCreateData);
-      console.log("Deployed ", taskArgs.contractName, " contract at ", deployCreateData.address);
-      return deployCreateData;
-    }
-    catch (error){
-      console.log(error)
-    }
+    //get logic contract interface
+    let deployCreateData = <DeployCreateData>{};
+    deployCreateData.name = taskArgs.contractName;
+    deployCreateData.constructorArgs = taskArgs?.constructorArgs;
+    deployCreateData.factoryAddress = factoryData.address;
+    let logicContract:ContractFactory = await hre.ethers.getContractFactory(taskArgs.contractName);
+    //encode deployBcode 
+    console.log("deploy Create constructor args:", taskArgs.constructorArgs)
+    let deployTx = logicContract.getDeployTransaction(...taskArgs.constructorArgs)
+    let deployBytecode = deployTx.data
+    //get a factory instance connected to the factory addr
+    const factory = await MadnetFactory.at(factoryData.address);
+    let receipt = await factory.deployCreate(deployBytecode);
+    deployCreateData.address = await getEventVar(receipt, deployedRawKey, contractAddrKey);
+    await updateDeployCreateList(deployCreateData);
+    console.log("Deployed ", taskArgs.contractName, " contract at ", deployCreateData.address);
+    return deployCreateData;
   });
 
 subtask("upgradeDeployedProxy", "deploys a contract from the factory using create")

@@ -2,14 +2,8 @@ import fs from "fs"
 import {artifacts} from "hardhat";
 import { env } from "./lib/constants";
 import {
-    deployFactory,
     getAllContracts,
-    getContract,
-    getSalt,
-    getBytes32Salt,
     getDeployType,
-    extractPath,
-    extractName,
     getConstructorArgsABI,
     ArgData,
     getInitializerArgsABI,

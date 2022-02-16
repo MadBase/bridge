@@ -34,27 +34,31 @@ export async function deployFactory(){
 }
 
 export async function deployStatic(fullyQualifiedName:string) {
-    let argCount = await getConstructorArgCount(fullyQualifiedName);
-    let name = await extractName(fullyQualifiedName);
     let initializerArgs:Array<string> = [];
     let initCallData = "0x";
+    //check if contract needs to be initialized 
     let initAble = await isInitializable(fullyQualifiedName);
     if (initAble){
         initializerArgs = await getDeploymentInitializerArgs(fullyQualifiedName);
-        initCallData = await getEncodedInitCallData(name, initializerArgs);
+        initCallData = await getEncodedInitCallData(fullyQualifiedName, initializerArgs);
     }
-    return await run("deployMetamorphic", {contractName: name, initCallData: initCallData});
+    let hasConArgs = await hasConstructorArgs(fullyQualifiedName);
+    let constructorArgs = hasConArgs ? getDeploymentConstructorArgs(fullyQualifiedName) : [];
+    return await run("deployMetamorphic", {contractName: extractName(fullyQualifiedName), initCallData: initCallData,  constructorArgs: constructorArgs});
 }
 
 export async function deployUpgradeableProxy(fullyQualifiedName:string) {
     let name:string = extractName(fullyQualifiedName);
     let initializerArgs:Array<string> = [];
-    let initCallData = undefined
-    if (await isInitializable(fullyQualifiedName)){
+    let initCallData = "0x";
+    let initAble = await isInitializable(fullyQualifiedName);
+    if (initAble){
         initializerArgs = await getDeploymentInitializerArgs(fullyQualifiedName);
-        initCallData = await getEncodedInitCallData(name, initializerArgs)
+        initCallData = await getEncodedInitCallData(fullyQualifiedName, initializerArgs)
     }
-    return run("deployUpgradeableProxy", {contractName: name, initCallData: initCallData})
+    let hasConArgs = await hasConstructorArgs(fullyQualifiedName);
+    let constructorArgs = hasConArgs ? getDeploymentConstructorArgs(fullyQualifiedName) : [];
+    return run("deployUpgradeableProxy", {contractName: extractName(fullyQualifiedName), initCallData: initCallData, constructorArgs: constructorArgs})
 }
 
 export async function isInitializable(fullyQualifiedName:string){
@@ -70,8 +74,22 @@ export async function isInitializable(fullyQualifiedName:string){
     return false;
 }
 
-export async function getEncodedInitCallData(contractName: string, args:Array<string>){ 
-    let contractFactory = await ethers.getContractFactory(contractName);
+export async function hasConstructorArgs(fullName: string){
+    let buildInfo:any = await artifacts.getBuildInfo(fullName);
+    let path = extractPath(fullName);
+    let name = extractName(fullName)
+    let methods = buildInfo.output.contracts[path][name].abi;
+    for (let method of methods){
+      if(method.type === "constructor"){
+        return method.inputs.length > 0 ? true : false;
+      }
+    }
+    return false;
+}
+
+export async function getEncodedInitCallData(fullName: string, args:Array<string>){ 
+    let name = extractName(fullName);
+    let contractFactory = await ethers.getContractFactory(name);
     return contractFactory.interface.encodeFunctionData("initialize", args);
 }
 
@@ -200,17 +218,4 @@ export async function getSalt(fullName: string) {
     let info:any = buildInfo.output.contracts[path][name]
     //console.log(info)
     return info["devdoc"]["custom:salt"]
-}
-
-export async function getBytes32Salt() {
-
-}
-
-
-
-
-
-
-export async function upgradeProxy(){
-
 }
