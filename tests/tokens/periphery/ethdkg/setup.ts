@@ -24,6 +24,8 @@ import {
   ValidatorPool,
   ValidatorPoolMock,
 } from "../../../../typechain-types";
+import { TransactionReceipt } from "@ethersproject/abstract-provider";
+import { isHexString } from "ethers/lib/utils";
 
 export const PLACEHOLDER_ADDRESS = "0x0000000000000000000000000000000000000000";
 
@@ -112,18 +114,37 @@ export const getValidatorEthAccount = async (
   }
 };
 
-function getEventVar(receipt: any, eventName: string, varName: string) {
-  let result;
-  for (let i = 0; i < receipt["logs"].length; i++) {
-    //look for the event
-    if (receipt["logs"][i]["event"] == eventName) {
-      //extract the deployed mock logic contract address from the event
-      result = receipt["logs"][i]["args"][varName];
-      //exit the loop
-      break;
+
+
+async function getContractAddressFromDeployedStaticEvent(tx: ContractTransaction): Promise<string> {
+    let receipt = await ethers.provider.getTransactionReceipt(tx.hash);
+    console.log(receipt)
+    let intrface = new ethers.utils.Interface(["event DeployedStatic(address contractAddr)"]);
+    let topics = receipt.logs[1].topics;
+    let data = receipt.logs[1].data;
+    return intrface.decodeEventLog("DeployedStatic", data, topics).contractAddr;
+}
+
+async function getContractAddressFromDeployedProxyEvent(tx: ContractTransaction): Promise<string> {
+    let receipt = await ethers.provider.getTransactionReceipt(tx.hash);
+    console.log(receipt)
+    let eventFragment = "event DeployedProxy(address contractAddr)"
+    let eventName = "DeployedProxy"
+    let intrface = new ethers.utils.Interface([eventFragment]);
+    let result = ""
+    for (let log of receipt.logs) {
+        let topics = log.topics;
+        let data = log.data;
+        let topicHash = intrface.getEventTopic(eventFragment);
+        if (!isHexString(topics[0], 32) || topics[0].toLowerCase() !== topicHash) {
+           continue
+        }
+        result = intrface.decodeEventLog(eventName, data, topics).contractAddr;
     }
-  }
-  return result;
+    if (result === "") {
+        throw "Couldn't parse logs in the transaction!"
+    }
+    return result
 }
 
 function getBytes32Salt(contractName: string) {
@@ -156,13 +177,11 @@ async function deployStaticWithFactory(
     initCallDataBin = "0x";
   }
 
-  let receipt = await factory.deployStatic(
+  let tx = await factory.deployStatic(
     getBytes32Salt(contractName),
     initCallDataBin
   );
-  return _Contract.attach(
-    await getEventVar(receipt, "DeployedStatic", "contractAddr")
-  );
+  return _Contract.attach(await getContractAddressFromDeployedStaticEvent(tx));
 }
 
 async function deployUpgradeableWithFactory(
@@ -184,9 +203,10 @@ async function deployUpgradeableWithFactory(
     );
   }
   let transaction = await factory.deployCreate(deployCode);
-  let logicAddr = getEventVar(transaction, "DeployedRaw", "contractAddr");
+  let logicAddr = await getContractAddressFromDeployedProxyEvent(transaction)
+  console.log(logicAddr)
   let salt = getBytes32Salt(contractName);
-  let receipt = await factory.deployProxy(salt);
+  let transaction2 = await factory.deployProxy(salt);
   let initCallDataBin;
   try {
     initCallDataBin = _Contract.interface.encodeFunctionData(
@@ -197,9 +217,7 @@ async function deployUpgradeableWithFactory(
     initCallDataBin = "0x";
   }
   await factory.upgradeProxy(salt, logicAddr, initCallDataBin);
-  return _Contract.attach(
-    await getEventVar(receipt, "DeployedStatic", "contractAddr")
-  );
+  return _Contract.attach(await getContractAddressFromDeployedStaticEvent(transaction2));
 }
 
 export const getFixture = async () => {
@@ -215,45 +233,51 @@ export const getFixture = async () => {
     nonce: txCount,
   });
 
+
   const Factory = await ethers.getContractFactory("MadnetFactory");
   const factory = await Factory.deploy(futureFactoryAddress);
   await factory.deployed();
 
   // MadToken
+  console.log("MadToken")
   const madToken = (await deployStaticWithFactory(
     factory,
     "MadToken"
   )) as MadToken;
 
   // MadByte
+  console.log("MadByte")
   const madByte = (await deployStaticWithFactory(
     factory,
     "MadByte"
   )) as MadByte;
 
   //StakeNFT
+  console.log("StakeNFT")
   const stakeNFT = (await deployStaticWithFactory(
     factory,
     "StakeNFT"
   )) as StakeNFT;
 
   // ValidatorNFT
+  console.log("ValidatorNFT")
   const validatorNFT = (await deployStaticWithFactory(
     factory,
     "ValidatorNFT"
   )) as ValidatorNFT;
 
   // ValidatorPoolMock
+  console.log("ValidatorPoolMock")
   const validatorPool = (await deployUpgradeableWithFactory(
     factory,
     "ValidatorPoolMock"
   )) as ValidatorPoolMock;
 
-//   // ValidatorPool
-//   const validatorPool = (await deployUpgradeableWithFactory(
-//     factory,
-//     "ValidatorPool"
-//   )) as ValidatorPool;
+  //   // ValidatorPool
+  //   const validatorPool = (await deployUpgradeableWithFactory(
+  //     factory,
+  //     "ValidatorPool"
+  //   )) as ValidatorPool;
 
   // ETHDKG Accusations
   const ethdkgAccusations = (await deployUpgradeableWithFactory(
