@@ -61,20 +61,20 @@ contract SnapshotsMock is ISnapshots {
         return _epochLength;
     }
 
-    function getChainIdFromSnapshot(uint256 snapshotNumber) public view returns (uint256) {
-        return _snapshots[snapshotNumber].blockClaims.chainId;
+    function getChainIdFromSnapshot(uint256 epoch_) public view returns (uint256) {
+        return _snapshots[epoch_].blockClaims.chainId;
     }
 
     function getChainIdFromLatestSnapshot() public view returns (uint256) {
         return _snapshots[_epoch].blockClaims.chainId;
     }
 
-    function getBlockClaimsFromSnapshot(uint256 snapshotNumber)
+    function getBlockClaimsFromSnapshot(uint256 epoch_)
         public
         view
         returns (BClaimsParserLibrary.BClaims memory)
     {
-        return _snapshots[snapshotNumber].blockClaims;
+        return _snapshots[epoch_].blockClaims;
     }
 
     function getBlockClaimsFromLatestSnapshot()
@@ -85,36 +85,36 @@ contract SnapshotsMock is ISnapshots {
         return _snapshots[_epoch].blockClaims;
     }
 
-    function getSignatureFromSnapshot(uint256 snapshotNumber)
+    function getSignatureFromSnapshot(uint256 epoch_)
         public
         view
         returns (uint256[2] memory)
     {
-        return _snapshots[snapshotNumber].signature;
+        return _snapshots[epoch_].signature;
     }
 
     function getSignatureFromLatestSnapshot() public view returns (uint256[2] memory) {
         return _snapshots[_epoch].signature;
     }
 
-    function getCommittedHeightFromSnapshot(uint256 snapshotNumber) public view returns (uint256) {
-        return _snapshots[snapshotNumber].committedAt;
+    function getCommittedHeightFromSnapshot(uint256 epoch_) public view returns (uint256) {
+        return _snapshots[epoch_].committedAt;
     }
 
     function getCommittedHeightFromLatestSnapshot() public view returns (uint256) {
         return _snapshots[_epoch].committedAt;
     }
 
-    function getMadnetHeightFromSnapshot(uint256 snapshotNumber) public view returns (uint256) {
-        return _snapshots[snapshotNumber].blockClaims.height;
+    function getMadnetHeightFromSnapshot(uint256 epoch_) public view returns (uint256) {
+        return _snapshots[epoch_].blockClaims.height;
     }
 
     function getMadnetHeightFromLatestSnapshot() public view returns (uint256) {
         return _snapshots[_epoch].blockClaims.height;
     }
 
-    function getSnapshot(uint256 snapshotNumber) public view returns (Snapshot memory) {
-        return _snapshots[snapshotNumber];
+    function getSnapshot(uint256 epoch_) public view returns (Snapshot memory) {
+        return _snapshots[epoch_];
     }
 
     function getLatestSnapshot() public view returns (Snapshot memory) {

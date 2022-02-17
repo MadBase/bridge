@@ -19,21 +19,21 @@ contract MadByte is ERC20Upgradeable, Admin, Mutex, MagicEthTransfer, EthSafeTra
     event DepositReceivedBN(uint256 indexed depositID, uint256 to0, uint256 to1, uint256 to2, uint256 to3, uint256 amount);
 
     // multiply factor for the selling/minting bonding curve
-    uint256 immutable marketSpread;
+    uint256 internal constant _MARKET_SPREAD = 4;
 
     // Scaling factor to get the staking percentages
-    uint256 immutable madUnitOne;
+    uint256 internal constant _MAD_UNIT_ONE = 1000;
 
     // Balance in ether that is hold in the contract after minting and burning
-    uint256 _poolBalance;
+    uint256 internal _poolBalance;
 
     // Value of the percentages that will send to each staking contract. Divide
-    // this value by madUnitOne = 1000 to get the corresponding percentages.
+    // this value by _MAD_UNIT_ONE = 1000 to get the corresponding percentages.
     // These values must sum to 1000.
-    uint256 _minerStakingSplit;
-    uint256 _madStakingSplit;
-    uint256 _lpStakingSplit;
-    uint256 _protocolFee;
+    uint256 internal _minerStakingSplit;
+    uint256 internal _madStakingSplit;
+    uint256 internal _lpStakingSplit;
+    uint256 internal _protocolFee;
 
     // struct to define a BNAddress
     struct BNAddress {
@@ -44,43 +44,40 @@ contract MadByte is ERC20Upgradeable, Admin, Mutex, MagicEthTransfer, EthSafeTra
     }
 
     // Monotonically increasing variable to track the MadBytes deposits.
-    uint256 _depositID;
+    uint256 internal _depositID;
     // Total amount of MadBytes that were deposited in the MadNet chain. The
     // MadBytes deposited in the Madnet are burned by this contract.
-    uint256 _totalDeposited;
+    uint256 internal _totalDeposited;
 
     // Tracks the amount of each deposit. Key is deposit id, value is amount
     // deposited.
-    mapping(uint256 => uint256) _deposits;
+    mapping(uint256 => uint256) internal _deposits;
     // Tracks the owner of each deposit. Key is deposit id, value is the address
     // of the owner of a deposit.
-    mapping(uint256 => address) _depositors;
+    mapping(uint256 => address) internal _depositors;
     // Tracks the owner of each deposit. This mapping is required to keep track
     // of owners with BN addresses. Key is deposit id, value is the BN address
     // (4x bytes32) of owner of a deposit.
-    mapping(uint256 => BNAddress) _depositorsBN;
+    mapping(uint256 => BNAddress) internal _depositorsBN;
 
-    address immutable _factory;
+    address internal immutable _factory;
     // Staking contracts addresses
-    IMagicEthTransfer _madStaking;
-    IMagicEthTransfer _minerStaking;
-    IMagicEthTransfer _lpStaking;
+    IMagicEthTransfer internal immutable _madStaking;
+    IMagicEthTransfer internal immutable _minerStaking;
+    IMagicEthTransfer internal immutable _lpStaking;
     // Foundation contract address
-    IMagicEthTransfer _foundation;
+    IMagicEthTransfer internal immutable _foundation;
 
     constructor() Admin(msg.sender) Mutex() {
         _factory = msg.sender;
-        marketSpread = 4;
-        madUnitOne = 1000;
+        _madStaking = IMagicEthTransfer(getMetamorphicContractAddress(bytes32("StakeNFT"), _factory));
+        _minerStaking = IMagicEthTransfer(getMetamorphicContractAddress(bytes32("ValidatorNFT"), _factory));
+        _lpStaking = IMagicEthTransfer(getMetamorphicContractAddress(bytes32("LPNFT"), _factory));
+        _foundation = IMagicEthTransfer(getMetamorphicContractAddress(bytes32("Foundation"), _factory));
     }
 
-    //add onlyFactory Modifier
     function initialize() public onlyAdmin initializer {
         __ERC20_init("MadByte", "MB");
-        _madStaking = IMagicEthTransfer(getMetamorphicContractAddress(bytes32("StakeNFT"), _factory));
-        _minerStaking = IMagicEthTransfer(getMetamorphicContractAddress(bytes32("ValidatorStakeNFT"), _factory));
-        _lpStaking = IMagicEthTransfer(getMetamorphicContractAddress(bytes32("StakeNFTLP"), _factory));
-        _foundation = IMagicEthTransfer(getMetamorphicContractAddress(bytes32("Foundation"), _factory));
         _minerStakingSplit = 333;
         _madStakingSplit = 332;
         _lpStakingSplit = 332;
@@ -90,31 +87,10 @@ contract MadByte is ERC20Upgradeable, Admin, Mutex, MagicEthTransfer, EthSafeTra
         _totalDeposited = 0;
     }
 
-    /// @dev sets the miner staking contract, must only be called by _admin.
-    function setMinerStaking(address minerStaking_) public onlyAdmin {
-        _minerStaking = IMagicEthTransfer(minerStaking_);
-    }
-
-    /// @dev sets the staking contract, must only be called by _admin.
-    function setMadStaking(address madStaking_) public onlyAdmin {
-        _madStaking = IMagicEthTransfer(madStaking_);
-    }
-
-    /// @dev sets the foundation contract, must only be called by _admin.
-    function setFoundation(address foundation_) public onlyAdmin {
-        _foundation = IMagicEthTransfer(foundation_);
-    }
-
-    /// @dev sets the liquidity provider contract, must only be called by
-    /// _admin.
-    function setLPStaking(address lpStaking_) public onlyAdmin {
-        _lpStaking = IMagicEthTransfer(lpStaking_);
-    }
-
     /// @dev sets the percentage that will be divided between all the staking
     /// contracts, must only be called by _admin
     function setSplits(uint256 minerStakingSplit_, uint256 madStakingSplit_, uint256 lpStakingSplit_, uint256 protocolFee_) public onlyAdmin {
-        require(minerStakingSplit_ + madStakingSplit_ + lpStakingSplit_ + protocolFee_ == madUnitOne, "MadByte: All the split values must sum to madUnitOne!");
+        require(minerStakingSplit_ + madStakingSplit_ + lpStakingSplit_ + protocolFee_ == _MAD_UNIT_ONE, "MadByte: All the split values must sum to _MAD_UNIT_ONE!");
         _minerStakingSplit = minerStakingSplit_;
         _madStakingSplit = madStakingSplit_;
         _lpStakingSplit = lpStakingSplit_;
@@ -291,11 +267,11 @@ contract MadByte is ERC20Upgradeable, Admin, Mutex, MagicEthTransfer, EthSafeTra
         uint256 excess = address(this).balance - poolBalance;
 
         // take out protocolFee from excess and decrement excess
-        foundationAmount = (excess * _protocolFee)/madUnitOne;
+        foundationAmount = (excess * _protocolFee)/_MAD_UNIT_ONE;
 
         // split remaining between miners, stakers and lp stakers
-        stakingAmount = (excess * _madStakingSplit)/madUnitOne;
-        lpStakingAmount = (excess * _lpStakingSplit)/madUnitOne;
+        stakingAmount = (excess * _madStakingSplit)/_MAD_UNIT_ONE;
+        lpStakingAmount = (excess * _lpStakingSplit)/_MAD_UNIT_ONE;
         // then give miners the difference of the original and the sum of the
         // stakingAmount
         minerAmount = excess - (stakingAmount + lpStakingAmount + foundationAmount);
@@ -380,8 +356,8 @@ contract MadByte is ERC20Upgradeable, Admin, Mutex, MagicEthTransfer, EthSafeTra
     // burning any token. This function converts ether sent in Madbytes.
     function _mintDeposit(address to_, uint256 minMB_, uint256 numEth_) internal returns (uint256) {
         require(!_isContract(to_), "MadByte: Contracts cannot make MadBytes deposits!");
-        require(numEth_ >= marketSpread, "MadByte: requires at least 4 WEI");
-        numEth_ = numEth_/marketSpread;
+        require(numEth_ >= _MARKET_SPREAD, "MadByte: requires at least 4 WEI");
+        numEth_ = numEth_/_MARKET_SPREAD;
         uint256 amount_ = _EthtoMB(_poolBalance, numEth_);
         require(amount_ >= minMB_, "MadByte: could not mint deposit with minimum MadBytes given the ether sent!");
         uint256 depositID = _depositID + 1;
@@ -396,8 +372,8 @@ contract MadByte is ERC20Upgradeable, Admin, Mutex, MagicEthTransfer, EthSafeTra
     // Internal function that mints the MadByte tokens following the bounding
     // price curve.
     function _mint(address to_, uint256 numEth_, uint256 minMB_) internal returns(uint256 nuMB) {
-        require(numEth_ >= marketSpread, "MadByte: requires at least 4 WEI");
-        numEth_ = numEth_/marketSpread;
+        require(numEth_ >= _MARKET_SPREAD, "MadByte: requires at least 4 WEI");
+        numEth_ = numEth_/_MARKET_SPREAD;
         uint256 poolBalance = _poolBalance;
         nuMB = _EthtoMB(poolBalance, numEth_);
         require(nuMB >= minMB_, "MadByte: could not mint minimum MadBytes");

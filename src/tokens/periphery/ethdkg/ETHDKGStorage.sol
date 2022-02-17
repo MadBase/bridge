@@ -35,7 +35,7 @@ abstract contract ETHDKGStorage is DeterministicAddress {
     address internal immutable _ethdkgAccusations;
     address internal immutable _ethdkgPhases;
     address internal immutable _factory;
-    uint256 internal immutable _minValidators;
+    uint256 internal constant  MIN_VALIDATOR = 4;
 
     uint64 internal _nonce;
     uint64 internal _phaseStartBlock;
@@ -65,6 +65,6 @@ abstract contract ETHDKGStorage is DeterministicAddress {
         _ethdkgAccusations = getMetamorphicContractAddress(0x455448444b475068617365730000000000000000000000000000000000000000, _factory);
         // bytes32("ETHDKGAccusations") = 0x455448444b4741636375736174696f6e73000000000000000000000000000000;
         _ethdkgPhases = getMetamorphicContractAddress(0x455448444b4741636375736174696f6e73000000000000000000000000000000, _factory);
-        _minValidators = 4;
+
     }
 }

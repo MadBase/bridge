@@ -93,7 +93,7 @@ contract ETHDKGPhases is ETHDKGStorage, IETHDKGEvents, ETHDKGUtils {
                 CryptoLibrary.bn128_is_on_curve(commitments[k]),
                 "ETHDKG: Key sharing failed - commitment not on elliptic curve!"
             );
-            require(commitments[k][0] != 0, "ETHDKG: Commitments shouldn't be zero!");
+            require(commitments[k][0] != 0, "ETHDKG: Commitments shouldn't be 0!");
         }
 
         bytes32 encryptedSharesHash = keccak256(abi.encodePacked(encryptedShares));
@@ -103,7 +103,7 @@ contract ETHDKGPhases is ETHDKGStorage, IETHDKGEvents, ETHDKGUtils {
         );
         require(
             participant.distributedSharesHash != 0x0,
-            "ETHDKG: The hash of encryptedShares and commitments should be different from zero!"
+            "ETHDKG: The hash of encryptedShares and commitments should be different from 0!"
         );
         participant.commitmentsFirstCoefficient = commitments[0];
         participant.phase = Phase.ShareDistribution;

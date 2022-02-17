@@ -15,7 +15,7 @@ interface ISnapshots {
         uint256 indexed epoch,
         uint256 height,
         address indexed validator,
-        bool safeToProceedConsensus
+        bool isSafeToProceedConsensus
     );
 
     function setSnapshotDesperationDelay(uint32 desperationDelay_) external;
@@ -32,11 +32,11 @@ interface ISnapshots {
 
     function getEpochLength() external view returns (uint256);
 
-    function getChainIdFromSnapshot(uint256 snapshotNumber) external view returns (uint256);
+    function getChainIdFromSnapshot(uint256 epoch_) external view returns (uint256);
 
     function getChainIdFromLatestSnapshot() external view returns (uint256);
 
-    function getBlockClaimsFromSnapshot(uint256 snapshotNumber)
+    function getBlockClaimsFromSnapshot(uint256 epoch_)
         external
         view
         returns (BClaimsParserLibrary.BClaims memory);
@@ -46,22 +46,22 @@ interface ISnapshots {
         view
         returns (BClaimsParserLibrary.BClaims memory);
 
-    function getSignatureFromSnapshot(uint256 snapshotNumber)
+    function getSignatureFromSnapshot(uint256 epoch_)
         external
         view
         returns (uint256[2] memory);
 
     function getSignatureFromLatestSnapshot() external view returns (uint256[2] memory);
 
-    function getCommittedHeightFromSnapshot(uint256 snapshotNumber) external view returns (uint256);
+    function getCommittedHeightFromSnapshot(uint256 epoch_) external view returns (uint256);
 
     function getCommittedHeightFromLatestSnapshot() external view returns (uint256);
 
-    function getMadnetHeightFromSnapshot(uint256 snapshotNumber) external view returns (uint256);
+    function getMadnetHeightFromSnapshot(uint256 epoch_) external view returns (uint256);
 
     function getMadnetHeightFromLatestSnapshot() external view returns (uint256);
 
-    function getSnapshot(uint256 snapshotNumber) external view returns (Snapshot memory);
+    function getSnapshot(uint256 epoch_) external view returns (Snapshot memory);
 
     function getLatestSnapshot() external view returns (Snapshot memory);
 

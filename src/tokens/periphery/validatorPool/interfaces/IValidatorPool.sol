@@ -15,7 +15,7 @@ interface IValidatorPool {
 
     function getValidatorsCount() external view returns (uint256);
 
-    function getValidatorAddresses() external view returns (address[] memory);
+    function getValidatorsAddresses() external view returns (address[] memory);
 
     function getValidator(uint256 index) external view returns (address);
 

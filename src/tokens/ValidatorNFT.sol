@@ -21,7 +21,7 @@ contract ValidatorNFT is StakeNFTBase {
 
     /// mintTo allows a staking position to be opened in the name of an
     /// account other than the caller. This method also allows a lock to be
-    /// placed on the position up to _maxMintLock . This function requires the
+    /// placed on the position up to _MAX_MINT_LOCK . This function requires the
     /// caller to have performed an approve invocation against MadToken into
     /// this contract. This function will fail if the circuit breaker is
     /// tripped.
@@ -31,7 +31,7 @@ contract ValidatorNFT is StakeNFTBase {
         uint256 lockDuration_
     ) public override withCircuitBreaker onlyAdmin returns (uint256 tokenID) {
         require(
-            lockDuration_ <= _maxMintLock,
+            lockDuration_ <= _MAX_MINT_LOCK,
             "StakeNFT: The lock duration must be less or equal than the maxMintLock!"
         );
         tokenID = _mintNFT(to_, amount_);

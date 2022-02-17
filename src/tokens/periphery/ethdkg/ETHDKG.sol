@@ -151,8 +151,8 @@ contract ETHDKG is Initializable, ETHDKGStorage, IETHDKG, IETHDKGEvents, ETHDKGU
         return _badParticipants;
     }
 
-    function getMinValidators() public view returns (uint256) {
-        return _minValidators;
+    function getMinValidators() public pure returns (uint256) {
+        return MIN_VALIDATOR;
     }
 
     function getParticipantInternalState(address participant)
@@ -225,7 +225,7 @@ contract ETHDKG is Initializable, ETHDKGStorage, IETHDKG, IETHDKGEvents, ETHDKGU
         //todo: should we reward ppl here?
         uint256 numberValidators = _validatorPool.getValidatorsCount();
         require(
-            numberValidators >= _minValidators,
+            numberValidators >= MIN_VALIDATOR,
             "ETHDKG: Minimum number of validators staked not met!"
         );
 

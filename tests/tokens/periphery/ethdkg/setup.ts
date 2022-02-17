@@ -130,6 +130,15 @@ async function getContractAddressFromDeployedProxyEvent(
   return await getContractAddressFromEventLog(tx, eventSignature, eventName);
 }
 
+async function getContractAddressFromDeployedRawEvent(
+    tx: ContractTransaction
+  ): Promise<string> {
+    let eventSignature = "event DeployedRaw(address contractAddr)";
+    let eventName = "DeployedRaw";
+    return await getContractAddressFromEventLog(tx, eventSignature, eventName);
+  }
+
+
 async function getContractAddressFromEventLog(
   tx: ContractTransaction,
   eventSignature: string,
@@ -165,20 +174,14 @@ async function deployStaticWithFactory(
 ): Promise<Contract> {
   const _Contract = await ethers.getContractFactory(contractName);
   if (constructorArgs !== undefined) {
-    console.log("deploying with arguments");
     await factory.deployTemplate(
       _Contract.getDeployTransaction(constructorArgs).data as BytesLike
     );
   } else {
-    console.log("deploying without arguments");
-    console.log(
-      "size:" + (_Contract.getDeployTransaction().data as BytesLike).length
-    );
     await factory.deployTemplate(
       _Contract.getDeployTransaction().data as BytesLike
     );
   }
-  console.log("Got it here");
   let initCallDataBin;
   try {
     initCallDataBin = _Contract.interface.encodeFunctionData(
@@ -198,6 +201,7 @@ async function deployStaticWithFactory(
 async function deployUpgradeableWithFactory(
   factory: MadnetFactory,
   contractName: string,
+  salt?: string,
   initCallData?: any[],
   constructorArgs?: any[]
 ): Promise<Contract> {
@@ -214,10 +218,15 @@ async function deployUpgradeableWithFactory(
     );
   }
   let transaction = await factory.deployCreate(deployCode);
-  let logicAddr = await getContractAddressFromDeployedProxyEvent(transaction);
-  console.log(logicAddr);
-  let salt = getBytes32Salt(contractName);
-  let transaction2 = await factory.deployProxy(salt);
+  let logicAddr = await getContractAddressFromDeployedRawEvent(transaction);
+  let saltBytes
+  if (salt === undefined) {
+    saltBytes = getBytes32Salt(contractName);
+  } else {
+    saltBytes = getBytes32Salt(salt);
+  }
+
+  let transaction2 = await factory.deployProxy(saltBytes);
   let initCallDataBin;
   try {
     initCallDataBin = _Contract.interface.encodeFunctionData(
@@ -227,14 +236,14 @@ async function deployUpgradeableWithFactory(
   } catch (error) {
     initCallDataBin = "0x";
   }
-  await factory.upgradeProxy(salt, logicAddr, initCallDataBin);
+  await factory.upgradeProxy(saltBytes, logicAddr, initCallDataBin);
   return _Contract.attach(
-    await getContractAddressFromDeployedStaticEvent(transaction2)
+    await getContractAddressFromDeployedProxyEvent(transaction2)
   );
 }
 
 export const getFixture = async () => {
-  await network.provider.send("evm_setAutomine", [true]);
+//   await network.provider.send("evm_setAutomine", [true]);
 
   const namedSigners = await ethers.getSigners();
   const [admin] = namedSigners;
@@ -251,45 +260,41 @@ export const getFixture = async () => {
   await factory.deployed();
 
   // MadToken
-  console.log("MadToken");
   const madToken = (await deployStaticWithFactory(
     factory,
     "MadToken"
   )) as MadToken;
 
   // MadByte
-  console.log("MadByte");
   const madByte = (await deployStaticWithFactory(
     factory,
     "MadByte"
   )) as MadByte;
 
   //StakeNFT
-  console.log("StakeNFT");
   const stakeNFT = (await deployStaticWithFactory(
     factory,
     "StakeNFT"
   )) as StakeNFT;
 
   // ValidatorNFT
-  console.log("ValidatorNFT");
   const validatorNFT = (await deployStaticWithFactory(
     factory,
     "ValidatorNFT"
   )) as ValidatorNFT;
 
   // ValidatorPoolMock
-  console.log("ValidatorPoolMock");
   const validatorPool = (await deployUpgradeableWithFactory(
     factory,
-    "ValidatorPoolMock"
+    "ValidatorPoolMock",
+    "ValidatorPool"
   )) as ValidatorPoolMock;
 
-  //   // ValidatorPool
-  //   const validatorPool = (await deployUpgradeableWithFactory(
-  //     factory,
-  //     "ValidatorPool"
-  //   )) as ValidatorPool;
+    // // ValidatorPool
+    // const validatorPool = (await deployUpgradeableWithFactory(
+    //   factory,
+    //   "ValidatorPool"
+    // )) as ValidatorPool;
 
   // ETHDKG Accusations
   const ethdkgAccusations = (await deployUpgradeableWithFactory(
@@ -840,7 +845,7 @@ export const startAtDistributeShares = async (
     validatorPool: ValidatorPoolMock | ValidatorPool;
   }
 ): Promise<[ETHDKG, ValidatorPoolMock | ValidatorPool, number]> => {
-  const { ethdkg, validatorPool} = 
+  const { ethdkg, validatorPool} =
     typeof contracts !== "undefined" ? contracts : await getFixture();
   // add validators
   if ((<ValidatorPoolMock>validatorPool).isMock) {
@@ -848,7 +853,6 @@ export const startAtDistributeShares = async (
   }
   // start ETHDKG
   await initializeETHDKG(ethdkg, validatorPool);
-
   const expectedNonce = (await ethdkg.getNonce()).toNumber();
   // register all validators
   await registerValidators(ethdkg, validatorPool, validators, expectedNonce);

@@ -90,7 +90,7 @@ contract ValidatorPool is
         return _validators.length();
     }
 
-    function getValidatorAddresses() public view returns (address[] memory) {
+    function getValidatorsAddresses() public view returns (address[] memory) {
         return _validators.addressValues();
     }
 

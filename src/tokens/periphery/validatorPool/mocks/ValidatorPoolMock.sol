@@ -1,35 +1,45 @@
 // SPDX-License-Identifier: MIT-open-group
 pragma solidity ^0.8.9;
 
-import "../../ethdkg/ETHDKG.sol";
-import "../../snapshots/Snapshots.sol";
+import "../../ethdkg/interfaces/IETHDKG.sol";
+import "../../snapshots/interfaces/ISnapshots.sol";
 
 import "../utils/CustomEnumerableMaps.sol";
 import "../interfaces/IValidatorPool.sol";
+import "../../../../utils/DeterministicAddress.sol";
 
-contract ValidatorPoolMock is IValidatorPool {
+contract ValidatorPoolMock is IValidatorPool, DeterministicAddress {
     using CustomEnumerableMaps for ValidatorDataMap;
 
     uint256 internal _tokenIDCounter;
-    ETHDKG internal _ethdkg;
-    Snapshots internal _snapshots;
+    address immutable _factory;
+    IETHDKG immutable internal _ethdkg;
+    ISnapshots immutable internal _snapshots;
 
     ValidatorDataMap internal _validators;
 
-    address _admin;
+    address internal _admin;
 
     bool internal _isMaintenanceScheduled;
     bool internal _isConsensusRunning;
 
     // solhint-disable no-empty-blocks
-    constructor() {}
-
-    function setETHDKG(address ethdkg) external {
-        _ethdkg = ETHDKG(ethdkg);
-    }
-
-    function setSnapshots(address snapshots) external {
-        _snapshots = Snapshots(snapshots);
+    constructor() {
+        _factory = msg.sender;
+        // bytes32("Snapshots") = 0x536e617073686f74730000000000000000000000000000000000000000000000;
+        _snapshots = ISnapshots(
+            getMetamorphicContractAddress(
+                0x536e617073686f74730000000000000000000000000000000000000000000000,
+                _factory
+            )
+        );
+        // bytes32("ETHDKG") = 0x455448444b470000000000000000000000000000000000000000000000000000;
+        _ethdkg = IETHDKG(
+            getMetamorphicContractAddress(
+                0x455448444b470000000000000000000000000000000000000000000000000000,
+                _factory
+            )
+        );
     }
 
     function initializeETHDKG() external {
@@ -74,7 +84,7 @@ contract ValidatorPoolMock is IValidatorPool {
         return _validators.at(index_)._address;
     }
 
-    function getValidatorAddresses() external view returns (address[] memory addresses) {
+    function getValidatorsAddresses() external view returns (address[] memory addresses) {
         return _validators.addressValues();
     }
 

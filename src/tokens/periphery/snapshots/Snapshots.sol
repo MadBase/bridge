@@ -16,7 +16,7 @@ import "./SnapshotsStorage.sol";
 /// @custom:salt Snapshots
 /// @custom:deploy-type deployUpgradeable
 contract Snapshots is Initializable, SnapshotsStorage, ISnapshots {
-    constructor() SnapshotsStorage(4444, 1024){
+    constructor(uint256 chainID_) SnapshotsStorage(chainID_){
     }
 
     modifier onlyAdmin() {
@@ -68,24 +68,24 @@ contract Snapshots is Initializable, SnapshotsStorage, ISnapshots {
         return _epoch;
     }
 
-    function getEpochLength() public view returns (uint256) {
-        return _epochLength;
+    function getEpochLength() public pure returns (uint256) {
+        return EPOCH_LENGTH;
     }
 
-    function getChainIdFromSnapshot(uint256 snapshotNumber) public view returns (uint256) {
-        return _snapshots[snapshotNumber].blockClaims.chainId;
+    function getChainIdFromSnapshot(uint256 epoch_) public view returns (uint256) {
+        return _snapshots[epoch_].blockClaims.chainId;
     }
 
     function getChainIdFromLatestSnapshot() public view returns (uint256) {
         return _snapshots[_epoch].blockClaims.chainId;
     }
 
-    function getBlockClaimsFromSnapshot(uint256 snapshotNumber)
+    function getBlockClaimsFromSnapshot(uint256 epoch_)
         public
         view
         returns (BClaimsParserLibrary.BClaims memory)
     {
-        return _snapshots[snapshotNumber].blockClaims;
+        return _snapshots[epoch_].blockClaims;
     }
 
     function getBlockClaimsFromLatestSnapshot()
@@ -96,36 +96,36 @@ contract Snapshots is Initializable, SnapshotsStorage, ISnapshots {
         return _snapshots[_epoch].blockClaims;
     }
 
-    function getSignatureFromSnapshot(uint256 snapshotNumber)
+    function getSignatureFromSnapshot(uint256 epoch_)
         public
         view
         returns (uint256[2] memory)
     {
-        return _snapshots[snapshotNumber].signature;
+        return _snapshots[epoch_].signature;
     }
 
     function getSignatureFromLatestSnapshot() public view returns (uint256[2] memory) {
         return _snapshots[_epoch].signature;
     }
 
-    function getCommittedHeightFromSnapshot(uint256 snapshotNumber) public view returns (uint256) {
-        return _snapshots[snapshotNumber].committedAt;
+    function getCommittedHeightFromSnapshot(uint256 epoch_) public view returns (uint256) {
+        return _snapshots[epoch_].committedAt;
     }
 
     function getCommittedHeightFromLatestSnapshot() public view returns (uint256) {
         return _snapshots[_epoch].committedAt;
     }
 
-    function getMadnetHeightFromSnapshot(uint256 snapshotNumber) public view returns (uint256) {
-        return _snapshots[snapshotNumber].blockClaims.height;
+    function getMadnetHeightFromSnapshot(uint256 epoch_) public view returns (uint256) {
+        return _snapshots[epoch_].blockClaims.height;
     }
 
     function getMadnetHeightFromLatestSnapshot() public view returns (uint256) {
         return _snapshots[_epoch].blockClaims.height;
     }
 
-    function getSnapshot(uint256 snapshotNumber) public view returns (Snapshot memory) {
-        return _snapshots[snapshotNumber];
+    function getSnapshot(uint256 epoch_) public view returns (Snapshot memory) {
+        return _snapshots[epoch_];
     }
 
     function getLatestSnapshot() public view returns (Snapshot memory) {
@@ -185,7 +185,7 @@ contract Snapshots is Initializable, SnapshotsStorage, ISnapshots {
         );
 
         require(
-            epoch * _epochLength == blockClaims.height,
+            epoch * EPOCH_LENGTH == blockClaims.height,
             "Snapshots: Incorrect Madnet height for snapshot!"
         );
 

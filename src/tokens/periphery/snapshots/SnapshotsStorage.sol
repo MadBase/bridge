@@ -23,10 +23,10 @@ abstract contract SnapshotsStorage is DeterministicAddress {
     address internal immutable _factory;
     IETHDKG internal immutable _ethdkg;
     IValidatorPool internal immutable _validatorPool;
-    uint256 internal immutable _epochLength;
+    uint256 internal constant EPOCH_LENGTH = 1024;
     uint256 internal immutable _chainId;
 
-    constructor(uint256 chainId_, uint256 epochLength_) {
+    constructor(uint256 chainId_) {
         _factory = msg.sender;
         // bytes32("ETHDKG") = 0x455448444b470000000000000000000000000000000000000000000000000000;
         _ethdkg = IETHDKG(
@@ -43,6 +43,5 @@ abstract contract SnapshotsStorage is DeterministicAddress {
             )
         );
         _chainId = chainId_;
-        _epochLength = epochLength_;
     }
 }
