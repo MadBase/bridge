@@ -2,7 +2,7 @@
 pragma solidity ^0.8.11;
 
 import "../validatorPool/interfaces/IValidatorPool.sol";
-import "../validatorPool/interfaces/ISnapshots.sol";
+import "../snapshots/interfaces/ISnapshots.sol";
 import "../../../utils/DeterministicAddress.sol";
 
 enum Phase {

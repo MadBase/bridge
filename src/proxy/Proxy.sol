@@ -2,7 +2,7 @@
 pragma solidity ^0.8.11;
 
 import "../utils/DeterministicAddress.sol";
-/** 
+/**
 *@notice RUN OPTIMIZER OFF
  */
 /**
@@ -109,7 +109,7 @@ abstract contract DeterministicAccessControl is DeterministicAddress {
 contract Factory is DeterministicAddress, ProxyUpgrader {
 
     /**
-    @dev owner role for priveledged access to functions  
+    @dev owner role for priveledged access to functions
     */
     address public owner_;
 
@@ -144,7 +144,7 @@ contract Factory is DeterministicAddress, ProxyUpgrader {
         requireAuth(msg.sender == address(this) || msg.sender == owner_ || msg.sender == delegator_);
         _;
     }
-    
+
     constructor(address selfAddr_) {
         bytes memory proxyDeployCode = abi.encodePacked(
             universalDeployCode_,
@@ -182,10 +182,10 @@ contract Factory is DeterministicAddress, ProxyUpgrader {
         delegator_ = _new;
     }
 
-     /**  
-    * @dev multiCall allows EOA to make multiple function calls within a single transaction **in this contract**, and only returns the result of the last call 
-    * @param _cdata: array of function calls 
-    * returns the result of the last call 
+     /**
+    * @dev multiCall allows EOA to make multiple function calls within a single transaction **in this contract**, and only returns the result of the last call
+    * @param _cdata: array of function calls
+    * returns the result of the last call
     */
     function multiCall(bytes[] calldata _cdata) external onlyOwner {
         for (uint256 i = 0; i < _cdata.length; i++) {
@@ -197,26 +197,26 @@ contract Factory is DeterministicAddress, ProxyUpgrader {
             return(0x00, returndatasize())
         }
     }
-    /**  
-    * @dev deployProxy allows the owner to deploy a metamorphic contract that copies code 
+    /**
+    * @dev deployProxy allows the owner to deploy a metamorphic contract that copies code
     * from the deployed proxyTemplate contract
     * @param _salt: salt used to generate the address of the create2 metamorphic contract
-    * 
+    *
     */
     function deployProxy(bytes32 _salt) public onlyOwner returns (address contractAddr) {
         //bring in the proxyTemplate address from global state
         address proxyTemplate = proxyTemplate_;
         assembly {
             // store proxy template address as implementation,
-            //store the proxyTemplate Address in the implementation slot 
-            //so that the metamorphic contract can retrieve the template address 
+            //store the proxyTemplate Address in the implementation slot
+            //so that the metamorphic contract can retrieve the template address
             //through the fallback function
             sstore(implementation_.slot, proxyTemplate)
             //get the free memory pointers
             let ptr := mload(0x40)
             mstore(0x40, add(ptr, 0x20))
             // put metamorphic code as initcode
-            //push1 20 
+            //push1 20
             mstore(ptr, shl(72, 0x6020363636335afa1536363636515af43d36363e3d36f3))
             contractAddr := create2(0, ptr, 0x17, _salt)
         }
@@ -265,7 +265,7 @@ contract Factory is DeterministicAddress, ProxyUpgrader {
             // put address on constructor
             mstore(ptr, address())
             ptr := add(ptr, 0x20)
-            
+
             contractAddr := create(0, basePtr, sub(ptr, basePtr))
             if iszero(contractAddr) {
                 revert(0, 0x20)
@@ -307,39 +307,39 @@ contract Factory is DeterministicAddress, ProxyUpgrader {
             //get the next free pointer
             let basePtr := mload(0x40)
             let ptr := basePtr
-            
+
             //copies the initialization code of the implementation contract
             calldatacopy(ptr, _deployCode.offset, _deployCode.length)
 
             //Move the ptr to the end of the code in memory
             ptr := add(ptr, _deployCode.length)
-            
+
             contractAddr := create(0, basePtr, sub(ptr, basePtr))
         }
         codeSizeZeroRevert(uint160(contractAddr) != 0);
         emit DeployedRaw(contractAddr);
-        return contractAddr;        
+        return contractAddr;
     }
 
-    function extCodeSize(address target) public view returns (uint256){ 
+    function extCodeSize(address target) public view returns (uint256){
         assembly{
             let size := extcodesize(target)
             mstore(0x00, size)
             return(0x00, 0x20)
         }
     }
-    /**  
+    /**
     * @dev codeSizeZeroRevert reverts if false and returns csize0 error message
-    * @param _ok boolean false to cause revert 
+    * @param _ok boolean false to cause revert
     */
     function codeSizeZeroRevert(bool _ok) internal pure {
         require(_ok, "csize0");
     }
 
-    /**  
-    * @dev callAnyInternal internal functions that allows the factory contract to make arbitray calls to other contracts 
+    /**
+    * @dev callAnyInternal internal functions that allows the factory contract to make arbitray calls to other contracts
     * @param _target: the address of the contract to call
-    * @param _value: value to send with the call 
+    * @param _value: value to send with the call
     * @param _cdata: the call data for the delegate call
     */
     function callAnyInternal(address _target, uint256 _value, bytes memory _cdata) internal {
@@ -482,8 +482,8 @@ contract MockInitializable is ProxyInternalUpgradeLock, ProxyInternalUpgradeUnlo
         return !isContract(address(this));
     }
 
-    function initialize(uint256 i) public virtual initializer{
-        __Mock_init(i);
+    function initialize(uint256 _i) public virtual initializer{
+        __Mock_init(_i);
     }
 
     function __Mock_init(uint256 _i) internal onlyInitializing {
@@ -519,7 +519,7 @@ contract MockSD is ProxyInternalUpgradeLock, ProxyInternalUpgradeUnlock {
     address factory_;
     uint256 public v;
     uint256 public immutable i;
-    
+
     constructor(uint256 _i, bytes memory ) {
         i = _i;
         factory_ = msg.sender;
@@ -627,7 +627,7 @@ contract TestProxy is ProxyUpgrader {
         require(msg.sender == address(this));
         __upgrade(address(proxy), m);
     }
-        
+
 }
 
 
@@ -698,7 +698,7 @@ contract TestProxyFactory is ProxyUpgrader {
             m.unlock();
         }
     }
-        
+
 }
 
 

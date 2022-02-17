@@ -125,11 +125,14 @@ contract SnapshotsMock is ISnapshots {
         public
         returns (bool)
     {
+        // dummy to silence compiling warnings
+        groupSignature_;
+        bClaims_;
         _epoch++;
         return true;
     }
 
-    function isMock() public view returns (bool) {
+    function isMock() public pure returns (bool) {
         return true;
     }
 
@@ -144,6 +147,11 @@ contract SnapshotsMock is ISnapshots {
         bytes32 blsig,
         uint256 desperationFactor
     ) public pure returns (bool) {
+        numValidators;
+        myIdx;
+        blocksSinceDesperation;
+        blsig;
+        desperationFactor;
         return true;
     }
 

@@ -2,7 +2,7 @@
 pragma solidity ^0.8.9;
 
 import "../../ethdkg/ETHDKG.sol";
-import "../Snapshots.sol";
+import "../../snapshots/Snapshots.sol";
 
 import "../utils/CustomEnumerableMaps.sol";
 import "../interfaces/IValidatorPool.sol";
@@ -21,6 +21,7 @@ contract ValidatorPoolMock is IValidatorPool {
     bool internal _isMaintenanceScheduled;
     bool internal _isConsensusRunning;
 
+    // solhint-disable no-empty-blocks
     constructor() {}
 
     function setETHDKG(address ethdkg) external {
@@ -120,27 +121,29 @@ contract ValidatorPoolMock is IValidatorPool {
         return _isMaintenanceScheduled;
     }
 
-    function claimExitingNFTPosition() public returns (uint256) {
+    function claimExitingNFTPosition() public pure returns (uint256) {
         return 0;
     }
 
     function tryGetTokenID(address account_)
         public
-        view
+        pure
         returns (
             bool,
             address,
             uint256
         )
     {
+        account_;//no-op to suppress compiling warnings
         return (false, address(0), 0);
     }
 
-    function collectProfits() public returns (uint256 payoutEth, uint256 payoutToken) {
+    function collectProfits() public pure returns (uint256 payoutEth, uint256 payoutToken) {
         return (0, 0);
     }
 
-    function getLocations(address[] calldata validators_) external view returns (string[] memory) {
+    function getLocations(address[] calldata validators_) external pure returns (string[] memory) {
+        validators_;
         return new string[](1);
     }
 
@@ -159,27 +162,31 @@ contract ValidatorPoolMock is IValidatorPool {
     function registerValidators(address[] calldata validators, uint256[] calldata stakerTokenIDs)
         public
     {
+        stakerTokenIDs;
         registerValidators(validators);
     }
 
     function pauseConsensusOnArbitraryHeight(uint256 madnetHeight) external {}
 
-    function isInExitingQueue(address participant) external view returns (bool) {
+    function isInExitingQueue(address participant) external pure returns (bool) {
+        participant;
         return false;
     }
 
-    function isAccusable(address participant) external view returns (bool) {
+    function isAccusable(address participant) external pure returns (bool) {
+        participant;
         return false;
     }
 
-    function getLocation(address validator) external view returns (string memory) {
+    function getLocation(address validator) external pure returns (string memory) {
+        validator;
         return "";
     }
 
     function setDisputerReward(uint256 disputerReward_) public {
     }
 
-    function isMock() public view returns (bool) {
+    function isMock() public pure returns (bool) {
         return true;
     }
 }

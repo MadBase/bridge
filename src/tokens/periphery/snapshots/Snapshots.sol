@@ -2,7 +2,7 @@
 pragma solidity ^0.8.11;
 
 import "./interfaces/ISnapshots.sol";
-import "./interfaces/IValidatorPool.sol";
+import "../validatorPool/interfaces/IValidatorPool.sol";
 import "../ethdkg/interfaces/IETHDKG.sol";
 import "../../../parsers/RCertParserLibrary.sol";
 import "../../../parsers/BClaimsParserLibrary.sol";
