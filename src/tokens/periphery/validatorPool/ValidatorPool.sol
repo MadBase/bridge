@@ -9,7 +9,7 @@ import "../ethdkg/interfaces/IETHDKG.sol";
 import "../../utils/MagicValue.sol";
 import "./interfaces/IValidatorPool.sol";
 import "./interfaces/IValidatorPoolEvents.sol";
-import "./interfaces/ISnapshots.sol";
+import "../snapshots/interfaces/ISnapshots.sol";
 import "@openzeppelin/contracts/token/ERC721/utils/ERC721Holder.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "./utils/CustomEnumerableMaps.sol";

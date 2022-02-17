@@ -2,7 +2,7 @@
 pragma solidity ^0.8.11;
 
 
-import "./interfaces/IValidatorPool.sol";
+import "../validatorPool/interfaces/IValidatorPool.sol";
 import "../ethdkg/interfaces/IETHDKG.sol";
 import "../../../utils/DeterministicAddress.sol";
 

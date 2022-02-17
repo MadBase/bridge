@@ -1,6 +1,7 @@
+// SPDX-License-Identifier: MIT-open-group
 pragma solidity ^0.8.11;
 
-import "./proxy/Proxy.sol"; 
+import "./proxy/Proxy.sol";
 interface Iendpointlockable {
     function i() external view returns(uint256);
     function addOne() external;
@@ -19,7 +20,7 @@ contract endPointLockable is ProxyInternalUpgradeLock, ProxyInternalUpgradeUnloc
     event addedOne(uint256 indexed i);
     event addedTwo(uint256 indexed i);
     event upgradeLocked(bool indexed lock);
-    event upgradeUnlocked(bool indexed lock); 
+    event upgradeUnlocked(bool indexed lock);
     constructor(address f) {
         factory_ = f;
     }
@@ -40,7 +41,7 @@ contract endPointLockable is ProxyInternalUpgradeLock, ProxyInternalUpgradeUnloc
         __unlockImplementation();
         emit upgradeUnlocked(false);
     }
-    
+
     function requireAuth(bool _ok) internal pure {
         require(_ok, "unauthorized");
     }
