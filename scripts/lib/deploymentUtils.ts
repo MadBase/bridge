@@ -57,7 +57,7 @@ export async function deployUpgradeableProxy(fullyQualifiedName:string) {
         initCallData = await getEncodedInitCallData(fullyQualifiedName, initializerArgs)
     }
     let hasConArgs = await hasConstructorArgs(fullyQualifiedName);
-    let constructorArgs = hasConArgs ? getDeploymentConstructorArgs(fullyQualifiedName) : [];
+    let constructorArgs = hasConArgs ? await getDeploymentConstructorArgs(fullyQualifiedName) : [];
     return run("deployUpgradeableProxy", {contractName: extractName(fullyQualifiedName), initCallData: initCallData, constructorArgs: constructorArgs})
 }
 

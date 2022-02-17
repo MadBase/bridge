@@ -16,18 +16,22 @@ import "./SnapshotsStorage.sol";
 /// @custom:salt Snapshots
 /// @custom:deploy-type deployUpgradeable
 contract Snapshots is Initializable, SnapshotsStorage, ISnapshots {
-    constructor(uint32 chainID_, uint32 epochLength_) SnapshotsStorage(chainID_, epochLength_){
-        _admin = msg.sender;
+    constructor() SnapshotsStorage(4444, 1024){
     }
 
     modifier onlyAdmin() {
         require(msg.sender == _admin, "Snapshots: Only admin allowed!");
         _;
     }
+    modifier onlyFactory() {
+        require(msg.sender == _factory, "Snapshots: Only factory allowed!");
+        _;
+    }
 
-    function initialize(uint32 desperationDelay_, uint32 desperationFactor_) public onlyAdmin initializer {
+    function initialize(uint32 desperationDelay_, uint32 desperationFactor_) public onlyFactory initializer {
         _snapshotDesperationDelay = desperationDelay_;
         _snapshotDesperationFactor = desperationFactor_;
+        _admin = msg.sender;
     }
 
     /// @dev getAdmin returns the current _admin

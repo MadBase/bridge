@@ -32,14 +32,11 @@ contract ValidatorPool is
     using CustomEnumerableMaps for ValidatorDataMap;
 
     constructor() ValidatorPoolStorage() {
-        _admin = msg.sender;
     }
 
-    function initialize() public onlyAdmin initializer {
-        //20000*10**18 MadWei = 20k MadTokens
-        _stakeAmount = 20000 * 10**18;
-        _maxNumValidators = 5;
-        _disputerReward = 1;
+    modifier onlyFactory() {
+        require(msg.sender == _factory, "Snapshots: Only factory allowed!");
+        _;
     }
 
     modifier onlyAdmin() {
@@ -63,6 +60,14 @@ contract ValidatorPool is
             "ValidatorPool: Caller is not the snapshots contract!"
         );
         _;
+    }
+
+    function initialize() public onlyFactory initializer {
+        //20000*10**18 MadWei = 20k MadTokens
+        _stakeAmount = 20000 * 10**18;
+        _maxNumValidators = 5;
+        _disputerReward = 1;
+        _admin = msg.sender;
     }
 
     function setStakeAmount(uint256 stakeAmount_) public onlyAdmin {

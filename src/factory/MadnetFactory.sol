@@ -516,7 +516,7 @@ contract MadnetFactory is MadnetFactoryBase{
     * @param _cdata: array of function calls 
     * returns the result of the last call 
     */
-    function multiCall(bytes[] calldata _cdata) external onlyOwner {
+    function multiCall(bytes[] calldata _cdata) public onlyOwner {
         multiCallInternal(_cdata);
     }
     
