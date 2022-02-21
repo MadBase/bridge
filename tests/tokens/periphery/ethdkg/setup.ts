@@ -317,7 +317,10 @@ export const getFixture = async () => {
   // Snapshots
   const snapshots = (await deployUpgradeableWithFactory(
     factory,
-    "Snapshots"
+    "Snapshots",
+    undefined,
+    undefined,
+    [2] 
   )) as Snapshots;
 
   let blockNumber = await ethers.provider.getBlockNumber();
