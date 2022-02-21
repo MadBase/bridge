@@ -9,11 +9,6 @@ import {
     getAllContracts,
     getContract,
     getSalt,
-    getBytes32Salt,
-    getDeployType,
-    extractName,
-    deployUpgradeableProxy,
-    deployStatic,
 } from "./lib/deploymentUtils"
 
 async function main() {

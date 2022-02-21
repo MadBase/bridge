@@ -1,19 +1,19 @@
 
 import {
-  defaultFactoryName,
-  deployedProxyKey,
-  deployedRawKey,
-  contractAddrKey,
+  DEPLOYED_PROXY,
+  DEPLOYED_RAW,
+  CONTRACT_ADDR,
+  MADNET_FACTORY,
 } from "./constants";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { subtask, task } from "hardhat/config";
-import { HardhatRuntimeEnvironment } from "hardhat/types";
+import { CompilerOutputContract, HardhatRuntimeEnvironment } from "hardhat/types";
 import TransactionRequest from "@nomiclabs/hardhat-ethers"
 import {
   DeployCreateData,
   FactoryConfig, FactoryData, MetaContractData, ProxyData, readFactoryStateData, TemplateData, updateDefaultFactoryData, updateDeployCreateList, updateMetaList, updateProxyList, updateTemplateList
 } from "./factoryStateUtils";
-import { ContractFactory } from "ethers";
+import { BigNumber, ContractFactory } from "ethers";
 // import "@typechain/truffle-v5"
 
 //Should look into extending types into the hardhat type lib
@@ -34,9 +34,6 @@ type DeployArgs = {
   constructorArgs?: any;
 }
 
-
-let defaultFactoryAddress:string;
-
 task("getSalt", "gets salt from contract")
   .addParam("contractName", "test contract")
   .setAction(async (taskArgs, hre) => {
@@ -45,24 +42,30 @@ task("getSalt", "gets salt from contract")
   });
 
 task("deployFactory", "Deploys an instance of a factory contract specified by its name")
-  .addParam("factoryName", "The name of the factory contract")
   .setAction(async (taskArgs, hre) => {
-    const factoryName = taskArgs.factoryName;
-    const factoryContractInstance = await hre.artifacts.require(factoryName)
-    const signers = await hre.ethers.getSigners();
-    const accounts = getAccounts(signers);
+    const factoryBase = await hre.artifacts.require(MADNET_FACTORY)
+    const accounts = await getAccounts(hre);
     let txCount = await hre.ethers.provider.getTransactionCount(accounts[0]);
     //calculate the factory address for the constructor arg
     let futureFactoryAddress = hre.ethers.utils.getContractAddress({
       from: accounts[0],
       nonce: txCount
     });
+    let balance1 = await hre.ethers.provider.getBalance(accounts[0])
     //deploys the factory
-    let factory = await factoryContractInstance.new(futureFactoryAddress);
-    defaultFactoryAddress = factory.address;
+    let factory = await factoryBase.new(futureFactoryAddress);
+    let balance2 = await hre.ethers.provider.getBalance(accounts[0])
+    let MadnetFacContractFactory = await hre.ethers.getContractFactory(MADNET_FACTORY);
+    let deployTX = MadnetFacContractFactory.getDeployTransaction(futureFactoryAddress);
+    let gasCost =  await hre.ethers.provider.estimateGas(deployTX)
     //record the data in a json file to be used in other tasks
-    await updateDefaultFactoryData(defaultFactoryName, defaultFactoryAddress);
-    console.log("Deployed:", factoryName, "at address:", factory.address);
+    let factoryData: FactoryData = {
+      name: MADNET_FACTORY,
+      address: factory.address,
+      gas: gasCost.toNumber(),
+    }
+    await updateDefaultFactoryData(factoryData);
+    console.log("Deployed:", MADNET_FACTORY, "at address:", factory.address);
     return factory.address;
   });
 
@@ -89,18 +92,14 @@ task("deployMetamorphic", "deploys template contract, and then deploys metamorph
   .addOptionalParam("initCallData", "call data used to initialize initializable contracts")
   .addOptionalVariadicPositionalParam("constructorArgs", "array that holds all arguements for constructor")
   .setAction(async (taskArgs, hre) => {
-    let metaContractData = <MetaContractData>{};
-    let factoryData = await getFactoryData(taskArgs);
-    metaContractData.factoryAddress = factoryData.address;
+    let factoryData = await getFactoryData(taskArgs);  
     //uses the factory Data and logic contractName and returns deploybytecode and any constructor args attached
     let callArgs:DeployArgs = await getDeployTemplateArgs(taskArgs);
     //deploy create the logic contract
-    metaContractData.templateName = taskArgs.contractName;
-    metaContractData.templateAddress = await hre.run("deployTemplate", callArgs);
+    let templateAddress = await hre.run("deployTemplate", callArgs);
     callArgs = await getDeployStaticSubtaskArgs(taskArgs);
-    metaContractData.metaAddress = await hre.run("deployStatic", callArgs);
+    let metaContractData = await hre.run("deployStatic", callArgs);
     console.log("deployed Metamorphic at: ", metaContractData.metaAddress, "with logic from,", metaContractData.templateAddress);
-    await updateMetaList(metaContractData);
     return metaContractData;
   });
 
@@ -114,20 +113,24 @@ subtask("deployCreate", "deploys a contract from the factory using create")
     let factoryData = await getFactoryData(taskArgs);
     let MadnetFactory = await hre.artifacts.require("MadnetFactory");
     //get logic contract interface
-    let deployCreateData = <DeployCreateData>{};
-    deployCreateData.name = taskArgs.contractName;
-    deployCreateData.constructorArgs = taskArgs?.constructorArgs;
-    deployCreateData.factoryAddress = factoryData.address;
+ 
+    
     let logicContract:ContractFactory = await hre.ethers.getContractFactory(taskArgs.contractName);
     //encode deployBcode
     let deployTx = logicContract.getDeployTransaction(...taskArgs.constructorArgs)
     let deployBytecode = deployTx.data
     //get a factory instance connected to the factory addr
     const factory = await MadnetFactory.at(factoryData.address);
-    let receipt = await factory.deployCreate(deployBytecode);
-    deployCreateData.address = await getEventVar(receipt, deployedRawKey, contractAddrKey);
+    let txResponse = await factory.deployCreate(deployBytecode);
+    let deployCreateData:DeployCreateData = {
+      name: taskArgs.contractName,
+      address: await getEventVar(txResponse, DEPLOYED_RAW, CONTRACT_ADDR),
+      factoryAddress: factoryData.address,
+      gas: txResponse["receipt"]["gasUsed"], 
+      constructorArgs: taskArgs?.constructorArgs,
+    };
     await updateDeployCreateList(deployCreateData);
-    console.log("Subtask deployCreate ", taskArgs.contractName, " contract at ", deployCreateData.address);
+    console.log("Subtask deployCreate ", taskArgs.contractName, " contract at ", deployCreateData.address, "gas: ", txResponse["receipt"]["gasUsed"]);
     return deployCreateData;
   });
 
@@ -146,7 +149,7 @@ subtask("upgradeDeployedProxy", "deploys a contract from the factory using creat
     let lcInstance = hre.artifacts.require(taskArgs.contractName);
     let logicContract:any = await hre.ethers.getContractFactory(taskArgs.contractName);
     const factory = await MadnetFactory.at(factoryData.address);
-    let receipt = await factory.upgradeProxy(Salt, taskArgs.newLogicAddress, taskArgs.initCallData);
+    let txResponse = await factory.upgradeProxy(Salt, taskArgs.newLogicAddress, taskArgs.initCallData);
     //Data to return to the main task
     let proxyData:ProxyData = {
       proxyAddress: getMetamorphicAddress(factoryData.address, Salt, hre),
@@ -154,8 +157,10 @@ subtask("upgradeDeployedProxy", "deploys a contract from the factory using creat
       logicName: taskArgs.contractName,
       logicAddress: taskArgs.logicAddress,
       factoryAddress: taskArgs.factoryAddress,
+      gas: txResponse["receipt"]["gasUsed"],
       initCallData: taskArgs?.initCallData,
     };
+    //console.log("Subtask upgradeDeployedProxy ", taskArgs.contractName, " contract at ", templateData.address, "gas: ", receipt["receipt"]["gasUsed"]);
     await updateProxyList(proxyData);
     return proxyData;
   });
@@ -166,11 +171,10 @@ subtask("deployTemplate", "deploys a template contract with the universal code c
   .addParam("factoryAddress", "factory deploying the contract")
   .addOptionalVariadicPositionalParam("constructorArgs", "array that holds all arguements for constructor")
   .setAction(async (taskArgs, hre) => {
-    let templateData= <TemplateData>{name: taskArgs.contractName};
+    
     let factoryData = await getFactoryData(taskArgs);
-    templateData.factoryAddress = factoryData.address;
     let MadnetFactory = await hre.artifacts.require(factoryData.name);
-    let logicContract = await hre.ethers.getContractFactory(templateData.name);
+    let logicContract = await hre.ethers.getContractFactory(taskArgs.contractName);
     let deployTxReq
     if(taskArgs.constructorArgs !== undefined){
       //encode deployBcode
@@ -181,12 +185,19 @@ subtask("deployTemplate", "deploys a template contract with the universal code c
     let deployBytecode = deployTxReq.data;
     //get a factory instance connected to the factory addr
     const factory = await MadnetFactory.at(factoryData.address);
-    let receipt = await factory.deployTemplate(deployBytecode);
-    templateData.address = await getEventVar(receipt, "DeployedTemplate", contractAddrKey);
+    let txResponse = await factory.deployTemplate(deployBytecode);
+    
+    
+    let templateData:TemplateData = {
+      name: taskArgs.contractName,
+      address: await getEventVar(txResponse, "DeployedTemplate", CONTRACT_ADDR),
+      factoryAddress: factoryData.address,
+      gas: txResponse["receipt"]["gasUsed"],
+    };
     if(taskArgs.constructorArgs !== undefined){
       templateData.constructorArgs = taskArgs.constructorArgs;
     }
-    console.log("Subtask deployeTemplate ", taskArgs.contractName, " contract at ", templateData.address);
+    console.log("Subtask deployeTemplate ", taskArgs.contractName, " contract at ", templateData.address, "gas: ", txResponse["receipt"]["gasUsed"]);
     updateTemplateList(templateData);
     return templateData;
   });
@@ -203,9 +214,9 @@ subtask("deployStatic", "deploys a template contract with the universal code cop
     let Salt = await getBytes32Salt(taskArgs.contractName, hre);
     //get a factory instance connected to the factory addr
     const factory = await MadnetFactory.at(factoryData.address);
-    let receipt = await factory.deployStatic(Salt, taskArgs.initCallData);
-    let contractAddr = await getEventVar(receipt, "DeployedStatic", contractAddrKey);
-    console.log("Subtask deployStatic ", taskArgs.contractName, " contract at ", contractAddr);
+    let txResponse = await factory.deployStatic(Salt, taskArgs.initCallData);
+    let contractAddr = await getEventVar(txResponse, "DeployedStatic", CONTRACT_ADDR);
+    console.log("Subtask deployStatic ", taskArgs.contractName, " contract at ", contractAddr, "gas: ", txResponse["receipt"]["gasUsed"]);
     let tmplAddress = await factory.getImplementation.call();
     let outputData:MetaContractData = {
       metaAddress: contractAddr,
@@ -213,6 +224,7 @@ subtask("deployStatic", "deploys a template contract with the universal code cop
       templateName: taskArgs.contractName,
       templateAddress: tmplAddress,
       factoryAddress: factory.address,
+      gas: txResponse["receipt"]["gasUsed"],
       initCallData: taskArgs.initCallData
     }
     await updateMetaList(outputData)
@@ -231,6 +243,7 @@ subtask("multiCallDeployProxy", "deploy and upgrade proxy with multicall")
   .addParam("factoryAddress", "factory deploying the contract")
   .addParam("initCallData", "call data used to initialize initializable contracts")
   .setAction(async (taskArgs, hre) => {
+    let gas = 0; 
     let factoryData = await getFactoryData(taskArgs);
     //get factory contract artifact object, a truffle contract object
     let MadnetFactory = await hre.artifacts.require(factoryData.name);
@@ -242,17 +255,18 @@ subtask("multiCallDeployProxy", "deploy and upgrade proxy with multicall")
     let multiCallArgs = await getProxyMultiCallArgs(Salt, taskArgs, hre);
     //send the multicall transaction with deployProxy and upgradeProxy
     let MF:ContractFactory = await hre.ethers.getContractFactory("MadnetFactory")
-    let receipt = await factory.multiCall(multiCallArgs);
+    let txResponse = await factory.multiCall(multiCallArgs);
     //Data to return to the main task
     let proxyData:ProxyData = {
       factoryAddress: factoryData.address,
       logicName: taskArgs.contractName,
       logicAddress: taskArgs.logicAddress,
       salt: Salt,
-      proxyAddress: await getEventVar(receipt, deployedProxyKey, contractAddrKey),
+      proxyAddress: await getEventVar(txResponse, DEPLOYED_PROXY, CONTRACT_ADDR),
+      gas: txResponse["receipt"]["gasUsed"],
       initCallData: taskArgs.initCallData
     };
-    console.log("Subtask multiCallDeployProxy: ", proxyData.logicName, "with proxy at:", proxyData.proxyAddress, "and logic at:", proxyData.logicAddress);
+    console.log("Subtask multiCallDeployProxy: ", proxyData.logicName, "with proxy at:", proxyData.proxyAddress, "and logic at:", proxyData.logicAddress, "gas: ", txResponse["receipt"]["gasUsed"]);
     updateProxyList(proxyData);
     return proxyData;
   });
@@ -286,14 +300,17 @@ async function getFactoryData(taskArgs:any){
 }
 
 async function getMultiCallDeployProxySubtaskArgs(taskArgs:any, logicAddress:string){
-
+  let initCallData = "0x"
+  if(taskArgs.initCallData !== undefined){
+    initCallData = taskArgs.initCallData;
+  }
   let factoryData = await getFactoryData(taskArgs);
   let args: DeployProxyMCArgs = {
     contractName: taskArgs.contractName,
     logicAddress: logicAddress,
     factoryName: factoryData.name,
     factoryAddress: factoryData.address,
-    initCallData: taskArgs?.initCallData
+    initCallData: initCallData
   };
   return args;
 }
@@ -378,12 +395,13 @@ function getConstructorArgCount(contract: any){
   return 0;
 }
 
-function getAccounts(signers: Array<SignerWithAddress>){
-    let accounts: string[] = [];
-    for (let signer of signers){
-        accounts.push(signer.address)
-    }
-    return accounts;
+async function getAccounts(hre: HardhatRuntimeEnvironment){
+  let signers = await hre.ethers.getSigners();  
+  let accounts: string[] = [];
+  for (let signer of signers){
+      accounts.push(signer.address)
+  }
+  return accounts;
 }
 
 async function getFullyQaulifiedName(contractName: string, hre:HardhatRuntimeEnvironment) {
@@ -434,12 +452,23 @@ function getEventVar(receipt:any, eventName:string, varName:string){
  * @returns the string version of salt specified by custom:salt
  *  NatSpec tag in the contract
  */
-async function getSalt(contractName:string, hre:HardhatRuntimeEnvironment){
+async function getSalt(contractName:string, hre:HardhatRuntimeEnvironment): Promise<string> {
     let qualifiedName:any = await getFullyQaulifiedName(contractName, hre);
     let buildInfo= await hre.artifacts.getBuildInfo(qualifiedName);
-    let path = extractPath(qualifiedName)
-    let salt:any = buildInfo?.output.contracts[path][contractName];
-    return salt.devdoc["custom:salt"]
+    let contractOutput:any
+    let devdoc:any;
+    let salt:string = ""
+    if (buildInfo !== undefined){
+      let path = extractPath(qualifiedName)
+      contractOutput = buildInfo.output.contracts[path][contractName] 
+      devdoc = contractOutput.devdoc
+      salt = devdoc["custom:salt"];
+      return salt
+    }else{
+      console.error("missing salt");
+    }
+    return salt
+    
 }
 
 /**
@@ -450,7 +479,8 @@ async function getSalt(contractName:string, hre:HardhatRuntimeEnvironment){
  * of the salt specified by custom:salt
  */
 async function getBytes32Salt(contractName:string, hre:HardhatRuntimeEnvironment){
-  return hre.ethers.utils.formatBytes32String(await getSalt(contractName, hre));
+  let salt:string = await getSalt(contractName, hre);
+  return hre.ethers.utils.formatBytes32String(salt);
 }
 
 /**

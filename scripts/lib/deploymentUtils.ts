@@ -54,7 +54,9 @@ export async function deployUpgradeableProxy(fullyQualifiedName:string) {
     let initAble = await isInitializable(fullyQualifiedName);
     if (initAble){
         initializerArgs = await getDeploymentInitializerArgs(fullyQualifiedName);
+        console.log(initializerArgs)
         initCallData = await getEncodedInitCallData(fullyQualifiedName, initializerArgs)
+        
     }
     let hasConArgs = await hasConstructorArgs(fullyQualifiedName);
     let constructorArgs = hasConArgs ? await getDeploymentConstructorArgs(fullyQualifiedName) : [];
@@ -87,7 +89,7 @@ export async function hasConstructorArgs(fullName: string){
     return false;
 }
 
-export async function getEncodedInitCallData(fullName: string, args:Array<string>){ 
+export async function getEncodedInitCallData(fullName: string, args:Array<any>){ 
     let name = extractName(fullName);
     let contractFactory = await ethers.getContractFactory(name);
     return contractFactory.interface.encodeFunctionData("initialize", args);
@@ -201,11 +203,13 @@ export function extractName(fullName: string) {
 }
 
 export async function getDeployType(fullName: string) {
-    let buildInfo = await artifacts.getBuildInfo(fullName) as BuildInfo;
-    let name = extractName(fullName);
-    let path = extractPath(fullName);
-    let info:any = buildInfo.output.contracts[path][name]
-    return info["devdoc"]["custom:deploy-type"]
+    let buildInfo = await artifacts.getBuildInfo(fullName);
+    if(buildInfo !== undefined){
+        let name = extractName(fullName);
+        let path = extractPath(fullName);
+        let info:any = buildInfo?.output.contracts[path][name]
+        return info["devdoc"]["custom:deploy-type"]
+    }
 }
 
 export async function getSalt(fullName: string) {

@@ -1,15 +1,16 @@
-import { error } from "console";
 import fs from "fs";
 import {env} from  "./constants"
-export interface FactoryData{
+export type FactoryData = {
     name: string;
     address: string;
+    gas?:number;
 }
 
 export type DeployCreateData = {
     name:string;
     address:string;
     factoryAddress:string;
+    gas: number;
     constructorArgs?:any
 }
 export type MetaContractData = {
@@ -18,12 +19,14 @@ export type MetaContractData = {
     templateName:string;
     templateAddress:string;
     factoryAddress:string;
+    gas: number;
     initCallData:string;
 }
 export type TemplateData = {
     name: string;
     address: string;
     factoryAddress: string;
+    gas: number;
     constructorArgs?: string;
 }
 
@@ -36,14 +39,14 @@ export type ProxyData = {
     logicName: string;
     logicAddress: string;
     factoryAddress: string;
+    gas: number;
     initCallData?: string;
 }
-//TODO: PUT THIS IN A CONFIG FILE AND IMPORT IN ALL UTILS
 
-export async function getDefaultFactoryAddress(){
+export async function getDefaultFactoryAddress(): Promise<string>{
      //fetch whats in the factory config file
      let config = await readFactoryStateData();
-     return config?.defaultFactoryData.address
+     return config.defaultFactoryData.address
 }
 
 export async function readFactoryStateData() {
@@ -78,21 +81,10 @@ async function getLastConfig(config: FactoryConfig){
     }
 }
 
-export async function updateDefaultFactoryData(name: string, address: string) {
+export async function updateDefaultFactoryData(input:FactoryData) {
     let state = await readFactoryStateData();
     let lastConfig = await getLastConfig(state);
-    if (state.defaultFactoryData !== undefined) {
-        if(state.factories === undefined){
-            state.factories = [];
-            state.factories.push(state.defaultFactoryData);
-        }else{
-            state.factories.push(state.defaultFactoryData);
-        }
-    }
-    state.defaultFactoryData = {
-        name: name,
-        address: address
-    };
+    state.defaultFactoryData = input
     await writeFactoryConfig(state, lastConfig);
 }
 

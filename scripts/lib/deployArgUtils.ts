@@ -30,10 +30,12 @@ export async function getDeploymentConstructorArgs(fullName:string){
 } 
 
 export async function getDeploymentInitializerArgs(fullName:string){
-    let output:Array<string> = [];
+    let output:Array<any> = [];
     //get the deployment args
     let deploymentArgs:DeployArgs = await readDeploymentArgs();
+    console.log(fullName, deploymentArgs.initializerArgs[fullName])
     let args = deploymentArgs.initializerArgs[fullName]
+    console.log("args", args)
     if(args !== undefined){
         for(let arg of args){
             let name:string = Object.keys(arg)[0];

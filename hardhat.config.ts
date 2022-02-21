@@ -8,7 +8,7 @@ import "hardhat-contract-sizer";
 import "hardhat-gas-reporter";
 import "solidity-coverage";
 import "@nomiclabs/hardhat-truffle5";
-import "@nomiclabs/hardhat-ganache";
+//import "@nomiclabs/hardhat-ganache";
 import "./scripts/lib/madnetFactoryTasks"
 
 
@@ -44,9 +44,10 @@ const config: HardhatUserConfig = {
     // "user": 2
   },
   //unnamedAccounts: [],
+  defaultNetwork: "ganache",
   networks: {
-    ganache: {
-      url: "HTTP://127.0.0.1:8545"
+    ganache:{
+      url: "http://127.0.0.1:8545"
     },
     hardhat: {
       allowUnlimitedContractSize: true,
@@ -91,7 +92,7 @@ const config: HardhatUserConfig = {
 
   paths: {
     sources: "./src",
-    //tests: "./tests",
+    tests: "./tests",
     cache: "./cache",
     artifacts: "./artifacts",
   },
