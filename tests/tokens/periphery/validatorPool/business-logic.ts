@@ -35,9 +35,6 @@ describe("Testing ValidatorPool Business Logic ", () => {
     await fixture.validatorNFT.
       connect(adminSigner).
       setAdmin(fixture.validatorPool.address);
-    await fixture.validatorPool.
-      connect(adminSigner).
-      setETHDKG(fixture.ethdkg.address);
     notAdmin1Signer = await ethers.getSigner(notAdmin1.address);
     //create validators array
     fixture.namedSigners.map(async signer => {
@@ -103,17 +100,6 @@ describe("Testing ValidatorPool Business Logic ", () => {
         to.be.revertedWith("There are not enough free spots for all new validators!")
 
     });
-    it("Set snapshot", async function () {
-      await fixture.validatorPool
-        .connect(adminSigner)
-        .setSnapshot(fixture.snapshots.address);
-    });
-
-    it("Set ETHDKG", async function () {
-      await fixture.validatorPool
-        .connect(adminSigner)
-        .setETHDKG(fixture.ethdkg.address);
-    });
 
   })
 
@@ -177,20 +163,6 @@ describe("Testing ValidatorPool Business Logic ", () => {
         fixture.validatorPool
           .connect(notAdmin1Signer)
           .setMaxNumValidators(maxNumValidators)
-      ).to.be.revertedWith("ValidatorsPool: Requires admin privileges");
-    });
-    it("Set snapshot", async function () {
-      await expect(
-        fixture.validatorPool
-          .connect(notAdmin1Signer)
-          .setSnapshot(fixture.snapshots.address)
-      ).to.be.revertedWith("ValidatorsPool: Requires admin privileges");
-    });
-    it("Set ETHDKG", async function () {
-      await expect(
-        fixture.validatorPool
-          .connect(notAdmin1Signer)
-          .setETHDKG(fixture.ethdkg.address)
       ).to.be.revertedWith("ValidatorsPool: Requires admin privileges");
     });
     it("Schedule maintenance", async function () {

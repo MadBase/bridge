@@ -8,10 +8,17 @@ import {
   ValidatorNFT,
   ETHDKG,
   ValidatorPool,
-  Snapshots
+  Snapshots,
+  ETHDKGAccusations,
+  ETHDKGPhases,
+  ValidatorPoolMock,
+  MadnetFactory,
+  SnapshotsMock
 } from '../../../typechain-types'
 
-import { BigNumberish } from 'ethers'
+import { BigNumberish, BytesLike, Contract, ContractTransaction, Signer, Wallet } from 'ethers'
+import { isHexString } from 'ethers/lib/utils'
+import { ValidatorRawData } from './ethdkg/setup'
 
 export const PLACEHOLDER_ADDRESS = '0x0000000000000000000000000000000000000000'
 
@@ -29,119 +36,324 @@ export interface Fixture {
   madByte: MadByte
   stakeNFT: StakeNFT
   validatorNFT: ValidatorNFT
-  validatorPool: ValidatorPool
-  snapshots: Snapshots
+  validatorPool: ValidatorPool | ValidatorPoolMock
+  snapshots: Snapshots | SnapshotsMock
   ethdkg: ETHDKG
   namedSigners: SignerWithAddress[]
 }
 
-export const getFixture = async (): Promise<Fixture> => {
-  await network.provider.send('evm_setAutomine', [true])
-
-  const namedSigners = await ethers.getSigners()
-  const [admin] = namedSigners
-
-  // MadToken
-  const MadToken = await ethers.getContractFactory('MadToken')
-  const madToken = await MadToken.deploy('MadToken', 'MAD')
-  await madToken.deployed()
-  // console.log(`MadToken deployed at ${madToken.address}`);
-
-  // MadByte
-  const MadByte = await ethers.getContractFactory('MadByte')
-  const madByte = await MadByte.deploy(
-    admin.address,
-    PLACEHOLDER_ADDRESS,
-    PLACEHOLDER_ADDRESS,
-    PLACEHOLDER_ADDRESS,
-    PLACEHOLDER_ADDRESS
-  )
-  await madByte.deployed()
-  // console.log(`MadByte deployed at ${madByte.address}`);
-
-  // StakeNFT
-  const StakeNFT = await ethers.getContractFactory('StakeNFT')
-  const stakeNFT = await StakeNFT.deploy(
-    'StakeNFT',
-    'MADSTK',
-    madToken.address,
-    admin.address,
-    PLACEHOLDER_ADDRESS
-  )
-  await stakeNFT.deployed()
-  console.log(`StakeNFT deployed at ${stakeNFT.address}`)
-
-  // ValidatorNFT
-  const ValidatorNFT = await ethers.getContractFactory('ValidatorNFT')
-  const validatorNFT = await ValidatorNFT.deploy(
-    'ValidatorNFT',
-    'VALSTK',
-    madToken.address,
-    admin.address,
-    PLACEHOLDER_ADDRESS
-  )
-  await validatorNFT.deployed()
-  console.log(`ValidatorNFT deployed at ${validatorNFT.address}`)
-
-  // ETHDKG Accusations
-  const ETHDKGAccusations = await ethers.getContractFactory('ETHDKGAccusations')
-  const ethdkgAccusations = await ETHDKGAccusations.deploy()
-  await ethdkgAccusations.deployed()
-
-  // ETHDKG Phases
-  const ETHDKGPhases = await ethers.getContractFactory('ETHDKGPhases')
-  const ethdkgPhases = await ETHDKGPhases.deploy()
-  await ethdkgPhases.deployed()
-
-  // ETHDKG
-  const ETHDKG = await ethers.getContractFactory('ETHDKG')
-  const ethdkg = await ETHDKG.deploy(PLACEHOLDER_ADDRESS)
-  await ethdkg.deployed()
-  // console.log(`ETHDKG deployed at ${ethdkg.address}`);
-  // console.log("finished core deployment");
-
-  // ValidatorPoolTrue
-  const ValidatorPool = await ethers.getContractFactory('ValidatorPool')
-  const validatorPool = await ValidatorPool.deploy(
-    stakeNFT.address,
-    validatorNFT.address,
-    madToken.address,
-    ethdkg.address,
-    PLACEHOLDER_ADDRESS,
-    PLACEHOLDER_ADDRESS
-  )
-  await validatorPool.deployed()
-  console.log(`ValidatorPool deployed at ${validatorPool.address}`)
-
-  const Snapshots = await ethers.getContractFactory('Snapshots')
-  const snapshots = await Snapshots.deploy(
-    ethdkg.address,
-    validatorPool.address,
-    1,
-    PLACEHOLDER_ADDRESS
-  )
-  await snapshots.deployed()
-
-  await validatorPool.setSnapshot(snapshots.address)
-
-  await ethdkg.initialize(
-    validatorPool.address,
-    snapshots.address,
-    ethdkgAccusations.address,
-    ethdkgPhases.address
-  )
-
-  return {
-    madToken,
-    madByte,
-    stakeNFT,
-    validatorNFT,
-    validatorPool,
-    snapshots,
-    ethdkg,
-    namedSigners
+/**
+ * Shuffles array in place. ES6 version
+ * https://stackoverflow.com/questions/6274339/how-can-i-shuffle-an-array/6274381#6274381
+ * @param {Array} a items An array containing the items.
+ */
+ export function shuffle(a: ValidatorRawData[]) {
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
   }
-}
+
+  export const mineBlocks = async (nBlocks: number) => {
+    while (nBlocks > 0) {
+      nBlocks--;
+      await network.provider.request({
+        method: "evm_mine",
+      });
+    }
+  };
+
+  export const getBlockByNumber = async () => {
+    return await network.provider.send("eth_getBlockByNumber", [
+      "pending",
+      false,
+    ]);
+  };
+
+  export const getPendingTransactions = async () => {
+    return await network.provider.send("eth_pendingTransactions");
+  };
+
+  export const getValidatorEthAccount = async (
+    validator: ValidatorRawData | string
+  ): Promise<Signer> => {
+    if (typeof validator === "string") {
+      return ethers.getSigner(validator);
+    } else {
+      let balance = await ethers.provider.getBalance(validator.address);
+      if (balance.eq(0)) {
+        await (
+          await ethers.getSigner("0x546F99F244b7B58B855330AE0E2BC1b30b41302F")
+        ).sendTransaction({
+          to: validator.address,
+          value: ethers.utils.parseEther("10"),
+        });
+      }
+      if (typeof validator.privateKey !== "undefined") {
+        return new Wallet(validator.privateKey, ethers.provider);
+      }
+      return ethers.getSigner(validator.address);
+    }
+  };
+
+  async function getContractAddressFromDeployedStaticEvent(
+    tx: ContractTransaction
+  ): Promise<string> {
+    let eventSignature = "event DeployedStatic(address contractAddr)";
+    let eventName = "DeployedStatic";
+    return await getContractAddressFromEventLog(tx, eventSignature, eventName);
+  }
+
+  async function getContractAddressFromDeployedProxyEvent(
+    tx: ContractTransaction
+  ): Promise<string> {
+    let eventSignature = "event DeployedProxy(address contractAddr)";
+    let eventName = "DeployedProxy";
+    return await getContractAddressFromEventLog(tx, eventSignature, eventName);
+  }
+
+  async function getContractAddressFromDeployedRawEvent(
+      tx: ContractTransaction
+    ): Promise<string> {
+      let eventSignature = "event DeployedRaw(address contractAddr)";
+      let eventName = "DeployedRaw";
+      return await getContractAddressFromEventLog(tx, eventSignature, eventName);
+    }
+
+
+  async function getContractAddressFromEventLog(
+    tx: ContractTransaction,
+    eventSignature: string,
+    eventName: string
+  ): Promise<string> {
+    let receipt = await ethers.provider.getTransactionReceipt(tx.hash);
+    let intrface = new ethers.utils.Interface([eventSignature]);
+    let result = "";
+    for (let log of receipt.logs) {
+      let topics = log.topics;
+      let data = log.data;
+      let topicHash = intrface.getEventTopic(intrface.getEvent(eventName));
+      if (!isHexString(topics[0], 32) || topics[0].toLowerCase() !== topicHash) {
+        continue;
+      }
+      result = intrface.decodeEventLog(eventName, data, topics).contractAddr;
+    }
+    if (result === "") {
+      throw "Couldn't parse logs in the transaction!\nReceipt:\n" + receipt;
+    }
+    return result;
+  }
+
+  function getBytes32Salt(contractName: string) {
+    return ethers.utils.formatBytes32String(contractName);
+  }
+
+  async function deployStaticWithFactory(
+    factory: MadnetFactory,
+    contractName: string,
+    initCallData?: any[],
+    constructorArgs?: any[]
+  ): Promise<Contract> {
+    const _Contract = await ethers.getContractFactory(contractName);
+    let contractTx
+    if (constructorArgs !== undefined) {
+        contractTx = await factory.deployTemplate(
+         _Contract.getDeployTransaction(constructorArgs).data as BytesLike
+      );
+    } else {
+        contractTx = await factory.deployTemplate(
+         _Contract.getDeployTransaction().data as BytesLike
+      );
+    }
+    let receipt = await ethers.provider.getTransactionReceipt(contractTx.hash)
+    if (receipt.gasUsed.gt(10_000_000)) {
+        throw `Contract deployment size:${receipt.gasUsed} is greater than 10 million`
+    }
+
+    let initCallDataBin;
+    try {
+      initCallDataBin = _Contract.interface.encodeFunctionData(
+        "initialize",
+        initCallData
+      );
+    } catch (error) {
+      initCallDataBin = "0x";
+    }
+    let tx = await factory.deployStatic(
+      getBytes32Salt(contractName),
+      initCallDataBin
+    );
+    receipt = await ethers.provider.getTransactionReceipt(tx.hash)
+    if (receipt.gasUsed.gt(10_000_000)) {
+        throw `Contract deployment size:${receipt.gasUsed} is greater than 10 million`
+    }
+
+    return _Contract.attach(await getContractAddressFromDeployedStaticEvent(tx));
+  }
+
+  async function deployUpgradeableWithFactory(
+    factory: MadnetFactory,
+    contractName: string,
+    salt?: string,
+    initCallData?: any[],
+    constructorArgs?: any[]
+  ): Promise<Contract> {
+    const _Contract = await ethers.getContractFactory(contractName);
+    let deployCode: BytesLike;
+    let contractTx
+    if (constructorArgs !== undefined) {
+        contractTx = await factory.deployTemplate(
+        (deployCode = _Contract.getDeployTransaction(constructorArgs)
+          .data as BytesLike)
+      );
+    } else {
+        contractTx = await factory.deployTemplate(
+        (deployCode = _Contract.getDeployTransaction().data as BytesLike)
+      );
+    }
+    let receipt = await ethers.provider.getTransactionReceipt(contractTx.hash)
+    if (receipt.gasUsed.gt(10_000_000)) {
+        throw `Contract deployment size:${receipt.gasUsed} is greater than 10 million`
+    }
+    let transaction = await factory.deployCreate(deployCode);
+    receipt = await ethers.provider.getTransactionReceipt(transaction.hash)
+    if (receipt.gasUsed.gt(10_000_000)) {
+        throw `Contract deployment size:${receipt.gasUsed} is greater than 10 million`
+    }
+    let logicAddr = await getContractAddressFromDeployedRawEvent(transaction);
+    let saltBytes
+    if (salt === undefined) {
+      saltBytes = getBytes32Salt(contractName);
+    } else {
+      saltBytes = getBytes32Salt(salt);
+    }
+
+    let transaction2 = await factory.deployProxy(saltBytes);
+    receipt = await ethers.provider.getTransactionReceipt(transaction2.hash)
+    if (receipt.gasUsed.gt(10_000_000)) {
+        throw `Contract deployment size:${receipt.gasUsed} is greater than 10 million`
+    }
+    let initCallDataBin;
+    try {
+      initCallDataBin = _Contract.interface.encodeFunctionData(
+        "initialize",
+        initCallData
+      );
+    } catch (error) {
+      initCallDataBin = "0x";
+    }
+    await factory.upgradeProxy(saltBytes, logicAddr, initCallDataBin);
+    return _Contract.attach(
+      await getContractAddressFromDeployedProxyEvent(transaction2)
+    );
+  }
+
+  export const getFixture = async (mockSnapshots?: boolean, mockValidatorPool?: boolean) : Promise<Fixture> => {
+    await network.provider.send("evm_setAutomine", [true]);
+    // hardhat is not being able to estimate correctly the tx gas due to the massive bytes array
+    // being sent as input to the function (the contract bytecode), so we need to increase the block
+    // gas limit temporally in order to deploy the template
+    await network.provider.send("evm_setBlockGasLimit", ["0x3000000000000000"]);
+
+    const namedSigners = await ethers.getSigners();
+    const [admin] = namedSigners;
+
+    let txCount = await ethers.provider.getTransactionCount(admin.address);
+    //calculate the factory address for the constructor arg
+    let futureFactoryAddress = ethers.utils.getContractAddress({
+      from: admin.address,
+      nonce: txCount,
+    });
+
+    const Factory = await ethers.getContractFactory("MadnetFactory");
+    const factory = await Factory.deploy(futureFactoryAddress);
+    await factory.deployed();
+
+    // MadToken
+    const madToken = (await deployStaticWithFactory(
+      factory,
+      "MadToken"
+    )) as MadToken;
+
+    // MadByte
+    const madByte = (await deployStaticWithFactory(
+      factory,
+      "MadByte"
+    )) as MadByte;
+
+    //StakeNFT
+    const stakeNFT = (await deployStaticWithFactory(
+      factory,
+      "StakeNFT"
+    )) as StakeNFT;
+
+    // ValidatorNFT
+    const validatorNFT = (await deployStaticWithFactory(
+      factory,
+      "ValidatorNFT"
+    )) as ValidatorNFT;
+
+    // ValidatorPoolMock
+    const validatorPool = (await deployUpgradeableWithFactory(
+      factory,
+      "ValidatorPoolMock",
+      "ValidatorPool"
+    )) as ValidatorPoolMock;
+
+      // // ValidatorPool
+      // const validatorPool = (await deployUpgradeableWithFactory(
+      //   factory,
+      //   "ValidatorPool"
+      // )) as ValidatorPool;
+
+    // ETHDKG Accusations
+    const ethdkgAccusations = (await deployUpgradeableWithFactory(
+      factory,
+      "ETHDKGAccusations"
+    )) as ETHDKGAccusations;
+
+    // ETHDKG Phases
+    const ethdkgPhases = (await deployUpgradeableWithFactory(
+      factory,
+      "ETHDKGPhases"
+    )) as ETHDKGPhases;
+
+    // ETHDKG
+    const ethdkg = (await deployUpgradeableWithFactory(
+      factory,
+      "ETHDKG"
+    )) as ETHDKG;
+
+    // Snapshots
+    const snapshots = (await deployUpgradeableWithFactory(
+      factory,
+      "Snapshots",
+      undefined,
+      undefined,
+      [1],
+    )) as Snapshots;
+
+    // finish workaround, putting the blockgas limit to the previous value 30_000_000
+    await network.provider.send("evm_setBlockGasLimit", ["0x1C9C380"]);
+
+    let blockNumber = await ethers.provider.getBlockNumber();
+    let phaseLength = await ethdkg.getPhaseLength();
+    if (phaseLength.toNumber() >= blockNumber) {
+      await mineBlocks(phaseLength.toNumber());
+    }
+
+    return {
+      madToken,
+      madByte,
+      stakeNFT,
+      validatorNFT,
+      validatorPool,
+      snapshots,
+      ethdkg,
+      namedSigners,
+    };
+  };
 
 export async function getTokenIdFromTx (tx: any) {
   let abi = [

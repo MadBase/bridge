@@ -10,8 +10,8 @@ import {
   startAtMPKSubmission,
   assertEventMPKSet,
   expect,
-  getValidatorEthAccount,
 } from "../setup";
+import { getValidatorEthAccount } from "../../setup";
 
 describe("Submit Master Public Key", () => {
   it("should not allow submission of master public key when not in MPKSubmission phase", async () => {

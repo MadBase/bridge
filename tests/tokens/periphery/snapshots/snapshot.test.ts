@@ -2,6 +2,7 @@ import {
   Fixture,
   getFixture,
   getTokenIdFromTx,
+  getValidatorEthAccount,
   PLACEHOLDER_ADDRESS
 } from '../setup'
 import { ethers } from 'hardhat'
@@ -10,7 +11,6 @@ import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
 import {
   addValidators,
   initializeETHDKG,
-  getValidatorEthAccount,
   completeETHDKGRound
 } from '../ethdkg/setup'
 import {
@@ -61,9 +61,6 @@ describe('Tests Snapshots methods', () => {
     await fixture.validatorNFT
       .connect(adminSigner)
       .setAdmin(fixture.validatorPool.address)
-    await fixture.validatorPool
-      .connect(adminSigner)
-      .setETHDKG(fixture.ethdkg.address)
     notAdmin1Signer = await getValidatorEthAccount(notAdmin1.address)
     randomerSigner = await getValidatorEthAccount(randomer.address)
 
@@ -132,13 +129,13 @@ describe('Tests Snapshots methods', () => {
       })
 
       const Snapshots = await ethers.getContractFactory('Snapshots')
-      snapshots = await Snapshots.deploy(
-        mock[0].address,
-        mock[1].address,
-        1,
-        mock[1].address
-      )
-      await snapshots.deployed()
+    //   snapshots = await Snapshots.deploy(
+    //     mock[0].address,
+    //     mock[1].address,
+    //     1,
+    //     mock[1].address
+    //   )
+    //   await snapshots.deployed()
     })
 
     // it('Does not allow snapshot caller did not participate in the last ETHDKG round', async function () {

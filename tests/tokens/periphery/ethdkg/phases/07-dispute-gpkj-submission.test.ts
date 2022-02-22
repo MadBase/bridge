@@ -8,19 +8,18 @@ import {
   startAtGPKJ,
   assertETHDKGPhase,
   completeETHDKG,
-  mineBlocks,
   Phase,
   PLACEHOLDER_ADDRESS,
   submitMasterPublicKey,
   submitValidatorsGPKJ,
   submitValidatorsKeyShares,
   waitNextPhaseStartDelay,
-  getValidatorEthAccount,
 } from "../setup";
 import { BigNumberish } from "ethers";
 import { validators4BadGPKJSubmission } from "../assets/4-validators-1-bad-gpkj-submission";
 import { validators10BadGPKJSubmission } from "../assets/10-validators-1-bad-gpkj-submission";
 import { validators10_2BadGPKJSubmission } from "../assets/10-validators-2-bad-gpkj-submission";
+import { getValidatorEthAccount, mineBlocks } from "../../setup";
 
 describe("Dispute GPKj", () => {
   it("accuse good and bad participants of sending bad gpkj shares with 4 validators", async function () {

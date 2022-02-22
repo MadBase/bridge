@@ -1,11 +1,11 @@
 import { ethers } from "hardhat";
+import { getValidatorEthAccount } from "../../setup";
 import { validators4 } from "../assets/4-validators-successful-case";
 import {
   assertETHDKGPhase,
   assertEventValidatorSetCompleted,
   endCurrentPhase,
   expect,
-  getValidatorEthAccount,
   Phase,
   PLACEHOLDER_ADDRESS,
   startAtGPKJ,
