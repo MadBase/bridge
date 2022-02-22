@@ -14,7 +14,7 @@ import { getFixture, getValidatorEthAccount } from "../../setup";
 
 describe("Distribute Shares", () => {
   it("does not let distribute shares before Distribute Share Phase is open", async function () {
-    const { ethdkg, validatorPool } = await getFixture();
+    const { ethdkg, validatorPool } = await getFixture(true);
 
     const expectedNonce = 1;
 

@@ -28,7 +28,7 @@ contract ETHDKG is ETHDKGStorage, IETHDKG, IETHDKGEvents, ETHDKGUtils {
         ).getImplementationAddress();
         assembly {
             if iszero(extcodesize(ethdkgPhases)) {
-                mstore(0x00, "ethdkgPhases sze 0")
+                mstore(0x00, "ethdkgPhases size 0")
                 revert(0x00, 0x20)
             }
         }
@@ -42,7 +42,7 @@ contract ETHDKG is ETHDKGStorage, IETHDKG, IETHDKGEvents, ETHDKGUtils {
         ).getImplementationAddress();
         assembly {
             if iszero(extcodesize(ethdkgAccusations)) {
-                mstore(0x00, "ethdkgAccusation sze 0")
+                mstore(0x00, "ethdkgAccusations size 0")
                 revert(0x00, 0x20)
             }
         }

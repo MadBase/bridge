@@ -553,7 +553,7 @@ export const startAtDistributeShares = async (
   }
 ): Promise<[ETHDKG, ValidatorPoolMock | ValidatorPool, number]> => {
   const { ethdkg, validatorPool} =
-    typeof contracts !== "undefined" ? contracts : await getFixture();
+    typeof contracts !== "undefined" ? contracts : await getFixture(true);
   // add validators
   if ((<ValidatorPoolMock>validatorPool).isMock) {
     await addValidators(validatorPool, validators);
