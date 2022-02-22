@@ -2,6 +2,12 @@
 pragma solidity ^0.8.11;
 
 import "../utils/DeterministicAddress.sol";
+
+
+
+interface IProxy {
+    function getImplementationAddress() external view returns(address);
+}
 /**
 *@notice RUN OPTIMIZER OFF
  */
@@ -25,6 +31,13 @@ contract Proxy {
         factory_ = msg.sender;
     }
 
+    function getImplementationAddress() public view returns(address) {
+        assembly {
+            mstore(0x00, and(sload(not(0x00)), 0x000000000000000000000000ffffffffffffffffffffffffffffffffffffffff))
+            return(0x00, 0x20)
+        }
+    }
+
     fallback() external payable {
         // make local copy of factory since immutables
         // are not accessable in assembly as of yet
@@ -34,12 +47,12 @@ contract Proxy {
             function admin() {
                 // this is an assignment to implementation
                 let newImpl := shr(96, shl(96, calldataload(0x04)))
-                if eq(shr(160, sload(not(returndatasize()))), 0xca11c0de15dead10cced0000) {
-                    mstore(returndatasize(), "imploc")
-                    revert(returndatasize(), 0x20)
+                if eq(shr(160, sload(not(0x00))), 0xca11c0de15dead10cced0000) {
+                    mstore(0x00, "imploc")
+                    revert(0x00, 0x20)
                 }
                 // store address into slot
-                sstore(not(returndatasize()), newImpl)
+                sstore(not(0x00), newImpl)
                 stop()
             }
 
@@ -50,14 +63,14 @@ contract Proxy {
                 // allocate memory proportionate to calldata
                 mstore(0x40, add(_ptr, calldatasize()))
                 // copy calldata into memory
-                calldatacopy(_ptr, returndatasize(), calldatasize())
+                calldatacopy(_ptr, 0x00, calldatasize())
                 let ret := delegatecall(
                     gas(),
-                    sload(not(returndatasize())),
+                    sload(not(0x00)),
                     _ptr,
                     calldatasize(),
-                    returndatasize(),
-                    returndatasize()
+                    0x00,
+                    0x00
                 )
                 returndatacopy(_ptr, 0x00, returndatasize())
                 if iszero(ret) {

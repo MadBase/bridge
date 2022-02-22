@@ -189,10 +189,10 @@ export interface Fixture {
         throw `Contract deployment size:${receipt.gasUsed} is greater than 10 million`
     }
 
-    return _Contract.attach(await getContractAddressFromDeployedStaticEvent(tx));
+   return _Contract.attach(await getContractAddressFromDeployedStaticEvent(tx));
   }
 
-  async function deployUpgradeableWithFactory(
+async function deployUpgradeableWithFactory(
     factory: MadnetFactory,
     contractName: string,
     salt?: string,

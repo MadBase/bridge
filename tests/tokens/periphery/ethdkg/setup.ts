@@ -342,7 +342,7 @@ export const registerValidators = async (
     let numParticipantsBefore = await ethdkg.getNumParticipants();
     let tx = ethdkg
       .connect(await getValidatorEthAccount(validator))
-      .register(validator.madNetPublicKey);
+      .register(validator.madNetPublicKey)
     let receipt = await tx;
     let participant = await ethdkg.getParticipantInternalState(
       validator.address

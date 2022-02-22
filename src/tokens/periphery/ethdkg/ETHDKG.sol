@@ -8,24 +8,50 @@ import "./interfaces/IETHDKGEvents.sol";
 import "./interfaces/IETHDKG.sol";
 import "./ETHDKGStorage.sol";
 import "./utils/ETHDKGUtils.sol";
-import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "../../../utils/DeterministicAddress.sol";
+
+import "../../../proxy/Proxy.sol";
 
 /// @custom:salt ETHDKG
 /// @custom:deploy-type deployUpgradeable
-contract ETHDKG is Initializable, ETHDKGStorage, IETHDKG, IETHDKGEvents, ETHDKGUtils {
+contract ETHDKG is ETHDKGStorage, IETHDKG, IETHDKGEvents, ETHDKGUtils {
+    address internal immutable _ethdkgAccusations;
+    address internal immutable _ethdkgPhases;
+
     constructor() ETHDKGStorage() {
-        _admin = msg.sender;
+        // bytes32("ETHDKGPhases") = 0x455448444b475068617365730000000000000000000000000000000000000000;
+        address ethdkgPhases = IProxy(
+            getMetamorphicContractAddress(
+                0x455448444b475068617365730000000000000000000000000000000000000000,
+                _factory
+            )
+        ).getImplementationAddress();
+        assembly {
+            if iszero(extcodesize(ethdkgPhases)) {
+                mstore(0x00, "ethdkgPhases sze 0")
+                revert(0x00, 0x20)
+            }
+        }
+        _ethdkgPhases = ethdkgPhases;
+        // bytes32("ETHDKGAccusations") = 0x455448444b4741636375736174696f6e73000000000000000000000000000000;
+        address ethdkgAccusations = IProxy(
+            getMetamorphicContractAddress(
+                0x455448444b4741636375736174696f6e73000000000000000000000000000000,
+                _factory
+            )
+        ).getImplementationAddress();
+        assembly {
+            if iszero(extcodesize(ethdkgAccusations)) {
+                mstore(0x00, "ethdkgAccusation sze 0")
+                revert(0x00, 0x20)
+            }
+        }
+        _ethdkgAccusations = ethdkgAccusations;
     }
 
     function initialize() public initializer {
         _phaseLength = 40;
         _confirmationLength = 6;
-    }
-
-    modifier onlyAdmin() {
-        require(msg.sender == _admin, "ETHDKG: requires admin privileges");
-        _;
     }
 
     modifier onlyValidatorPool() {
@@ -41,17 +67,7 @@ contract ETHDKG is Initializable, ETHDKGStorage, IETHDKG, IETHDKGEvents, ETHDKGU
         _;
     }
 
-    /// @dev getAdmin returns the current _admin
-    function getAdmin() public view returns (address) {
-        return _admin;
-    }
-
-    /// @dev assigns a new admin may only be called by _admin
-    function setAdmin(address admin_) public onlyAdmin {
-        _admin = admin_;
-    }
-
-    function setPhaseLength(uint16 phaseLength_) external onlyAdmin {
+    function setPhaseLength(uint16 phaseLength_) external onlyFactory {
         require(
             !_isETHDKGRunning(),
             "ETHDKG: This variable cannot be set if an ETHDKG round is running!"
@@ -59,7 +75,7 @@ contract ETHDKG is Initializable, ETHDKGStorage, IETHDKG, IETHDKGEvents, ETHDKGU
         _phaseLength = phaseLength_;
     }
 
-    function setConfirmationLength(uint16 confirmationLength_) external onlyAdmin {
+    function setConfirmationLength(uint16 confirmationLength_) external onlyFactory {
         require(
             !_isETHDKGRunning(),
             "ETHDKG: This variable cannot be set if an ETHDKG round is running!"

@@ -11,7 +11,9 @@ import "./utils/ETHDKGUtils.sol";
 ///@custom:deploy-type deployUpgradeable
 contract ETHDKGPhases is ETHDKGStorage, IETHDKGEvents, ETHDKGUtils {
     constructor() ETHDKGStorage(){
-        _admin = msg.sender;
+    }
+    function getMyAddress() public view returns(address) {
+        return address(this);
     }
 
     function register(uint256[2] memory publicKey) external {
