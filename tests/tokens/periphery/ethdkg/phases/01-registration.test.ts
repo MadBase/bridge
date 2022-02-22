@@ -2,19 +2,17 @@ import { validators4 } from "../assets/4-validators-successful-case";
 import { ethers } from "hardhat";
 import { BigNumber } from "ethers";
 import {
-  getFixture,
   addValidators,
   initializeETHDKG,
   expect,
-  getValidatorEthAccount,
 } from "../setup";
+import { getFixture, getValidatorEthAccount } from "../../setup";
 
 describe("Registration Open", () => {
   it("does not let registrations before ETHDKG Registration is open", async function () {
     const { ethdkg, validatorPool } = await getFixture();
 
     // add validators
-    await validatorPool.setETHDKG(ethdkg.address);
     await addValidators(validatorPool, validators4);
 
     // for this test, ETHDKG is not started
@@ -30,7 +28,6 @@ describe("Registration Open", () => {
     const { ethdkg, validatorPool } = await getFixture();
 
     // add validators
-    await validatorPool.setETHDKG(ethdkg.address);
     await addValidators(validatorPool, validators4);
     await initializeETHDKG(ethdkg, validatorPool);
 
@@ -55,7 +52,6 @@ describe("Registration Open", () => {
     const { ethdkg, validatorPool } = await getFixture();
 
     // add validators
-    await validatorPool.setETHDKG(ethdkg.address);
     await addValidators(validatorPool, validators4);
 
     // start ETHDKG
@@ -88,7 +84,6 @@ describe("Registration Open", () => {
     const { ethdkg, validatorPool } = await getFixture();
 
     // add validators
-    await validatorPool.setETHDKG(ethdkg.address);
     await addValidators(validatorPool, validators4);
 
     // start ETHDKG

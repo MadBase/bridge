@@ -1,7 +1,6 @@
 import { validators4 } from "../../assets/4-validators-successful-case";
 import { validators10 } from "../../assets/10-validators-successful-case";
 import {
-  getFixture,
   addValidators,
   initializeETHDKG,
   registerValidators,
@@ -10,8 +9,8 @@ import {
   Phase,
   endCurrentAccusationPhase,
   expect,
-  getValidatorEthAccount,
 } from "../../setup";
+import { getFixture, getValidatorEthAccount } from "../../../setup";
 
 describe("Missing registration Accusation", () => {
   it("allows accusation of all missing validators after ETHDKG registration", async function () {
@@ -20,7 +19,7 @@ describe("Missing registration Accusation", () => {
     const expectedNonce = 1;
 
     // add validators
-    await validatorPool.setETHDKG(ethdkg.address);
+
     await addValidators(validatorPool, validators4);
 
     // start ETHDKG
@@ -60,7 +59,7 @@ describe("Missing registration Accusation", () => {
     const expectedNonce = 1;
 
     // add validators
-    await validatorPool.setETHDKG(ethdkg.address);
+
     await addValidators(validatorPool, validators4);
 
     // start ETHDKG
@@ -99,7 +98,7 @@ describe("Missing registration Accusation", () => {
     const expectedNonce = 1;
 
     // add validators
-    await validatorPool.setETHDKG(ethdkg.address);
+
     await addValidators(validatorPool, validators4);
 
     // start ETHDKG
@@ -128,7 +127,7 @@ describe("Missing registration Accusation", () => {
     const expectedNonce = 1;
 
     // add validators
-    await validatorPool.setETHDKG(ethdkg.address);
+
     await addValidators(validatorPool, validators4);
 
     // start ETHDKG
@@ -163,7 +162,7 @@ describe("Missing registration Accusation", () => {
     const expectedNonce = 1;
 
     // add validators
-    await validatorPool.setETHDKG(ethdkg.address);
+
     await addValidators(validatorPool, validators4);
 
     // start ETHDKG
@@ -191,7 +190,7 @@ describe("Missing registration Accusation", () => {
     const expectedNonce = 1;
 
     // add validators
-    await validatorPool.setETHDKG(ethdkg.address);
+
     await addValidators(validatorPool, validators4);
 
     // start ETHDKG
@@ -225,7 +224,7 @@ describe("Missing registration Accusation", () => {
     const expectedNonce = 1;
 
     // add validators
-    await validatorPool.setETHDKG(ethdkg.address);
+
     await addValidators(validatorPool, validators4);
 
     // start ETHDKG
@@ -257,7 +256,7 @@ describe("Missing registration Accusation", () => {
     const expectedNonce = 1;
 
     // add validators
-    await validatorPool.setETHDKG(ethdkg.address);
+
     await addValidators(validatorPool, validators4);
 
     // start ETHDKG
@@ -289,7 +288,7 @@ describe("Missing registration Accusation", () => {
     const expectedNonce = 1;
 
     // add validators
-    await validatorPool.setETHDKG(ethdkg.address);
+
     await addValidators(validatorPool, validators4);
 
     // start ETHDKG
@@ -324,7 +323,7 @@ describe("Missing registration Accusation", () => {
     const expectedNonce = 1;
 
     // add validators
-    await validatorPool.setETHDKG(ethdkg.address);
+
     await addValidators(validatorPool, validators4);
 
     // start ETHDKG
@@ -360,7 +359,7 @@ describe("Missing registration Accusation", () => {
     const expectedNonce = 1;
 
     // add validators
-    await validatorPool.setETHDKG(ethdkg.address);
+
     await addValidators(validatorPool, validators4);
 
     // start ETHDKG
@@ -406,11 +405,11 @@ describe("Missing registration Accusation", () => {
     const validator11 = "0x23EA3Bad9115d436190851cF4C49C1032fA7579A";
 
     // add validators
-    await validatorPool.setETHDKG(ethdkg.address);
+
     await addValidators(validatorPool, validators10);
 
     // add validator 11
-    await validatorPool.registerValidators([validator11]);
+    await validatorPool.registerValidators([validator11], []);
     expect(await validatorPool.isValidator(validator11)).to.equal(true);
 
     // start ETHDKG
@@ -455,7 +454,7 @@ describe("Missing registration Accusation", () => {
     const expectedNonce = 1;
 
     // add validators
-    await validatorPool.setETHDKG(ethdkg.address);
+
     await addValidators(validatorPool, validators4);
 
     // start ETHDKG

@@ -26,3 +26,6 @@ bin
 .openzeppelin/.session
 
 deployments/*
+bindings/*_caller.go
+bindings/*_filterer.go
+bindings/*_transactor.go

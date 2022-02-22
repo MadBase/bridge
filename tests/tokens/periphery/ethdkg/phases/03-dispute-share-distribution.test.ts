@@ -13,12 +13,11 @@ import {
   PLACEHOLDER_ADDRESS,
   submitValidatorsKeyShares,
   submitMasterPublicKey,
-  mineBlocks,
   submitValidatorsGPKJ,
   completeETHDKG,
-  getValidatorEthAccount,
 } from "../setup";
 import { BigNumberish } from "ethers";
+import { getValidatorEthAccount, mineBlocks } from "../../setup";
 
 describe("Dispute bad shares", () => {
 

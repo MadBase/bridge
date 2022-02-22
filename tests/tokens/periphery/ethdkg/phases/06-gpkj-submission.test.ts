@@ -5,8 +5,8 @@ import {
   startAtGPKJ,
   submitValidatorsGPKJ,
   expect,
-  getValidatorEthAccount,
 } from "../setup";
+import { getValidatorEthAccount } from "../../setup";
 
 describe("GPKj submission", () => {
   it("should not allow GPKj submission outside of GPKjSubmission phase", async () => {

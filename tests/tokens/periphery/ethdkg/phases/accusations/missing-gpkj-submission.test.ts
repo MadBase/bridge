@@ -8,8 +8,8 @@ import {
   startAtGPKJ,
   submitValidatorsGPKJ,
   expect,
-  getValidatorEthAccount,
 } from "../../setup";
+import { getValidatorEthAccount } from "../../../setup";
 
 describe("Accuse participant of not submitting GPKj", () => {
   it("allows accusation of all missing validators at once", async () => {

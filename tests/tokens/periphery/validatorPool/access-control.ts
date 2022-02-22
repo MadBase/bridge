@@ -36,9 +36,6 @@ describe("Testing ValidatorPool Access Control ", () => {
     await fixture.validatorNFT.
       connect(adminSigner).
       setAdmin(fixture.validatorPool.address);
-    await fixture.validatorPool.
-      connect(adminSigner).
-      setETHDKG(fixture.ethdkg.address);
     notAdmin1Signer = await ethers.getSigner(notAdmin1.address);
     fixture.namedSigners.map(async signer => {
       if (validators.length < 5) { // maximum validators by default
@@ -75,18 +72,6 @@ describe("Testing ValidatorPool Access Control ", () => {
       await fixture.validatorPool
         .connect(adminSigner)
         .setMaxNumValidators(maxNumValidators);
-    });
-    
-    it("Set snapshot", async function () {
-      await fixture.validatorPool
-        .connect(adminSigner)
-        .setSnapshot(fixture.snapshots.address);
-    });
-
-    it("Set ETHDKG", async function () {
-      await fixture.validatorPool
-        .connect(adminSigner)
-        .setETHDKG(fixture.ethdkg.address);
     });
 
     it("Schedule maintenance", async function () {
@@ -125,7 +110,7 @@ describe("Testing ValidatorPool Access Control ", () => {
   })
 
   describe("As a user without admin role should not be able to:", async function () {
-    
+
     it("Set a minimum stake", async function () {
       await expect(
         fixture.validatorPool.
@@ -139,22 +124,6 @@ describe("Testing ValidatorPool Access Control ", () => {
         fixture.validatorPool
           .connect(notAdmin1Signer)
           .setMaxNumValidators(maxNumValidators)
-      ).to.be.revertedWith("ValidatorsPool: Requires admin privileges");
-    });
-
-    it("Set snapshot", async function () {
-      await expect(
-        fixture.validatorPool
-          .connect(notAdmin1Signer)
-          .setSnapshot(fixture.snapshots.address)
-      ).to.be.revertedWith("ValidatorsPool: Requires admin privileges");
-    });
-
-    it("Set ETHDKG", async function () {
-      await expect(
-        fixture.validatorPool
-          .connect(notAdmin1Signer)
-          .setETHDKG(fixture.ethdkg.address)
       ).to.be.revertedWith("ValidatorsPool: Requires admin privileges");
     });
 
