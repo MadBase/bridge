@@ -14,7 +14,7 @@ import {
   ValidatorPoolMock,
   MadnetFactory,
   SnapshotsMock,
-  Factory,
+  //Factory,
 } from "../../../typechain-types";
 
 import {
@@ -49,7 +49,7 @@ export interface Fixture {
   ethdkg: ETHDKG;
   factory: MadnetFactory;
   namedSigners: SignerWithAddress[];
-
+  [key: string]: any; 
 }
 
 /**

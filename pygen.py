@@ -16,7 +16,7 @@ def make(dat):
 def build(cdefs):
     ocurl = "{"
     ccurl = "}"
-    out = f"""
+    outf = f"""
 // SPDX-License-Identifier: MIT-open-group
 pragma solidity 0.8.11;
 
@@ -31,11 +31,11 @@ abstract contract immutableFactory is DeterministicAddress {ocurl}
     {ccurl}
 
     modifier onlyFactory() {ocurl}
-        require(msg.sender == _factory);
+        require(msg.sender == _factory, "onlyFactory");
         _;
     {ccurl}
 
-    function _factoryAddress() internal returns(address) {ocurl}
+    function _factoryAddress() internal view returns(address) {ocurl}
         return _factory;
     {ccurl}
 
@@ -53,7 +53,7 @@ abstract contract immutable{name} is immutableFactory {ocurl}
     {ccurl}
 
     modifier only{name}() {ocurl}
-        require(msg.sender == _{name});
+        require(msg.sender == _{name}, "only{name}");
         _;
     {ccurl}
 
@@ -75,8 +75,8 @@ abstract contract immutable{name} is immutableFactory {ocurl}
         
         salt = binascii.hexlify(salt).decode("utf-8")
         render = tmpl(name, salt)
-        out = "".join([out, render])
-    return out
+        outf = "".join([outf, render])
+    return outf
 
 def run():
     clst = [
@@ -89,6 +89,9 @@ def run():
         ("ETHDKG", "ETHDKG"),
         ("ETHDKGAccusations", "ETHDKGAccusations"),
         ("Snapshots", "Snapshots"),
+        ("ETHDKGPhases", "ETHDKGPhases"),
+        ("StakeNFTLP", "StakeNFTLP"),
+        ("Foundation", "Foundation")
     ]
     c=make(clst)
     raw = build(c)
@@ -102,6 +105,7 @@ use dummy mad token to mint stake nft positions
 EX: tests/tokens/periphery/validatorPool/business-logic.ts
 register validators line 88 of above
 finally validatorPool.initializeEthDKG
+
 run golang
 bridge: new-shapshot-contract
 madnet: changes

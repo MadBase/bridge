@@ -4,44 +4,28 @@ pragma solidity ^0.8.11;
 
 import "../validatorPool/interfaces/IValidatorPool.sol";
 import "../ethdkg/interfaces/IETHDKG.sol";
-import "../../../utils/DeterministicAddress.sol";
+import "../../../utils/immutableAuth.sol";
 
 
-abstract contract SnapshotsStorage is DeterministicAddress {
+abstract contract SnapshotsStorage is immutableETHDKG, immutableValidatorPool {
+
+    uint256 internal constant EPOCH_LENGTH = 1024;
+
+    uint256 internal immutable _chainId;
+
     uint32 internal _epoch;
+
     // after how many eth blocks of not having a snapshot will we start allowing more validators to
     // make it
     uint32 internal _snapshotDesperationDelay;
+    
     // how quickly more validators will be allowed to make a snapshot, once
     // _snapshotDesperationDelay has passed
     uint32 internal _snapshotDesperationFactor;
 
     mapping(uint256 => Snapshot) internal _snapshots;
 
-    address internal _admin;
-
-    address internal immutable _factory;
-    IETHDKG internal immutable _ethdkg;
-    IValidatorPool internal immutable _validatorPool;
-    uint256 internal constant EPOCH_LENGTH = 1024;
-    uint256 internal immutable _chainId;
-
-    constructor(uint256 chainId_) {
-        _factory = msg.sender;
-        // bytes32("ETHDKG") = 0x455448444b470000000000000000000000000000000000000000000000000000;
-        _ethdkg = IETHDKG(
-            getMetamorphicContractAddress(
-                0x455448444b470000000000000000000000000000000000000000000000000000,
-                _factory
-            )
-        );
-        // bytes32("ValidatorPool") = 0x56616c696461746f72506f6f6c00000000000000000000000000000000000000;
-        _validatorPool = IValidatorPool(
-            getMetamorphicContractAddress(
-                0x56616c696461746f72506f6f6c00000000000000000000000000000000000000,
-                _factory
-            )
-        );
+    constructor(uint256 chainId_) immutableFactory(msg.sender) immutableETHDKG() immutableValidatorPool() {
         _chainId = chainId_;
     }
 }

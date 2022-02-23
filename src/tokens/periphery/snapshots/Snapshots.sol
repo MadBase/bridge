@@ -19,32 +19,12 @@ contract Snapshots is Initializable, SnapshotsStorage, ISnapshots {
     constructor(uint256 chainID_) SnapshotsStorage(chainID_){
     }
 
-    modifier onlyAdmin() {
-        require(msg.sender == _admin, "Snapshots: Only admin allowed!");
-        _;
-    }
-    modifier onlyFactory() {
-        require(msg.sender == _factory, "Snapshots: Only factory allowed!");
-        _;
-    }
-
     function initialize(uint32 desperationDelay_, uint32 desperationFactor_) public onlyFactory initializer {
         _snapshotDesperationDelay = desperationDelay_;
         _snapshotDesperationFactor = desperationFactor_;
-        _admin = msg.sender;
     }
 
-    /// @dev getAdmin returns the current _admin
-    function getAdmin() public view returns (address) {
-        return _admin;
-    }
-
-    /// @dev assigns a new admin may only be called by _admin
-    function setAdmin(address admin_) public onlyAdmin {
-        _admin = admin_;
-    }
-
-    function setSnapshotDesperationDelay(uint32 desperationDelay_) public onlyAdmin {
+    function setSnapshotDesperationDelay(uint32 desperationDelay_) public onlyFactory {
         _snapshotDesperationDelay = desperationDelay_;
     }
 
@@ -52,7 +32,7 @@ contract Snapshots is Initializable, SnapshotsStorage, ISnapshots {
         return _snapshotDesperationDelay;
     }
 
-    function setSnapshotDesperationFactor(uint32 desperationFactor_) public onlyAdmin {
+    function setSnapshotDesperationFactor(uint32 desperationFactor_) public onlyFactory {
         _snapshotDesperationFactor = desperationFactor_;
     }
 
@@ -140,10 +120,10 @@ contract Snapshots is Initializable, SnapshotsStorage, ISnapshots {
         public
         returns (bool)
     {
-        require(_validatorPool.isValidator(msg.sender), "Snapshots: Only validators allowed!");
-        require(!_ethdkg.isETHDKGRunning(), "Snapshots: There's an ETHDKG round running!");
+        require(IValidatorPool(_ValidatorPoolAddress()).isValidator(msg.sender), "Snapshots: Only validators allowed!");
+        require(!IETHDKG(_ETHDKGAddress()).isETHDKGRunning(), "Snapshots: There's an ETHDKG round running!");
 
-        (bool success, uint256 validatorIndex) = _ethdkg.tryGetParticipantIndex(msg.sender);
+        (bool success, uint256 validatorIndex) = IETHDKG(_ETHDKGAddress()).tryGetParticipantIndex(msg.sender);
         require(success, "Snapshots: Caller didn't participate in the last ethdkg round!");
 
         //todo: are we going to snapshot on epoch 0?
@@ -157,7 +137,7 @@ contract Snapshots is Initializable, SnapshotsStorage, ISnapshots {
         // Check if sender is the elected validator allowed to make the snapshot
         require(
             _mayValidatorSnapshot(
-                _validatorPool.getValidatorsCount(),
+                IValidatorPool(_ValidatorPoolAddress()).getValidatorsCount(),
                 validatorIndex - 1,
                 blocksSinceDesperation,
                 keccak256(bClaims_),
@@ -171,7 +151,7 @@ contract Snapshots is Initializable, SnapshotsStorage, ISnapshots {
 
         require(
             keccak256(abi.encodePacked(masterPublicKey)) ==
-                keccak256(abi.encodePacked(_ethdkg.getMasterPublicKey())),
+                keccak256(abi.encodePacked(IETHDKG(_ETHDKGAddress()).getMasterPublicKey())),
             "Snapshots: Wrong master public key!"
         );
 
@@ -192,9 +172,9 @@ contract Snapshots is Initializable, SnapshotsStorage, ISnapshots {
         require(blockClaims.chainId == _chainId, "Snapshots: Incorrect chainID for snapshot!");
 
         bool isSafeToProceedConsensus = true;
-        if (_validatorPool.isMaintenanceScheduled()) {
+        if (IValidatorPool(_ValidatorPoolAddress()).isMaintenanceScheduled()) {
             isSafeToProceedConsensus = false;
-            _validatorPool.pauseConsensus();
+            IValidatorPool(_ValidatorPoolAddress()).pauseConsensus();
         }
 
         _snapshots[epoch] = Snapshot(block.number, blockClaims, signature);

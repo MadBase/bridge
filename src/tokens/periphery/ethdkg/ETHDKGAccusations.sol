@@ -26,7 +26,7 @@ contract ETHDKGAccusations is ETHDKGStorage, IETHDKGEvents, ETHDKGUtils {
         uint16 badParticipants = _badParticipants;
         for (uint256 i = 0; i < dishonestAddresses.length; i++) {
             require(
-                _validatorPool.isValidator(dishonestAddresses[i]),
+                IValidatorPool(_ValidatorPoolAddress()).isValidator(dishonestAddresses[i]),
                 "ETHDKG: Dispute Failed! Dishonest Address is not a validator at the moment!"
             );
 
@@ -40,7 +40,7 @@ contract ETHDKGAccusations is ETHDKGStorage, IETHDKGEvents, ETHDKGUtils {
 
             // this makes sure we cannot accuse someone twice because a minor fine will be enough to
             // evict the validator from the pool
-            _validatorPool.minorSlash(dishonestAddresses[i], msg.sender);
+            IValidatorPool(_ValidatorPoolAddress()).minorSlash(dishonestAddresses[i], msg.sender);
             badParticipants++;
         }
         _badParticipants = badParticipants;
@@ -58,7 +58,7 @@ contract ETHDKGAccusations is ETHDKGStorage, IETHDKGEvents, ETHDKGUtils {
 
         for (uint256 i = 0; i < dishonestAddresses.length; i++) {
             require(
-                _validatorPool.isValidator(dishonestAddresses[i]),
+                IValidatorPool(_ValidatorPoolAddress()).isValidator(dishonestAddresses[i]),
                 "ETHDKG: Dispute Failed! Dishonest Address is not a validator at the moment!"
             );
             Participant memory dishonestParticipant = _participants[dishonestAddresses[i]];
@@ -82,7 +82,7 @@ contract ETHDKGAccusations is ETHDKGStorage, IETHDKGEvents, ETHDKGUtils {
                 "ETHDKG: Dispute failed! It looks like the supposed dishonest participant had commitments! "
             );
 
-            _validatorPool.minorSlash(dishonestAddresses[i], msg.sender);
+            IValidatorPool(_ValidatorPoolAddress()).minorSlash(dishonestAddresses[i], msg.sender);
             badParticipants++;
         }
 
@@ -108,7 +108,7 @@ contract ETHDKGAccusations is ETHDKGStorage, IETHDKGEvents, ETHDKGUtils {
             "ETHDKG: Dispute failed! Contract is not in dispute phase!"
         );
         require(
-            _validatorPool.isValidator(dishonestAddress),
+            IValidatorPool(_ValidatorPoolAddress()).isValidator(dishonestAddress),
             "ETHDKG: Dispute Failed! Dishonest Address is not a validator at the moment!"
         );
 
@@ -186,9 +186,9 @@ contract ETHDKGAccusations is ETHDKGStorage, IETHDKGEvents, ETHDKGUtils {
         // will have his stake burned.
         tmp = CryptoLibrary.bn128_multiply([CryptoLibrary.G1x, CryptoLibrary.G1y, share]);
         if (result[0] != tmp[0] || result[1] != tmp[1]) {
-            _validatorPool.majorSlash(dishonestAddress, msg.sender);
+            IValidatorPool(_ValidatorPoolAddress()).majorSlash(dishonestAddress, msg.sender);
         } else {
-            _validatorPool.majorSlash(msg.sender, dishonestAddress);
+            IValidatorPool(_ValidatorPoolAddress()).majorSlash(msg.sender, dishonestAddress);
         }
         _badParticipants++;
     }
@@ -205,7 +205,7 @@ contract ETHDKGAccusations is ETHDKGStorage, IETHDKGEvents, ETHDKGUtils {
 
         for (uint256 i = 0; i < dishonestAddresses.length; i++) {
             require(
-                _validatorPool.isValidator(dishonestAddresses[i]),
+                IValidatorPool(_ValidatorPoolAddress()).isValidator(dishonestAddresses[i]),
                 "ETHDKG: Dispute Failed! Dishonest Address is not a validator at the moment!"
             );
 
@@ -226,7 +226,7 @@ contract ETHDKGAccusations is ETHDKGStorage, IETHDKGEvents, ETHDKGUtils {
             );
 
             // evict the validator that didn't submit his shares
-            _validatorPool.minorSlash(dishonestAddresses[i], msg.sender);
+            IValidatorPool(_ValidatorPoolAddress()).minorSlash(dishonestAddresses[i], msg.sender);
             badParticipants++;
         }
         _badParticipants = badParticipants;
@@ -244,7 +244,7 @@ contract ETHDKGAccusations is ETHDKGStorage, IETHDKGEvents, ETHDKGUtils {
 
         for (uint256 i = 0; i < dishonestAddresses.length; i++) {
             require(
-                _validatorPool.isValidator(dishonestAddresses[i]),
+                IValidatorPool(_ValidatorPoolAddress()).isValidator(dishonestAddresses[i]),
                 "ETHDKG: Dispute Failed! Dishonest Address is not a validator at the moment!"
             );
             Participant memory dishonestParticipant = _participants[dishonestAddresses[i]];
@@ -267,7 +267,7 @@ contract ETHDKGAccusations is ETHDKGStorage, IETHDKGEvents, ETHDKGUtils {
                 "ETHDKG: Dispute failed! It looks like the dishonestParticipant distributed its GPKJ!"
             );
 
-            _validatorPool.minorSlash(dishonestAddresses[i], msg.sender);
+            IValidatorPool(_ValidatorPoolAddress()).minorSlash(dishonestAddresses[i], msg.sender);
             badParticipants++;
         }
 
@@ -292,7 +292,7 @@ contract ETHDKGAccusations is ETHDKGStorage, IETHDKGEvents, ETHDKGUtils {
         );
 
         require(
-            _validatorPool.isValidator(dishonestAddress),
+            IValidatorPool(_ValidatorPoolAddress()).isValidator(dishonestAddress),
             "ETHDKG: Dispute Failed! Dishonest Address is not a validator at the moment!"
         );
 
@@ -313,7 +313,7 @@ contract ETHDKGAccusations is ETHDKGStorage, IETHDKGEvents, ETHDKGUtils {
         uint16 badParticipants = _badParticipants;
         // n is total _participants;
         // t is threshold, so that t+1 is BFT majority.
-        uint256 numParticipants = _validatorPool.getValidatorsCount() + badParticipants;
+        uint256 numParticipants = IValidatorPool(_ValidatorPoolAddress()).getValidatorsCount() + badParticipants;
         uint256 threshold = _getThreshold(numParticipants);
 
         // Begin initial check
@@ -439,9 +439,9 @@ contract ETHDKGAccusations is ETHDKGStorage, IETHDKGEvents, ETHDKGUtils {
             ]
         );
         if (!isValid) {
-            _validatorPool.majorSlash(dishonestAddress, msg.sender);
+            IValidatorPool(_ValidatorPoolAddress()).majorSlash(dishonestAddress, msg.sender);
         } else {
-            _validatorPool.majorSlash(msg.sender, dishonestAddress);
+           IValidatorPool(_ValidatorPoolAddress()).majorSlash(msg.sender, dishonestAddress);
         }
         badParticipants++;
         _badParticipants = badParticipants;

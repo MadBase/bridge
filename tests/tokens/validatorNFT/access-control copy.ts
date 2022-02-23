@@ -33,24 +33,29 @@ describe("Testing ValidatorNFT Access Control", () => {
 
   describe("A user with admin role should be able to:", () => {
     it("Mint a token", async function () {
-      // let rcpt = await factoryCallAny(fixture, "validatorNFT", "mint", [amount])
-      // expect(rcpt.status).to.equal(1)
+      expect(await factoryCallAny(fixture, "validatorNFT", "mint", [amount])).to.equal(true)
     });
 
     it("Burn a token", async function () {
-      // let rcpt = await factoryCallAny(fixture, "validatorNFT", "burn", [42])
-      // expect(rcpt.status).to.equal(1)
-
+      await expect(fixture.validatorNFT
+        .connect(adminSigner)
+        .burn(42) //nonexistent
+      ).to.be
+        .revertedWith("ERC721: owner query for nonexistent token");
     });
 
     it("Mint a token to an address", async function () {
-      let rcpt = await factoryCallAny(fixture, "validatorNFT", "mintTo", [notAdminSigner.address, amount, lockTime])
-      expect(rcpt.status).to.equal(1)
+      await fixture.validatorNFT
+        .connect(adminSigner)
+        .mintTo(notAdminSigner.address, amount, lockTime);
     });
 
     it("Burn a token from an address", async function () {
-      let rcpt = await factoryCallAny(fixture, "validatorNFT", "burnTo", [notAdminSigner.address, 42])
-      expect(rcpt.status).to.equal(1)
+      await expect(fixture.validatorNFT
+        .connect(adminSigner)
+        .burnTo(notAdminSigner.address, 42) //nonexistent
+      ).to.be
+        .revertedWith("ERC721: owner query for nonexistent token");
     });
 
   })
@@ -115,5 +120,6 @@ async function factoryCallAny(fixture: Fixture, contractName:string, functionNam
   }
   let txResponse = await factory.callAny(contract.address, 0, contract.interface.encodeFunctionData(functionName, args))
   let receipt = await txResponse.wait()
-  return receipt
+  return receipt.status
+  
 }

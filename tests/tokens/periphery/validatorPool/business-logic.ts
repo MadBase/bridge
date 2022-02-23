@@ -32,9 +32,9 @@ describe("Testing ValidatorPool Business Logic ", () => {
     const [admin, notAdmin1, notAdmin2, notAdmin3, notAdmin4] =
       fixture.namedSigners;
     adminSigner = await ethers.getSigner(admin.address);
-    await fixture.validatorNFT.
-      connect(adminSigner).
-      setAdmin(fixture.validatorPool.address);
+    // await fixture.validatorNFT.
+    //   connect(adminSigner).
+    //   setAdmin(fixture.validatorPool.address);
     notAdmin1Signer = await ethers.getSigner(notAdmin1.address);
     //create validators array
     fixture.namedSigners.map(async signer => {
@@ -156,28 +156,28 @@ describe("Testing ValidatorPool Business Logic ", () => {
         fixture.validatorPool.
           connect(notAdmin1Signer).
           setStakeAmount(stakeAmount)
-      ).to.be.revertedWith("ValidatorsPool: Requires admin privileges");
+      ).to.be.revertedWith("onlyFactory");
     });
     it("Set a maximum number of validators", async function () {
       await expect(
         fixture.validatorPool
           .connect(notAdmin1Signer)
           .setMaxNumValidators(maxNumValidators)
-      ).to.be.revertedWith("ValidatorsPool: Requires admin privileges");
+      ).to.be.revertedWith("onlyFactory");
     });
     it("Schedule maintenance", async function () {
       await expect(
         fixture.validatorPool.
           connect(notAdmin1Signer).
           scheduleMaintenance()
-      ).to.be.revertedWith("ValidatorsPool: Requires admin privileges");
+      ).to.be.revertedWith("onlyFactory");
     });
     it("Register validators", async function () {
       await expect(
         fixture.validatorPool
           .connect(notAdmin1Signer)
           .registerValidators(validators, stakingTokenIds)
-      ).to.be.revertedWith("ValidatorsPool: Requires admin privileges");
+      ).to.be.revertedWith("onlyFactory");
     });
 
     it("Initialize ETHDKG", async function () {
@@ -185,7 +185,7 @@ describe("Testing ValidatorPool Business Logic ", () => {
         fixture.validatorPool
           .connect(notAdmin1Signer)
           .initializeETHDKG()).
-        to.be.revertedWith("ValidatorsPool: Requires admin privileges");
+        to.be.revertedWith("onlyFactory");
     });
 
     it("Unregister validators", async function () {
@@ -193,7 +193,7 @@ describe("Testing ValidatorPool Business Logic ", () => {
         fixture.validatorPool
           .connect(notAdmin1Signer)
           .unregisterValidators(validators)
-      ).to.be.revertedWith("ValidatorsPool: Requires admin privileges");
+      ).to.be.revertedWith("onlyFactory");
     });
 
     it("Pause consensus", async function () {
@@ -201,7 +201,7 @@ describe("Testing ValidatorPool Business Logic ", () => {
         fixture.validatorPool
           .connect(notAdmin1Signer)
           .pauseConsensusOnArbitraryHeight(1)
-      ).to.be.revertedWith("ValidatorsPool: Requires admin privileges");
+      ).to.be.revertedWith("onlyFactory");
     });
 
   })

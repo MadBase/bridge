@@ -53,7 +53,7 @@ contract ETHDKGPhases is ETHDKGStorage, IETHDKGEvents, ETHDKGUtils {
         if (
             _moveToNextPhase(
                 Phase.ShareDistribution,
-                _validatorPool.getValidatorsCount(),
+                IValidatorPool(_ValidatorPoolAddress()).getValidatorsCount(),
                 numRegistered
             )
         ) {
@@ -80,7 +80,7 @@ contract ETHDKGPhases is ETHDKGStorage, IETHDKGEvents, ETHDKGUtils {
             "ETHDKG: Participant already distributed shares this ETHDKG round!"
         );
 
-        uint256 numValidators = _validatorPool.getValidatorsCount();
+        uint256 numValidators = IValidatorPool(_ValidatorPoolAddress()).getValidatorsCount();
         uint256 threshold = _getThreshold(numValidators);
         require(
             encryptedShares.length == numValidators - 1,
@@ -210,7 +210,7 @@ contract ETHDKGPhases is ETHDKGStorage, IETHDKGEvents, ETHDKGUtils {
         if (
             _moveToNextPhase(
                 Phase.MPKSubmission,
-                _validatorPool.getValidatorsCount(),
+                IValidatorPool(_ValidatorPoolAddress()).getValidatorsCount(),
                 numParticipants
             )
         ) {
@@ -285,7 +285,7 @@ contract ETHDKGPhases is ETHDKGStorage, IETHDKGEvents, ETHDKGUtils {
             msg.sender,
             participant.index,
             participant.nonce,
-            _snapshots.getEpoch(),
+            ISnapshots(_SnapshotsAddress()).getEpoch(),
             participant.gpkj[0],
             participant.gpkj[1],
             participant.gpkj[2],
@@ -296,7 +296,7 @@ contract ETHDKGPhases is ETHDKGStorage, IETHDKGEvents, ETHDKGUtils {
         if (
             _moveToNextPhase(
                 Phase.DisputeGPKJSubmission,
-                _validatorPool.getValidatorsCount(),
+                IValidatorPool(_ValidatorPoolAddress()).getValidatorsCount(),
                 numParticipants
             )
         ) {
@@ -320,19 +320,19 @@ contract ETHDKGPhases is ETHDKGStorage, IETHDKGEvents, ETHDKGUtils {
         // Since we had a dispute stage prior this state we need to set global state in here
         _setPhase(Phase.Completion);
 
-        _validatorPool.completeETHDKG();
+        IValidatorPool(_ValidatorPoolAddress()).completeETHDKG();
 
-        uint256 epoch = _snapshots.getEpoch();
-        uint256 ethHeight = _snapshots.getCommittedHeightFromLatestSnapshot();
+        uint256 epoch = ISnapshots(_SnapshotsAddress()).getEpoch();
+        uint256 ethHeight = ISnapshots(_SnapshotsAddress()).getCommittedHeightFromLatestSnapshot();
         uint256 madHeight;
         if (_customMadnetHeight == 0) {
-            madHeight = _snapshots.getMadnetHeightFromLatestSnapshot();
+            madHeight = ISnapshots(_SnapshotsAddress()).getMadnetHeightFromLatestSnapshot();
         } else {
             madHeight = _customMadnetHeight;
             _customMadnetHeight = 0;
         }
         emit ValidatorSetCompleted(
-            uint8(_validatorPool.getValidatorsCount()),
+            uint8(IValidatorPool(_ValidatorPoolAddress()).getValidatorsCount()),
             _nonce,
             epoch,
             ethHeight,

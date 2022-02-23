@@ -33,9 +33,9 @@ describe("Testing ValidatorPool Access Control ", () => {
     const [admin, notAdmin1, notAdmin2, notAdmin3, notAdmin4] =
       fixture.namedSigners;
     adminSigner = await ethers.getSigner(admin.address);
-    await fixture.validatorNFT.
-      connect(adminSigner).
-      setAdmin(fixture.validatorPool.address);
+    // await fixture.validatorNFT.
+      // connect(adminSigner).
+      // setAdmin(fixture.validatorPool.address);
     notAdmin1Signer = await ethers.getSigner(notAdmin1.address);
     fixture.namedSigners.map(async signer => {
       if (validators.length < 5) { // maximum validators by default
@@ -63,15 +63,17 @@ describe("Testing ValidatorPool Access Control ", () => {
   describe("A user with admin role should be able to:", async function () {
 
     it("Set a minimum stake", async function () {
-      await fixture.validatorPool
-        .connect(adminSigner)
-        .setStakeAmount(stakeAmount);
+      let rcpt = await factoryCallAny(fixture, "validatorPool", "setStakeAmount", [stakeAmount])
+      expect(rcpt.status).to.equal(1);
     });
 
     it("Set a maximum number of validators", async function () {
-      await fixture.validatorPool
-        .connect(adminSigner)
-        .setMaxNumValidators(maxNumValidators);
+      let factory = fixture.factory
+      let validatorPool = fixture.validatorPool
+      let validatorPoolAddress = validatorPool.address
+      let txResponse = await factory.callAny(validatorPoolAddress, 0, validatorPool.interface.encodeFunctionData("setMaxNumValidators", [maxNumValidators]))
+      let receipt = await txResponse.wait()
+      expect(receipt.status).to.equal(1)
     });
 
     it("Schedule maintenance", async function () {
@@ -116,7 +118,7 @@ describe("Testing ValidatorPool Access Control ", () => {
         fixture.validatorPool.
           connect(notAdmin1Signer).
           setStakeAmount(stakeAmount)
-      ).to.be.revertedWith("ValidatorsPool: Requires admin privileges");
+      ).to.be.revertedWith("onlyFactory");
     });
 
     it("Set a maximum number of validators", async function () {
@@ -124,7 +126,7 @@ describe("Testing ValidatorPool Access Control ", () => {
         fixture.validatorPool
           .connect(notAdmin1Signer)
           .setMaxNumValidators(maxNumValidators)
-      ).to.be.revertedWith("ValidatorsPool: Requires admin privileges");
+      ).to.be.revertedWith("onlyFactory");
     });
 
     it("Schedule maintenance", async function () {
@@ -132,7 +134,7 @@ describe("Testing ValidatorPool Access Control ", () => {
         fixture.validatorPool.
           connect(notAdmin1Signer).
           scheduleMaintenance()
-      ).to.be.revertedWith("ValidatorsPool: Requires admin privileges");
+      ).to.be.revertedWith("onlyFactory");
     });
 
     it("Register validators", async function () {
@@ -140,7 +142,7 @@ describe("Testing ValidatorPool Access Control ", () => {
         fixture.validatorPool
           .connect(notAdmin1Signer)
           .registerValidators(validators, stakingTokenIds)
-      ).to.be.revertedWith("ValidatorsPool: Requires admin privileges");
+      ).to.be.revertedWith("onlyFactory");
     });
 
     it("Initialize ETHDKG", async function () {
@@ -148,7 +150,7 @@ describe("Testing ValidatorPool Access Control ", () => {
         fixture.validatorPool
           .connect(notAdmin1Signer)
           .initializeETHDKG()).
-        to.be.revertedWith("ValidatorsPool: Requires admin privileges");
+        to.be.revertedWith("onlyFactory");
     });
 
     it("Unregister validators", async function () {
@@ -156,7 +158,7 @@ describe("Testing ValidatorPool Access Control ", () => {
         fixture.validatorPool
           .connect(notAdmin1Signer)
           .unregisterValidators(validators)
-      ).to.be.revertedWith("ValidatorsPool: Requires admin privileges");
+      ).to.be.revertedWith("onlyFactory");
     });
 
     it("Pause consensus", async function () {
@@ -164,7 +166,7 @@ describe("Testing ValidatorPool Access Control ", () => {
         fixture.validatorPool
           .connect(notAdmin1Signer)
           .pauseConsensusOnArbitraryHeight(1)
-      ).to.be.revertedWith("ValidatorsPool: Requires admin privileges");
+      ).to.be.revertedWith("onlyFactory");
     });
 
   })
@@ -178,4 +180,13 @@ describe("Testing ValidatorPool Access Control ", () => {
 
 });
 
-
+async function factoryCallAny(fixture: Fixture, contractName:string, functionName:string, args?:Array<any>){
+  let factory = fixture.factory
+  let contract = fixture[contractName]
+  if(args === undefined){
+    args = []
+  }
+  let txResponse = await factory.callAny(contract.address, 0, contract.interface.encodeFunctionData(functionName, args))
+  let receipt = await txResponse.wait()
+  return receipt
+}

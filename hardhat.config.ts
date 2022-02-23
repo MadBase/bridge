@@ -40,7 +40,7 @@ const config: HardhatUserConfig = {
     // "user": 2
   },
   //unnamedAccounts: [],
-  defaultNetwork: "ganache",
+  //defaultNetwork: "ganache",
   networks: {
     ganache:{
       url: "http://127.0.0.1:8545"
@@ -51,8 +51,8 @@ const config: HardhatUserConfig = {
       // gasPrice: 10000000000,
       allowUnlimitedContractSize: true,
       mining: {
-        auto: false,
-        interval: 15000,
+        auto: true,
+        //interval: 15000,
       },
       accounts: [
         {
@@ -159,7 +159,7 @@ const config: HardhatUserConfig = {
           },
           optimizer: {
             enabled: true,
-            runs: 20000,
+            runs: 0,
           },
         },
       },

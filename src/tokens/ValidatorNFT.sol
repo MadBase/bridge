@@ -3,25 +3,13 @@ pragma solidity ^0.8.11;
 
 import "./StakeNFT.sol";
 
-abstract contract DeterministicValidatorPool is DeterministicAddress {
-    address private immutable _validatorPool;
-
-    constructor() {
-        _validatorPool = getMetamorphicContractAddress(0x56616c696461746f72506f6f6c00000000000000000000000000000000000000, msg.sender);
-    }
-
-    modifier onlyValidatorPool() {
-        require(msg.sender == _validatorPool, "Only ValidatorPool allowed!");
-        _;
-    }
-}
-
 /// @custom:salt ValidatorNFT
 /// @custom:deploy-type deployStatic
-contract ValidatorNFT is StakeNFTBase, DeterministicValidatorPool {
+contract ValidatorNFT is StakeNFTBase {
     // solhint-disable no-empty-blocks
-    constructor() StakeNFTBase() DeterministicValidatorPool() {}
-    function initialize() public initializer onlyAdmin {
+    constructor() StakeNFTBase() {}
+
+    function initialize() public initializer onlyFactory {
         __StakeNFTBase_init("MNVSNFT", "MNVS");
     }
     /// mint allows a staking position to be opened. This function

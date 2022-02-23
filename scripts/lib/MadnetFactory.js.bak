@@ -124,6 +124,7 @@ async function getSalt(contractName){
     let contractPath = qualifiedName.split(":")[0]
     //wrap this in a try catch block
     let salt = buildInfo.output.contracts[filePath][contractName].devdoc["custom:salt"];
+    let
     return ethers.utils.formatBytes32String(salt.toString());
 }
 

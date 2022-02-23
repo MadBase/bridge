@@ -8,24 +8,19 @@ import "./interfaces/IETHDKGEvents.sol";
 import "./interfaces/IETHDKG.sol";
 import "./ETHDKGStorage.sol";
 import "./utils/ETHDKGUtils.sol";
-import "../../../utils/DeterministicAddress.sol";
+import "../../../utils/immutableAuth.sol";
 
 import "../../../proxy/Proxy.sol";
 
 /// @custom:salt ETHDKG
 /// @custom:deploy-type deployUpgradeable
-contract ETHDKG is ETHDKGStorage, IETHDKG, IETHDKGEvents, ETHDKGUtils {
+contract ETHDKG is ETHDKGStorage, IETHDKG, IETHDKGEvents, ETHDKGUtils, immutableETHDKGAccusations, immutableETHDKGPhases {
     address internal immutable _ethdkgAccusations;
     address internal immutable _ethdkgPhases;
 
-    constructor() ETHDKGStorage() {
+    constructor() ETHDKGStorage() immutableETHDKGAccusations() immutableETHDKGPhases(){
         // bytes32("ETHDKGPhases") = 0x455448444b475068617365730000000000000000000000000000000000000000;
-        address ethdkgPhases = IProxy(
-            getMetamorphicContractAddress(
-                0x455448444b475068617365730000000000000000000000000000000000000000,
-                _factory
-            )
-        ).getImplementationAddress();
+        address ethdkgPhases = IProxy(_ETHDKGPhasesAddress()).getImplementationAddress();
         assembly {
             if iszero(extcodesize(ethdkgPhases)) {
                 mstore(0x00, "ethdkgPhases size 0")
@@ -34,12 +29,7 @@ contract ETHDKG is ETHDKGStorage, IETHDKG, IETHDKGEvents, ETHDKGUtils {
         }
         _ethdkgPhases = ethdkgPhases;
         // bytes32("ETHDKGAccusations") = 0x455448444b4741636375736174696f6e73000000000000000000000000000000;
-        address ethdkgAccusations = IProxy(
-            getMetamorphicContractAddress(
-                0x455448444b4741636375736174696f6e73000000000000000000000000000000,
-                _factory
-            )
-        ).getImplementationAddress();
+        address ethdkgAccusations = IProxy(_ETHDKGAccusationsAddress()).getImplementationAddress();
         assembly {
             if iszero(extcodesize(ethdkgAccusations)) {
                 mstore(0x00, "ethdkgAccusations size 0")
@@ -54,16 +44,8 @@ contract ETHDKG is ETHDKGStorage, IETHDKG, IETHDKGEvents, ETHDKGUtils {
         _confirmationLength = 6;
     }
 
-    modifier onlyValidatorPool() {
-        require(
-            msg.sender == address(_validatorPool),
-            "ETHDKG: Only validatorPool contract allowed!"
-        );
-        _;
-    }
-
     modifier onlyValidator() {
-        require(_validatorPool.isValidator(msg.sender), "ETHDKG: Only validators allowed!");
+        require(IValidatorPool(_ValidatorPoolAddress()).isValidator(msg.sender), "ETHDKG: Only validators allowed!");
         _;
     }
 
@@ -88,8 +70,8 @@ contract ETHDKG is ETHDKGStorage, IETHDKG, IETHDKGEvents, ETHDKGUtils {
         emit ValidatorSetCompleted(
             0,
             _nonce,
-            _snapshots.getEpoch(),
-            _snapshots.getCommittedHeightFromLatestSnapshot(),
+            ISnapshots(_SnapshotsAddress()).getEpoch(),
+            ISnapshots(_SnapshotsAddress()).getCommittedHeightFromLatestSnapshot(),
             madnetHeight,
             0x0,
             0x0,
@@ -239,7 +221,7 @@ contract ETHDKG is ETHDKGStorage, IETHDKG, IETHDKGEvents, ETHDKGUtils {
 
     function _initializeETHDKG() internal {
         //todo: should we reward ppl here?
-        uint256 numberValidators = _validatorPool.getValidatorsCount();
+        uint256 numberValidators = IValidatorPool(_ValidatorPoolAddress()).getValidatorsCount();
         require(
             numberValidators >= MIN_VALIDATOR,
             "ETHDKG: Minimum number of validators staked not met!"

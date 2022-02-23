@@ -5,7 +5,7 @@ pragma solidity ^0.8.0;
 abstract contract Admin {
 
     // _admin is a privileged role
-    address _admin;
+    address internal _admin;
 
     constructor(address admin_) {
         _admin = admin_;

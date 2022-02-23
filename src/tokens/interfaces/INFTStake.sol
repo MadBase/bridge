@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT-open-group
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.11;
 
 interface INFTStake {
     function getAccumulatorScaleFactor() external view returns (uint256);

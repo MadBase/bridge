@@ -3,18 +3,18 @@ pragma solidity ^0.8.9;
 
 import "../../ethdkg/interfaces/IETHDKG.sol";
 import "../../snapshots/interfaces/ISnapshots.sol";
-
 import "../utils/CustomEnumerableMaps.sol";
 import "../interfaces/IValidatorPool.sol";
 import "../../../../utils/DeterministicAddress.sol";
+import "../../../interfaces/INFTStake.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 
-contract ValidatorPoolMock is IValidatorPool, DeterministicAddress {
+contract ValidatorPoolMock is Initializable, IValidatorPool, immutableFactory, immutableSnapshots, immutableETHDKG, immutableValidatorNFT {
     using CustomEnumerableMaps for ValidatorDataMap;
 
     uint256 internal _tokenIDCounter;
-    address immutable _factory;
-    IETHDKG immutable internal _ethdkg;
-    ISnapshots immutable internal _snapshots;
+    //IETHDKG immutable internal _ethdkg;
+    //ISnapshots immutable internal _snapshots;
 
     ValidatorDataMap internal _validators;
 
@@ -23,27 +23,19 @@ contract ValidatorPoolMock is IValidatorPool, DeterministicAddress {
     bool internal _isMaintenanceScheduled;
     bool internal _isConsensusRunning;
 
+    uint256 internal _stakeAmount;
+
     // solhint-disable no-empty-blocks
-    constructor() {
-        _factory = msg.sender;
-        // bytes32("Snapshots") = 0x536e617073686f74730000000000000000000000000000000000000000000000;
-        _snapshots = ISnapshots(
-            getMetamorphicContractAddress(
-                0x536e617073686f74730000000000000000000000000000000000000000000000,
-                _factory
-            )
-        );
-        // bytes32("ETHDKG") = 0x455448444b470000000000000000000000000000000000000000000000000000;
-        _ethdkg = IETHDKG(
-            getMetamorphicContractAddress(
-                0x455448444b470000000000000000000000000000000000000000000000000000,
-                _factory
-            )
-        );
+    constructor() immutableFactory(msg.sender) immutableValidatorNFT() immutableSnapshots() immutableETHDKG(){
+    }
+
+    function initialize() public onlyFactory initializer {
+        //20000*10**18 MadWei = 20k MadTokens
+        _stakeAmount = 20000 * 10**18;
     }
 
     function initializeETHDKG() external {
-        _ethdkg.initializeETHDKG();
+        IETHDKG(_ETHDKGAddress()).initializeETHDKG();
     }
 
     modifier onlyAdmin() {
@@ -51,12 +43,12 @@ contract ValidatorPoolMock is IValidatorPool, DeterministicAddress {
         _;
     }
 
-    modifier onlySnapshots() {
-        require(
-            msg.sender == address(_snapshots),
-            "ValidatorPool: Caller is not the snapshots contract!"
-        );
-        _;
+    function mintValidatorNFT(address to_) public returns(uint256 stakeID_){
+        stakeID_ = INFTStake(_ValidatorNFTAddress()).mintTo(to_, _stakeAmount, 1);
+    }
+
+    function burnValidatorNFT(uint256 tokenID_, address to_) public returns(uint256 payoutEth, uint256 payoutMadToken) {
+        return INFTStake(_ValidatorNFTAddress()).burnTo(to_, tokenID_);
     }
 
     function isValidator(address participant) public view returns (bool) {

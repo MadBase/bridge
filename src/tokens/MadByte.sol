@@ -7,22 +7,27 @@ import "./utils/Mutex.sol";
 import "./utils/MagicEthTransfer.sol";
 import "./utils/EthSafeTransfer.sol";
 import "./math/Sigmoid.sol";
-import "../utils/DeterministicAddress.sol";
+import "../utils/immutableAuth.sol";
 
 
 /// @custom:salt MadByte
 /// @custom:deploy-type deployStatic
-contract MadByte is ERC20Upgradeable, Admin, Mutex, MagicEthTransfer, EthSafeTransfer, Sigmoid, DeterministicAddress {
-
-    /// @notice Event emitted when a deposit is received
-    event DepositReceived(uint256 indexed depositID, address indexed depositor, uint256 amount);
-    event DepositReceivedBN(uint256 indexed depositID, uint256 to0, uint256 to1, uint256 to2, uint256 to3, uint256 amount);
+contract MadByte is ERC20Upgradeable, Admin, Mutex, MagicEthTransfer, EthSafeTransfer, Sigmoid, immutableFactory, immutableStakeNFT, immutableValidatorNFT, immutableStakeNFTLP, immutableFoundation {
 
     // multiply factor for the selling/minting bonding curve
     uint256 internal constant _MARKET_SPREAD = 4;
 
     // Scaling factor to get the staking percentages
     uint256 internal constant _MAD_UNIT_ONE = 1000;
+
+    /// @notice Event emitted when a deposit is received
+    event DepositReceived(uint256 indexed depositID, uint8 indexed accountType, address indexed depositor, uint256 amount);
+    
+    struct Deposit {
+        uint8 accountType;
+        address account;
+        uint256 value;
+    }
 
     // Balance in ether that is hold in the contract after minting and burning
     uint256 internal _poolBalance;
@@ -35,66 +40,28 @@ contract MadByte is ERC20Upgradeable, Admin, Mutex, MagicEthTransfer, EthSafeTra
     uint256 internal _lpStakingSplit;
     uint256 internal _protocolFee;
 
-    // struct to define a BNAddress
-    struct BNAddress {
-        uint256 to0;
-        uint256 to1;
-        uint256 to2;
-        uint256 to3;
-    }
-
     // Monotonically increasing variable to track the MadBytes deposits.
     uint256 internal _depositID;
+
     // Total amount of MadBytes that were deposited in the MadNet chain. The
     // MadBytes deposited in the Madnet are burned by this contract.
     uint256 internal _totalDeposited;
 
     // Tracks the amount of each deposit. Key is deposit id, value is amount
     // deposited.
-    mapping(uint256 => uint256) internal _deposits;
-    // Tracks the owner of each deposit. Key is deposit id, value is the address
-    // of the owner of a deposit.
-    mapping(uint256 => address) internal _depositors;
-    // Tracks the owner of each deposit. This mapping is required to keep track
-    // of owners with BN addresses. Key is deposit id, value is the BN address
-    // (4x bytes32) of owner of a deposit.
-    mapping(uint256 => BNAddress) internal _depositorsBN;
+    mapping(uint256 => Deposit) internal _deposits;
+    
+    constructor() Admin(msg.sender) Mutex() immutableFactory(msg.sender) immutableStakeNFT() immutableValidatorNFT() immutableStakeNFTLP() immutableFoundation(){}
 
-    address internal immutable _factory;
-    // Staking contracts addresses
-    IMagicEthTransfer internal immutable _madStaking;
-    IMagicEthTransfer internal immutable _minerStaking;
-    IMagicEthTransfer internal immutable _lpStaking;
-    // Foundation contract address
-    IMagicEthTransfer internal immutable _foundation;
-
-    constructor() Admin(msg.sender) Mutex() {
-        _factory = msg.sender;
-        _madStaking = IMagicEthTransfer(getMetamorphicContractAddress(bytes32("StakeNFT"), _factory));
-        _minerStaking = IMagicEthTransfer(getMetamorphicContractAddress(bytes32("ValidatorNFT"), _factory));
-        _lpStaking = IMagicEthTransfer(getMetamorphicContractAddress(bytes32("LPNFT"), _factory));
-        _foundation = IMagicEthTransfer(getMetamorphicContractAddress(bytes32("Foundation"), _factory));
-    }
-
-    function initialize() public onlyAdmin initializer {
+    function initialize() public onlyFactory initializer {
         __ERC20_init("MadByte", "MB");
-        _minerStakingSplit = 333;
-        _madStakingSplit = 332;
-        _lpStakingSplit = 332;
-        _protocolFee = 3;
-        _poolBalance = 0;
-        _depositID = 0;
-        _totalDeposited = 0;
+        _setSplitsInternal(332, 332, 332, 4);
     }
 
     /// @dev sets the percentage that will be divided between all the staking
     /// contracts, must only be called by _admin
     function setSplits(uint256 minerStakingSplit_, uint256 madStakingSplit_, uint256 lpStakingSplit_, uint256 protocolFee_) public onlyAdmin {
-        require(minerStakingSplit_ + madStakingSplit_ + lpStakingSplit_ + protocolFee_ == _MAD_UNIT_ONE, "MadByte: All the split values must sum to _MAD_UNIT_ONE!");
-        _minerStakingSplit = minerStakingSplit_;
-        _madStakingSplit = madStakingSplit_;
-        _lpStakingSplit = lpStakingSplit_;
-        _protocolFee = protocolFee_;
+        _setSplitsInternal(minerStakingSplit_, madStakingSplit_, lpStakingSplit_, protocolFee_);
     }
 
     /// Converts an amount of Madbytes in ether given a point in the bonding
@@ -131,67 +98,38 @@ contract MadByte is ERC20Upgradeable, Admin, Mutex, MagicEthTransfer, EthSafeTra
 
     /// Gets the deposited amount given a depositID.
     /// @param depositID The Id of the deposit
-    function getDeposit(uint256 depositID) public view returns(uint256) {
-        require(depositID <= _depositID, "MadByte: Invalid deposit ID!");
-        return _deposits[depositID];
+    function getDeposit(uint256 depositID) public view returns(Deposit memory) {
+        Deposit memory d = _deposits[depositID];
+        require(d.account != address(uint160(0x00)), "MadByte: Invalid deposit ID!");
+        return d;
     }
 
-    /// Gets the owner of a given depositID. It returns 2 types of
-    /// address. The former is in case the owner has a normal address 20 bytes
-    /// long address. The later is in case the owner has a BN address (4x
-    /// uint256).
-    /// @param depositID The Id of the deposit
-    function getDepositOwner(uint256 depositID) public view returns(address, BNAddress memory) {
-        require(depositID <= _depositID, "MadByte: Invalid deposit ID!");
-        return (_depositors[depositID], _depositorsBN[depositID]);
-    }
-
-    /// Distributes the yields of the MadBytes sale to all stakeholders
+/// Distributes the yields of the MadBytes sale to all stakeholders
     /// (miners, stakers, lp stakers, foundation, etc).
     function distribute() public returns(uint256 minerAmount, uint256 stakingAmount, uint256 lpStakingAmount, uint256 foundationAmount) {
         return _distribute();
     }
 
-    /// Deposits a MadByte amount into the MadNet blockchain. The Madbyte amount
-    /// is deducted from the sender and it is burned by this contract. The
-    /// created deposit Id is owned by the sender.
-    /// @param amount_ The amount of Madbytes to be deposited
-    /// Return The deposit ID of the deposit created
-    function deposit(uint256 amount_) public returns (uint256) {
-        return _deposit(msg.sender, amount_);
-    }
-
-    /// Deposits a MadByte amount into the MadNet blockchain. The Madbyte amount
+  /// Deposits a MadByte amount into the MadNet blockchain. The Madbyte amount
     /// is deducted from the sender and it is burned by this contract. The
     /// created deposit Id is owned by the to_ address.
+    /// @param accountType_ The type of account the to_ address must be equivalent with ( 1 for Eth native, 2 for BN )
     /// @param to_ The address of the account that will own the deposit
     /// @param amount_ The amount of Madbytes to be deposited
     /// Return The deposit ID of the deposit created
-    function depositTo(address to_, uint256 amount_) public returns (uint256) {
-        return _deposit(to_, amount_);
-    }
-
-    /// Deposits a MadByte amount into the MadNet blockchain to a BN address.
-    /// The Madbyte amount is deducted from the sender and it is burned by this
-    /// contract. The created deposit Id is owned by the toX_ address.
-    /// @param to0_ Part of the BN address
-    /// @param to1_ Part of the BN address
-    /// @param to2_ Part of the BN address
-    /// @param to3_ Part of the BN address
-    /// @param amount_ The amount of Madbytes to be deposited
-    /// Return The deposit ID of the deposit created
-    function depositToBN(uint256 to0_, uint256 to1_, uint256 to2_, uint256 to3_, uint256 amount_) public returns (uint256) {
-        return _depositBN(to0_, to1_, to2_, to3_, amount_);
+    function deposit(uint8 accountType_, address to_, uint256 amount_) public returns (uint256) {
+        return _deposit(accountType_, to_, amount_);
     }
 
     /// Allows deposits to be minted in a virtual manner and sent to the Madnet
     /// chain by simply emitting a Deposit event without actually minting or
     /// burning any tokens, must only be called by _admin.
+    /// @param accountType_ The type of account the to_ address must be equivalent with ( 1 for Eth native, 2 for BN )
     /// @param to_ The address of the account that will own the deposit
     /// @param amount_ The amount of Madbytes to be deposited
     /// Return The deposit ID of the deposit created
-    function virtualMintDeposit(address to_, uint256 amount_) public onlyAdmin returns (uint256) {
-        return _virtualDeposit(to_, amount_);
+    function virtualMintDeposit(uint8 accountType_, address to_, uint256 amount_) public onlyAdmin returns (uint256) {
+        return _virtualDeposit(accountType_, to_, amount_);
     }
 
     /// Allows deposits to be minted in a virtual manner and sent to the Madnet
@@ -200,11 +138,12 @@ contract MadByte is ERC20Upgradeable, Admin, Mutex, MagicEthTransfer, EthSafeTra
     /// converts them into a deposit of MadBytes in the Madnet chain.
     /// This function has the same effect as calling mint (creating the
     /// tokens) + deposit (burning the tokens) functions but spending less gas.
+    /// @param accountType_ The type of account the to_ address must be equivalent with ( 1 for Eth native, 2 for BN )
     /// @param to_ The address of the account that will own the deposit
     /// @param minMB_ The amount of Madbytes to be deposited
     /// Return The deposit ID of the deposit created
-    function mintDeposit(address to_, uint256 minMB_) public payable returns (uint256) {
-        return _mintDeposit(to_, minMB_, msg.value);
+    function mintDeposit(uint8 accountType_, address to_, uint256 minMB_) public payable returns (uint256) {
+        return _mintDeposit(accountType_, to_, minMB_, msg.value);
     }
 
     /// Mints MadBytes. This function receives ether in the transaction and
@@ -276,10 +215,10 @@ contract MadByte is ERC20Upgradeable, Admin, Mutex, MagicEthTransfer, EthSafeTra
         // stakingAmount
         minerAmount = excess - (stakingAmount + lpStakingAmount + foundationAmount);
 
-        _safeTransferEthWithMagic(_foundation, foundationAmount);
-        _safeTransferEthWithMagic(_minerStaking, minerAmount);
-        _safeTransferEthWithMagic(_madStaking, stakingAmount);
-        _safeTransferEthWithMagic(_lpStaking, lpStakingAmount);
+        _safeTransferEthWithMagic(IMagicEthTransfer(_FoundationAddress()), foundationAmount);
+        _safeTransferEthWithMagic(IMagicEthTransfer(_ValidatorNFTAddress()), minerAmount);
+        _safeTransferEthWithMagic(IMagicEthTransfer(_StakeNFTAddress()), stakingAmount);
+        _safeTransferEthWithMagic(IMagicEthTransfer(_StakeNFTLPAddress()), lpStakingAmount);
         require(address(this).balance >= poolBalance, "MadByte: Address balance should be always greater than the pool balance!");
 
         // invariants hold
@@ -307,65 +246,40 @@ contract MadByte is ERC20Upgradeable, Admin, Mutex, MagicEthTransfer, EthSafeTra
 
     // Internal function that does the deposit in the Madnet Chain, i.e emit the
     // event DepositReceived. All the Madbytes sent to this function are burned.
-    function _deposit(address to_, uint256 amount_) internal returns (uint256) {
+    function _deposit(uint8 accountType_, address to_, uint256 amount_) internal returns (uint256) {
         require(!_isContract(to_), "MadByte: Contracts cannot make MadBytes deposits!");
         require(amount_ > 0, "MadByte: The deposit amount must be greater than zero!");
         require(_destroyTokens(amount_), "MadByte: Burn failed during the deposit!");
         // copying state to save gas
-        uint256 depositID = _depositID + 1;
-        _deposits[depositID] = amount_;
-        _depositors[depositID] = to_;
-        _totalDeposited += amount_;
-        _depositID = depositID;
-        emit DepositReceived(depositID, to_, amount_);
-        return depositID;
-    }
-
-    // Internal function that does the deposit in the Madnet Chain for user
-    // using BN addresses, i.e emit the event DepositReceivedBN. All the
-    // Madbytes sent to this function are burned.
-    function _depositBN(uint256 to0_, uint256 to1_, uint256 to2_, uint256 to3_, uint256 amount_) internal returns (uint256) {
-        require(amount_ > 0, "MadByte: The deposit amount must be greater than zero!");
-        require(_destroyTokens(amount_), "MadByte: Transfer failed!");
-        // copying state to save gas
-        uint256 depositID = _depositID + 1;
-        _deposits[depositID] = amount_;
-        _depositorsBN[depositID] = BNAddress(to0_, to1_, to2_, to3_);
-        _totalDeposited += amount_;
-        _depositID = depositID;
-        emit DepositReceivedBN(depositID, to0_, to1_, to2_, to3_, amount_);
-        return depositID;
+        return _doDepositCommon(accountType_, to_, amount_);
     }
 
     // does a virtual deposit into the Madnet Chain without actually minting or
     // burning any token.
-    function _virtualDeposit(address to_, uint256 amount_) internal returns (uint256) {
+    function _virtualDeposit(uint8 accountType_, address to_, uint256 amount_) internal returns (uint256) {
         require(!_isContract(to_), "MadByte: Contracts cannot make MadBytes deposits!");
         require(amount_ > 0, "MadByte: The deposit amount must be greater than zero!");
         // copying state to save gas
-        uint256 depositID = _depositID + 1;
-        _deposits[depositID] = amount_;
-        _depositors[depositID] = to_;
-        _totalDeposited += amount_;
-        _depositID = depositID;
-        emit DepositReceived(depositID, to_, amount_);
-        return depositID;
+        return _doDepositCommon(accountType_, to_, amount_);
     }
 
     // Mints a virtual deposit into the Madnet Chain without actually minting or
     // burning any token. This function converts ether sent in Madbytes.
-    function _mintDeposit(address to_, uint256 minMB_, uint256 numEth_) internal returns (uint256) {
+    function _mintDeposit(uint8 accountType_, address to_, uint256 minMB_, uint256 numEth_) internal returns (uint256) {
         require(!_isContract(to_), "MadByte: Contracts cannot make MadBytes deposits!");
         require(numEth_ >= _MARKET_SPREAD, "MadByte: requires at least 4 WEI");
         numEth_ = numEth_/_MARKET_SPREAD;
         uint256 amount_ = _EthtoMB(_poolBalance, numEth_);
         require(amount_ >= minMB_, "MadByte: could not mint deposit with minimum MadBytes given the ether sent!");
+        return _doDepositCommon(accountType_, to_, amount_);
+    }
+
+    function _doDepositCommon(uint8 accountType_, address to_, uint256 amount_) internal returns (uint256) {
         uint256 depositID = _depositID + 1;
-        _deposits[depositID] = amount_;
-        _depositors[depositID] = to_;
+        _deposits[depositID] = _newDeposit(accountType_, to_, amount_);
         _totalDeposited += amount_;
         _depositID = depositID;
-        emit DepositReceived(depositID, to_, amount_);
+        emit DepositReceived(depositID, accountType_, to_, amount_);
         return depositID;
     }
 
@@ -409,4 +323,18 @@ contract MadByte is ERC20Upgradeable, Admin, Mutex, MagicEthTransfer, EthSafeTra
       require(totalSupply_ >= numMB_, "MadByte: The number of tokens to be burned is greater than the Total Supply!");
       return _min(poolBalance_, _fp(totalSupply_) - _fp(totalSupply_ - numMB_));
     }
+
+    function _newDeposit(uint8 accountType_, address account_, uint256 value_) internal returns(Deposit memory) {
+        Deposit memory d = Deposit(accountType_, account_, value_);
+        return d;
+    }
+
+    function _setSplitsInternal(uint256 minerStakingSplit_, uint256 madStakingSplit_, uint256 lpStakingSplit_, uint256 protocolFee_) internal {
+        require(minerStakingSplit_ + madStakingSplit_ + lpStakingSplit_ + protocolFee_ == _MAD_UNIT_ONE, "MadByte: All the split values must sum to _MAD_UNIT_ONE!");
+        _minerStakingSplit = minerStakingSplit_;
+        _madStakingSplit = madStakingSplit_;
+        _lpStakingSplit = lpStakingSplit_;
+        _protocolFee = protocolFee_;
+    }
+
 }

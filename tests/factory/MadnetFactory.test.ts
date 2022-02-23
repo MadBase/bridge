@@ -5,7 +5,8 @@ import { expect } from"chai";
 import {ethers, artifacts, contract, run} from"hardhat";
 import { upgradeProxy, deployStatic, deployUpgradeable } from "../../scripts/lib/MadnetFactory";
 import { FactoryConfig, FactoryData, getDefaultFactoryAddress } from"../../scripts/lib/factoryStateUtils";
-import { Mock__factory } from '../../typechain-types';
+import { ContractFactory } from 'ethers';
+
 
 
 let firstOwner:string;
@@ -38,7 +39,6 @@ let mockBase = artifacts.require(MOCK);
 let mockInitBase = artifacts.require(MOCK_INITIALIZABLE);
 let mockFactoryBase = artifacts.require("MockFactory");
 let utilsBase = artifacts.require("utils");
-contract("MadnetFactory", () => {
     
     describe("MADNETFACTORY", () => {
         before(async () => {
@@ -157,7 +157,7 @@ contract("MadnetFactory", () => {
     
         it("DEPLOYCREATE MOCK LOGIC CONTRACT EXPECT SUCCESS", async () => {
             //use the ethers Mock contract abstraction to generate the deploy transaction data 
-            let mockCon:Mock__factory = await ethers.getContractFactory("Mock");
+            let mockCon:ContractFactory = await ethers.getContractFactory("Mock");
             //get the init code with contructor args appended
             let deployTx = mockCon.getDeployTransaction(2, "s");
             let transactionCount = await ethers.provider.getTransactionCount(factory.address)
@@ -187,8 +187,10 @@ contract("MadnetFactory", () => {
         });
         it("UPGRADE PROXY TO POINT TO MOCKADDRESS W FACTORY EXPECT SUCCESS", async () => { 
             let proxySalt = getSalt();
+            let txResponse = await factory.deployProxy(proxySalt);
+            expectTxSuccess(txResponse);
             let mockContract = await mockBase.new(2, "s");
-            let txResponse = await factory.upgradeProxy(proxySalt, mockContract.address, "0x");
+            txResponse = await factory.upgradeProxy(proxySalt, mockContract.address, "0x");
             expectTxSuccess(txResponse);
             console.log("UPGRADE PROXY GASUSED: ", txResponse["receipt"]["gasUsed"]);
             txResponse = factory.upgradeProxy(proxySalt, mockContract.address, "0x", {from: firstDelegator});
@@ -312,7 +314,7 @@ contract("MadnetFactory", () => {
             it("MULTICALL DEPLOYPROXY, DEPLOYTEMPLATE, DEPLOYSTATIC, UPGRADEPROXY, EXPECT SUCCESS", async () => {
                 let endPoint = await endPointBase.new(factory.address);
                 let proxySalt = getSalt();
-                let mockCon:Mock__factory = await ethers.getContractFactory("Mock");
+                let mockCon:ContractFactory = await ethers.getContractFactory("Mock");
                 //salt for deployStatic
                 let metaSalt = getSalt();
                 //deploy code for mock with constructor args i = 2, _p = "s"
@@ -396,7 +398,10 @@ contract("MadnetFactory", () => {
             utilsBase = await artifacts.require("utils");
             //get a instance of a ethereum provider
             //this.provider = new ethers.providers.JsonRpcProvider();            
-            utilsContract = await utilsBase.new();            
+            utilsContract = await utilsBase.new();         
+            factory = await deployFactory(MADNET_FACTORY);
+            let cSize = await utilsContract.getCodeSize(factory.address);
+            expect(cSize.toNumber()).to.be.greaterThan(0);   
         });        
         it("DEPLOY FACTORY WITH CLI", async () => {                   
             let futureFactoryAddress = await predictFactoryAddress(firstOwner)            
@@ -417,7 +422,7 @@ contract("MadnetFactory", () => {
         
     });
 
-    describe.only("MADNETFACTORY API TEST", async () => {
+    describe("MADNETFACTORY API TEST", async () => {
         before(async () => {
             accounts = await getAccounts();
             //set owner and delegator
@@ -427,10 +432,16 @@ contract("MadnetFactory", () => {
             //get a instance of a ethereum provider
             //this.provider = new ethers.providers.JsonRpcProvider();            
             utilsContract = await utilsBase.new();
+            factory = await deployFactory(MADNET_FACTORY);
+            let cSize = await utilsContract.getCodeSize(factory.address);
+            expect(cSize.toNumber()).to.be.greaterThan(0);
         });
 
         it("DEPLOYUPGRADEABLE", async () => {
             let res = await deployUpgradeable("Mock", factory.address, ["2","s"]);
+            if (res === undefined){
+                console.error()
+            }
             let cSize = await utilsContract.getCodeSize(res.logicAddress)
             expect(cSize.toNumber()).to.be.greaterThan(0);
             cSize = await utilsContract.getCodeSize(res.proxyAddress)
@@ -451,7 +462,7 @@ contract("MadnetFactory", () => {
             expect(cSize.toNumber()).to.be.greaterThan(0);
         });
     });
-});
+
 
 async function getAccounts(){
     let signers = await ethers.getSigners();  

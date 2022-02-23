@@ -13,11 +13,11 @@ abstract contract immutableFactory is DeterministicAddress {
     }
 
     modifier onlyFactory() {
-        require(msg.sender == _factory);
+        require(msg.sender == _factory, "onlyFactory");
         _;
     }
 
-    function _factoryAddress() internal returns(address) {
+    function _factoryAddress() internal view returns(address) {
         return _factory;
     }
 
@@ -33,7 +33,7 @@ abstract contract immutableValidatorNFT is immutableFactory {
     }
 
     modifier onlyValidatorNFT() {
-        require(msg.sender == _ValidatorNFT);
+        require(msg.sender == _ValidatorNFT, "onlyValidatorNFT");
         _;
     }
 
@@ -58,7 +58,7 @@ abstract contract immutableMadToken is immutableFactory {
     }
 
     modifier onlyMadToken() {
-        require(msg.sender == _MadToken);
+        require(msg.sender == _MadToken, "onlyMadToken");
         _;
     }
 
@@ -83,7 +83,7 @@ abstract contract immutableStakeNFT is immutableFactory {
     }
 
     modifier onlyStakeNFT() {
-        require(msg.sender == _StakeNFT);
+        require(msg.sender == _StakeNFT, "onlyStakeNFT");
         _;
     }
 
@@ -108,7 +108,7 @@ abstract contract immutableMadByte is immutableFactory {
     }
 
     modifier onlyMadByte() {
-        require(msg.sender == _MadByte);
+        require(msg.sender == _MadByte, "onlyMadByte");
         _;
     }
 
@@ -133,7 +133,7 @@ abstract contract immutableGovernance is immutableFactory {
     }
 
     modifier onlyGovernance() {
-        require(msg.sender == _Governance);
+        require(msg.sender == _Governance, "onlyGovernance");
         _;
     }
 
@@ -158,7 +158,7 @@ abstract contract immutableValidatorPool is immutableFactory {
     }
 
     modifier onlyValidatorPool() {
-        require(msg.sender == _ValidatorPool);
+        require(msg.sender == _ValidatorPool, "onlyValidatorPool");
         _;
     }
 
@@ -183,7 +183,7 @@ abstract contract immutableETHDKG is immutableFactory {
     }
 
     modifier onlyETHDKG() {
-        require(msg.sender == _ETHDKG);
+        require(msg.sender == _ETHDKG, "onlyETHDKG");
         _;
     }
 
@@ -208,7 +208,7 @@ abstract contract immutableETHDKGAccusations is immutableFactory {
     }
 
     modifier onlyETHDKGAccusations() {
-        require(msg.sender == _ETHDKGAccusations);
+        require(msg.sender == _ETHDKGAccusations, "onlyETHDKGAccusations");
         _;
     }
 
@@ -233,7 +233,7 @@ abstract contract immutableSnapshots is immutableFactory {
     }
 
     modifier onlySnapshots() {
-        require(msg.sender == _Snapshots);
+        require(msg.sender == _Snapshots, "onlySnapshots");
         _;
     }
 
@@ -243,6 +243,81 @@ abstract contract immutableSnapshots is immutableFactory {
 
     function _saltForSnapshots() internal pure returns(bytes32) {
         return 0x536e617073686f74730000000000000000000000000000000000000000000000;
+    }
+    
+}
+
+
+
+abstract contract immutableETHDKGPhases is immutableFactory {
+    
+    address private immutable _ETHDKGPhases;
+
+    constructor() {
+        _ETHDKGPhases = getMetamorphicContractAddress(0x455448444b475068617365730000000000000000000000000000000000000000, _factoryAddress());
+    }
+
+    modifier onlyETHDKGPhases() {
+        require(msg.sender == _ETHDKGPhases, "onlyETHDKGPhases");
+        _;
+    }
+
+    function _ETHDKGPhasesAddress() internal view returns(address) {
+        return _ETHDKGPhases;
+    }
+
+    function _saltForETHDKGPhases() internal pure returns(bytes32) {
+        return 0x455448444b475068617365730000000000000000000000000000000000000000;
+    }
+    
+}
+
+
+
+abstract contract immutableStakeNFTLP is immutableFactory {
+    
+    address private immutable _StakeNFTLP;
+
+    constructor() {
+        _StakeNFTLP = getMetamorphicContractAddress(0x5374616b654e46544c5000000000000000000000000000000000000000000000, _factoryAddress());
+    }
+
+    modifier onlyStakeNFTLP() {
+        require(msg.sender == _StakeNFTLP, "onlyStakeNFTLP");
+        _;
+    }
+
+    function _StakeNFTLPAddress() internal view returns(address) {
+        return _StakeNFTLP;
+    }
+
+    function _saltForStakeNFTLP() internal pure returns(bytes32) {
+        return 0x5374616b654e46544c5000000000000000000000000000000000000000000000;
+    }
+    
+}
+
+
+
+abstract contract immutableFoundation is immutableFactory {
+    
+    address private immutable _Foundation;
+
+    constructor() {
+        _Foundation = getMetamorphicContractAddress(0x466f756e646174696f6e00000000000000000000000000000000000000000000, _factoryAddress());
+    }
+
+    modifier onlyFoundation() {
+        require(msg.sender == _Foundation, "onlyFoundation");
+        _;
+    }
+
+    function _FoundationAddress() internal view returns(address) {
+        return _Foundation;
+    }
+
+    function _saltForFoundation() internal pure returns(bytes32) {
+        return 0x466f756e646174696f6e00000000000000000000000000000000000000000000;
     }
     
 }
