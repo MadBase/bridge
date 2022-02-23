@@ -3,7 +3,7 @@
 This repository contains all solidity smart contracts used by the MadNet.
 
 ## Requirements
-
+- abigen 1.10.16
 ### Dapp tools
 
 To build and deploy the contracts, we use a command line tool called **dapp
