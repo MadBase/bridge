@@ -8,7 +8,7 @@ solc \
     @openzeppelin/=$(pwd)/node_modules/@openzeppelin/ \
     -o ./out \
     --overwrite \
-    ./src/Registry.sol \
+    ./src/factory/MadnetFactory.sol \
     ./src/tokens/periphery/ethdkg/ETHDKG.sol \
     ./src/tokens/periphery/validatorPool/ValidatorPool.sol \
     ./src/tokens/periphery/snapshots/Snapshots.sol \

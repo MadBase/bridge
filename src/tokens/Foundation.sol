@@ -14,13 +14,19 @@ import "./interfaces/INFTStake.sol";
 
 /// @custom:salt Foundation
 /// @custom:deploy-type deployUpgradeable
-contract Foundation is Initializable, MagicValue, EthSafeTransfer, ERC20SafeTransfer, immutableFactory, immutableMadToken {
-
+contract Foundation is
+    Initializable,
+    MagicValue,
+    EthSafeTransfer,
+    ERC20SafeTransfer,
+    immutableFactory,
+    immutableMadToken
+{
     constructor() immutableFactory(msg.sender) immutableMadToken() {}
 
-     function initialize() public initializer onlyFactory {}
+    function initialize() public initializer onlyFactory {}
 
-     /// DO NOT CALL THIS METHOD UNLESS YOU ARE MAKING A DISTRIBUTION AS ALL VALUE
+    /// DO NOT CALL THIS METHOD UNLESS YOU ARE MAKING A DISTRIBUTION AS ALL VALUE
     /// WILL BE DISTRIBUTED TO STAKERS EVENLY. depositToken distributes MadToken
     /// to all stakers evenly should only be called during a slashing event. Any
     /// MadToken sent to this method in error will be lost. This function will
@@ -40,5 +46,4 @@ contract Foundation is Initializable, MagicValue, EthSafeTransfer, ERC20SafeTran
     /// successfully interacting with this method without first reading the
     /// source code and hopefully this comment
     function depositEth(uint8 magic_) public payable checkMagic(magic_) {}
-
 }

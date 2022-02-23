@@ -23735,6 +23735,2546 @@ func (_MadTokenBase *MadTokenBaseFilterer) ParseTransfer(log types.Log) (*MadTok
 	return event, nil
 }
 
+// MadnetFactoryMetaData contains all meta data concerning the MadnetFactory contract.
+var MadnetFactoryMetaData = &bind.MetaData{
+	ABI: "[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"selfAddr_\",\"type\":\"address\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"bytes32\",\"name\":\"salt\",\"type\":\"bytes32\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"contractAddr\",\"type\":\"address\"}],\"name\":\"Deployed\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"address\",\"name\":\"contractAddr\",\"type\":\"address\"}],\"name\":\"DeployedProxy\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"address\",\"name\":\"contractAddr\",\"type\":\"address\"}],\"name\":\"DeployedRaw\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"address\",\"name\":\"contractAddr\",\"type\":\"address\"}],\"name\":\"DeployedStatic\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"address\",\"name\":\"contractAddr\",\"type\":\"address\"}],\"name\":\"DeployedTemplate\",\"type\":\"event\"},{\"stateMutability\":\"nonpayable\",\"type\":\"fallback\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_target\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"_value\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"_cdata\",\"type\":\"bytes\"}],\"name\":\"callAny\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"contracts\",\"outputs\":[{\"internalType\":\"bytes32[]\",\"name\":\"_contracts\",\"type\":\"bytes32[]\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_target\",\"type\":\"address\"},{\"internalType\":\"bytes\",\"name\":\"_cdata\",\"type\":\"bytes\"}],\"name\":\"delegateCallAny\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"delegator\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"_v\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"_deployCode\",\"type\":\"bytes\"}],\"name\":\"deployCreate\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"contractAddr\",\"type\":\"address\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_value\",\"type\":\"uint256\"},{\"internalType\":\"bytes32\",\"name\":\"_salt\",\"type\":\"bytes32\"},{\"internalType\":\"bytes\",\"name\":\"_deployCode\",\"type\":\"bytes\"}],\"name\":\"deployCreate2\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"contractAddr\",\"type\":\"address\"}],\"stateMutability\":\"payable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"_salt\",\"type\":\"bytes32\"}],\"name\":\"deployProxy\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"contractAddr\",\"type\":\"address\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"_salt\",\"type\":\"bytes32\"},{\"internalType\":\"bytes\",\"name\":\"_initCallData\",\"type\":\"bytes\"}],\"name\":\"deployStatic\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"contractAddr\",\"type\":\"address\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"_deployCode\",\"type\":\"bytes\"}],\"name\":\"deployTemplate\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"contractAddr\",\"type\":\"address\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getImplementation\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"_salt\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"_factory\",\"type\":\"address\"}],\"name\":\"getMetamorphicContractAddress\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"pure\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getNumContracts\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"implementation\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"_v\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_contract\",\"type\":\"address\"},{\"internalType\":\"bytes\",\"name\":\"_initCallData\",\"type\":\"bytes\"}],\"name\":\"initializeContract\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"string\",\"name\":\"_name\",\"type\":\"string\"}],\"name\":\"lookup\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"addr\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes[]\",\"name\":\"_cdata\",\"type\":\"bytes[]\"}],\"name\":\"multiCall\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"owner\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"_v\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_v\",\"type\":\"address\"}],\"name\":\"setDelegator\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_v\",\"type\":\"address\"}],\"name\":\"setImplementation\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_v\",\"type\":\"address\"}],\"name\":\"setOwner\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"_salt\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"_newImpl\",\"type\":\"address\"},{\"internalType\":\"bytes\",\"name\":\"_initCallData\",\"type\":\"bytes\"}],\"name\":\"upgradeProxy\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}]",
+	Bin: "0x60a06040523480156200001157600080fd5b5060405162001c1b38038062001c1b8339810160408190526200003491620000e8565b8060006738585839386009f360c01b604051806020016200005590620000da565b601f1982820381018352601f909101166040819052620000859291906001600160a01b038616906020016200011a565b604051602081830303815290604052905060008151602083016000f0905080620000b3573d6000803e3d6000fd5b6001600160a01b03166080525050600080546001600160a01b031916331790555062000176565b61022b80620019f083390190565b600060208284031215620000fb57600080fd5b81516001600160a01b03811681146200011357600080fd5b9392505050565b6001600160c01b0319841681528251600090815b818110156200014d57602081870181015160088684010152016200012e565b8181111562000160576000600883860101525b5060089201918201929092526028019392505050565b60805161185e620001926000396000610ea6015261185e6000f3fe60806040526004361061016a5760003560e01c80636c0f79b6116100cb578063ce9b79301161007f578063e1d7a8e411610059578063e1d7a8e4146104a4578063f67187ac146104c4578063fa481da5146104e45761016a565b8063ce9b79301461043b578063cfe10b3014610466578063d784d426146104845761016a565b80638653a465116100b05780638653a4651461032d5780638da5cb5b14610410578063aaf10f42146102c05761016a565b80636c0f79b6146102eb57806383cd9cc31461030d5761016a565b8063348a0cdc116101225780634713ee7a116101075780634713ee7a1461028d57806356f2a761146102ad5780635c60da1b146102c05761016a565b8063348a0cdc1461024d57806339cab4721461026d5761016a565b806313af40351161015357806313af4035146101c357806317cff2c5146101e357806327fe18221461022d5761016a565b8063043c94141461018157806312e6bf6a146101a3575b34801561017657600080fd5b506003543d5260203df35b34801561018d57600080fd5b506101a161019c366004611326565b610504565b005b3480156101af57600080fd5b506101a16101be366004611382565b610570565b3480156101cf57600080fd5b506101a16101de3660046113c6565b6105f2565b3480156101ef57600080fd5b506102036101fe3660046113e3565b610663565b60405173ffffffffffffffffffffffffffffffffffffffff90911681526020015b60405180910390f35b34801561023957600080fd5b506102036102483660046113e3565b6106a0565b34801561025957600080fd5b506101a1610268366004611425565b6106d6565b34801561027957600080fd5b5061020361028836600461149a565b61070e565b34801561029957600080fd5b506101a16102a83660046114b3565b610749565b6102036102bb366004611508565b610812565b3480156102cc57600080fd5b5060035473ffffffffffffffffffffffffffffffffffffffff16610203565b3480156102f757600080fd5b50610300610853565b6040516102249190611543565b34801561031957600080fd5b506101a16103283660046113c6565b6108ab565b34801561033957600080fd5b50610203610348366004611587565b6040517fff0000000000000000000000000000000000000000000000000000000000000060208201527fffffffffffffffffffffffffffffffffffffffff000000000000000000000000606083901b166021820152603581018390527f1c0bf703a3415cada9785e89e9d70314c3111ae7d8e04f33bb42eb1d264088be60558201819052600091607501604080517fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe08184030181529190528051602090910120949350505050565b34801561041c57600080fd5b5060005473ffffffffffffffffffffffffffffffffffffffff16610203565b34801561044757600080fd5b5060015473ffffffffffffffffffffffffffffffffffffffff16610203565b34801561047257600080fd5b50600254604051908152602001610224565b34801561049057600080fd5b506101a161049f3660046113c6565b61091c565b3480156104b057600080fd5b506101a16104bf3660046114b3565b61098d565b3480156104d057600080fd5b506102036104df3660046115e6565b6109c7565b3480156104f057600080fd5b506102036104ff3660046116b5565b610a75565b61055e33301480610559575060005473ffffffffffffffffffffffffffffffffffffffff165b73ffffffffffffffffffffffffffffffffffffffff163373ffffffffffffffffffffffffffffffffffffffff16145b610ab4565b61056a84848484610b23565b50505050565b61059a33301480610559575060005473ffffffffffffffffffffffffffffffffffffffff1661052a565b600082828080601f0160208091040260200160405190810160405280939291908181526020018383808284376000920191909152509293506105e3925087915086905083610c82565b6105eb610c9f565b5050505050565b61061c33301480610559575060005473ffffffffffffffffffffffffffffffffffffffff1661052a565b600080547fffffffffffffffffffffffff00000000000000000000000000000000000000001673ffffffffffffffffffffffffffffffffffffffff92909216919091179055565b600061068f33301480610559575060005473ffffffffffffffffffffffffffffffffffffffff1661052a565b6106998383610ca9565b9392505050565b60006106cc33301480610559575060005473ffffffffffffffffffffffffffffffffffffffff1661052a565b6106998383610d9f565b61070033301480610559575060005473ffffffffffffffffffffffffffffffffffffffff1661052a565b61070a8282610e10565b5050565b600061073a33301480610559575060005473ffffffffffffffffffffffffffffffffffffffff1661052a565b61074382610ea1565b92915050565b6107c23330148061079e575060005473ffffffffffffffffffffffffffffffffffffffff165b73ffffffffffffffffffffffffffffffffffffffff163373ffffffffffffffffffffffffffffffffffffffff16145b80610559575060015473ffffffffffffffffffffffffffffffffffffffff1661052a565b600082828080601f01602080910402602001604051908101604052809392919081815260200183838082843760009201919091525092935061080a9250869150839050610f8b565b61056a610c9f565b600061083e33301480610559575060005473ffffffffffffffffffffffffffffffffffffffff1661052a565b61084a85858585610fa7565b95945050505050565b606060028054806020026020016040519081016040528092919081815260200182805480156108a157602002820191906000526020600020905b81548152602001906001019080831161088d575b5050505050905090565b6108d533301480610559575060005473ffffffffffffffffffffffffffffffffffffffff1661052a565b600180547fffffffffffffffffffffffff00000000000000000000000000000000000000001673ffffffffffffffffffffffffffffffffffffffff92909216919091179055565b6109463330148061079e575060005473ffffffffffffffffffffffffffffffffffffffff1661076f565b600380547fffffffffffffffffffffffff00000000000000000000000000000000000000001673ffffffffffffffffffffffffffffffffffffffff92909216919091179055565b6109b73330148061079e575060005473ffffffffffffffffffffffffffffffffffffffff1661076f565b6109c2838383611067565b505050565b602081810151604080517fff00000000000000000000000000000000000000000000000000000000000000818501523060601b7fffffffffffffffffffffffffffffffffffffffff000000000000000000000000166021820152603581018390527f1c0bf703a3415cada9785e89e9d70314c3111ae7d8e04f33bb42eb1d264088be605580830191909152825180830390910181526075909101909152805192019190912060009190610699565b6000610aa133301480610559575060005473ffffffffffffffffffffffffffffffffffffffff1661052a565b610aac84848461109c565b949350505050565b80610b20576040517f08c379a000000000000000000000000000000000000000000000000000000000815260206004820152600c60248201527f756e617574686f72697a6564000000000000000000000000000000000000000060448201526064015b60405180910390fd5b50565b604080517fff000000000000000000000000000000000000000000000000000000000000006020808301919091523060601b7fffffffffffffffffffffffffffffffffffffffff000000000000000000000000166021830152603582018790527f1c0bf703a3415cada9785e89e9d70314c3111ae7d8e04f33bb42eb1d264088be6055808401919091528351808403909101815260759092019092528051910120610bce81856111b4565b8373ffffffffffffffffffffffffffffffffffffffff168173ffffffffffffffffffffffffffffffffffffffff16630cbcae706040518163ffffffff1660e01b8152600401602060405180830381865afa158015610c30573d6000803e3d6000fd5b505050506040513d601f19601f82011682018060405250810190610c5491906116e8565b73ffffffffffffffffffffffffffffffffffffffff1614610c7757610c77611705565b6105eb818484611067565b805181602001600080838387895af16105eb573d6000803e3d6000fd5b3d6000803e3d6000f35b6000604051602883018101604052807f38585839386009f30000000000000000000000000000000000000000000000008152600881019050838582378381019050308152602081019050818103826000f092505050610d10610d09823b90565b1515611254565b60405173ffffffffffffffffffffffffffffffffffffffff821681527f6cd94ea1c5d9f99038bb4629d8a759399654d3861b73bf3a2b0cf484dae721389060200160405180910390a1600380547fffffffffffffffffffffffff00000000000000000000000000000000000000001673ffffffffffffffffffffffffffffffffffffffff831617905592915050565b600060405180838582378301818103826000f092505050610dc1610d09823b90565b60405173ffffffffffffffffffffffffffffffffffffffff821681527fd3acf0da590cfcd8f020afd7f40b7e6e4c8bd2fc9eb7aec9836837b667685b3a9060200160405180910390a192915050565b60005b81811015610e98576000838383818110610e2f57610e2f611734565b9050602002810190610e419190611763565b8080601f0160208091040260200160405190810160405280939291908181526020018383808284376000920182905250939450610e85933093509150849050610c82565b5080610e90816117c8565b915050610e13565b5061070a610c9f565b6000807f000000000000000000000000000000000000000000000000000000000000000090508060035560405160208101604052766020363636335afa1536363636515af43d36363e3d36f360481b8152836017826000f5925050610f07610d09833b90565b600280546001810182556000919091527f405787fa12a823e0f2b7631cc41b3ba8828b3321ca811111fa75cd3aa3bb5ace0183905560405173ffffffffffffffffffffffffffffffffffffffff831681527f06690e5b52be10a3d5820ec875c3dd3327f3077954a09f104201e40e5f7082c69060200160405180910390a150919050565b8051816020016000808383875af461056a573d6000803e3d6000fd5b600060405180838582378301858282038389f592505050610fe18173ffffffffffffffffffffffffffffffffffffffff1660001415611254565b600280546001810182556000919091527f405787fa12a823e0f2b7631cc41b3ba8828b3321ca811111fa75cd3aa3bb5ace0184905560405173ffffffffffffffffffffffffffffffffffffffff821681527fd3acf0da590cfcd8f020afd7f40b7e6e4c8bd2fc9eb7aec9836837b667685b3a9060200160405180910390a1949350505050565b80156109c2576040518082016040528183823760008083836000885af161056a576040519050803d016040523d6000823e3d81fd5b600060405160208101604052766020363636335afa1536363636515af43d36363e3d36f360481b8152846017826000f59150503d156110df573d6000803e3d6000fd5b803b1581151715611114577f537461746963206465706c6f79206661696c656400000000000000000000000060005260206000fd5b811561112557611125818484611067565b61112f813b610d09565b600280546001810182556000919091527f405787fa12a823e0f2b7631cc41b3ba8828b3321ca811111fa75cd3aa3bb5ace0184905560405173ffffffffffffffffffffffffffffffffffffffff821681527fe8b9cb7d60827a7d55e211f1382dd0f129adb541af9fe45a09ab4a18b76e7c659060200160405180910390a19392505050565b6040805173ffffffffffffffffffffffffffffffffffffffff83166024808301919091528251808303909101815260449091019091526020810180517bffffffffffffffffffffffffffffffffffffffffffffffffffffffff167fca11c0de00000000000000000000000000000000000000000000000000000000178152815160009182919082875af16109c2576040513d81016040523d6000823e3d81fd5b80610b20576040517f08c379a000000000000000000000000000000000000000000000000000000000815260206004820152600660248201527f6373697a653000000000000000000000000000000000000000000000000000006044820152606401610b17565b73ffffffffffffffffffffffffffffffffffffffff81168114610b2057600080fd5b60008083601f8401126112ef57600080fd5b50813567ffffffffffffffff81111561130757600080fd5b60208301915083602082850101111561131f57600080fd5b9250929050565b6000806000806060858703121561133c57600080fd5b84359350602085013561134e816112bb565b9250604085013567ffffffffffffffff81111561136a57600080fd5b611376878288016112dd565b95989497509550505050565b6000806000806060858703121561139857600080fd5b84356113a3816112bb565b935060208501359250604085013567ffffffffffffffff81111561136a57600080fd5b6000602082840312156113d857600080fd5b8135610699816112bb565b600080602083850312156113f657600080fd5b823567ffffffffffffffff81111561140d57600080fd5b611419858286016112dd565b90969095509350505050565b6000806020838503121561143857600080fd5b823567ffffffffffffffff8082111561145057600080fd5b818501915085601f83011261146457600080fd5b81358181111561147357600080fd5b8660208260051b850101111561148857600080fd5b60209290920196919550909350505050565b6000602082840312156114ac57600080fd5b5035919050565b6000806000604084860312156114c857600080fd5b83356114d3816112bb565b9250602084013567ffffffffffffffff8111156114ef57600080fd5b6114fb868287016112dd565b9497909650939450505050565b6000806000806060858703121561151e57600080fd5b8435935060208501359250604085013567ffffffffffffffff81111561136a57600080fd5b6020808252825182820181905260009190848201906040850190845b8181101561157b5783518352928401929184019160010161155f565b50909695505050505050565b6000806040838503121561159a57600080fd5b8235915060208301356115ac816112bb565b809150509250929050565b7f4e487b7100000000000000000000000000000000000000000000000000000000600052604160045260246000fd5b6000602082840312156115f857600080fd5b813567ffffffffffffffff8082111561161057600080fd5b818401915084601f83011261162457600080fd5b813581811115611636576116366115b7565b604051601f82017fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe0908116603f0116810190838211818310171561167c5761167c6115b7565b8160405282815287602084870101111561169557600080fd5b826020860160208301376000928101602001929092525095945050505050565b6000806000604084860312156116ca57600080fd5b83359250602084013567ffffffffffffffff8111156114ef57600080fd5b6000602082840312156116fa57600080fd5b8151610699816112bb565b7f4e487b7100000000000000000000000000000000000000000000000000000000600052600160045260246000fd5b7f4e487b7100000000000000000000000000000000000000000000000000000000600052603260045260246000fd5b60008083357fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe184360301811261179857600080fd5b83018035915067ffffffffffffffff8211156117b357600080fd5b60200191503681900382131561131f57600080fd5b60007fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff821415611821577f4e487b7100000000000000000000000000000000000000000000000000000000600052601160045260246000fd5b506001019056fea2646970667358221220b957fc2e0aa568cf22043b7221787005c52331825494c2fecf6583374edc32c864736f6c634300080c003360a060405234801561001057600080fd5b50336080526080516101fc61002f6000396000602001526101fc6000f3fe60806040526004361061001e5760003560e01c80630cbcae7014610145575b7f0000000000000000000000000000000000000000000000000000000000000000610110565b7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff5473ffffffffffffffffffffffffffffffffffffffff600435169060a01c6bca11c0de15dead10cced000014156100c0577f696d706c6f63000000000000000000000000000000000000000000000000000060005260206000fd5b7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff55005b60405136810160405236600082376000803683600019545af43d6000833e8061010b573d82fd5b503d81f35b8033141561013a57602436141561013a5763ca11c0de60003560e01c141561013a5761013a610044565b6101426100e4565b50005b34801561015157600080fd5b5061015a610183565b60405173ffffffffffffffffffffffffffffffffffffffff909116815260200160405180910390f35b600073ffffffffffffffffffffffffffffffffffffffff7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff541660005260206000f3fea26469706673582212202335d80ee8acdedfa8354b21f562dc881fa2a81ec5c79329595b277271a45a6164736f6c634300080c0033",
+}
+
+// MadnetFactoryABI is the input ABI used to generate the binding from.
+// Deprecated: Use MadnetFactoryMetaData.ABI instead.
+var MadnetFactoryABI = MadnetFactoryMetaData.ABI
+
+// MadnetFactoryBin is the compiled bytecode used for deploying new contracts.
+// Deprecated: Use MadnetFactoryMetaData.Bin instead.
+var MadnetFactoryBin = MadnetFactoryMetaData.Bin
+
+// DeployMadnetFactory deploys a new Ethereum contract, binding an instance of MadnetFactory to it.
+func DeployMadnetFactory(auth *bind.TransactOpts, backend bind.ContractBackend, selfAddr_ common.Address) (common.Address, *types.Transaction, *MadnetFactory, error) {
+	parsed, err := MadnetFactoryMetaData.GetAbi()
+	if err != nil {
+		return common.Address{}, nil, nil, err
+	}
+	if parsed == nil {
+		return common.Address{}, nil, nil, errors.New("GetABI returned nil")
+	}
+
+	address, tx, contract, err := bind.DeployContract(auth, *parsed, common.FromHex(MadnetFactoryBin), backend, selfAddr_)
+	if err != nil {
+		return common.Address{}, nil, nil, err
+	}
+	return address, tx, &MadnetFactory{MadnetFactoryCaller: MadnetFactoryCaller{contract: contract}, MadnetFactoryTransactor: MadnetFactoryTransactor{contract: contract}, MadnetFactoryFilterer: MadnetFactoryFilterer{contract: contract}}, nil
+}
+
+// MadnetFactory is an auto generated Go binding around an Ethereum contract.
+type MadnetFactory struct {
+	MadnetFactoryCaller     // Read-only binding to the contract
+	MadnetFactoryTransactor // Write-only binding to the contract
+	MadnetFactoryFilterer   // Log filterer for contract events
+}
+
+// MadnetFactoryCaller is an auto generated read-only Go binding around an Ethereum contract.
+type MadnetFactoryCaller struct {
+	contract *bind.BoundContract // Generic contract wrapper for the low level calls
+}
+
+// MadnetFactoryTransactor is an auto generated write-only Go binding around an Ethereum contract.
+type MadnetFactoryTransactor struct {
+	contract *bind.BoundContract // Generic contract wrapper for the low level calls
+}
+
+// MadnetFactoryFilterer is an auto generated log filtering Go binding around an Ethereum contract events.
+type MadnetFactoryFilterer struct {
+	contract *bind.BoundContract // Generic contract wrapper for the low level calls
+}
+
+// MadnetFactorySession is an auto generated Go binding around an Ethereum contract,
+// with pre-set call and transact options.
+type MadnetFactorySession struct {
+	Contract     *MadnetFactory    // Generic contract binding to set the session for
+	CallOpts     bind.CallOpts     // Call options to use throughout this session
+	TransactOpts bind.TransactOpts // Transaction auth options to use throughout this session
+}
+
+// MadnetFactoryCallerSession is an auto generated read-only Go binding around an Ethereum contract,
+// with pre-set call options.
+type MadnetFactoryCallerSession struct {
+	Contract *MadnetFactoryCaller // Generic contract caller binding to set the session for
+	CallOpts bind.CallOpts        // Call options to use throughout this session
+}
+
+// MadnetFactoryTransactorSession is an auto generated write-only Go binding around an Ethereum contract,
+// with pre-set transact options.
+type MadnetFactoryTransactorSession struct {
+	Contract     *MadnetFactoryTransactor // Generic contract transactor binding to set the session for
+	TransactOpts bind.TransactOpts        // Transaction auth options to use throughout this session
+}
+
+// MadnetFactoryRaw is an auto generated low-level Go binding around an Ethereum contract.
+type MadnetFactoryRaw struct {
+	Contract *MadnetFactory // Generic contract binding to access the raw methods on
+}
+
+// MadnetFactoryCallerRaw is an auto generated low-level read-only Go binding around an Ethereum contract.
+type MadnetFactoryCallerRaw struct {
+	Contract *MadnetFactoryCaller // Generic read-only contract binding to access the raw methods on
+}
+
+// MadnetFactoryTransactorRaw is an auto generated low-level write-only Go binding around an Ethereum contract.
+type MadnetFactoryTransactorRaw struct {
+	Contract *MadnetFactoryTransactor // Generic write-only contract binding to access the raw methods on
+}
+
+// NewMadnetFactory creates a new instance of MadnetFactory, bound to a specific deployed contract.
+func NewMadnetFactory(address common.Address, backend bind.ContractBackend) (*MadnetFactory, error) {
+	contract, err := bindMadnetFactory(address, backend, backend, backend)
+	if err != nil {
+		return nil, err
+	}
+	return &MadnetFactory{MadnetFactoryCaller: MadnetFactoryCaller{contract: contract}, MadnetFactoryTransactor: MadnetFactoryTransactor{contract: contract}, MadnetFactoryFilterer: MadnetFactoryFilterer{contract: contract}}, nil
+}
+
+// NewMadnetFactoryCaller creates a new read-only instance of MadnetFactory, bound to a specific deployed contract.
+func NewMadnetFactoryCaller(address common.Address, caller bind.ContractCaller) (*MadnetFactoryCaller, error) {
+	contract, err := bindMadnetFactory(address, caller, nil, nil)
+	if err != nil {
+		return nil, err
+	}
+	return &MadnetFactoryCaller{contract: contract}, nil
+}
+
+// NewMadnetFactoryTransactor creates a new write-only instance of MadnetFactory, bound to a specific deployed contract.
+func NewMadnetFactoryTransactor(address common.Address, transactor bind.ContractTransactor) (*MadnetFactoryTransactor, error) {
+	contract, err := bindMadnetFactory(address, nil, transactor, nil)
+	if err != nil {
+		return nil, err
+	}
+	return &MadnetFactoryTransactor{contract: contract}, nil
+}
+
+// NewMadnetFactoryFilterer creates a new log filterer instance of MadnetFactory, bound to a specific deployed contract.
+func NewMadnetFactoryFilterer(address common.Address, filterer bind.ContractFilterer) (*MadnetFactoryFilterer, error) {
+	contract, err := bindMadnetFactory(address, nil, nil, filterer)
+	if err != nil {
+		return nil, err
+	}
+	return &MadnetFactoryFilterer{contract: contract}, nil
+}
+
+// bindMadnetFactory binds a generic wrapper to an already deployed contract.
+func bindMadnetFactory(address common.Address, caller bind.ContractCaller, transactor bind.ContractTransactor, filterer bind.ContractFilterer) (*bind.BoundContract, error) {
+	parsed, err := abi.JSON(strings.NewReader(MadnetFactoryABI))
+	if err != nil {
+		return nil, err
+	}
+	return bind.NewBoundContract(address, parsed, caller, transactor, filterer), nil
+}
+
+// Call invokes the (constant) contract method with params as input values and
+// sets the output to result. The result type might be a single field for simple
+// returns, a slice of interfaces for anonymous returns and a struct for named
+// returns.
+func (_MadnetFactory *MadnetFactoryRaw) Call(opts *bind.CallOpts, result *[]interface{}, method string, params ...interface{}) error {
+	return _MadnetFactory.Contract.MadnetFactoryCaller.contract.Call(opts, result, method, params...)
+}
+
+// Transfer initiates a plain transaction to move funds to the contract, calling
+// its default method if one is available.
+func (_MadnetFactory *MadnetFactoryRaw) Transfer(opts *bind.TransactOpts) (*types.Transaction, error) {
+	return _MadnetFactory.Contract.MadnetFactoryTransactor.contract.Transfer(opts)
+}
+
+// Transact invokes the (paid) contract method with params as input values.
+func (_MadnetFactory *MadnetFactoryRaw) Transact(opts *bind.TransactOpts, method string, params ...interface{}) (*types.Transaction, error) {
+	return _MadnetFactory.Contract.MadnetFactoryTransactor.contract.Transact(opts, method, params...)
+}
+
+// Call invokes the (constant) contract method with params as input values and
+// sets the output to result. The result type might be a single field for simple
+// returns, a slice of interfaces for anonymous returns and a struct for named
+// returns.
+func (_MadnetFactory *MadnetFactoryCallerRaw) Call(opts *bind.CallOpts, result *[]interface{}, method string, params ...interface{}) error {
+	return _MadnetFactory.Contract.contract.Call(opts, result, method, params...)
+}
+
+// Transfer initiates a plain transaction to move funds to the contract, calling
+// its default method if one is available.
+func (_MadnetFactory *MadnetFactoryTransactorRaw) Transfer(opts *bind.TransactOpts) (*types.Transaction, error) {
+	return _MadnetFactory.Contract.contract.Transfer(opts)
+}
+
+// Transact invokes the (paid) contract method with params as input values.
+func (_MadnetFactory *MadnetFactoryTransactorRaw) Transact(opts *bind.TransactOpts, method string, params ...interface{}) (*types.Transaction, error) {
+	return _MadnetFactory.Contract.contract.Transact(opts, method, params...)
+}
+
+// Contracts is a free data retrieval call binding the contract method 0x6c0f79b6.
+//
+// Solidity: function contracts() view returns(bytes32[] _contracts)
+func (_MadnetFactory *MadnetFactoryCaller) Contracts(opts *bind.CallOpts) ([][32]byte, error) {
+	var out []interface{}
+	err := _MadnetFactory.contract.Call(opts, &out, "contracts")
+
+	if err != nil {
+		return *new([][32]byte), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new([][32]byte)).(*[][32]byte)
+
+	return out0, err
+
+}
+
+// Contracts is a free data retrieval call binding the contract method 0x6c0f79b6.
+//
+// Solidity: function contracts() view returns(bytes32[] _contracts)
+func (_MadnetFactory *MadnetFactorySession) Contracts() ([][32]byte, error) {
+	return _MadnetFactory.Contract.Contracts(&_MadnetFactory.CallOpts)
+}
+
+// Contracts is a free data retrieval call binding the contract method 0x6c0f79b6.
+//
+// Solidity: function contracts() view returns(bytes32[] _contracts)
+func (_MadnetFactory *MadnetFactoryCallerSession) Contracts() ([][32]byte, error) {
+	return _MadnetFactory.Contract.Contracts(&_MadnetFactory.CallOpts)
+}
+
+// Delegator is a free data retrieval call binding the contract method 0xce9b7930.
+//
+// Solidity: function delegator() view returns(address _v)
+func (_MadnetFactory *MadnetFactoryCaller) Delegator(opts *bind.CallOpts) (common.Address, error) {
+	var out []interface{}
+	err := _MadnetFactory.contract.Call(opts, &out, "delegator")
+
+	if err != nil {
+		return *new(common.Address), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(common.Address)).(*common.Address)
+
+	return out0, err
+
+}
+
+// Delegator is a free data retrieval call binding the contract method 0xce9b7930.
+//
+// Solidity: function delegator() view returns(address _v)
+func (_MadnetFactory *MadnetFactorySession) Delegator() (common.Address, error) {
+	return _MadnetFactory.Contract.Delegator(&_MadnetFactory.CallOpts)
+}
+
+// Delegator is a free data retrieval call binding the contract method 0xce9b7930.
+//
+// Solidity: function delegator() view returns(address _v)
+func (_MadnetFactory *MadnetFactoryCallerSession) Delegator() (common.Address, error) {
+	return _MadnetFactory.Contract.Delegator(&_MadnetFactory.CallOpts)
+}
+
+// GetImplementation is a free data retrieval call binding the contract method 0xaaf10f42.
+//
+// Solidity: function getImplementation() view returns(address)
+func (_MadnetFactory *MadnetFactoryCaller) GetImplementation(opts *bind.CallOpts) (common.Address, error) {
+	var out []interface{}
+	err := _MadnetFactory.contract.Call(opts, &out, "getImplementation")
+
+	if err != nil {
+		return *new(common.Address), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(common.Address)).(*common.Address)
+
+	return out0, err
+
+}
+
+// GetImplementation is a free data retrieval call binding the contract method 0xaaf10f42.
+//
+// Solidity: function getImplementation() view returns(address)
+func (_MadnetFactory *MadnetFactorySession) GetImplementation() (common.Address, error) {
+	return _MadnetFactory.Contract.GetImplementation(&_MadnetFactory.CallOpts)
+}
+
+// GetImplementation is a free data retrieval call binding the contract method 0xaaf10f42.
+//
+// Solidity: function getImplementation() view returns(address)
+func (_MadnetFactory *MadnetFactoryCallerSession) GetImplementation() (common.Address, error) {
+	return _MadnetFactory.Contract.GetImplementation(&_MadnetFactory.CallOpts)
+}
+
+// GetMetamorphicContractAddress is a free data retrieval call binding the contract method 0x8653a465.
+//
+// Solidity: function getMetamorphicContractAddress(bytes32 _salt, address _factory) pure returns(address)
+func (_MadnetFactory *MadnetFactoryCaller) GetMetamorphicContractAddress(opts *bind.CallOpts, _salt [32]byte, _factory common.Address) (common.Address, error) {
+	var out []interface{}
+	err := _MadnetFactory.contract.Call(opts, &out, "getMetamorphicContractAddress", _salt, _factory)
+
+	if err != nil {
+		return *new(common.Address), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(common.Address)).(*common.Address)
+
+	return out0, err
+
+}
+
+// GetMetamorphicContractAddress is a free data retrieval call binding the contract method 0x8653a465.
+//
+// Solidity: function getMetamorphicContractAddress(bytes32 _salt, address _factory) pure returns(address)
+func (_MadnetFactory *MadnetFactorySession) GetMetamorphicContractAddress(_salt [32]byte, _factory common.Address) (common.Address, error) {
+	return _MadnetFactory.Contract.GetMetamorphicContractAddress(&_MadnetFactory.CallOpts, _salt, _factory)
+}
+
+// GetMetamorphicContractAddress is a free data retrieval call binding the contract method 0x8653a465.
+//
+// Solidity: function getMetamorphicContractAddress(bytes32 _salt, address _factory) pure returns(address)
+func (_MadnetFactory *MadnetFactoryCallerSession) GetMetamorphicContractAddress(_salt [32]byte, _factory common.Address) (common.Address, error) {
+	return _MadnetFactory.Contract.GetMetamorphicContractAddress(&_MadnetFactory.CallOpts, _salt, _factory)
+}
+
+// GetNumContracts is a free data retrieval call binding the contract method 0xcfe10b30.
+//
+// Solidity: function getNumContracts() view returns(uint256)
+func (_MadnetFactory *MadnetFactoryCaller) GetNumContracts(opts *bind.CallOpts) (*big.Int, error) {
+	var out []interface{}
+	err := _MadnetFactory.contract.Call(opts, &out, "getNumContracts")
+
+	if err != nil {
+		return *new(*big.Int), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
+
+	return out0, err
+
+}
+
+// GetNumContracts is a free data retrieval call binding the contract method 0xcfe10b30.
+//
+// Solidity: function getNumContracts() view returns(uint256)
+func (_MadnetFactory *MadnetFactorySession) GetNumContracts() (*big.Int, error) {
+	return _MadnetFactory.Contract.GetNumContracts(&_MadnetFactory.CallOpts)
+}
+
+// GetNumContracts is a free data retrieval call binding the contract method 0xcfe10b30.
+//
+// Solidity: function getNumContracts() view returns(uint256)
+func (_MadnetFactory *MadnetFactoryCallerSession) GetNumContracts() (*big.Int, error) {
+	return _MadnetFactory.Contract.GetNumContracts(&_MadnetFactory.CallOpts)
+}
+
+// Implementation is a free data retrieval call binding the contract method 0x5c60da1b.
+//
+// Solidity: function implementation() view returns(address _v)
+func (_MadnetFactory *MadnetFactoryCaller) Implementation(opts *bind.CallOpts) (common.Address, error) {
+	var out []interface{}
+	err := _MadnetFactory.contract.Call(opts, &out, "implementation")
+
+	if err != nil {
+		return *new(common.Address), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(common.Address)).(*common.Address)
+
+	return out0, err
+
+}
+
+// Implementation is a free data retrieval call binding the contract method 0x5c60da1b.
+//
+// Solidity: function implementation() view returns(address _v)
+func (_MadnetFactory *MadnetFactorySession) Implementation() (common.Address, error) {
+	return _MadnetFactory.Contract.Implementation(&_MadnetFactory.CallOpts)
+}
+
+// Implementation is a free data retrieval call binding the contract method 0x5c60da1b.
+//
+// Solidity: function implementation() view returns(address _v)
+func (_MadnetFactory *MadnetFactoryCallerSession) Implementation() (common.Address, error) {
+	return _MadnetFactory.Contract.Implementation(&_MadnetFactory.CallOpts)
+}
+
+// Lookup is a free data retrieval call binding the contract method 0xf67187ac.
+//
+// Solidity: function lookup(string _name) view returns(address addr)
+func (_MadnetFactory *MadnetFactoryCaller) Lookup(opts *bind.CallOpts, _name string) (common.Address, error) {
+	var out []interface{}
+	err := _MadnetFactory.contract.Call(opts, &out, "lookup", _name)
+
+	if err != nil {
+		return *new(common.Address), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(common.Address)).(*common.Address)
+
+	return out0, err
+
+}
+
+// Lookup is a free data retrieval call binding the contract method 0xf67187ac.
+//
+// Solidity: function lookup(string _name) view returns(address addr)
+func (_MadnetFactory *MadnetFactorySession) Lookup(_name string) (common.Address, error) {
+	return _MadnetFactory.Contract.Lookup(&_MadnetFactory.CallOpts, _name)
+}
+
+// Lookup is a free data retrieval call binding the contract method 0xf67187ac.
+//
+// Solidity: function lookup(string _name) view returns(address addr)
+func (_MadnetFactory *MadnetFactoryCallerSession) Lookup(_name string) (common.Address, error) {
+	return _MadnetFactory.Contract.Lookup(&_MadnetFactory.CallOpts, _name)
+}
+
+// Owner is a free data retrieval call binding the contract method 0x8da5cb5b.
+//
+// Solidity: function owner() view returns(address _v)
+func (_MadnetFactory *MadnetFactoryCaller) Owner(opts *bind.CallOpts) (common.Address, error) {
+	var out []interface{}
+	err := _MadnetFactory.contract.Call(opts, &out, "owner")
+
+	if err != nil {
+		return *new(common.Address), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(common.Address)).(*common.Address)
+
+	return out0, err
+
+}
+
+// Owner is a free data retrieval call binding the contract method 0x8da5cb5b.
+//
+// Solidity: function owner() view returns(address _v)
+func (_MadnetFactory *MadnetFactorySession) Owner() (common.Address, error) {
+	return _MadnetFactory.Contract.Owner(&_MadnetFactory.CallOpts)
+}
+
+// Owner is a free data retrieval call binding the contract method 0x8da5cb5b.
+//
+// Solidity: function owner() view returns(address _v)
+func (_MadnetFactory *MadnetFactoryCallerSession) Owner() (common.Address, error) {
+	return _MadnetFactory.Contract.Owner(&_MadnetFactory.CallOpts)
+}
+
+// CallAny is a paid mutator transaction binding the contract method 0x12e6bf6a.
+//
+// Solidity: function callAny(address _target, uint256 _value, bytes _cdata) returns()
+func (_MadnetFactory *MadnetFactoryTransactor) CallAny(opts *bind.TransactOpts, _target common.Address, _value *big.Int, _cdata []byte) (*types.Transaction, error) {
+	return _MadnetFactory.contract.Transact(opts, "callAny", _target, _value, _cdata)
+}
+
+// CallAny is a paid mutator transaction binding the contract method 0x12e6bf6a.
+//
+// Solidity: function callAny(address _target, uint256 _value, bytes _cdata) returns()
+func (_MadnetFactory *MadnetFactorySession) CallAny(_target common.Address, _value *big.Int, _cdata []byte) (*types.Transaction, error) {
+	return _MadnetFactory.Contract.CallAny(&_MadnetFactory.TransactOpts, _target, _value, _cdata)
+}
+
+// CallAny is a paid mutator transaction binding the contract method 0x12e6bf6a.
+//
+// Solidity: function callAny(address _target, uint256 _value, bytes _cdata) returns()
+func (_MadnetFactory *MadnetFactoryTransactorSession) CallAny(_target common.Address, _value *big.Int, _cdata []byte) (*types.Transaction, error) {
+	return _MadnetFactory.Contract.CallAny(&_MadnetFactory.TransactOpts, _target, _value, _cdata)
+}
+
+// DelegateCallAny is a paid mutator transaction binding the contract method 0x4713ee7a.
+//
+// Solidity: function delegateCallAny(address _target, bytes _cdata) returns()
+func (_MadnetFactory *MadnetFactoryTransactor) DelegateCallAny(opts *bind.TransactOpts, _target common.Address, _cdata []byte) (*types.Transaction, error) {
+	return _MadnetFactory.contract.Transact(opts, "delegateCallAny", _target, _cdata)
+}
+
+// DelegateCallAny is a paid mutator transaction binding the contract method 0x4713ee7a.
+//
+// Solidity: function delegateCallAny(address _target, bytes _cdata) returns()
+func (_MadnetFactory *MadnetFactorySession) DelegateCallAny(_target common.Address, _cdata []byte) (*types.Transaction, error) {
+	return _MadnetFactory.Contract.DelegateCallAny(&_MadnetFactory.TransactOpts, _target, _cdata)
+}
+
+// DelegateCallAny is a paid mutator transaction binding the contract method 0x4713ee7a.
+//
+// Solidity: function delegateCallAny(address _target, bytes _cdata) returns()
+func (_MadnetFactory *MadnetFactoryTransactorSession) DelegateCallAny(_target common.Address, _cdata []byte) (*types.Transaction, error) {
+	return _MadnetFactory.Contract.DelegateCallAny(&_MadnetFactory.TransactOpts, _target, _cdata)
+}
+
+// DeployCreate is a paid mutator transaction binding the contract method 0x27fe1822.
+//
+// Solidity: function deployCreate(bytes _deployCode) returns(address contractAddr)
+func (_MadnetFactory *MadnetFactoryTransactor) DeployCreate(opts *bind.TransactOpts, _deployCode []byte) (*types.Transaction, error) {
+	return _MadnetFactory.contract.Transact(opts, "deployCreate", _deployCode)
+}
+
+// DeployCreate is a paid mutator transaction binding the contract method 0x27fe1822.
+//
+// Solidity: function deployCreate(bytes _deployCode) returns(address contractAddr)
+func (_MadnetFactory *MadnetFactorySession) DeployCreate(_deployCode []byte) (*types.Transaction, error) {
+	return _MadnetFactory.Contract.DeployCreate(&_MadnetFactory.TransactOpts, _deployCode)
+}
+
+// DeployCreate is a paid mutator transaction binding the contract method 0x27fe1822.
+//
+// Solidity: function deployCreate(bytes _deployCode) returns(address contractAddr)
+func (_MadnetFactory *MadnetFactoryTransactorSession) DeployCreate(_deployCode []byte) (*types.Transaction, error) {
+	return _MadnetFactory.Contract.DeployCreate(&_MadnetFactory.TransactOpts, _deployCode)
+}
+
+// DeployCreate2 is a paid mutator transaction binding the contract method 0x56f2a761.
+//
+// Solidity: function deployCreate2(uint256 _value, bytes32 _salt, bytes _deployCode) payable returns(address contractAddr)
+func (_MadnetFactory *MadnetFactoryTransactor) DeployCreate2(opts *bind.TransactOpts, _value *big.Int, _salt [32]byte, _deployCode []byte) (*types.Transaction, error) {
+	return _MadnetFactory.contract.Transact(opts, "deployCreate2", _value, _salt, _deployCode)
+}
+
+// DeployCreate2 is a paid mutator transaction binding the contract method 0x56f2a761.
+//
+// Solidity: function deployCreate2(uint256 _value, bytes32 _salt, bytes _deployCode) payable returns(address contractAddr)
+func (_MadnetFactory *MadnetFactorySession) DeployCreate2(_value *big.Int, _salt [32]byte, _deployCode []byte) (*types.Transaction, error) {
+	return _MadnetFactory.Contract.DeployCreate2(&_MadnetFactory.TransactOpts, _value, _salt, _deployCode)
+}
+
+// DeployCreate2 is a paid mutator transaction binding the contract method 0x56f2a761.
+//
+// Solidity: function deployCreate2(uint256 _value, bytes32 _salt, bytes _deployCode) payable returns(address contractAddr)
+func (_MadnetFactory *MadnetFactoryTransactorSession) DeployCreate2(_value *big.Int, _salt [32]byte, _deployCode []byte) (*types.Transaction, error) {
+	return _MadnetFactory.Contract.DeployCreate2(&_MadnetFactory.TransactOpts, _value, _salt, _deployCode)
+}
+
+// DeployProxy is a paid mutator transaction binding the contract method 0x39cab472.
+//
+// Solidity: function deployProxy(bytes32 _salt) returns(address contractAddr)
+func (_MadnetFactory *MadnetFactoryTransactor) DeployProxy(opts *bind.TransactOpts, _salt [32]byte) (*types.Transaction, error) {
+	return _MadnetFactory.contract.Transact(opts, "deployProxy", _salt)
+}
+
+// DeployProxy is a paid mutator transaction binding the contract method 0x39cab472.
+//
+// Solidity: function deployProxy(bytes32 _salt) returns(address contractAddr)
+func (_MadnetFactory *MadnetFactorySession) DeployProxy(_salt [32]byte) (*types.Transaction, error) {
+	return _MadnetFactory.Contract.DeployProxy(&_MadnetFactory.TransactOpts, _salt)
+}
+
+// DeployProxy is a paid mutator transaction binding the contract method 0x39cab472.
+//
+// Solidity: function deployProxy(bytes32 _salt) returns(address contractAddr)
+func (_MadnetFactory *MadnetFactoryTransactorSession) DeployProxy(_salt [32]byte) (*types.Transaction, error) {
+	return _MadnetFactory.Contract.DeployProxy(&_MadnetFactory.TransactOpts, _salt)
+}
+
+// DeployStatic is a paid mutator transaction binding the contract method 0xfa481da5.
+//
+// Solidity: function deployStatic(bytes32 _salt, bytes _initCallData) returns(address contractAddr)
+func (_MadnetFactory *MadnetFactoryTransactor) DeployStatic(opts *bind.TransactOpts, _salt [32]byte, _initCallData []byte) (*types.Transaction, error) {
+	return _MadnetFactory.contract.Transact(opts, "deployStatic", _salt, _initCallData)
+}
+
+// DeployStatic is a paid mutator transaction binding the contract method 0xfa481da5.
+//
+// Solidity: function deployStatic(bytes32 _salt, bytes _initCallData) returns(address contractAddr)
+func (_MadnetFactory *MadnetFactorySession) DeployStatic(_salt [32]byte, _initCallData []byte) (*types.Transaction, error) {
+	return _MadnetFactory.Contract.DeployStatic(&_MadnetFactory.TransactOpts, _salt, _initCallData)
+}
+
+// DeployStatic is a paid mutator transaction binding the contract method 0xfa481da5.
+//
+// Solidity: function deployStatic(bytes32 _salt, bytes _initCallData) returns(address contractAddr)
+func (_MadnetFactory *MadnetFactoryTransactorSession) DeployStatic(_salt [32]byte, _initCallData []byte) (*types.Transaction, error) {
+	return _MadnetFactory.Contract.DeployStatic(&_MadnetFactory.TransactOpts, _salt, _initCallData)
+}
+
+// DeployTemplate is a paid mutator transaction binding the contract method 0x17cff2c5.
+//
+// Solidity: function deployTemplate(bytes _deployCode) returns(address contractAddr)
+func (_MadnetFactory *MadnetFactoryTransactor) DeployTemplate(opts *bind.TransactOpts, _deployCode []byte) (*types.Transaction, error) {
+	return _MadnetFactory.contract.Transact(opts, "deployTemplate", _deployCode)
+}
+
+// DeployTemplate is a paid mutator transaction binding the contract method 0x17cff2c5.
+//
+// Solidity: function deployTemplate(bytes _deployCode) returns(address contractAddr)
+func (_MadnetFactory *MadnetFactorySession) DeployTemplate(_deployCode []byte) (*types.Transaction, error) {
+	return _MadnetFactory.Contract.DeployTemplate(&_MadnetFactory.TransactOpts, _deployCode)
+}
+
+// DeployTemplate is a paid mutator transaction binding the contract method 0x17cff2c5.
+//
+// Solidity: function deployTemplate(bytes _deployCode) returns(address contractAddr)
+func (_MadnetFactory *MadnetFactoryTransactorSession) DeployTemplate(_deployCode []byte) (*types.Transaction, error) {
+	return _MadnetFactory.Contract.DeployTemplate(&_MadnetFactory.TransactOpts, _deployCode)
+}
+
+// InitializeContract is a paid mutator transaction binding the contract method 0xe1d7a8e4.
+//
+// Solidity: function initializeContract(address _contract, bytes _initCallData) returns()
+func (_MadnetFactory *MadnetFactoryTransactor) InitializeContract(opts *bind.TransactOpts, _contract common.Address, _initCallData []byte) (*types.Transaction, error) {
+	return _MadnetFactory.contract.Transact(opts, "initializeContract", _contract, _initCallData)
+}
+
+// InitializeContract is a paid mutator transaction binding the contract method 0xe1d7a8e4.
+//
+// Solidity: function initializeContract(address _contract, bytes _initCallData) returns()
+func (_MadnetFactory *MadnetFactorySession) InitializeContract(_contract common.Address, _initCallData []byte) (*types.Transaction, error) {
+	return _MadnetFactory.Contract.InitializeContract(&_MadnetFactory.TransactOpts, _contract, _initCallData)
+}
+
+// InitializeContract is a paid mutator transaction binding the contract method 0xe1d7a8e4.
+//
+// Solidity: function initializeContract(address _contract, bytes _initCallData) returns()
+func (_MadnetFactory *MadnetFactoryTransactorSession) InitializeContract(_contract common.Address, _initCallData []byte) (*types.Transaction, error) {
+	return _MadnetFactory.Contract.InitializeContract(&_MadnetFactory.TransactOpts, _contract, _initCallData)
+}
+
+// MultiCall is a paid mutator transaction binding the contract method 0x348a0cdc.
+//
+// Solidity: function multiCall(bytes[] _cdata) returns()
+func (_MadnetFactory *MadnetFactoryTransactor) MultiCall(opts *bind.TransactOpts, _cdata [][]byte) (*types.Transaction, error) {
+	return _MadnetFactory.contract.Transact(opts, "multiCall", _cdata)
+}
+
+// MultiCall is a paid mutator transaction binding the contract method 0x348a0cdc.
+//
+// Solidity: function multiCall(bytes[] _cdata) returns()
+func (_MadnetFactory *MadnetFactorySession) MultiCall(_cdata [][]byte) (*types.Transaction, error) {
+	return _MadnetFactory.Contract.MultiCall(&_MadnetFactory.TransactOpts, _cdata)
+}
+
+// MultiCall is a paid mutator transaction binding the contract method 0x348a0cdc.
+//
+// Solidity: function multiCall(bytes[] _cdata) returns()
+func (_MadnetFactory *MadnetFactoryTransactorSession) MultiCall(_cdata [][]byte) (*types.Transaction, error) {
+	return _MadnetFactory.Contract.MultiCall(&_MadnetFactory.TransactOpts, _cdata)
+}
+
+// SetDelegator is a paid mutator transaction binding the contract method 0x83cd9cc3.
+//
+// Solidity: function setDelegator(address _v) returns()
+func (_MadnetFactory *MadnetFactoryTransactor) SetDelegator(opts *bind.TransactOpts, _v common.Address) (*types.Transaction, error) {
+	return _MadnetFactory.contract.Transact(opts, "setDelegator", _v)
+}
+
+// SetDelegator is a paid mutator transaction binding the contract method 0x83cd9cc3.
+//
+// Solidity: function setDelegator(address _v) returns()
+func (_MadnetFactory *MadnetFactorySession) SetDelegator(_v common.Address) (*types.Transaction, error) {
+	return _MadnetFactory.Contract.SetDelegator(&_MadnetFactory.TransactOpts, _v)
+}
+
+// SetDelegator is a paid mutator transaction binding the contract method 0x83cd9cc3.
+//
+// Solidity: function setDelegator(address _v) returns()
+func (_MadnetFactory *MadnetFactoryTransactorSession) SetDelegator(_v common.Address) (*types.Transaction, error) {
+	return _MadnetFactory.Contract.SetDelegator(&_MadnetFactory.TransactOpts, _v)
+}
+
+// SetImplementation is a paid mutator transaction binding the contract method 0xd784d426.
+//
+// Solidity: function setImplementation(address _v) returns()
+func (_MadnetFactory *MadnetFactoryTransactor) SetImplementation(opts *bind.TransactOpts, _v common.Address) (*types.Transaction, error) {
+	return _MadnetFactory.contract.Transact(opts, "setImplementation", _v)
+}
+
+// SetImplementation is a paid mutator transaction binding the contract method 0xd784d426.
+//
+// Solidity: function setImplementation(address _v) returns()
+func (_MadnetFactory *MadnetFactorySession) SetImplementation(_v common.Address) (*types.Transaction, error) {
+	return _MadnetFactory.Contract.SetImplementation(&_MadnetFactory.TransactOpts, _v)
+}
+
+// SetImplementation is a paid mutator transaction binding the contract method 0xd784d426.
+//
+// Solidity: function setImplementation(address _v) returns()
+func (_MadnetFactory *MadnetFactoryTransactorSession) SetImplementation(_v common.Address) (*types.Transaction, error) {
+	return _MadnetFactory.Contract.SetImplementation(&_MadnetFactory.TransactOpts, _v)
+}
+
+// SetOwner is a paid mutator transaction binding the contract method 0x13af4035.
+//
+// Solidity: function setOwner(address _v) returns()
+func (_MadnetFactory *MadnetFactoryTransactor) SetOwner(opts *bind.TransactOpts, _v common.Address) (*types.Transaction, error) {
+	return _MadnetFactory.contract.Transact(opts, "setOwner", _v)
+}
+
+// SetOwner is a paid mutator transaction binding the contract method 0x13af4035.
+//
+// Solidity: function setOwner(address _v) returns()
+func (_MadnetFactory *MadnetFactorySession) SetOwner(_v common.Address) (*types.Transaction, error) {
+	return _MadnetFactory.Contract.SetOwner(&_MadnetFactory.TransactOpts, _v)
+}
+
+// SetOwner is a paid mutator transaction binding the contract method 0x13af4035.
+//
+// Solidity: function setOwner(address _v) returns()
+func (_MadnetFactory *MadnetFactoryTransactorSession) SetOwner(_v common.Address) (*types.Transaction, error) {
+	return _MadnetFactory.Contract.SetOwner(&_MadnetFactory.TransactOpts, _v)
+}
+
+// UpgradeProxy is a paid mutator transaction binding the contract method 0x043c9414.
+//
+// Solidity: function upgradeProxy(bytes32 _salt, address _newImpl, bytes _initCallData) returns()
+func (_MadnetFactory *MadnetFactoryTransactor) UpgradeProxy(opts *bind.TransactOpts, _salt [32]byte, _newImpl common.Address, _initCallData []byte) (*types.Transaction, error) {
+	return _MadnetFactory.contract.Transact(opts, "upgradeProxy", _salt, _newImpl, _initCallData)
+}
+
+// UpgradeProxy is a paid mutator transaction binding the contract method 0x043c9414.
+//
+// Solidity: function upgradeProxy(bytes32 _salt, address _newImpl, bytes _initCallData) returns()
+func (_MadnetFactory *MadnetFactorySession) UpgradeProxy(_salt [32]byte, _newImpl common.Address, _initCallData []byte) (*types.Transaction, error) {
+	return _MadnetFactory.Contract.UpgradeProxy(&_MadnetFactory.TransactOpts, _salt, _newImpl, _initCallData)
+}
+
+// UpgradeProxy is a paid mutator transaction binding the contract method 0x043c9414.
+//
+// Solidity: function upgradeProxy(bytes32 _salt, address _newImpl, bytes _initCallData) returns()
+func (_MadnetFactory *MadnetFactoryTransactorSession) UpgradeProxy(_salt [32]byte, _newImpl common.Address, _initCallData []byte) (*types.Transaction, error) {
+	return _MadnetFactory.Contract.UpgradeProxy(&_MadnetFactory.TransactOpts, _salt, _newImpl, _initCallData)
+}
+
+// Fallback is a paid mutator transaction binding the contract fallback function.
+//
+// Solidity: fallback() returns()
+func (_MadnetFactory *MadnetFactoryTransactor) Fallback(opts *bind.TransactOpts, calldata []byte) (*types.Transaction, error) {
+	return _MadnetFactory.contract.RawTransact(opts, calldata)
+}
+
+// Fallback is a paid mutator transaction binding the contract fallback function.
+//
+// Solidity: fallback() returns()
+func (_MadnetFactory *MadnetFactorySession) Fallback(calldata []byte) (*types.Transaction, error) {
+	return _MadnetFactory.Contract.Fallback(&_MadnetFactory.TransactOpts, calldata)
+}
+
+// Fallback is a paid mutator transaction binding the contract fallback function.
+//
+// Solidity: fallback() returns()
+func (_MadnetFactory *MadnetFactoryTransactorSession) Fallback(calldata []byte) (*types.Transaction, error) {
+	return _MadnetFactory.Contract.Fallback(&_MadnetFactory.TransactOpts, calldata)
+}
+
+// MadnetFactoryDeployedIterator is returned from FilterDeployed and is used to iterate over the raw logs and unpacked data for Deployed events raised by the MadnetFactory contract.
+type MadnetFactoryDeployedIterator struct {
+	Event *MadnetFactoryDeployed // Event containing the contract specifics and raw log
+
+	contract *bind.BoundContract // Generic contract to use for unpacking event data
+	event    string              // Event name to use for unpacking event data
+
+	logs chan types.Log        // Log channel receiving the found contract events
+	sub  ethereum.Subscription // Subscription for errors, completion and termination
+	done bool                  // Whether the subscription completed delivering logs
+	fail error                 // Occurred error to stop iteration
+}
+
+// Next advances the iterator to the subsequent event, returning whether there
+// are any more events found. In case of a retrieval or parsing error, false is
+// returned and Error() can be queried for the exact failure.
+func (it *MadnetFactoryDeployedIterator) Next() bool {
+	// If the iterator failed, stop iterating
+	if it.fail != nil {
+		return false
+	}
+	// If the iterator completed, deliver directly whatever's available
+	if it.done {
+		select {
+		case log := <-it.logs:
+			it.Event = new(MadnetFactoryDeployed)
+			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+				it.fail = err
+				return false
+			}
+			it.Event.Raw = log
+			return true
+
+		default:
+			return false
+		}
+	}
+	// Iterator still in progress, wait for either a data or an error event
+	select {
+	case log := <-it.logs:
+		it.Event = new(MadnetFactoryDeployed)
+		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+			it.fail = err
+			return false
+		}
+		it.Event.Raw = log
+		return true
+
+	case err := <-it.sub.Err():
+		it.done = true
+		it.fail = err
+		return it.Next()
+	}
+}
+
+// Error returns any retrieval or parsing error occurred during filtering.
+func (it *MadnetFactoryDeployedIterator) Error() error {
+	return it.fail
+}
+
+// Close terminates the iteration process, releasing any pending underlying
+// resources.
+func (it *MadnetFactoryDeployedIterator) Close() error {
+	it.sub.Unsubscribe()
+	return nil
+}
+
+// MadnetFactoryDeployed represents a Deployed event raised by the MadnetFactory contract.
+type MadnetFactoryDeployed struct {
+	Salt         [32]byte
+	ContractAddr common.Address
+	Raw          types.Log // Blockchain specific contextual infos
+}
+
+// FilterDeployed is a free log retrieval operation binding the contract event 0xe491e278e37782abe0872fe7c7b549cd7b0713d0c5c1e84a81899a5fdf32087b.
+//
+// Solidity: event Deployed(bytes32 salt, address contractAddr)
+func (_MadnetFactory *MadnetFactoryFilterer) FilterDeployed(opts *bind.FilterOpts) (*MadnetFactoryDeployedIterator, error) {
+
+	logs, sub, err := _MadnetFactory.contract.FilterLogs(opts, "Deployed")
+	if err != nil {
+		return nil, err
+	}
+	return &MadnetFactoryDeployedIterator{contract: _MadnetFactory.contract, event: "Deployed", logs: logs, sub: sub}, nil
+}
+
+// WatchDeployed is a free log subscription operation binding the contract event 0xe491e278e37782abe0872fe7c7b549cd7b0713d0c5c1e84a81899a5fdf32087b.
+//
+// Solidity: event Deployed(bytes32 salt, address contractAddr)
+func (_MadnetFactory *MadnetFactoryFilterer) WatchDeployed(opts *bind.WatchOpts, sink chan<- *MadnetFactoryDeployed) (event.Subscription, error) {
+
+	logs, sub, err := _MadnetFactory.contract.WatchLogs(opts, "Deployed")
+	if err != nil {
+		return nil, err
+	}
+	return event.NewSubscription(func(quit <-chan struct{}) error {
+		defer sub.Unsubscribe()
+		for {
+			select {
+			case log := <-logs:
+				// New log arrived, parse the event and forward to the user
+				event := new(MadnetFactoryDeployed)
+				if err := _MadnetFactory.contract.UnpackLog(event, "Deployed", log); err != nil {
+					return err
+				}
+				event.Raw = log
+
+				select {
+				case sink <- event:
+				case err := <-sub.Err():
+					return err
+				case <-quit:
+					return nil
+				}
+			case err := <-sub.Err():
+				return err
+			case <-quit:
+				return nil
+			}
+		}
+	}), nil
+}
+
+// ParseDeployed is a log parse operation binding the contract event 0xe491e278e37782abe0872fe7c7b549cd7b0713d0c5c1e84a81899a5fdf32087b.
+//
+// Solidity: event Deployed(bytes32 salt, address contractAddr)
+func (_MadnetFactory *MadnetFactoryFilterer) ParseDeployed(log types.Log) (*MadnetFactoryDeployed, error) {
+	event := new(MadnetFactoryDeployed)
+	if err := _MadnetFactory.contract.UnpackLog(event, "Deployed", log); err != nil {
+		return nil, err
+	}
+	event.Raw = log
+	return event, nil
+}
+
+// MadnetFactoryDeployedProxyIterator is returned from FilterDeployedProxy and is used to iterate over the raw logs and unpacked data for DeployedProxy events raised by the MadnetFactory contract.
+type MadnetFactoryDeployedProxyIterator struct {
+	Event *MadnetFactoryDeployedProxy // Event containing the contract specifics and raw log
+
+	contract *bind.BoundContract // Generic contract to use for unpacking event data
+	event    string              // Event name to use for unpacking event data
+
+	logs chan types.Log        // Log channel receiving the found contract events
+	sub  ethereum.Subscription // Subscription for errors, completion and termination
+	done bool                  // Whether the subscription completed delivering logs
+	fail error                 // Occurred error to stop iteration
+}
+
+// Next advances the iterator to the subsequent event, returning whether there
+// are any more events found. In case of a retrieval or parsing error, false is
+// returned and Error() can be queried for the exact failure.
+func (it *MadnetFactoryDeployedProxyIterator) Next() bool {
+	// If the iterator failed, stop iterating
+	if it.fail != nil {
+		return false
+	}
+	// If the iterator completed, deliver directly whatever's available
+	if it.done {
+		select {
+		case log := <-it.logs:
+			it.Event = new(MadnetFactoryDeployedProxy)
+			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+				it.fail = err
+				return false
+			}
+			it.Event.Raw = log
+			return true
+
+		default:
+			return false
+		}
+	}
+	// Iterator still in progress, wait for either a data or an error event
+	select {
+	case log := <-it.logs:
+		it.Event = new(MadnetFactoryDeployedProxy)
+		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+			it.fail = err
+			return false
+		}
+		it.Event.Raw = log
+		return true
+
+	case err := <-it.sub.Err():
+		it.done = true
+		it.fail = err
+		return it.Next()
+	}
+}
+
+// Error returns any retrieval or parsing error occurred during filtering.
+func (it *MadnetFactoryDeployedProxyIterator) Error() error {
+	return it.fail
+}
+
+// Close terminates the iteration process, releasing any pending underlying
+// resources.
+func (it *MadnetFactoryDeployedProxyIterator) Close() error {
+	it.sub.Unsubscribe()
+	return nil
+}
+
+// MadnetFactoryDeployedProxy represents a DeployedProxy event raised by the MadnetFactory contract.
+type MadnetFactoryDeployedProxy struct {
+	ContractAddr common.Address
+	Raw          types.Log // Blockchain specific contextual infos
+}
+
+// FilterDeployedProxy is a free log retrieval operation binding the contract event 0x06690e5b52be10a3d5820ec875c3dd3327f3077954a09f104201e40e5f7082c6.
+//
+// Solidity: event DeployedProxy(address contractAddr)
+func (_MadnetFactory *MadnetFactoryFilterer) FilterDeployedProxy(opts *bind.FilterOpts) (*MadnetFactoryDeployedProxyIterator, error) {
+
+	logs, sub, err := _MadnetFactory.contract.FilterLogs(opts, "DeployedProxy")
+	if err != nil {
+		return nil, err
+	}
+	return &MadnetFactoryDeployedProxyIterator{contract: _MadnetFactory.contract, event: "DeployedProxy", logs: logs, sub: sub}, nil
+}
+
+// WatchDeployedProxy is a free log subscription operation binding the contract event 0x06690e5b52be10a3d5820ec875c3dd3327f3077954a09f104201e40e5f7082c6.
+//
+// Solidity: event DeployedProxy(address contractAddr)
+func (_MadnetFactory *MadnetFactoryFilterer) WatchDeployedProxy(opts *bind.WatchOpts, sink chan<- *MadnetFactoryDeployedProxy) (event.Subscription, error) {
+
+	logs, sub, err := _MadnetFactory.contract.WatchLogs(opts, "DeployedProxy")
+	if err != nil {
+		return nil, err
+	}
+	return event.NewSubscription(func(quit <-chan struct{}) error {
+		defer sub.Unsubscribe()
+		for {
+			select {
+			case log := <-logs:
+				// New log arrived, parse the event and forward to the user
+				event := new(MadnetFactoryDeployedProxy)
+				if err := _MadnetFactory.contract.UnpackLog(event, "DeployedProxy", log); err != nil {
+					return err
+				}
+				event.Raw = log
+
+				select {
+				case sink <- event:
+				case err := <-sub.Err():
+					return err
+				case <-quit:
+					return nil
+				}
+			case err := <-sub.Err():
+				return err
+			case <-quit:
+				return nil
+			}
+		}
+	}), nil
+}
+
+// ParseDeployedProxy is a log parse operation binding the contract event 0x06690e5b52be10a3d5820ec875c3dd3327f3077954a09f104201e40e5f7082c6.
+//
+// Solidity: event DeployedProxy(address contractAddr)
+func (_MadnetFactory *MadnetFactoryFilterer) ParseDeployedProxy(log types.Log) (*MadnetFactoryDeployedProxy, error) {
+	event := new(MadnetFactoryDeployedProxy)
+	if err := _MadnetFactory.contract.UnpackLog(event, "DeployedProxy", log); err != nil {
+		return nil, err
+	}
+	event.Raw = log
+	return event, nil
+}
+
+// MadnetFactoryDeployedRawIterator is returned from FilterDeployedRaw and is used to iterate over the raw logs and unpacked data for DeployedRaw events raised by the MadnetFactory contract.
+type MadnetFactoryDeployedRawIterator struct {
+	Event *MadnetFactoryDeployedRaw // Event containing the contract specifics and raw log
+
+	contract *bind.BoundContract // Generic contract to use for unpacking event data
+	event    string              // Event name to use for unpacking event data
+
+	logs chan types.Log        // Log channel receiving the found contract events
+	sub  ethereum.Subscription // Subscription for errors, completion and termination
+	done bool                  // Whether the subscription completed delivering logs
+	fail error                 // Occurred error to stop iteration
+}
+
+// Next advances the iterator to the subsequent event, returning whether there
+// are any more events found. In case of a retrieval or parsing error, false is
+// returned and Error() can be queried for the exact failure.
+func (it *MadnetFactoryDeployedRawIterator) Next() bool {
+	// If the iterator failed, stop iterating
+	if it.fail != nil {
+		return false
+	}
+	// If the iterator completed, deliver directly whatever's available
+	if it.done {
+		select {
+		case log := <-it.logs:
+			it.Event = new(MadnetFactoryDeployedRaw)
+			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+				it.fail = err
+				return false
+			}
+			it.Event.Raw = log
+			return true
+
+		default:
+			return false
+		}
+	}
+	// Iterator still in progress, wait for either a data or an error event
+	select {
+	case log := <-it.logs:
+		it.Event = new(MadnetFactoryDeployedRaw)
+		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+			it.fail = err
+			return false
+		}
+		it.Event.Raw = log
+		return true
+
+	case err := <-it.sub.Err():
+		it.done = true
+		it.fail = err
+		return it.Next()
+	}
+}
+
+// Error returns any retrieval or parsing error occurred during filtering.
+func (it *MadnetFactoryDeployedRawIterator) Error() error {
+	return it.fail
+}
+
+// Close terminates the iteration process, releasing any pending underlying
+// resources.
+func (it *MadnetFactoryDeployedRawIterator) Close() error {
+	it.sub.Unsubscribe()
+	return nil
+}
+
+// MadnetFactoryDeployedRaw represents a DeployedRaw event raised by the MadnetFactory contract.
+type MadnetFactoryDeployedRaw struct {
+	ContractAddr common.Address
+	Raw          types.Log // Blockchain specific contextual infos
+}
+
+// FilterDeployedRaw is a free log retrieval operation binding the contract event 0xd3acf0da590cfcd8f020afd7f40b7e6e4c8bd2fc9eb7aec9836837b667685b3a.
+//
+// Solidity: event DeployedRaw(address contractAddr)
+func (_MadnetFactory *MadnetFactoryFilterer) FilterDeployedRaw(opts *bind.FilterOpts) (*MadnetFactoryDeployedRawIterator, error) {
+
+	logs, sub, err := _MadnetFactory.contract.FilterLogs(opts, "DeployedRaw")
+	if err != nil {
+		return nil, err
+	}
+	return &MadnetFactoryDeployedRawIterator{contract: _MadnetFactory.contract, event: "DeployedRaw", logs: logs, sub: sub}, nil
+}
+
+// WatchDeployedRaw is a free log subscription operation binding the contract event 0xd3acf0da590cfcd8f020afd7f40b7e6e4c8bd2fc9eb7aec9836837b667685b3a.
+//
+// Solidity: event DeployedRaw(address contractAddr)
+func (_MadnetFactory *MadnetFactoryFilterer) WatchDeployedRaw(opts *bind.WatchOpts, sink chan<- *MadnetFactoryDeployedRaw) (event.Subscription, error) {
+
+	logs, sub, err := _MadnetFactory.contract.WatchLogs(opts, "DeployedRaw")
+	if err != nil {
+		return nil, err
+	}
+	return event.NewSubscription(func(quit <-chan struct{}) error {
+		defer sub.Unsubscribe()
+		for {
+			select {
+			case log := <-logs:
+				// New log arrived, parse the event and forward to the user
+				event := new(MadnetFactoryDeployedRaw)
+				if err := _MadnetFactory.contract.UnpackLog(event, "DeployedRaw", log); err != nil {
+					return err
+				}
+				event.Raw = log
+
+				select {
+				case sink <- event:
+				case err := <-sub.Err():
+					return err
+				case <-quit:
+					return nil
+				}
+			case err := <-sub.Err():
+				return err
+			case <-quit:
+				return nil
+			}
+		}
+	}), nil
+}
+
+// ParseDeployedRaw is a log parse operation binding the contract event 0xd3acf0da590cfcd8f020afd7f40b7e6e4c8bd2fc9eb7aec9836837b667685b3a.
+//
+// Solidity: event DeployedRaw(address contractAddr)
+func (_MadnetFactory *MadnetFactoryFilterer) ParseDeployedRaw(log types.Log) (*MadnetFactoryDeployedRaw, error) {
+	event := new(MadnetFactoryDeployedRaw)
+	if err := _MadnetFactory.contract.UnpackLog(event, "DeployedRaw", log); err != nil {
+		return nil, err
+	}
+	event.Raw = log
+	return event, nil
+}
+
+// MadnetFactoryDeployedStaticIterator is returned from FilterDeployedStatic and is used to iterate over the raw logs and unpacked data for DeployedStatic events raised by the MadnetFactory contract.
+type MadnetFactoryDeployedStaticIterator struct {
+	Event *MadnetFactoryDeployedStatic // Event containing the contract specifics and raw log
+
+	contract *bind.BoundContract // Generic contract to use for unpacking event data
+	event    string              // Event name to use for unpacking event data
+
+	logs chan types.Log        // Log channel receiving the found contract events
+	sub  ethereum.Subscription // Subscription for errors, completion and termination
+	done bool                  // Whether the subscription completed delivering logs
+	fail error                 // Occurred error to stop iteration
+}
+
+// Next advances the iterator to the subsequent event, returning whether there
+// are any more events found. In case of a retrieval or parsing error, false is
+// returned and Error() can be queried for the exact failure.
+func (it *MadnetFactoryDeployedStaticIterator) Next() bool {
+	// If the iterator failed, stop iterating
+	if it.fail != nil {
+		return false
+	}
+	// If the iterator completed, deliver directly whatever's available
+	if it.done {
+		select {
+		case log := <-it.logs:
+			it.Event = new(MadnetFactoryDeployedStatic)
+			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+				it.fail = err
+				return false
+			}
+			it.Event.Raw = log
+			return true
+
+		default:
+			return false
+		}
+	}
+	// Iterator still in progress, wait for either a data or an error event
+	select {
+	case log := <-it.logs:
+		it.Event = new(MadnetFactoryDeployedStatic)
+		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+			it.fail = err
+			return false
+		}
+		it.Event.Raw = log
+		return true
+
+	case err := <-it.sub.Err():
+		it.done = true
+		it.fail = err
+		return it.Next()
+	}
+}
+
+// Error returns any retrieval or parsing error occurred during filtering.
+func (it *MadnetFactoryDeployedStaticIterator) Error() error {
+	return it.fail
+}
+
+// Close terminates the iteration process, releasing any pending underlying
+// resources.
+func (it *MadnetFactoryDeployedStaticIterator) Close() error {
+	it.sub.Unsubscribe()
+	return nil
+}
+
+// MadnetFactoryDeployedStatic represents a DeployedStatic event raised by the MadnetFactory contract.
+type MadnetFactoryDeployedStatic struct {
+	ContractAddr common.Address
+	Raw          types.Log // Blockchain specific contextual infos
+}
+
+// FilterDeployedStatic is a free log retrieval operation binding the contract event 0xe8b9cb7d60827a7d55e211f1382dd0f129adb541af9fe45a09ab4a18b76e7c65.
+//
+// Solidity: event DeployedStatic(address contractAddr)
+func (_MadnetFactory *MadnetFactoryFilterer) FilterDeployedStatic(opts *bind.FilterOpts) (*MadnetFactoryDeployedStaticIterator, error) {
+
+	logs, sub, err := _MadnetFactory.contract.FilterLogs(opts, "DeployedStatic")
+	if err != nil {
+		return nil, err
+	}
+	return &MadnetFactoryDeployedStaticIterator{contract: _MadnetFactory.contract, event: "DeployedStatic", logs: logs, sub: sub}, nil
+}
+
+// WatchDeployedStatic is a free log subscription operation binding the contract event 0xe8b9cb7d60827a7d55e211f1382dd0f129adb541af9fe45a09ab4a18b76e7c65.
+//
+// Solidity: event DeployedStatic(address contractAddr)
+func (_MadnetFactory *MadnetFactoryFilterer) WatchDeployedStatic(opts *bind.WatchOpts, sink chan<- *MadnetFactoryDeployedStatic) (event.Subscription, error) {
+
+	logs, sub, err := _MadnetFactory.contract.WatchLogs(opts, "DeployedStatic")
+	if err != nil {
+		return nil, err
+	}
+	return event.NewSubscription(func(quit <-chan struct{}) error {
+		defer sub.Unsubscribe()
+		for {
+			select {
+			case log := <-logs:
+				// New log arrived, parse the event and forward to the user
+				event := new(MadnetFactoryDeployedStatic)
+				if err := _MadnetFactory.contract.UnpackLog(event, "DeployedStatic", log); err != nil {
+					return err
+				}
+				event.Raw = log
+
+				select {
+				case sink <- event:
+				case err := <-sub.Err():
+					return err
+				case <-quit:
+					return nil
+				}
+			case err := <-sub.Err():
+				return err
+			case <-quit:
+				return nil
+			}
+		}
+	}), nil
+}
+
+// ParseDeployedStatic is a log parse operation binding the contract event 0xe8b9cb7d60827a7d55e211f1382dd0f129adb541af9fe45a09ab4a18b76e7c65.
+//
+// Solidity: event DeployedStatic(address contractAddr)
+func (_MadnetFactory *MadnetFactoryFilterer) ParseDeployedStatic(log types.Log) (*MadnetFactoryDeployedStatic, error) {
+	event := new(MadnetFactoryDeployedStatic)
+	if err := _MadnetFactory.contract.UnpackLog(event, "DeployedStatic", log); err != nil {
+		return nil, err
+	}
+	event.Raw = log
+	return event, nil
+}
+
+// MadnetFactoryDeployedTemplateIterator is returned from FilterDeployedTemplate and is used to iterate over the raw logs and unpacked data for DeployedTemplate events raised by the MadnetFactory contract.
+type MadnetFactoryDeployedTemplateIterator struct {
+	Event *MadnetFactoryDeployedTemplate // Event containing the contract specifics and raw log
+
+	contract *bind.BoundContract // Generic contract to use for unpacking event data
+	event    string              // Event name to use for unpacking event data
+
+	logs chan types.Log        // Log channel receiving the found contract events
+	sub  ethereum.Subscription // Subscription for errors, completion and termination
+	done bool                  // Whether the subscription completed delivering logs
+	fail error                 // Occurred error to stop iteration
+}
+
+// Next advances the iterator to the subsequent event, returning whether there
+// are any more events found. In case of a retrieval or parsing error, false is
+// returned and Error() can be queried for the exact failure.
+func (it *MadnetFactoryDeployedTemplateIterator) Next() bool {
+	// If the iterator failed, stop iterating
+	if it.fail != nil {
+		return false
+	}
+	// If the iterator completed, deliver directly whatever's available
+	if it.done {
+		select {
+		case log := <-it.logs:
+			it.Event = new(MadnetFactoryDeployedTemplate)
+			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+				it.fail = err
+				return false
+			}
+			it.Event.Raw = log
+			return true
+
+		default:
+			return false
+		}
+	}
+	// Iterator still in progress, wait for either a data or an error event
+	select {
+	case log := <-it.logs:
+		it.Event = new(MadnetFactoryDeployedTemplate)
+		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+			it.fail = err
+			return false
+		}
+		it.Event.Raw = log
+		return true
+
+	case err := <-it.sub.Err():
+		it.done = true
+		it.fail = err
+		return it.Next()
+	}
+}
+
+// Error returns any retrieval or parsing error occurred during filtering.
+func (it *MadnetFactoryDeployedTemplateIterator) Error() error {
+	return it.fail
+}
+
+// Close terminates the iteration process, releasing any pending underlying
+// resources.
+func (it *MadnetFactoryDeployedTemplateIterator) Close() error {
+	it.sub.Unsubscribe()
+	return nil
+}
+
+// MadnetFactoryDeployedTemplate represents a DeployedTemplate event raised by the MadnetFactory contract.
+type MadnetFactoryDeployedTemplate struct {
+	ContractAddr common.Address
+	Raw          types.Log // Blockchain specific contextual infos
+}
+
+// FilterDeployedTemplate is a free log retrieval operation binding the contract event 0x6cd94ea1c5d9f99038bb4629d8a759399654d3861b73bf3a2b0cf484dae72138.
+//
+// Solidity: event DeployedTemplate(address contractAddr)
+func (_MadnetFactory *MadnetFactoryFilterer) FilterDeployedTemplate(opts *bind.FilterOpts) (*MadnetFactoryDeployedTemplateIterator, error) {
+
+	logs, sub, err := _MadnetFactory.contract.FilterLogs(opts, "DeployedTemplate")
+	if err != nil {
+		return nil, err
+	}
+	return &MadnetFactoryDeployedTemplateIterator{contract: _MadnetFactory.contract, event: "DeployedTemplate", logs: logs, sub: sub}, nil
+}
+
+// WatchDeployedTemplate is a free log subscription operation binding the contract event 0x6cd94ea1c5d9f99038bb4629d8a759399654d3861b73bf3a2b0cf484dae72138.
+//
+// Solidity: event DeployedTemplate(address contractAddr)
+func (_MadnetFactory *MadnetFactoryFilterer) WatchDeployedTemplate(opts *bind.WatchOpts, sink chan<- *MadnetFactoryDeployedTemplate) (event.Subscription, error) {
+
+	logs, sub, err := _MadnetFactory.contract.WatchLogs(opts, "DeployedTemplate")
+	if err != nil {
+		return nil, err
+	}
+	return event.NewSubscription(func(quit <-chan struct{}) error {
+		defer sub.Unsubscribe()
+		for {
+			select {
+			case log := <-logs:
+				// New log arrived, parse the event and forward to the user
+				event := new(MadnetFactoryDeployedTemplate)
+				if err := _MadnetFactory.contract.UnpackLog(event, "DeployedTemplate", log); err != nil {
+					return err
+				}
+				event.Raw = log
+
+				select {
+				case sink <- event:
+				case err := <-sub.Err():
+					return err
+				case <-quit:
+					return nil
+				}
+			case err := <-sub.Err():
+				return err
+			case <-quit:
+				return nil
+			}
+		}
+	}), nil
+}
+
+// ParseDeployedTemplate is a log parse operation binding the contract event 0x6cd94ea1c5d9f99038bb4629d8a759399654d3861b73bf3a2b0cf484dae72138.
+//
+// Solidity: event DeployedTemplate(address contractAddr)
+func (_MadnetFactory *MadnetFactoryFilterer) ParseDeployedTemplate(log types.Log) (*MadnetFactoryDeployedTemplate, error) {
+	event := new(MadnetFactoryDeployedTemplate)
+	if err := _MadnetFactory.contract.UnpackLog(event, "DeployedTemplate", log); err != nil {
+		return nil, err
+	}
+	event.Raw = log
+	return event, nil
+}
+
+// MadnetFactoryBaseMetaData contains all meta data concerning the MadnetFactoryBase contract.
+var MadnetFactoryBaseMetaData = &bind.MetaData{
+	ABI: "[{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"bytes32\",\"name\":\"salt\",\"type\":\"bytes32\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"contractAddr\",\"type\":\"address\"}],\"name\":\"Deployed\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"address\",\"name\":\"contractAddr\",\"type\":\"address\"}],\"name\":\"DeployedProxy\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"address\",\"name\":\"contractAddr\",\"type\":\"address\"}],\"name\":\"DeployedRaw\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"address\",\"name\":\"contractAddr\",\"type\":\"address\"}],\"name\":\"DeployedStatic\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"address\",\"name\":\"contractAddr\",\"type\":\"address\"}],\"name\":\"DeployedTemplate\",\"type\":\"event\"},{\"stateMutability\":\"nonpayable\",\"type\":\"fallback\"},{\"inputs\":[],\"name\":\"contracts\",\"outputs\":[{\"internalType\":\"bytes32[]\",\"name\":\"_contracts\",\"type\":\"bytes32[]\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"delegator\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"_v\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getImplementation\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"_salt\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"_factory\",\"type\":\"address\"}],\"name\":\"getMetamorphicContractAddress\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"pure\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getNumContracts\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"implementation\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"_v\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"string\",\"name\":\"_name\",\"type\":\"string\"}],\"name\":\"lookup\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"addr\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"owner\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"_v\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_v\",\"type\":\"address\"}],\"name\":\"setDelegator\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_v\",\"type\":\"address\"}],\"name\":\"setImplementation\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_v\",\"type\":\"address\"}],\"name\":\"setOwner\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}]",
+}
+
+// MadnetFactoryBaseABI is the input ABI used to generate the binding from.
+// Deprecated: Use MadnetFactoryBaseMetaData.ABI instead.
+var MadnetFactoryBaseABI = MadnetFactoryBaseMetaData.ABI
+
+// MadnetFactoryBase is an auto generated Go binding around an Ethereum contract.
+type MadnetFactoryBase struct {
+	MadnetFactoryBaseCaller     // Read-only binding to the contract
+	MadnetFactoryBaseTransactor // Write-only binding to the contract
+	MadnetFactoryBaseFilterer   // Log filterer for contract events
+}
+
+// MadnetFactoryBaseCaller is an auto generated read-only Go binding around an Ethereum contract.
+type MadnetFactoryBaseCaller struct {
+	contract *bind.BoundContract // Generic contract wrapper for the low level calls
+}
+
+// MadnetFactoryBaseTransactor is an auto generated write-only Go binding around an Ethereum contract.
+type MadnetFactoryBaseTransactor struct {
+	contract *bind.BoundContract // Generic contract wrapper for the low level calls
+}
+
+// MadnetFactoryBaseFilterer is an auto generated log filtering Go binding around an Ethereum contract events.
+type MadnetFactoryBaseFilterer struct {
+	contract *bind.BoundContract // Generic contract wrapper for the low level calls
+}
+
+// MadnetFactoryBaseSession is an auto generated Go binding around an Ethereum contract,
+// with pre-set call and transact options.
+type MadnetFactoryBaseSession struct {
+	Contract     *MadnetFactoryBase // Generic contract binding to set the session for
+	CallOpts     bind.CallOpts      // Call options to use throughout this session
+	TransactOpts bind.TransactOpts  // Transaction auth options to use throughout this session
+}
+
+// MadnetFactoryBaseCallerSession is an auto generated read-only Go binding around an Ethereum contract,
+// with pre-set call options.
+type MadnetFactoryBaseCallerSession struct {
+	Contract *MadnetFactoryBaseCaller // Generic contract caller binding to set the session for
+	CallOpts bind.CallOpts            // Call options to use throughout this session
+}
+
+// MadnetFactoryBaseTransactorSession is an auto generated write-only Go binding around an Ethereum contract,
+// with pre-set transact options.
+type MadnetFactoryBaseTransactorSession struct {
+	Contract     *MadnetFactoryBaseTransactor // Generic contract transactor binding to set the session for
+	TransactOpts bind.TransactOpts            // Transaction auth options to use throughout this session
+}
+
+// MadnetFactoryBaseRaw is an auto generated low-level Go binding around an Ethereum contract.
+type MadnetFactoryBaseRaw struct {
+	Contract *MadnetFactoryBase // Generic contract binding to access the raw methods on
+}
+
+// MadnetFactoryBaseCallerRaw is an auto generated low-level read-only Go binding around an Ethereum contract.
+type MadnetFactoryBaseCallerRaw struct {
+	Contract *MadnetFactoryBaseCaller // Generic read-only contract binding to access the raw methods on
+}
+
+// MadnetFactoryBaseTransactorRaw is an auto generated low-level write-only Go binding around an Ethereum contract.
+type MadnetFactoryBaseTransactorRaw struct {
+	Contract *MadnetFactoryBaseTransactor // Generic write-only contract binding to access the raw methods on
+}
+
+// NewMadnetFactoryBase creates a new instance of MadnetFactoryBase, bound to a specific deployed contract.
+func NewMadnetFactoryBase(address common.Address, backend bind.ContractBackend) (*MadnetFactoryBase, error) {
+	contract, err := bindMadnetFactoryBase(address, backend, backend, backend)
+	if err != nil {
+		return nil, err
+	}
+	return &MadnetFactoryBase{MadnetFactoryBaseCaller: MadnetFactoryBaseCaller{contract: contract}, MadnetFactoryBaseTransactor: MadnetFactoryBaseTransactor{contract: contract}, MadnetFactoryBaseFilterer: MadnetFactoryBaseFilterer{contract: contract}}, nil
+}
+
+// NewMadnetFactoryBaseCaller creates a new read-only instance of MadnetFactoryBase, bound to a specific deployed contract.
+func NewMadnetFactoryBaseCaller(address common.Address, caller bind.ContractCaller) (*MadnetFactoryBaseCaller, error) {
+	contract, err := bindMadnetFactoryBase(address, caller, nil, nil)
+	if err != nil {
+		return nil, err
+	}
+	return &MadnetFactoryBaseCaller{contract: contract}, nil
+}
+
+// NewMadnetFactoryBaseTransactor creates a new write-only instance of MadnetFactoryBase, bound to a specific deployed contract.
+func NewMadnetFactoryBaseTransactor(address common.Address, transactor bind.ContractTransactor) (*MadnetFactoryBaseTransactor, error) {
+	contract, err := bindMadnetFactoryBase(address, nil, transactor, nil)
+	if err != nil {
+		return nil, err
+	}
+	return &MadnetFactoryBaseTransactor{contract: contract}, nil
+}
+
+// NewMadnetFactoryBaseFilterer creates a new log filterer instance of MadnetFactoryBase, bound to a specific deployed contract.
+func NewMadnetFactoryBaseFilterer(address common.Address, filterer bind.ContractFilterer) (*MadnetFactoryBaseFilterer, error) {
+	contract, err := bindMadnetFactoryBase(address, nil, nil, filterer)
+	if err != nil {
+		return nil, err
+	}
+	return &MadnetFactoryBaseFilterer{contract: contract}, nil
+}
+
+// bindMadnetFactoryBase binds a generic wrapper to an already deployed contract.
+func bindMadnetFactoryBase(address common.Address, caller bind.ContractCaller, transactor bind.ContractTransactor, filterer bind.ContractFilterer) (*bind.BoundContract, error) {
+	parsed, err := abi.JSON(strings.NewReader(MadnetFactoryBaseABI))
+	if err != nil {
+		return nil, err
+	}
+	return bind.NewBoundContract(address, parsed, caller, transactor, filterer), nil
+}
+
+// Call invokes the (constant) contract method with params as input values and
+// sets the output to result. The result type might be a single field for simple
+// returns, a slice of interfaces for anonymous returns and a struct for named
+// returns.
+func (_MadnetFactoryBase *MadnetFactoryBaseRaw) Call(opts *bind.CallOpts, result *[]interface{}, method string, params ...interface{}) error {
+	return _MadnetFactoryBase.Contract.MadnetFactoryBaseCaller.contract.Call(opts, result, method, params...)
+}
+
+// Transfer initiates a plain transaction to move funds to the contract, calling
+// its default method if one is available.
+func (_MadnetFactoryBase *MadnetFactoryBaseRaw) Transfer(opts *bind.TransactOpts) (*types.Transaction, error) {
+	return _MadnetFactoryBase.Contract.MadnetFactoryBaseTransactor.contract.Transfer(opts)
+}
+
+// Transact invokes the (paid) contract method with params as input values.
+func (_MadnetFactoryBase *MadnetFactoryBaseRaw) Transact(opts *bind.TransactOpts, method string, params ...interface{}) (*types.Transaction, error) {
+	return _MadnetFactoryBase.Contract.MadnetFactoryBaseTransactor.contract.Transact(opts, method, params...)
+}
+
+// Call invokes the (constant) contract method with params as input values and
+// sets the output to result. The result type might be a single field for simple
+// returns, a slice of interfaces for anonymous returns and a struct for named
+// returns.
+func (_MadnetFactoryBase *MadnetFactoryBaseCallerRaw) Call(opts *bind.CallOpts, result *[]interface{}, method string, params ...interface{}) error {
+	return _MadnetFactoryBase.Contract.contract.Call(opts, result, method, params...)
+}
+
+// Transfer initiates a plain transaction to move funds to the contract, calling
+// its default method if one is available.
+func (_MadnetFactoryBase *MadnetFactoryBaseTransactorRaw) Transfer(opts *bind.TransactOpts) (*types.Transaction, error) {
+	return _MadnetFactoryBase.Contract.contract.Transfer(opts)
+}
+
+// Transact invokes the (paid) contract method with params as input values.
+func (_MadnetFactoryBase *MadnetFactoryBaseTransactorRaw) Transact(opts *bind.TransactOpts, method string, params ...interface{}) (*types.Transaction, error) {
+	return _MadnetFactoryBase.Contract.contract.Transact(opts, method, params...)
+}
+
+// Contracts is a free data retrieval call binding the contract method 0x6c0f79b6.
+//
+// Solidity: function contracts() view returns(bytes32[] _contracts)
+func (_MadnetFactoryBase *MadnetFactoryBaseCaller) Contracts(opts *bind.CallOpts) ([][32]byte, error) {
+	var out []interface{}
+	err := _MadnetFactoryBase.contract.Call(opts, &out, "contracts")
+
+	if err != nil {
+		return *new([][32]byte), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new([][32]byte)).(*[][32]byte)
+
+	return out0, err
+
+}
+
+// Contracts is a free data retrieval call binding the contract method 0x6c0f79b6.
+//
+// Solidity: function contracts() view returns(bytes32[] _contracts)
+func (_MadnetFactoryBase *MadnetFactoryBaseSession) Contracts() ([][32]byte, error) {
+	return _MadnetFactoryBase.Contract.Contracts(&_MadnetFactoryBase.CallOpts)
+}
+
+// Contracts is a free data retrieval call binding the contract method 0x6c0f79b6.
+//
+// Solidity: function contracts() view returns(bytes32[] _contracts)
+func (_MadnetFactoryBase *MadnetFactoryBaseCallerSession) Contracts() ([][32]byte, error) {
+	return _MadnetFactoryBase.Contract.Contracts(&_MadnetFactoryBase.CallOpts)
+}
+
+// Delegator is a free data retrieval call binding the contract method 0xce9b7930.
+//
+// Solidity: function delegator() view returns(address _v)
+func (_MadnetFactoryBase *MadnetFactoryBaseCaller) Delegator(opts *bind.CallOpts) (common.Address, error) {
+	var out []interface{}
+	err := _MadnetFactoryBase.contract.Call(opts, &out, "delegator")
+
+	if err != nil {
+		return *new(common.Address), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(common.Address)).(*common.Address)
+
+	return out0, err
+
+}
+
+// Delegator is a free data retrieval call binding the contract method 0xce9b7930.
+//
+// Solidity: function delegator() view returns(address _v)
+func (_MadnetFactoryBase *MadnetFactoryBaseSession) Delegator() (common.Address, error) {
+	return _MadnetFactoryBase.Contract.Delegator(&_MadnetFactoryBase.CallOpts)
+}
+
+// Delegator is a free data retrieval call binding the contract method 0xce9b7930.
+//
+// Solidity: function delegator() view returns(address _v)
+func (_MadnetFactoryBase *MadnetFactoryBaseCallerSession) Delegator() (common.Address, error) {
+	return _MadnetFactoryBase.Contract.Delegator(&_MadnetFactoryBase.CallOpts)
+}
+
+// GetImplementation is a free data retrieval call binding the contract method 0xaaf10f42.
+//
+// Solidity: function getImplementation() view returns(address)
+func (_MadnetFactoryBase *MadnetFactoryBaseCaller) GetImplementation(opts *bind.CallOpts) (common.Address, error) {
+	var out []interface{}
+	err := _MadnetFactoryBase.contract.Call(opts, &out, "getImplementation")
+
+	if err != nil {
+		return *new(common.Address), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(common.Address)).(*common.Address)
+
+	return out0, err
+
+}
+
+// GetImplementation is a free data retrieval call binding the contract method 0xaaf10f42.
+//
+// Solidity: function getImplementation() view returns(address)
+func (_MadnetFactoryBase *MadnetFactoryBaseSession) GetImplementation() (common.Address, error) {
+	return _MadnetFactoryBase.Contract.GetImplementation(&_MadnetFactoryBase.CallOpts)
+}
+
+// GetImplementation is a free data retrieval call binding the contract method 0xaaf10f42.
+//
+// Solidity: function getImplementation() view returns(address)
+func (_MadnetFactoryBase *MadnetFactoryBaseCallerSession) GetImplementation() (common.Address, error) {
+	return _MadnetFactoryBase.Contract.GetImplementation(&_MadnetFactoryBase.CallOpts)
+}
+
+// GetMetamorphicContractAddress is a free data retrieval call binding the contract method 0x8653a465.
+//
+// Solidity: function getMetamorphicContractAddress(bytes32 _salt, address _factory) pure returns(address)
+func (_MadnetFactoryBase *MadnetFactoryBaseCaller) GetMetamorphicContractAddress(opts *bind.CallOpts, _salt [32]byte, _factory common.Address) (common.Address, error) {
+	var out []interface{}
+	err := _MadnetFactoryBase.contract.Call(opts, &out, "getMetamorphicContractAddress", _salt, _factory)
+
+	if err != nil {
+		return *new(common.Address), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(common.Address)).(*common.Address)
+
+	return out0, err
+
+}
+
+// GetMetamorphicContractAddress is a free data retrieval call binding the contract method 0x8653a465.
+//
+// Solidity: function getMetamorphicContractAddress(bytes32 _salt, address _factory) pure returns(address)
+func (_MadnetFactoryBase *MadnetFactoryBaseSession) GetMetamorphicContractAddress(_salt [32]byte, _factory common.Address) (common.Address, error) {
+	return _MadnetFactoryBase.Contract.GetMetamorphicContractAddress(&_MadnetFactoryBase.CallOpts, _salt, _factory)
+}
+
+// GetMetamorphicContractAddress is a free data retrieval call binding the contract method 0x8653a465.
+//
+// Solidity: function getMetamorphicContractAddress(bytes32 _salt, address _factory) pure returns(address)
+func (_MadnetFactoryBase *MadnetFactoryBaseCallerSession) GetMetamorphicContractAddress(_salt [32]byte, _factory common.Address) (common.Address, error) {
+	return _MadnetFactoryBase.Contract.GetMetamorphicContractAddress(&_MadnetFactoryBase.CallOpts, _salt, _factory)
+}
+
+// GetNumContracts is a free data retrieval call binding the contract method 0xcfe10b30.
+//
+// Solidity: function getNumContracts() view returns(uint256)
+func (_MadnetFactoryBase *MadnetFactoryBaseCaller) GetNumContracts(opts *bind.CallOpts) (*big.Int, error) {
+	var out []interface{}
+	err := _MadnetFactoryBase.contract.Call(opts, &out, "getNumContracts")
+
+	if err != nil {
+		return *new(*big.Int), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
+
+	return out0, err
+
+}
+
+// GetNumContracts is a free data retrieval call binding the contract method 0xcfe10b30.
+//
+// Solidity: function getNumContracts() view returns(uint256)
+func (_MadnetFactoryBase *MadnetFactoryBaseSession) GetNumContracts() (*big.Int, error) {
+	return _MadnetFactoryBase.Contract.GetNumContracts(&_MadnetFactoryBase.CallOpts)
+}
+
+// GetNumContracts is a free data retrieval call binding the contract method 0xcfe10b30.
+//
+// Solidity: function getNumContracts() view returns(uint256)
+func (_MadnetFactoryBase *MadnetFactoryBaseCallerSession) GetNumContracts() (*big.Int, error) {
+	return _MadnetFactoryBase.Contract.GetNumContracts(&_MadnetFactoryBase.CallOpts)
+}
+
+// Implementation is a free data retrieval call binding the contract method 0x5c60da1b.
+//
+// Solidity: function implementation() view returns(address _v)
+func (_MadnetFactoryBase *MadnetFactoryBaseCaller) Implementation(opts *bind.CallOpts) (common.Address, error) {
+	var out []interface{}
+	err := _MadnetFactoryBase.contract.Call(opts, &out, "implementation")
+
+	if err != nil {
+		return *new(common.Address), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(common.Address)).(*common.Address)
+
+	return out0, err
+
+}
+
+// Implementation is a free data retrieval call binding the contract method 0x5c60da1b.
+//
+// Solidity: function implementation() view returns(address _v)
+func (_MadnetFactoryBase *MadnetFactoryBaseSession) Implementation() (common.Address, error) {
+	return _MadnetFactoryBase.Contract.Implementation(&_MadnetFactoryBase.CallOpts)
+}
+
+// Implementation is a free data retrieval call binding the contract method 0x5c60da1b.
+//
+// Solidity: function implementation() view returns(address _v)
+func (_MadnetFactoryBase *MadnetFactoryBaseCallerSession) Implementation() (common.Address, error) {
+	return _MadnetFactoryBase.Contract.Implementation(&_MadnetFactoryBase.CallOpts)
+}
+
+// Lookup is a free data retrieval call binding the contract method 0xf67187ac.
+//
+// Solidity: function lookup(string _name) view returns(address addr)
+func (_MadnetFactoryBase *MadnetFactoryBaseCaller) Lookup(opts *bind.CallOpts, _name string) (common.Address, error) {
+	var out []interface{}
+	err := _MadnetFactoryBase.contract.Call(opts, &out, "lookup", _name)
+
+	if err != nil {
+		return *new(common.Address), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(common.Address)).(*common.Address)
+
+	return out0, err
+
+}
+
+// Lookup is a free data retrieval call binding the contract method 0xf67187ac.
+//
+// Solidity: function lookup(string _name) view returns(address addr)
+func (_MadnetFactoryBase *MadnetFactoryBaseSession) Lookup(_name string) (common.Address, error) {
+	return _MadnetFactoryBase.Contract.Lookup(&_MadnetFactoryBase.CallOpts, _name)
+}
+
+// Lookup is a free data retrieval call binding the contract method 0xf67187ac.
+//
+// Solidity: function lookup(string _name) view returns(address addr)
+func (_MadnetFactoryBase *MadnetFactoryBaseCallerSession) Lookup(_name string) (common.Address, error) {
+	return _MadnetFactoryBase.Contract.Lookup(&_MadnetFactoryBase.CallOpts, _name)
+}
+
+// Owner is a free data retrieval call binding the contract method 0x8da5cb5b.
+//
+// Solidity: function owner() view returns(address _v)
+func (_MadnetFactoryBase *MadnetFactoryBaseCaller) Owner(opts *bind.CallOpts) (common.Address, error) {
+	var out []interface{}
+	err := _MadnetFactoryBase.contract.Call(opts, &out, "owner")
+
+	if err != nil {
+		return *new(common.Address), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(common.Address)).(*common.Address)
+
+	return out0, err
+
+}
+
+// Owner is a free data retrieval call binding the contract method 0x8da5cb5b.
+//
+// Solidity: function owner() view returns(address _v)
+func (_MadnetFactoryBase *MadnetFactoryBaseSession) Owner() (common.Address, error) {
+	return _MadnetFactoryBase.Contract.Owner(&_MadnetFactoryBase.CallOpts)
+}
+
+// Owner is a free data retrieval call binding the contract method 0x8da5cb5b.
+//
+// Solidity: function owner() view returns(address _v)
+func (_MadnetFactoryBase *MadnetFactoryBaseCallerSession) Owner() (common.Address, error) {
+	return _MadnetFactoryBase.Contract.Owner(&_MadnetFactoryBase.CallOpts)
+}
+
+// SetDelegator is a paid mutator transaction binding the contract method 0x83cd9cc3.
+//
+// Solidity: function setDelegator(address _v) returns()
+func (_MadnetFactoryBase *MadnetFactoryBaseTransactor) SetDelegator(opts *bind.TransactOpts, _v common.Address) (*types.Transaction, error) {
+	return _MadnetFactoryBase.contract.Transact(opts, "setDelegator", _v)
+}
+
+// SetDelegator is a paid mutator transaction binding the contract method 0x83cd9cc3.
+//
+// Solidity: function setDelegator(address _v) returns()
+func (_MadnetFactoryBase *MadnetFactoryBaseSession) SetDelegator(_v common.Address) (*types.Transaction, error) {
+	return _MadnetFactoryBase.Contract.SetDelegator(&_MadnetFactoryBase.TransactOpts, _v)
+}
+
+// SetDelegator is a paid mutator transaction binding the contract method 0x83cd9cc3.
+//
+// Solidity: function setDelegator(address _v) returns()
+func (_MadnetFactoryBase *MadnetFactoryBaseTransactorSession) SetDelegator(_v common.Address) (*types.Transaction, error) {
+	return _MadnetFactoryBase.Contract.SetDelegator(&_MadnetFactoryBase.TransactOpts, _v)
+}
+
+// SetImplementation is a paid mutator transaction binding the contract method 0xd784d426.
+//
+// Solidity: function setImplementation(address _v) returns()
+func (_MadnetFactoryBase *MadnetFactoryBaseTransactor) SetImplementation(opts *bind.TransactOpts, _v common.Address) (*types.Transaction, error) {
+	return _MadnetFactoryBase.contract.Transact(opts, "setImplementation", _v)
+}
+
+// SetImplementation is a paid mutator transaction binding the contract method 0xd784d426.
+//
+// Solidity: function setImplementation(address _v) returns()
+func (_MadnetFactoryBase *MadnetFactoryBaseSession) SetImplementation(_v common.Address) (*types.Transaction, error) {
+	return _MadnetFactoryBase.Contract.SetImplementation(&_MadnetFactoryBase.TransactOpts, _v)
+}
+
+// SetImplementation is a paid mutator transaction binding the contract method 0xd784d426.
+//
+// Solidity: function setImplementation(address _v) returns()
+func (_MadnetFactoryBase *MadnetFactoryBaseTransactorSession) SetImplementation(_v common.Address) (*types.Transaction, error) {
+	return _MadnetFactoryBase.Contract.SetImplementation(&_MadnetFactoryBase.TransactOpts, _v)
+}
+
+// SetOwner is a paid mutator transaction binding the contract method 0x13af4035.
+//
+// Solidity: function setOwner(address _v) returns()
+func (_MadnetFactoryBase *MadnetFactoryBaseTransactor) SetOwner(opts *bind.TransactOpts, _v common.Address) (*types.Transaction, error) {
+	return _MadnetFactoryBase.contract.Transact(opts, "setOwner", _v)
+}
+
+// SetOwner is a paid mutator transaction binding the contract method 0x13af4035.
+//
+// Solidity: function setOwner(address _v) returns()
+func (_MadnetFactoryBase *MadnetFactoryBaseSession) SetOwner(_v common.Address) (*types.Transaction, error) {
+	return _MadnetFactoryBase.Contract.SetOwner(&_MadnetFactoryBase.TransactOpts, _v)
+}
+
+// SetOwner is a paid mutator transaction binding the contract method 0x13af4035.
+//
+// Solidity: function setOwner(address _v) returns()
+func (_MadnetFactoryBase *MadnetFactoryBaseTransactorSession) SetOwner(_v common.Address) (*types.Transaction, error) {
+	return _MadnetFactoryBase.Contract.SetOwner(&_MadnetFactoryBase.TransactOpts, _v)
+}
+
+// Fallback is a paid mutator transaction binding the contract fallback function.
+//
+// Solidity: fallback() returns()
+func (_MadnetFactoryBase *MadnetFactoryBaseTransactor) Fallback(opts *bind.TransactOpts, calldata []byte) (*types.Transaction, error) {
+	return _MadnetFactoryBase.contract.RawTransact(opts, calldata)
+}
+
+// Fallback is a paid mutator transaction binding the contract fallback function.
+//
+// Solidity: fallback() returns()
+func (_MadnetFactoryBase *MadnetFactoryBaseSession) Fallback(calldata []byte) (*types.Transaction, error) {
+	return _MadnetFactoryBase.Contract.Fallback(&_MadnetFactoryBase.TransactOpts, calldata)
+}
+
+// Fallback is a paid mutator transaction binding the contract fallback function.
+//
+// Solidity: fallback() returns()
+func (_MadnetFactoryBase *MadnetFactoryBaseTransactorSession) Fallback(calldata []byte) (*types.Transaction, error) {
+	return _MadnetFactoryBase.Contract.Fallback(&_MadnetFactoryBase.TransactOpts, calldata)
+}
+
+// MadnetFactoryBaseDeployedIterator is returned from FilterDeployed and is used to iterate over the raw logs and unpacked data for Deployed events raised by the MadnetFactoryBase contract.
+type MadnetFactoryBaseDeployedIterator struct {
+	Event *MadnetFactoryBaseDeployed // Event containing the contract specifics and raw log
+
+	contract *bind.BoundContract // Generic contract to use for unpacking event data
+	event    string              // Event name to use for unpacking event data
+
+	logs chan types.Log        // Log channel receiving the found contract events
+	sub  ethereum.Subscription // Subscription for errors, completion and termination
+	done bool                  // Whether the subscription completed delivering logs
+	fail error                 // Occurred error to stop iteration
+}
+
+// Next advances the iterator to the subsequent event, returning whether there
+// are any more events found. In case of a retrieval or parsing error, false is
+// returned and Error() can be queried for the exact failure.
+func (it *MadnetFactoryBaseDeployedIterator) Next() bool {
+	// If the iterator failed, stop iterating
+	if it.fail != nil {
+		return false
+	}
+	// If the iterator completed, deliver directly whatever's available
+	if it.done {
+		select {
+		case log := <-it.logs:
+			it.Event = new(MadnetFactoryBaseDeployed)
+			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+				it.fail = err
+				return false
+			}
+			it.Event.Raw = log
+			return true
+
+		default:
+			return false
+		}
+	}
+	// Iterator still in progress, wait for either a data or an error event
+	select {
+	case log := <-it.logs:
+		it.Event = new(MadnetFactoryBaseDeployed)
+		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+			it.fail = err
+			return false
+		}
+		it.Event.Raw = log
+		return true
+
+	case err := <-it.sub.Err():
+		it.done = true
+		it.fail = err
+		return it.Next()
+	}
+}
+
+// Error returns any retrieval or parsing error occurred during filtering.
+func (it *MadnetFactoryBaseDeployedIterator) Error() error {
+	return it.fail
+}
+
+// Close terminates the iteration process, releasing any pending underlying
+// resources.
+func (it *MadnetFactoryBaseDeployedIterator) Close() error {
+	it.sub.Unsubscribe()
+	return nil
+}
+
+// MadnetFactoryBaseDeployed represents a Deployed event raised by the MadnetFactoryBase contract.
+type MadnetFactoryBaseDeployed struct {
+	Salt         [32]byte
+	ContractAddr common.Address
+	Raw          types.Log // Blockchain specific contextual infos
+}
+
+// FilterDeployed is a free log retrieval operation binding the contract event 0xe491e278e37782abe0872fe7c7b549cd7b0713d0c5c1e84a81899a5fdf32087b.
+//
+// Solidity: event Deployed(bytes32 salt, address contractAddr)
+func (_MadnetFactoryBase *MadnetFactoryBaseFilterer) FilterDeployed(opts *bind.FilterOpts) (*MadnetFactoryBaseDeployedIterator, error) {
+
+	logs, sub, err := _MadnetFactoryBase.contract.FilterLogs(opts, "Deployed")
+	if err != nil {
+		return nil, err
+	}
+	return &MadnetFactoryBaseDeployedIterator{contract: _MadnetFactoryBase.contract, event: "Deployed", logs: logs, sub: sub}, nil
+}
+
+// WatchDeployed is a free log subscription operation binding the contract event 0xe491e278e37782abe0872fe7c7b549cd7b0713d0c5c1e84a81899a5fdf32087b.
+//
+// Solidity: event Deployed(bytes32 salt, address contractAddr)
+func (_MadnetFactoryBase *MadnetFactoryBaseFilterer) WatchDeployed(opts *bind.WatchOpts, sink chan<- *MadnetFactoryBaseDeployed) (event.Subscription, error) {
+
+	logs, sub, err := _MadnetFactoryBase.contract.WatchLogs(opts, "Deployed")
+	if err != nil {
+		return nil, err
+	}
+	return event.NewSubscription(func(quit <-chan struct{}) error {
+		defer sub.Unsubscribe()
+		for {
+			select {
+			case log := <-logs:
+				// New log arrived, parse the event and forward to the user
+				event := new(MadnetFactoryBaseDeployed)
+				if err := _MadnetFactoryBase.contract.UnpackLog(event, "Deployed", log); err != nil {
+					return err
+				}
+				event.Raw = log
+
+				select {
+				case sink <- event:
+				case err := <-sub.Err():
+					return err
+				case <-quit:
+					return nil
+				}
+			case err := <-sub.Err():
+				return err
+			case <-quit:
+				return nil
+			}
+		}
+	}), nil
+}
+
+// ParseDeployed is a log parse operation binding the contract event 0xe491e278e37782abe0872fe7c7b549cd7b0713d0c5c1e84a81899a5fdf32087b.
+//
+// Solidity: event Deployed(bytes32 salt, address contractAddr)
+func (_MadnetFactoryBase *MadnetFactoryBaseFilterer) ParseDeployed(log types.Log) (*MadnetFactoryBaseDeployed, error) {
+	event := new(MadnetFactoryBaseDeployed)
+	if err := _MadnetFactoryBase.contract.UnpackLog(event, "Deployed", log); err != nil {
+		return nil, err
+	}
+	event.Raw = log
+	return event, nil
+}
+
+// MadnetFactoryBaseDeployedProxyIterator is returned from FilterDeployedProxy and is used to iterate over the raw logs and unpacked data for DeployedProxy events raised by the MadnetFactoryBase contract.
+type MadnetFactoryBaseDeployedProxyIterator struct {
+	Event *MadnetFactoryBaseDeployedProxy // Event containing the contract specifics and raw log
+
+	contract *bind.BoundContract // Generic contract to use for unpacking event data
+	event    string              // Event name to use for unpacking event data
+
+	logs chan types.Log        // Log channel receiving the found contract events
+	sub  ethereum.Subscription // Subscription for errors, completion and termination
+	done bool                  // Whether the subscription completed delivering logs
+	fail error                 // Occurred error to stop iteration
+}
+
+// Next advances the iterator to the subsequent event, returning whether there
+// are any more events found. In case of a retrieval or parsing error, false is
+// returned and Error() can be queried for the exact failure.
+func (it *MadnetFactoryBaseDeployedProxyIterator) Next() bool {
+	// If the iterator failed, stop iterating
+	if it.fail != nil {
+		return false
+	}
+	// If the iterator completed, deliver directly whatever's available
+	if it.done {
+		select {
+		case log := <-it.logs:
+			it.Event = new(MadnetFactoryBaseDeployedProxy)
+			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+				it.fail = err
+				return false
+			}
+			it.Event.Raw = log
+			return true
+
+		default:
+			return false
+		}
+	}
+	// Iterator still in progress, wait for either a data or an error event
+	select {
+	case log := <-it.logs:
+		it.Event = new(MadnetFactoryBaseDeployedProxy)
+		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+			it.fail = err
+			return false
+		}
+		it.Event.Raw = log
+		return true
+
+	case err := <-it.sub.Err():
+		it.done = true
+		it.fail = err
+		return it.Next()
+	}
+}
+
+// Error returns any retrieval or parsing error occurred during filtering.
+func (it *MadnetFactoryBaseDeployedProxyIterator) Error() error {
+	return it.fail
+}
+
+// Close terminates the iteration process, releasing any pending underlying
+// resources.
+func (it *MadnetFactoryBaseDeployedProxyIterator) Close() error {
+	it.sub.Unsubscribe()
+	return nil
+}
+
+// MadnetFactoryBaseDeployedProxy represents a DeployedProxy event raised by the MadnetFactoryBase contract.
+type MadnetFactoryBaseDeployedProxy struct {
+	ContractAddr common.Address
+	Raw          types.Log // Blockchain specific contextual infos
+}
+
+// FilterDeployedProxy is a free log retrieval operation binding the contract event 0x06690e5b52be10a3d5820ec875c3dd3327f3077954a09f104201e40e5f7082c6.
+//
+// Solidity: event DeployedProxy(address contractAddr)
+func (_MadnetFactoryBase *MadnetFactoryBaseFilterer) FilterDeployedProxy(opts *bind.FilterOpts) (*MadnetFactoryBaseDeployedProxyIterator, error) {
+
+	logs, sub, err := _MadnetFactoryBase.contract.FilterLogs(opts, "DeployedProxy")
+	if err != nil {
+		return nil, err
+	}
+	return &MadnetFactoryBaseDeployedProxyIterator{contract: _MadnetFactoryBase.contract, event: "DeployedProxy", logs: logs, sub: sub}, nil
+}
+
+// WatchDeployedProxy is a free log subscription operation binding the contract event 0x06690e5b52be10a3d5820ec875c3dd3327f3077954a09f104201e40e5f7082c6.
+//
+// Solidity: event DeployedProxy(address contractAddr)
+func (_MadnetFactoryBase *MadnetFactoryBaseFilterer) WatchDeployedProxy(opts *bind.WatchOpts, sink chan<- *MadnetFactoryBaseDeployedProxy) (event.Subscription, error) {
+
+	logs, sub, err := _MadnetFactoryBase.contract.WatchLogs(opts, "DeployedProxy")
+	if err != nil {
+		return nil, err
+	}
+	return event.NewSubscription(func(quit <-chan struct{}) error {
+		defer sub.Unsubscribe()
+		for {
+			select {
+			case log := <-logs:
+				// New log arrived, parse the event and forward to the user
+				event := new(MadnetFactoryBaseDeployedProxy)
+				if err := _MadnetFactoryBase.contract.UnpackLog(event, "DeployedProxy", log); err != nil {
+					return err
+				}
+				event.Raw = log
+
+				select {
+				case sink <- event:
+				case err := <-sub.Err():
+					return err
+				case <-quit:
+					return nil
+				}
+			case err := <-sub.Err():
+				return err
+			case <-quit:
+				return nil
+			}
+		}
+	}), nil
+}
+
+// ParseDeployedProxy is a log parse operation binding the contract event 0x06690e5b52be10a3d5820ec875c3dd3327f3077954a09f104201e40e5f7082c6.
+//
+// Solidity: event DeployedProxy(address contractAddr)
+func (_MadnetFactoryBase *MadnetFactoryBaseFilterer) ParseDeployedProxy(log types.Log) (*MadnetFactoryBaseDeployedProxy, error) {
+	event := new(MadnetFactoryBaseDeployedProxy)
+	if err := _MadnetFactoryBase.contract.UnpackLog(event, "DeployedProxy", log); err != nil {
+		return nil, err
+	}
+	event.Raw = log
+	return event, nil
+}
+
+// MadnetFactoryBaseDeployedRawIterator is returned from FilterDeployedRaw and is used to iterate over the raw logs and unpacked data for DeployedRaw events raised by the MadnetFactoryBase contract.
+type MadnetFactoryBaseDeployedRawIterator struct {
+	Event *MadnetFactoryBaseDeployedRaw // Event containing the contract specifics and raw log
+
+	contract *bind.BoundContract // Generic contract to use for unpacking event data
+	event    string              // Event name to use for unpacking event data
+
+	logs chan types.Log        // Log channel receiving the found contract events
+	sub  ethereum.Subscription // Subscription for errors, completion and termination
+	done bool                  // Whether the subscription completed delivering logs
+	fail error                 // Occurred error to stop iteration
+}
+
+// Next advances the iterator to the subsequent event, returning whether there
+// are any more events found. In case of a retrieval or parsing error, false is
+// returned and Error() can be queried for the exact failure.
+func (it *MadnetFactoryBaseDeployedRawIterator) Next() bool {
+	// If the iterator failed, stop iterating
+	if it.fail != nil {
+		return false
+	}
+	// If the iterator completed, deliver directly whatever's available
+	if it.done {
+		select {
+		case log := <-it.logs:
+			it.Event = new(MadnetFactoryBaseDeployedRaw)
+			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+				it.fail = err
+				return false
+			}
+			it.Event.Raw = log
+			return true
+
+		default:
+			return false
+		}
+	}
+	// Iterator still in progress, wait for either a data or an error event
+	select {
+	case log := <-it.logs:
+		it.Event = new(MadnetFactoryBaseDeployedRaw)
+		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+			it.fail = err
+			return false
+		}
+		it.Event.Raw = log
+		return true
+
+	case err := <-it.sub.Err():
+		it.done = true
+		it.fail = err
+		return it.Next()
+	}
+}
+
+// Error returns any retrieval or parsing error occurred during filtering.
+func (it *MadnetFactoryBaseDeployedRawIterator) Error() error {
+	return it.fail
+}
+
+// Close terminates the iteration process, releasing any pending underlying
+// resources.
+func (it *MadnetFactoryBaseDeployedRawIterator) Close() error {
+	it.sub.Unsubscribe()
+	return nil
+}
+
+// MadnetFactoryBaseDeployedRaw represents a DeployedRaw event raised by the MadnetFactoryBase contract.
+type MadnetFactoryBaseDeployedRaw struct {
+	ContractAddr common.Address
+	Raw          types.Log // Blockchain specific contextual infos
+}
+
+// FilterDeployedRaw is a free log retrieval operation binding the contract event 0xd3acf0da590cfcd8f020afd7f40b7e6e4c8bd2fc9eb7aec9836837b667685b3a.
+//
+// Solidity: event DeployedRaw(address contractAddr)
+func (_MadnetFactoryBase *MadnetFactoryBaseFilterer) FilterDeployedRaw(opts *bind.FilterOpts) (*MadnetFactoryBaseDeployedRawIterator, error) {
+
+	logs, sub, err := _MadnetFactoryBase.contract.FilterLogs(opts, "DeployedRaw")
+	if err != nil {
+		return nil, err
+	}
+	return &MadnetFactoryBaseDeployedRawIterator{contract: _MadnetFactoryBase.contract, event: "DeployedRaw", logs: logs, sub: sub}, nil
+}
+
+// WatchDeployedRaw is a free log subscription operation binding the contract event 0xd3acf0da590cfcd8f020afd7f40b7e6e4c8bd2fc9eb7aec9836837b667685b3a.
+//
+// Solidity: event DeployedRaw(address contractAddr)
+func (_MadnetFactoryBase *MadnetFactoryBaseFilterer) WatchDeployedRaw(opts *bind.WatchOpts, sink chan<- *MadnetFactoryBaseDeployedRaw) (event.Subscription, error) {
+
+	logs, sub, err := _MadnetFactoryBase.contract.WatchLogs(opts, "DeployedRaw")
+	if err != nil {
+		return nil, err
+	}
+	return event.NewSubscription(func(quit <-chan struct{}) error {
+		defer sub.Unsubscribe()
+		for {
+			select {
+			case log := <-logs:
+				// New log arrived, parse the event and forward to the user
+				event := new(MadnetFactoryBaseDeployedRaw)
+				if err := _MadnetFactoryBase.contract.UnpackLog(event, "DeployedRaw", log); err != nil {
+					return err
+				}
+				event.Raw = log
+
+				select {
+				case sink <- event:
+				case err := <-sub.Err():
+					return err
+				case <-quit:
+					return nil
+				}
+			case err := <-sub.Err():
+				return err
+			case <-quit:
+				return nil
+			}
+		}
+	}), nil
+}
+
+// ParseDeployedRaw is a log parse operation binding the contract event 0xd3acf0da590cfcd8f020afd7f40b7e6e4c8bd2fc9eb7aec9836837b667685b3a.
+//
+// Solidity: event DeployedRaw(address contractAddr)
+func (_MadnetFactoryBase *MadnetFactoryBaseFilterer) ParseDeployedRaw(log types.Log) (*MadnetFactoryBaseDeployedRaw, error) {
+	event := new(MadnetFactoryBaseDeployedRaw)
+	if err := _MadnetFactoryBase.contract.UnpackLog(event, "DeployedRaw", log); err != nil {
+		return nil, err
+	}
+	event.Raw = log
+	return event, nil
+}
+
+// MadnetFactoryBaseDeployedStaticIterator is returned from FilterDeployedStatic and is used to iterate over the raw logs and unpacked data for DeployedStatic events raised by the MadnetFactoryBase contract.
+type MadnetFactoryBaseDeployedStaticIterator struct {
+	Event *MadnetFactoryBaseDeployedStatic // Event containing the contract specifics and raw log
+
+	contract *bind.BoundContract // Generic contract to use for unpacking event data
+	event    string              // Event name to use for unpacking event data
+
+	logs chan types.Log        // Log channel receiving the found contract events
+	sub  ethereum.Subscription // Subscription for errors, completion and termination
+	done bool                  // Whether the subscription completed delivering logs
+	fail error                 // Occurred error to stop iteration
+}
+
+// Next advances the iterator to the subsequent event, returning whether there
+// are any more events found. In case of a retrieval or parsing error, false is
+// returned and Error() can be queried for the exact failure.
+func (it *MadnetFactoryBaseDeployedStaticIterator) Next() bool {
+	// If the iterator failed, stop iterating
+	if it.fail != nil {
+		return false
+	}
+	// If the iterator completed, deliver directly whatever's available
+	if it.done {
+		select {
+		case log := <-it.logs:
+			it.Event = new(MadnetFactoryBaseDeployedStatic)
+			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+				it.fail = err
+				return false
+			}
+			it.Event.Raw = log
+			return true
+
+		default:
+			return false
+		}
+	}
+	// Iterator still in progress, wait for either a data or an error event
+	select {
+	case log := <-it.logs:
+		it.Event = new(MadnetFactoryBaseDeployedStatic)
+		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+			it.fail = err
+			return false
+		}
+		it.Event.Raw = log
+		return true
+
+	case err := <-it.sub.Err():
+		it.done = true
+		it.fail = err
+		return it.Next()
+	}
+}
+
+// Error returns any retrieval or parsing error occurred during filtering.
+func (it *MadnetFactoryBaseDeployedStaticIterator) Error() error {
+	return it.fail
+}
+
+// Close terminates the iteration process, releasing any pending underlying
+// resources.
+func (it *MadnetFactoryBaseDeployedStaticIterator) Close() error {
+	it.sub.Unsubscribe()
+	return nil
+}
+
+// MadnetFactoryBaseDeployedStatic represents a DeployedStatic event raised by the MadnetFactoryBase contract.
+type MadnetFactoryBaseDeployedStatic struct {
+	ContractAddr common.Address
+	Raw          types.Log // Blockchain specific contextual infos
+}
+
+// FilterDeployedStatic is a free log retrieval operation binding the contract event 0xe8b9cb7d60827a7d55e211f1382dd0f129adb541af9fe45a09ab4a18b76e7c65.
+//
+// Solidity: event DeployedStatic(address contractAddr)
+func (_MadnetFactoryBase *MadnetFactoryBaseFilterer) FilterDeployedStatic(opts *bind.FilterOpts) (*MadnetFactoryBaseDeployedStaticIterator, error) {
+
+	logs, sub, err := _MadnetFactoryBase.contract.FilterLogs(opts, "DeployedStatic")
+	if err != nil {
+		return nil, err
+	}
+	return &MadnetFactoryBaseDeployedStaticIterator{contract: _MadnetFactoryBase.contract, event: "DeployedStatic", logs: logs, sub: sub}, nil
+}
+
+// WatchDeployedStatic is a free log subscription operation binding the contract event 0xe8b9cb7d60827a7d55e211f1382dd0f129adb541af9fe45a09ab4a18b76e7c65.
+//
+// Solidity: event DeployedStatic(address contractAddr)
+func (_MadnetFactoryBase *MadnetFactoryBaseFilterer) WatchDeployedStatic(opts *bind.WatchOpts, sink chan<- *MadnetFactoryBaseDeployedStatic) (event.Subscription, error) {
+
+	logs, sub, err := _MadnetFactoryBase.contract.WatchLogs(opts, "DeployedStatic")
+	if err != nil {
+		return nil, err
+	}
+	return event.NewSubscription(func(quit <-chan struct{}) error {
+		defer sub.Unsubscribe()
+		for {
+			select {
+			case log := <-logs:
+				// New log arrived, parse the event and forward to the user
+				event := new(MadnetFactoryBaseDeployedStatic)
+				if err := _MadnetFactoryBase.contract.UnpackLog(event, "DeployedStatic", log); err != nil {
+					return err
+				}
+				event.Raw = log
+
+				select {
+				case sink <- event:
+				case err := <-sub.Err():
+					return err
+				case <-quit:
+					return nil
+				}
+			case err := <-sub.Err():
+				return err
+			case <-quit:
+				return nil
+			}
+		}
+	}), nil
+}
+
+// ParseDeployedStatic is a log parse operation binding the contract event 0xe8b9cb7d60827a7d55e211f1382dd0f129adb541af9fe45a09ab4a18b76e7c65.
+//
+// Solidity: event DeployedStatic(address contractAddr)
+func (_MadnetFactoryBase *MadnetFactoryBaseFilterer) ParseDeployedStatic(log types.Log) (*MadnetFactoryBaseDeployedStatic, error) {
+	event := new(MadnetFactoryBaseDeployedStatic)
+	if err := _MadnetFactoryBase.contract.UnpackLog(event, "DeployedStatic", log); err != nil {
+		return nil, err
+	}
+	event.Raw = log
+	return event, nil
+}
+
+// MadnetFactoryBaseDeployedTemplateIterator is returned from FilterDeployedTemplate and is used to iterate over the raw logs and unpacked data for DeployedTemplate events raised by the MadnetFactoryBase contract.
+type MadnetFactoryBaseDeployedTemplateIterator struct {
+	Event *MadnetFactoryBaseDeployedTemplate // Event containing the contract specifics and raw log
+
+	contract *bind.BoundContract // Generic contract to use for unpacking event data
+	event    string              // Event name to use for unpacking event data
+
+	logs chan types.Log        // Log channel receiving the found contract events
+	sub  ethereum.Subscription // Subscription for errors, completion and termination
+	done bool                  // Whether the subscription completed delivering logs
+	fail error                 // Occurred error to stop iteration
+}
+
+// Next advances the iterator to the subsequent event, returning whether there
+// are any more events found. In case of a retrieval or parsing error, false is
+// returned and Error() can be queried for the exact failure.
+func (it *MadnetFactoryBaseDeployedTemplateIterator) Next() bool {
+	// If the iterator failed, stop iterating
+	if it.fail != nil {
+		return false
+	}
+	// If the iterator completed, deliver directly whatever's available
+	if it.done {
+		select {
+		case log := <-it.logs:
+			it.Event = new(MadnetFactoryBaseDeployedTemplate)
+			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+				it.fail = err
+				return false
+			}
+			it.Event.Raw = log
+			return true
+
+		default:
+			return false
+		}
+	}
+	// Iterator still in progress, wait for either a data or an error event
+	select {
+	case log := <-it.logs:
+		it.Event = new(MadnetFactoryBaseDeployedTemplate)
+		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+			it.fail = err
+			return false
+		}
+		it.Event.Raw = log
+		return true
+
+	case err := <-it.sub.Err():
+		it.done = true
+		it.fail = err
+		return it.Next()
+	}
+}
+
+// Error returns any retrieval or parsing error occurred during filtering.
+func (it *MadnetFactoryBaseDeployedTemplateIterator) Error() error {
+	return it.fail
+}
+
+// Close terminates the iteration process, releasing any pending underlying
+// resources.
+func (it *MadnetFactoryBaseDeployedTemplateIterator) Close() error {
+	it.sub.Unsubscribe()
+	return nil
+}
+
+// MadnetFactoryBaseDeployedTemplate represents a DeployedTemplate event raised by the MadnetFactoryBase contract.
+type MadnetFactoryBaseDeployedTemplate struct {
+	ContractAddr common.Address
+	Raw          types.Log // Blockchain specific contextual infos
+}
+
+// FilterDeployedTemplate is a free log retrieval operation binding the contract event 0x6cd94ea1c5d9f99038bb4629d8a759399654d3861b73bf3a2b0cf484dae72138.
+//
+// Solidity: event DeployedTemplate(address contractAddr)
+func (_MadnetFactoryBase *MadnetFactoryBaseFilterer) FilterDeployedTemplate(opts *bind.FilterOpts) (*MadnetFactoryBaseDeployedTemplateIterator, error) {
+
+	logs, sub, err := _MadnetFactoryBase.contract.FilterLogs(opts, "DeployedTemplate")
+	if err != nil {
+		return nil, err
+	}
+	return &MadnetFactoryBaseDeployedTemplateIterator{contract: _MadnetFactoryBase.contract, event: "DeployedTemplate", logs: logs, sub: sub}, nil
+}
+
+// WatchDeployedTemplate is a free log subscription operation binding the contract event 0x6cd94ea1c5d9f99038bb4629d8a759399654d3861b73bf3a2b0cf484dae72138.
+//
+// Solidity: event DeployedTemplate(address contractAddr)
+func (_MadnetFactoryBase *MadnetFactoryBaseFilterer) WatchDeployedTemplate(opts *bind.WatchOpts, sink chan<- *MadnetFactoryBaseDeployedTemplate) (event.Subscription, error) {
+
+	logs, sub, err := _MadnetFactoryBase.contract.WatchLogs(opts, "DeployedTemplate")
+	if err != nil {
+		return nil, err
+	}
+	return event.NewSubscription(func(quit <-chan struct{}) error {
+		defer sub.Unsubscribe()
+		for {
+			select {
+			case log := <-logs:
+				// New log arrived, parse the event and forward to the user
+				event := new(MadnetFactoryBaseDeployedTemplate)
+				if err := _MadnetFactoryBase.contract.UnpackLog(event, "DeployedTemplate", log); err != nil {
+					return err
+				}
+				event.Raw = log
+
+				select {
+				case sink <- event:
+				case err := <-sub.Err():
+					return err
+				case <-quit:
+					return nil
+				}
+			case err := <-sub.Err():
+				return err
+			case <-quit:
+				return nil
+			}
+		}
+	}), nil
+}
+
+// ParseDeployedTemplate is a log parse operation binding the contract event 0x6cd94ea1c5d9f99038bb4629d8a759399654d3861b73bf3a2b0cf484dae72138.
+//
+// Solidity: event DeployedTemplate(address contractAddr)
+func (_MadnetFactoryBase *MadnetFactoryBaseFilterer) ParseDeployedTemplate(log types.Log) (*MadnetFactoryBaseDeployedTemplate, error) {
+	event := new(MadnetFactoryBaseDeployedTemplate)
+	if err := _MadnetFactoryBase.contract.UnpackLog(event, "DeployedTemplate", log); err != nil {
+		return nil, err
+	}
+	event.Raw = log
+	return event, nil
+}
+
 // MagicEthTransferMetaData contains all meta data concerning the MagicEthTransfer contract.
 var MagicEthTransferMetaData = &bind.MetaData{
 	ABI: "[]",
@@ -25446,466 +27986,6 @@ func (_RClaimsParserLibrary *RClaimsParserLibraryTransactorRaw) Transact(opts *b
 	return _RClaimsParserLibrary.Contract.contract.Transact(opts, method, params...)
 }
 
-// RegistryMetaData contains all meta data concerning the Registry contract.
-var RegistryMetaData = &bind.MetaData{
-	ABI: "[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_operator\",\"type\":\"address\"}],\"name\":\"grantOperator\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"string\",\"name\":\"name\",\"type\":\"string\"}],\"name\":\"lookup\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"string\",\"name\":\"name\",\"type\":\"string\"},{\"internalType\":\"address\",\"name\":\"dst\",\"type\":\"address\"}],\"name\":\"register\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"string\",\"name\":\"name\",\"type\":\"string\"}],\"name\":\"remove\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_operator\",\"type\":\"address\"}],\"name\":\"revokeOperator\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}]",
-	Bin: "0x608060405234801561001057600080fd5b50600280546001600160a01b0319163390811790915561002f90610034565b610129565b6002546001600160a01b031633148061005c57503360009081526020819052604090205460ff165b6100c65760405162461bcd60e51b815260206004820152603160248201527f46756e6374696f6e616c697479207265737472696374656420746f206175746860448201527037b934bd32b21037b832b930ba37b9399760791b606482015260840160405180910390fd5b6001600160a01b0381166000908152602081905260408120805460ff191660019081179091558054916100f883610100565b919050555050565b600060001982141561012257634e487b7160e01b600052601160045260246000fd5b5060010190565b6108d5806101386000396000f3fe608060405234801561001057600080fd5b50600436106100675760003560e01c8063e348da1311610050578063e348da1314610094578063f67187ac146100a7578063fad8b32a146100e357600080fd5b80631e59c5291461006c57806380599e4b14610081575b600080fd5b61007f61007a36600461071a565b6100f6565b005b61007f61008f366004610768565b610225565b61007f6100a23660046107a5565b61032e565b6100ba6100b5366004610768565b610454565b60405173ffffffffffffffffffffffffffffffffffffffff909116815260200160405180910390f35b61007f6100f13660046107a5565b610492565b60025473ffffffffffffffffffffffffffffffffffffffff1633148061012b57503360009081526020819052604090205460ff165b6101bc576040517f08c379a000000000000000000000000000000000000000000000000000000000815260206004820152603160248201527f46756e6374696f6e616c697479207265737472696374656420746f206175746860448201527f6f72697a6564206f70657261746f72732e00000000000000000000000000000060648201526084015b60405180910390fd5b806003836040516101cd91906107c7565b908152604051908190036020019020805473ffffffffffffffffffffffffffffffffffffffff929092167fffffffffffffffffffffffff00000000000000000000000000000000000000009092169190911790555050565b60025473ffffffffffffffffffffffffffffffffffffffff1633148061025a57503360009081526020819052604090205460ff165b6102e6576040517f08c379a000000000000000000000000000000000000000000000000000000000815260206004820152603160248201527f46756e6374696f6e616c697479207265737472696374656420746f206175746860448201527f6f72697a6564206f70657261746f72732e00000000000000000000000000000060648201526084016101b3565b6003816040516102f691906107c7565b90815260405190819003602001902080547fffffffffffffffffffffffff000000000000000000000000000000000000000016905550565b60025473ffffffffffffffffffffffffffffffffffffffff1633148061036357503360009081526020819052604090205460ff165b6103ef576040517f08c379a000000000000000000000000000000000000000000000000000000000815260206004820152603160248201527f46756e6374696f6e616c697479207265737472696374656420746f206175746860448201527f6f72697a6564206f70657261746f72732e00000000000000000000000000000060648201526084016101b3565b73ffffffffffffffffffffffffffffffffffffffff8116600090815260208190526040812080547fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff0016600190811790915580549161044c83610831565b919050555050565b600060038260405161046691906107c7565b9081526040519081900360200190205473ffffffffffffffffffffffffffffffffffffffff1692915050565b60025473ffffffffffffffffffffffffffffffffffffffff163314806104c757503360009081526020819052604090205460ff165b610553576040517f08c379a000000000000000000000000000000000000000000000000000000000815260206004820152603160248201527f46756e6374696f6e616c697479207265737472696374656420746f206175746860448201527f6f72697a6564206f70657261746f72732e00000000000000000000000000000060648201526084016101b3565b60018054116105be576040517f08c379a000000000000000000000000000000000000000000000000000000000815260206004820152601a60248201527f43616e27742072656d6f766520616c6c206f70657261746f727300000000000060448201526064016101b3565b73ffffffffffffffffffffffffffffffffffffffff8116600090815260208190526040812080547fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff00169055600180549161044c8361086a565b7f4e487b7100000000000000000000000000000000000000000000000000000000600052604160045260246000fd5b600082601f83011261065757600080fd5b813567ffffffffffffffff8082111561067257610672610617565b604051601f83017fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe0908116603f011681019082821181831017156106b8576106b8610617565b816040528381528660208588010111156106d157600080fd5b836020870160208301376000602085830101528094505050505092915050565b803573ffffffffffffffffffffffffffffffffffffffff8116811461071557600080fd5b919050565b6000806040838503121561072d57600080fd5b823567ffffffffffffffff81111561074457600080fd5b61075085828601610646565b92505061075f602084016106f1565b90509250929050565b60006020828403121561077a57600080fd5b813567ffffffffffffffff81111561079157600080fd5b61079d84828501610646565b949350505050565b6000602082840312156107b757600080fd5b6107c0826106f1565b9392505050565b6000825160005b818110156107e857602081860181015185830152016107ce565b818111156107f7576000828501525b509190910192915050565b7f4e487b7100000000000000000000000000000000000000000000000000000000600052601160045260246000fd5b60007fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff82141561086357610863610802565b5060010190565b60008161087957610879610802565b507fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff019056fea264697066735822122049f26d73bdf7be825da95f60bf49923a11a2ad75dab9cb2fcb470010880ff4e664736f6c634300080c0033",
-}
-
-// RegistryABI is the input ABI used to generate the binding from.
-// Deprecated: Use RegistryMetaData.ABI instead.
-var RegistryABI = RegistryMetaData.ABI
-
-// RegistryBin is the compiled bytecode used for deploying new contracts.
-// Deprecated: Use RegistryMetaData.Bin instead.
-var RegistryBin = RegistryMetaData.Bin
-
-// DeployRegistry deploys a new Ethereum contract, binding an instance of Registry to it.
-func DeployRegistry(auth *bind.TransactOpts, backend bind.ContractBackend) (common.Address, *types.Transaction, *Registry, error) {
-	parsed, err := RegistryMetaData.GetAbi()
-	if err != nil {
-		return common.Address{}, nil, nil, err
-	}
-	if parsed == nil {
-		return common.Address{}, nil, nil, errors.New("GetABI returned nil")
-	}
-
-	address, tx, contract, err := bind.DeployContract(auth, *parsed, common.FromHex(RegistryBin), backend)
-	if err != nil {
-		return common.Address{}, nil, nil, err
-	}
-	return address, tx, &Registry{RegistryCaller: RegistryCaller{contract: contract}, RegistryTransactor: RegistryTransactor{contract: contract}, RegistryFilterer: RegistryFilterer{contract: contract}}, nil
-}
-
-// Registry is an auto generated Go binding around an Ethereum contract.
-type Registry struct {
-	RegistryCaller     // Read-only binding to the contract
-	RegistryTransactor // Write-only binding to the contract
-	RegistryFilterer   // Log filterer for contract events
-}
-
-// RegistryCaller is an auto generated read-only Go binding around an Ethereum contract.
-type RegistryCaller struct {
-	contract *bind.BoundContract // Generic contract wrapper for the low level calls
-}
-
-// RegistryTransactor is an auto generated write-only Go binding around an Ethereum contract.
-type RegistryTransactor struct {
-	contract *bind.BoundContract // Generic contract wrapper for the low level calls
-}
-
-// RegistryFilterer is an auto generated log filtering Go binding around an Ethereum contract events.
-type RegistryFilterer struct {
-	contract *bind.BoundContract // Generic contract wrapper for the low level calls
-}
-
-// RegistrySession is an auto generated Go binding around an Ethereum contract,
-// with pre-set call and transact options.
-type RegistrySession struct {
-	Contract     *Registry         // Generic contract binding to set the session for
-	CallOpts     bind.CallOpts     // Call options to use throughout this session
-	TransactOpts bind.TransactOpts // Transaction auth options to use throughout this session
-}
-
-// RegistryCallerSession is an auto generated read-only Go binding around an Ethereum contract,
-// with pre-set call options.
-type RegistryCallerSession struct {
-	Contract *RegistryCaller // Generic contract caller binding to set the session for
-	CallOpts bind.CallOpts   // Call options to use throughout this session
-}
-
-// RegistryTransactorSession is an auto generated write-only Go binding around an Ethereum contract,
-// with pre-set transact options.
-type RegistryTransactorSession struct {
-	Contract     *RegistryTransactor // Generic contract transactor binding to set the session for
-	TransactOpts bind.TransactOpts   // Transaction auth options to use throughout this session
-}
-
-// RegistryRaw is an auto generated low-level Go binding around an Ethereum contract.
-type RegistryRaw struct {
-	Contract *Registry // Generic contract binding to access the raw methods on
-}
-
-// RegistryCallerRaw is an auto generated low-level read-only Go binding around an Ethereum contract.
-type RegistryCallerRaw struct {
-	Contract *RegistryCaller // Generic read-only contract binding to access the raw methods on
-}
-
-// RegistryTransactorRaw is an auto generated low-level write-only Go binding around an Ethereum contract.
-type RegistryTransactorRaw struct {
-	Contract *RegistryTransactor // Generic write-only contract binding to access the raw methods on
-}
-
-// NewRegistry creates a new instance of Registry, bound to a specific deployed contract.
-func NewRegistry(address common.Address, backend bind.ContractBackend) (*Registry, error) {
-	contract, err := bindRegistry(address, backend, backend, backend)
-	if err != nil {
-		return nil, err
-	}
-	return &Registry{RegistryCaller: RegistryCaller{contract: contract}, RegistryTransactor: RegistryTransactor{contract: contract}, RegistryFilterer: RegistryFilterer{contract: contract}}, nil
-}
-
-// NewRegistryCaller creates a new read-only instance of Registry, bound to a specific deployed contract.
-func NewRegistryCaller(address common.Address, caller bind.ContractCaller) (*RegistryCaller, error) {
-	contract, err := bindRegistry(address, caller, nil, nil)
-	if err != nil {
-		return nil, err
-	}
-	return &RegistryCaller{contract: contract}, nil
-}
-
-// NewRegistryTransactor creates a new write-only instance of Registry, bound to a specific deployed contract.
-func NewRegistryTransactor(address common.Address, transactor bind.ContractTransactor) (*RegistryTransactor, error) {
-	contract, err := bindRegistry(address, nil, transactor, nil)
-	if err != nil {
-		return nil, err
-	}
-	return &RegistryTransactor{contract: contract}, nil
-}
-
-// NewRegistryFilterer creates a new log filterer instance of Registry, bound to a specific deployed contract.
-func NewRegistryFilterer(address common.Address, filterer bind.ContractFilterer) (*RegistryFilterer, error) {
-	contract, err := bindRegistry(address, nil, nil, filterer)
-	if err != nil {
-		return nil, err
-	}
-	return &RegistryFilterer{contract: contract}, nil
-}
-
-// bindRegistry binds a generic wrapper to an already deployed contract.
-func bindRegistry(address common.Address, caller bind.ContractCaller, transactor bind.ContractTransactor, filterer bind.ContractFilterer) (*bind.BoundContract, error) {
-	parsed, err := abi.JSON(strings.NewReader(RegistryABI))
-	if err != nil {
-		return nil, err
-	}
-	return bind.NewBoundContract(address, parsed, caller, transactor, filterer), nil
-}
-
-// Call invokes the (constant) contract method with params as input values and
-// sets the output to result. The result type might be a single field for simple
-// returns, a slice of interfaces for anonymous returns and a struct for named
-// returns.
-func (_Registry *RegistryRaw) Call(opts *bind.CallOpts, result *[]interface{}, method string, params ...interface{}) error {
-	return _Registry.Contract.RegistryCaller.contract.Call(opts, result, method, params...)
-}
-
-// Transfer initiates a plain transaction to move funds to the contract, calling
-// its default method if one is available.
-func (_Registry *RegistryRaw) Transfer(opts *bind.TransactOpts) (*types.Transaction, error) {
-	return _Registry.Contract.RegistryTransactor.contract.Transfer(opts)
-}
-
-// Transact invokes the (paid) contract method with params as input values.
-func (_Registry *RegistryRaw) Transact(opts *bind.TransactOpts, method string, params ...interface{}) (*types.Transaction, error) {
-	return _Registry.Contract.RegistryTransactor.contract.Transact(opts, method, params...)
-}
-
-// Call invokes the (constant) contract method with params as input values and
-// sets the output to result. The result type might be a single field for simple
-// returns, a slice of interfaces for anonymous returns and a struct for named
-// returns.
-func (_Registry *RegistryCallerRaw) Call(opts *bind.CallOpts, result *[]interface{}, method string, params ...interface{}) error {
-	return _Registry.Contract.contract.Call(opts, result, method, params...)
-}
-
-// Transfer initiates a plain transaction to move funds to the contract, calling
-// its default method if one is available.
-func (_Registry *RegistryTransactorRaw) Transfer(opts *bind.TransactOpts) (*types.Transaction, error) {
-	return _Registry.Contract.contract.Transfer(opts)
-}
-
-// Transact invokes the (paid) contract method with params as input values.
-func (_Registry *RegistryTransactorRaw) Transact(opts *bind.TransactOpts, method string, params ...interface{}) (*types.Transaction, error) {
-	return _Registry.Contract.contract.Transact(opts, method, params...)
-}
-
-// Lookup is a free data retrieval call binding the contract method 0xf67187ac.
-//
-// Solidity: function lookup(string name) view returns(address)
-func (_Registry *RegistryCaller) Lookup(opts *bind.CallOpts, name string) (common.Address, error) {
-	var out []interface{}
-	err := _Registry.contract.Call(opts, &out, "lookup", name)
-
-	if err != nil {
-		return *new(common.Address), err
-	}
-
-	out0 := *abi.ConvertType(out[0], new(common.Address)).(*common.Address)
-
-	return out0, err
-
-}
-
-// Lookup is a free data retrieval call binding the contract method 0xf67187ac.
-//
-// Solidity: function lookup(string name) view returns(address)
-func (_Registry *RegistrySession) Lookup(name string) (common.Address, error) {
-	return _Registry.Contract.Lookup(&_Registry.CallOpts, name)
-}
-
-// Lookup is a free data retrieval call binding the contract method 0xf67187ac.
-//
-// Solidity: function lookup(string name) view returns(address)
-func (_Registry *RegistryCallerSession) Lookup(name string) (common.Address, error) {
-	return _Registry.Contract.Lookup(&_Registry.CallOpts, name)
-}
-
-// GrantOperator is a paid mutator transaction binding the contract method 0xe348da13.
-//
-// Solidity: function grantOperator(address _operator) returns()
-func (_Registry *RegistryTransactor) GrantOperator(opts *bind.TransactOpts, _operator common.Address) (*types.Transaction, error) {
-	return _Registry.contract.Transact(opts, "grantOperator", _operator)
-}
-
-// GrantOperator is a paid mutator transaction binding the contract method 0xe348da13.
-//
-// Solidity: function grantOperator(address _operator) returns()
-func (_Registry *RegistrySession) GrantOperator(_operator common.Address) (*types.Transaction, error) {
-	return _Registry.Contract.GrantOperator(&_Registry.TransactOpts, _operator)
-}
-
-// GrantOperator is a paid mutator transaction binding the contract method 0xe348da13.
-//
-// Solidity: function grantOperator(address _operator) returns()
-func (_Registry *RegistryTransactorSession) GrantOperator(_operator common.Address) (*types.Transaction, error) {
-	return _Registry.Contract.GrantOperator(&_Registry.TransactOpts, _operator)
-}
-
-// Register is a paid mutator transaction binding the contract method 0x1e59c529.
-//
-// Solidity: function register(string name, address dst) returns()
-func (_Registry *RegistryTransactor) Register(opts *bind.TransactOpts, name string, dst common.Address) (*types.Transaction, error) {
-	return _Registry.contract.Transact(opts, "register", name, dst)
-}
-
-// Register is a paid mutator transaction binding the contract method 0x1e59c529.
-//
-// Solidity: function register(string name, address dst) returns()
-func (_Registry *RegistrySession) Register(name string, dst common.Address) (*types.Transaction, error) {
-	return _Registry.Contract.Register(&_Registry.TransactOpts, name, dst)
-}
-
-// Register is a paid mutator transaction binding the contract method 0x1e59c529.
-//
-// Solidity: function register(string name, address dst) returns()
-func (_Registry *RegistryTransactorSession) Register(name string, dst common.Address) (*types.Transaction, error) {
-	return _Registry.Contract.Register(&_Registry.TransactOpts, name, dst)
-}
-
-// Remove is a paid mutator transaction binding the contract method 0x80599e4b.
-//
-// Solidity: function remove(string name) returns()
-func (_Registry *RegistryTransactor) Remove(opts *bind.TransactOpts, name string) (*types.Transaction, error) {
-	return _Registry.contract.Transact(opts, "remove", name)
-}
-
-// Remove is a paid mutator transaction binding the contract method 0x80599e4b.
-//
-// Solidity: function remove(string name) returns()
-func (_Registry *RegistrySession) Remove(name string) (*types.Transaction, error) {
-	return _Registry.Contract.Remove(&_Registry.TransactOpts, name)
-}
-
-// Remove is a paid mutator transaction binding the contract method 0x80599e4b.
-//
-// Solidity: function remove(string name) returns()
-func (_Registry *RegistryTransactorSession) Remove(name string) (*types.Transaction, error) {
-	return _Registry.Contract.Remove(&_Registry.TransactOpts, name)
-}
-
-// RevokeOperator is a paid mutator transaction binding the contract method 0xfad8b32a.
-//
-// Solidity: function revokeOperator(address _operator) returns()
-func (_Registry *RegistryTransactor) RevokeOperator(opts *bind.TransactOpts, _operator common.Address) (*types.Transaction, error) {
-	return _Registry.contract.Transact(opts, "revokeOperator", _operator)
-}
-
-// RevokeOperator is a paid mutator transaction binding the contract method 0xfad8b32a.
-//
-// Solidity: function revokeOperator(address _operator) returns()
-func (_Registry *RegistrySession) RevokeOperator(_operator common.Address) (*types.Transaction, error) {
-	return _Registry.Contract.RevokeOperator(&_Registry.TransactOpts, _operator)
-}
-
-// RevokeOperator is a paid mutator transaction binding the contract method 0xfad8b32a.
-//
-// Solidity: function revokeOperator(address _operator) returns()
-func (_Registry *RegistryTransactorSession) RevokeOperator(_operator common.Address) (*types.Transaction, error) {
-	return _Registry.Contract.RevokeOperator(&_Registry.TransactOpts, _operator)
-}
-
-// RegistryClientMetaData contains all meta data concerning the RegistryClient contract.
-var RegistryClientMetaData = &bind.MetaData{
-	ABI: "[{\"inputs\":[],\"name\":\"reloadRegistry\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}]",
-}
-
-// RegistryClientABI is the input ABI used to generate the binding from.
-// Deprecated: Use RegistryClientMetaData.ABI instead.
-var RegistryClientABI = RegistryClientMetaData.ABI
-
-// RegistryClient is an auto generated Go binding around an Ethereum contract.
-type RegistryClient struct {
-	RegistryClientCaller     // Read-only binding to the contract
-	RegistryClientTransactor // Write-only binding to the contract
-	RegistryClientFilterer   // Log filterer for contract events
-}
-
-// RegistryClientCaller is an auto generated read-only Go binding around an Ethereum contract.
-type RegistryClientCaller struct {
-	contract *bind.BoundContract // Generic contract wrapper for the low level calls
-}
-
-// RegistryClientTransactor is an auto generated write-only Go binding around an Ethereum contract.
-type RegistryClientTransactor struct {
-	contract *bind.BoundContract // Generic contract wrapper for the low level calls
-}
-
-// RegistryClientFilterer is an auto generated log filtering Go binding around an Ethereum contract events.
-type RegistryClientFilterer struct {
-	contract *bind.BoundContract // Generic contract wrapper for the low level calls
-}
-
-// RegistryClientSession is an auto generated Go binding around an Ethereum contract,
-// with pre-set call and transact options.
-type RegistryClientSession struct {
-	Contract     *RegistryClient   // Generic contract binding to set the session for
-	CallOpts     bind.CallOpts     // Call options to use throughout this session
-	TransactOpts bind.TransactOpts // Transaction auth options to use throughout this session
-}
-
-// RegistryClientCallerSession is an auto generated read-only Go binding around an Ethereum contract,
-// with pre-set call options.
-type RegistryClientCallerSession struct {
-	Contract *RegistryClientCaller // Generic contract caller binding to set the session for
-	CallOpts bind.CallOpts         // Call options to use throughout this session
-}
-
-// RegistryClientTransactorSession is an auto generated write-only Go binding around an Ethereum contract,
-// with pre-set transact options.
-type RegistryClientTransactorSession struct {
-	Contract     *RegistryClientTransactor // Generic contract transactor binding to set the session for
-	TransactOpts bind.TransactOpts         // Transaction auth options to use throughout this session
-}
-
-// RegistryClientRaw is an auto generated low-level Go binding around an Ethereum contract.
-type RegistryClientRaw struct {
-	Contract *RegistryClient // Generic contract binding to access the raw methods on
-}
-
-// RegistryClientCallerRaw is an auto generated low-level read-only Go binding around an Ethereum contract.
-type RegistryClientCallerRaw struct {
-	Contract *RegistryClientCaller // Generic read-only contract binding to access the raw methods on
-}
-
-// RegistryClientTransactorRaw is an auto generated low-level write-only Go binding around an Ethereum contract.
-type RegistryClientTransactorRaw struct {
-	Contract *RegistryClientTransactor // Generic write-only contract binding to access the raw methods on
-}
-
-// NewRegistryClient creates a new instance of RegistryClient, bound to a specific deployed contract.
-func NewRegistryClient(address common.Address, backend bind.ContractBackend) (*RegistryClient, error) {
-	contract, err := bindRegistryClient(address, backend, backend, backend)
-	if err != nil {
-		return nil, err
-	}
-	return &RegistryClient{RegistryClientCaller: RegistryClientCaller{contract: contract}, RegistryClientTransactor: RegistryClientTransactor{contract: contract}, RegistryClientFilterer: RegistryClientFilterer{contract: contract}}, nil
-}
-
-// NewRegistryClientCaller creates a new read-only instance of RegistryClient, bound to a specific deployed contract.
-func NewRegistryClientCaller(address common.Address, caller bind.ContractCaller) (*RegistryClientCaller, error) {
-	contract, err := bindRegistryClient(address, caller, nil, nil)
-	if err != nil {
-		return nil, err
-	}
-	return &RegistryClientCaller{contract: contract}, nil
-}
-
-// NewRegistryClientTransactor creates a new write-only instance of RegistryClient, bound to a specific deployed contract.
-func NewRegistryClientTransactor(address common.Address, transactor bind.ContractTransactor) (*RegistryClientTransactor, error) {
-	contract, err := bindRegistryClient(address, nil, transactor, nil)
-	if err != nil {
-		return nil, err
-	}
-	return &RegistryClientTransactor{contract: contract}, nil
-}
-
-// NewRegistryClientFilterer creates a new log filterer instance of RegistryClient, bound to a specific deployed contract.
-func NewRegistryClientFilterer(address common.Address, filterer bind.ContractFilterer) (*RegistryClientFilterer, error) {
-	contract, err := bindRegistryClient(address, nil, nil, filterer)
-	if err != nil {
-		return nil, err
-	}
-	return &RegistryClientFilterer{contract: contract}, nil
-}
-
-// bindRegistryClient binds a generic wrapper to an already deployed contract.
-func bindRegistryClient(address common.Address, caller bind.ContractCaller, transactor bind.ContractTransactor, filterer bind.ContractFilterer) (*bind.BoundContract, error) {
-	parsed, err := abi.JSON(strings.NewReader(RegistryClientABI))
-	if err != nil {
-		return nil, err
-	}
-	return bind.NewBoundContract(address, parsed, caller, transactor, filterer), nil
-}
-
-// Call invokes the (constant) contract method with params as input values and
-// sets the output to result. The result type might be a single field for simple
-// returns, a slice of interfaces for anonymous returns and a struct for named
-// returns.
-func (_RegistryClient *RegistryClientRaw) Call(opts *bind.CallOpts, result *[]interface{}, method string, params ...interface{}) error {
-	return _RegistryClient.Contract.RegistryClientCaller.contract.Call(opts, result, method, params...)
-}
-
-// Transfer initiates a plain transaction to move funds to the contract, calling
-// its default method if one is available.
-func (_RegistryClient *RegistryClientRaw) Transfer(opts *bind.TransactOpts) (*types.Transaction, error) {
-	return _RegistryClient.Contract.RegistryClientTransactor.contract.Transfer(opts)
-}
-
-// Transact invokes the (paid) contract method with params as input values.
-func (_RegistryClient *RegistryClientRaw) Transact(opts *bind.TransactOpts, method string, params ...interface{}) (*types.Transaction, error) {
-	return _RegistryClient.Contract.RegistryClientTransactor.contract.Transact(opts, method, params...)
-}
-
-// Call invokes the (constant) contract method with params as input values and
-// sets the output to result. The result type might be a single field for simple
-// returns, a slice of interfaces for anonymous returns and a struct for named
-// returns.
-func (_RegistryClient *RegistryClientCallerRaw) Call(opts *bind.CallOpts, result *[]interface{}, method string, params ...interface{}) error {
-	return _RegistryClient.Contract.contract.Call(opts, result, method, params...)
-}
-
-// Transfer initiates a plain transaction to move funds to the contract, calling
-// its default method if one is available.
-func (_RegistryClient *RegistryClientTransactorRaw) Transfer(opts *bind.TransactOpts) (*types.Transaction, error) {
-	return _RegistryClient.Contract.contract.Transfer(opts)
-}
-
-// Transact invokes the (paid) contract method with params as input values.
-func (_RegistryClient *RegistryClientTransactorRaw) Transact(opts *bind.TransactOpts, method string, params ...interface{}) (*types.Transaction, error) {
-	return _RegistryClient.Contract.contract.Transact(opts, method, params...)
-}
-
-// ReloadRegistry is a paid mutator transaction binding the contract method 0x1476601d.
-//
-// Solidity: function reloadRegistry() returns()
-func (_RegistryClient *RegistryClientTransactor) ReloadRegistry(opts *bind.TransactOpts) (*types.Transaction, error) {
-	return _RegistryClient.contract.Transact(opts, "reloadRegistry")
-}
-
-// ReloadRegistry is a paid mutator transaction binding the contract method 0x1476601d.
-//
-// Solidity: function reloadRegistry() returns()
-func (_RegistryClient *RegistryClientSession) ReloadRegistry() (*types.Transaction, error) {
-	return _RegistryClient.Contract.ReloadRegistry(&_RegistryClient.TransactOpts)
-}
-
-// ReloadRegistry is a paid mutator transaction binding the contract method 0x1476601d.
-//
-// Solidity: function reloadRegistry() returns()
-func (_RegistryClient *RegistryClientTransactorSession) ReloadRegistry() (*types.Transaction, error) {
-	return _RegistryClient.Contract.ReloadRegistry(&_RegistryClient.TransactOpts)
-}
-
 // SigmoidMetaData contains all meta data concerning the Sigmoid contract.
 var SigmoidMetaData = &bind.MetaData{
 	ABI: "[]",
@@ -26055,221 +28135,6 @@ func (_Sigmoid *SigmoidTransactorRaw) Transfer(opts *bind.TransactOpts) (*types.
 // Transact invokes the (paid) contract method with params as input values.
 func (_Sigmoid *SigmoidTransactorRaw) Transact(opts *bind.TransactOpts, method string, params ...interface{}) (*types.Transaction, error) {
 	return _Sigmoid.Contract.contract.Transact(opts, method, params...)
-}
-
-// SimpleAuthMetaData contains all meta data concerning the SimpleAuth contract.
-var SimpleAuthMetaData = &bind.MetaData{
-	ABI: "[{\"inputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_operator\",\"type\":\"address\"}],\"name\":\"grantOperator\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_operator\",\"type\":\"address\"}],\"name\":\"revokeOperator\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}]",
-	Bin: "0x608060405234801561001057600080fd5b50600280546001600160a01b0319163390811790915561002f90610034565b610129565b6002546001600160a01b031633148061005c57503360009081526020819052604090205460ff165b6100c65760405162461bcd60e51b815260206004820152603160248201527f46756e6374696f6e616c697479207265737472696374656420746f206175746860448201527037b934bd32b21037b832b930ba37b9399760791b606482015260840160405180910390fd5b6001600160a01b0381166000908152602081905260408120805460ff191660019081179091558054916100f883610100565b919050555050565b600060001982141561012257634e487b7160e01b600052601160045260246000fd5b5060010190565b610423806101386000396000f3fe608060405234801561001057600080fd5b50600436106100365760003560e01c8063e348da131461003b578063fad8b32a14610050575b600080fd5b61004e610049366004610313565b610063565b005b61004e61005e366004610313565b61018e565b60025473ffffffffffffffffffffffffffffffffffffffff1633148061009857503360009081526020819052604090205460ff165b610129576040517f08c379a000000000000000000000000000000000000000000000000000000000815260206004820152603160248201527f46756e6374696f6e616c697479207265737472696374656420746f206175746860448201527f6f72697a6564206f70657261746f72732e00000000000000000000000000000060648201526084015b60405180910390fd5b73ffffffffffffffffffffffffffffffffffffffff8116600090815260208190526040812080547fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff001660019081179091558054916101868361037f565b919050555050565b60025473ffffffffffffffffffffffffffffffffffffffff163314806101c357503360009081526020819052604090205460ff165b61024f576040517f08c379a000000000000000000000000000000000000000000000000000000000815260206004820152603160248201527f46756e6374696f6e616c697479207265737472696374656420746f206175746860448201527f6f72697a6564206f70657261746f72732e0000000000000000000000000000006064820152608401610120565b60018054116102ba576040517f08c379a000000000000000000000000000000000000000000000000000000000815260206004820152601a60248201527f43616e27742072656d6f766520616c6c206f70657261746f72730000000000006044820152606401610120565b73ffffffffffffffffffffffffffffffffffffffff8116600090815260208190526040812080547fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff001690556001805491610186836103b8565b60006020828403121561032557600080fd5b813573ffffffffffffffffffffffffffffffffffffffff8116811461034957600080fd5b9392505050565b7f4e487b7100000000000000000000000000000000000000000000000000000000600052601160045260246000fd5b60007fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff8214156103b1576103b1610350565b5060010190565b6000816103c7576103c7610350565b507fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff019056fea26469706673582212207a3d4b200cfbf003dc93d7725f95ca36373b1cee778e6ccfaa9755c789d5d82464736f6c634300080c0033",
-}
-
-// SimpleAuthABI is the input ABI used to generate the binding from.
-// Deprecated: Use SimpleAuthMetaData.ABI instead.
-var SimpleAuthABI = SimpleAuthMetaData.ABI
-
-// SimpleAuthBin is the compiled bytecode used for deploying new contracts.
-// Deprecated: Use SimpleAuthMetaData.Bin instead.
-var SimpleAuthBin = SimpleAuthMetaData.Bin
-
-// DeploySimpleAuth deploys a new Ethereum contract, binding an instance of SimpleAuth to it.
-func DeploySimpleAuth(auth *bind.TransactOpts, backend bind.ContractBackend) (common.Address, *types.Transaction, *SimpleAuth, error) {
-	parsed, err := SimpleAuthMetaData.GetAbi()
-	if err != nil {
-		return common.Address{}, nil, nil, err
-	}
-	if parsed == nil {
-		return common.Address{}, nil, nil, errors.New("GetABI returned nil")
-	}
-
-	address, tx, contract, err := bind.DeployContract(auth, *parsed, common.FromHex(SimpleAuthBin), backend)
-	if err != nil {
-		return common.Address{}, nil, nil, err
-	}
-	return address, tx, &SimpleAuth{SimpleAuthCaller: SimpleAuthCaller{contract: contract}, SimpleAuthTransactor: SimpleAuthTransactor{contract: contract}, SimpleAuthFilterer: SimpleAuthFilterer{contract: contract}}, nil
-}
-
-// SimpleAuth is an auto generated Go binding around an Ethereum contract.
-type SimpleAuth struct {
-	SimpleAuthCaller     // Read-only binding to the contract
-	SimpleAuthTransactor // Write-only binding to the contract
-	SimpleAuthFilterer   // Log filterer for contract events
-}
-
-// SimpleAuthCaller is an auto generated read-only Go binding around an Ethereum contract.
-type SimpleAuthCaller struct {
-	contract *bind.BoundContract // Generic contract wrapper for the low level calls
-}
-
-// SimpleAuthTransactor is an auto generated write-only Go binding around an Ethereum contract.
-type SimpleAuthTransactor struct {
-	contract *bind.BoundContract // Generic contract wrapper for the low level calls
-}
-
-// SimpleAuthFilterer is an auto generated log filtering Go binding around an Ethereum contract events.
-type SimpleAuthFilterer struct {
-	contract *bind.BoundContract // Generic contract wrapper for the low level calls
-}
-
-// SimpleAuthSession is an auto generated Go binding around an Ethereum contract,
-// with pre-set call and transact options.
-type SimpleAuthSession struct {
-	Contract     *SimpleAuth       // Generic contract binding to set the session for
-	CallOpts     bind.CallOpts     // Call options to use throughout this session
-	TransactOpts bind.TransactOpts // Transaction auth options to use throughout this session
-}
-
-// SimpleAuthCallerSession is an auto generated read-only Go binding around an Ethereum contract,
-// with pre-set call options.
-type SimpleAuthCallerSession struct {
-	Contract *SimpleAuthCaller // Generic contract caller binding to set the session for
-	CallOpts bind.CallOpts     // Call options to use throughout this session
-}
-
-// SimpleAuthTransactorSession is an auto generated write-only Go binding around an Ethereum contract,
-// with pre-set transact options.
-type SimpleAuthTransactorSession struct {
-	Contract     *SimpleAuthTransactor // Generic contract transactor binding to set the session for
-	TransactOpts bind.TransactOpts     // Transaction auth options to use throughout this session
-}
-
-// SimpleAuthRaw is an auto generated low-level Go binding around an Ethereum contract.
-type SimpleAuthRaw struct {
-	Contract *SimpleAuth // Generic contract binding to access the raw methods on
-}
-
-// SimpleAuthCallerRaw is an auto generated low-level read-only Go binding around an Ethereum contract.
-type SimpleAuthCallerRaw struct {
-	Contract *SimpleAuthCaller // Generic read-only contract binding to access the raw methods on
-}
-
-// SimpleAuthTransactorRaw is an auto generated low-level write-only Go binding around an Ethereum contract.
-type SimpleAuthTransactorRaw struct {
-	Contract *SimpleAuthTransactor // Generic write-only contract binding to access the raw methods on
-}
-
-// NewSimpleAuth creates a new instance of SimpleAuth, bound to a specific deployed contract.
-func NewSimpleAuth(address common.Address, backend bind.ContractBackend) (*SimpleAuth, error) {
-	contract, err := bindSimpleAuth(address, backend, backend, backend)
-	if err != nil {
-		return nil, err
-	}
-	return &SimpleAuth{SimpleAuthCaller: SimpleAuthCaller{contract: contract}, SimpleAuthTransactor: SimpleAuthTransactor{contract: contract}, SimpleAuthFilterer: SimpleAuthFilterer{contract: contract}}, nil
-}
-
-// NewSimpleAuthCaller creates a new read-only instance of SimpleAuth, bound to a specific deployed contract.
-func NewSimpleAuthCaller(address common.Address, caller bind.ContractCaller) (*SimpleAuthCaller, error) {
-	contract, err := bindSimpleAuth(address, caller, nil, nil)
-	if err != nil {
-		return nil, err
-	}
-	return &SimpleAuthCaller{contract: contract}, nil
-}
-
-// NewSimpleAuthTransactor creates a new write-only instance of SimpleAuth, bound to a specific deployed contract.
-func NewSimpleAuthTransactor(address common.Address, transactor bind.ContractTransactor) (*SimpleAuthTransactor, error) {
-	contract, err := bindSimpleAuth(address, nil, transactor, nil)
-	if err != nil {
-		return nil, err
-	}
-	return &SimpleAuthTransactor{contract: contract}, nil
-}
-
-// NewSimpleAuthFilterer creates a new log filterer instance of SimpleAuth, bound to a specific deployed contract.
-func NewSimpleAuthFilterer(address common.Address, filterer bind.ContractFilterer) (*SimpleAuthFilterer, error) {
-	contract, err := bindSimpleAuth(address, nil, nil, filterer)
-	if err != nil {
-		return nil, err
-	}
-	return &SimpleAuthFilterer{contract: contract}, nil
-}
-
-// bindSimpleAuth binds a generic wrapper to an already deployed contract.
-func bindSimpleAuth(address common.Address, caller bind.ContractCaller, transactor bind.ContractTransactor, filterer bind.ContractFilterer) (*bind.BoundContract, error) {
-	parsed, err := abi.JSON(strings.NewReader(SimpleAuthABI))
-	if err != nil {
-		return nil, err
-	}
-	return bind.NewBoundContract(address, parsed, caller, transactor, filterer), nil
-}
-
-// Call invokes the (constant) contract method with params as input values and
-// sets the output to result. The result type might be a single field for simple
-// returns, a slice of interfaces for anonymous returns and a struct for named
-// returns.
-func (_SimpleAuth *SimpleAuthRaw) Call(opts *bind.CallOpts, result *[]interface{}, method string, params ...interface{}) error {
-	return _SimpleAuth.Contract.SimpleAuthCaller.contract.Call(opts, result, method, params...)
-}
-
-// Transfer initiates a plain transaction to move funds to the contract, calling
-// its default method if one is available.
-func (_SimpleAuth *SimpleAuthRaw) Transfer(opts *bind.TransactOpts) (*types.Transaction, error) {
-	return _SimpleAuth.Contract.SimpleAuthTransactor.contract.Transfer(opts)
-}
-
-// Transact invokes the (paid) contract method with params as input values.
-func (_SimpleAuth *SimpleAuthRaw) Transact(opts *bind.TransactOpts, method string, params ...interface{}) (*types.Transaction, error) {
-	return _SimpleAuth.Contract.SimpleAuthTransactor.contract.Transact(opts, method, params...)
-}
-
-// Call invokes the (constant) contract method with params as input values and
-// sets the output to result. The result type might be a single field for simple
-// returns, a slice of interfaces for anonymous returns and a struct for named
-// returns.
-func (_SimpleAuth *SimpleAuthCallerRaw) Call(opts *bind.CallOpts, result *[]interface{}, method string, params ...interface{}) error {
-	return _SimpleAuth.Contract.contract.Call(opts, result, method, params...)
-}
-
-// Transfer initiates a plain transaction to move funds to the contract, calling
-// its default method if one is available.
-func (_SimpleAuth *SimpleAuthTransactorRaw) Transfer(opts *bind.TransactOpts) (*types.Transaction, error) {
-	return _SimpleAuth.Contract.contract.Transfer(opts)
-}
-
-// Transact invokes the (paid) contract method with params as input values.
-func (_SimpleAuth *SimpleAuthTransactorRaw) Transact(opts *bind.TransactOpts, method string, params ...interface{}) (*types.Transaction, error) {
-	return _SimpleAuth.Contract.contract.Transact(opts, method, params...)
-}
-
-// GrantOperator is a paid mutator transaction binding the contract method 0xe348da13.
-//
-// Solidity: function grantOperator(address _operator) returns()
-func (_SimpleAuth *SimpleAuthTransactor) GrantOperator(opts *bind.TransactOpts, _operator common.Address) (*types.Transaction, error) {
-	return _SimpleAuth.contract.Transact(opts, "grantOperator", _operator)
-}
-
-// GrantOperator is a paid mutator transaction binding the contract method 0xe348da13.
-//
-// Solidity: function grantOperator(address _operator) returns()
-func (_SimpleAuth *SimpleAuthSession) GrantOperator(_operator common.Address) (*types.Transaction, error) {
-	return _SimpleAuth.Contract.GrantOperator(&_SimpleAuth.TransactOpts, _operator)
-}
-
-// GrantOperator is a paid mutator transaction binding the contract method 0xe348da13.
-//
-// Solidity: function grantOperator(address _operator) returns()
-func (_SimpleAuth *SimpleAuthTransactorSession) GrantOperator(_operator common.Address) (*types.Transaction, error) {
-	return _SimpleAuth.Contract.GrantOperator(&_SimpleAuth.TransactOpts, _operator)
-}
-
-// RevokeOperator is a paid mutator transaction binding the contract method 0xfad8b32a.
-//
-// Solidity: function revokeOperator(address _operator) returns()
-func (_SimpleAuth *SimpleAuthTransactor) RevokeOperator(opts *bind.TransactOpts, _operator common.Address) (*types.Transaction, error) {
-	return _SimpleAuth.contract.Transact(opts, "revokeOperator", _operator)
-}
-
-// RevokeOperator is a paid mutator transaction binding the contract method 0xfad8b32a.
-//
-// Solidity: function revokeOperator(address _operator) returns()
-func (_SimpleAuth *SimpleAuthSession) RevokeOperator(_operator common.Address) (*types.Transaction, error) {
-	return _SimpleAuth.Contract.RevokeOperator(&_SimpleAuth.TransactOpts, _operator)
-}
-
-// RevokeOperator is a paid mutator transaction binding the contract method 0xfad8b32a.
-//
-// Solidity: function revokeOperator(address _operator) returns()
-func (_SimpleAuth *SimpleAuthTransactorSession) RevokeOperator(_operator common.Address) (*types.Transaction, error) {
-	return _SimpleAuth.Contract.RevokeOperator(&_SimpleAuth.TransactOpts, _operator)
 }
 
 // SnapshotsMetaData contains all meta data concerning the Snapshots contract.
