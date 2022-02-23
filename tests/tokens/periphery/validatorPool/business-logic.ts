@@ -86,7 +86,7 @@ describe("Testing ValidatorPool Business Logic ", () => {
         fixture.validatorPool
           .connect(adminSigner)
           .registerValidators(validators, stakingTokenIds)).
-        to.be.revertedWith("ValidatorStakeNFT: Error, the Stake position doesn't have enough founds!")
+        to.be.revertedWith("ValidatorStakeNFT: Error, the Stake position doesn't have enough funds!")
     });
 
     it("Set a maximum number of validators", async function () {
