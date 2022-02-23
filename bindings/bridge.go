@@ -8294,12 +8294,34 @@ func (_Factory *FactoryFilterer) ParseDeployedTemplate(log types.Log) (*FactoryD
 
 // GovernanceMetaData contains all meta data concerning the Governance contract.
 var GovernanceMetaData = &bind.MetaData{
-	ABI: "[{\"inputs\":[],\"name\":\"getGovernance\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"addr\",\"type\":\"address\"}],\"name\":\"isAllowedProposal\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"governance_\",\"type\":\"address\"}],\"name\":\"setGovernance\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}]",
+	ABI: "[{\"inputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"epoch\",\"type\":\"uint256\"},{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"key\",\"type\":\"uint256\"},{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"value\",\"type\":\"bytes32\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"who\",\"type\":\"address\"}],\"name\":\"ValueUpdated\",\"type\":\"event\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"epoch\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"key\",\"type\":\"uint256\"},{\"internalType\":\"bytes32\",\"name\":\"value\",\"type\":\"bytes32\"}],\"name\":\"updateValue\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}]",
+	Bin: "0x60a060405234801561001057600080fd5b50336080526080516101ae61002f6000396000605d01526101ae6000f3fe608060405234801561001057600080fd5b506004361061002b5760003560e01c80634651248614610030575b600080fd5b61004361003e36600461014c565b610045565b005b3373ffffffffffffffffffffffffffffffffffffffff7f0000000000000000000000000000000000000000000000000000000000000000161461010e576040517f08c379a000000000000000000000000000000000000000000000000000000000815260206004820152602160248201527f476f7665726e616e63653a204f6e6c7920666163746f727920616c6c6f77656460448201527f2100000000000000000000000000000000000000000000000000000000000000606482015260840160405180910390fd5b6040513381528190839085907f36dcd0e03525dedd9d5c21a263ef5f35d030298b5c48f1a713006aefc064ad059060200160405180910390a4505050565b60008060006060848603121561016157600080fd5b50508135936020830135935060409092013591905056fea26469706673582212202e7196c79cf4e41fd40e89b434666b80eb89b8bd79ae80224c7c112b0cbf623864736f6c634300080c0033",
 }
 
 // GovernanceABI is the input ABI used to generate the binding from.
 // Deprecated: Use GovernanceMetaData.ABI instead.
 var GovernanceABI = GovernanceMetaData.ABI
+
+// GovernanceBin is the compiled bytecode used for deploying new contracts.
+// Deprecated: Use GovernanceMetaData.Bin instead.
+var GovernanceBin = GovernanceMetaData.Bin
+
+// DeployGovernance deploys a new Ethereum contract, binding an instance of Governance to it.
+func DeployGovernance(auth *bind.TransactOpts, backend bind.ContractBackend) (common.Address, *types.Transaction, *Governance, error) {
+	parsed, err := GovernanceMetaData.GetAbi()
+	if err != nil {
+		return common.Address{}, nil, nil, err
+	}
+	if parsed == nil {
+		return common.Address{}, nil, nil, errors.New("GetABI returned nil")
+	}
+
+	address, tx, contract, err := bind.DeployContract(auth, *parsed, common.FromHex(GovernanceBin), backend)
+	if err != nil {
+		return common.Address{}, nil, nil, err
+	}
+	return address, tx, &Governance{GovernanceCaller: GovernanceCaller{contract: contract}, GovernanceTransactor: GovernanceTransactor{contract: contract}, GovernanceFilterer: GovernanceFilterer{contract: contract}}, nil
+}
 
 // Governance is an auto generated Go binding around an Ethereum contract.
 type Governance struct {
@@ -8443,87 +8465,188 @@ func (_Governance *GovernanceTransactorRaw) Transact(opts *bind.TransactOpts, me
 	return _Governance.Contract.contract.Transact(opts, method, params...)
 }
 
-// GetGovernance is a free data retrieval call binding the contract method 0x289b3c0d.
+// UpdateValue is a paid mutator transaction binding the contract method 0x46512486.
 //
-// Solidity: function getGovernance() view returns(address)
-func (_Governance *GovernanceCaller) GetGovernance(opts *bind.CallOpts) (common.Address, error) {
-	var out []interface{}
-	err := _Governance.contract.Call(opts, &out, "getGovernance")
+// Solidity: function updateValue(uint256 epoch, uint256 key, bytes32 value) returns()
+func (_Governance *GovernanceTransactor) UpdateValue(opts *bind.TransactOpts, epoch *big.Int, key *big.Int, value [32]byte) (*types.Transaction, error) {
+	return _Governance.contract.Transact(opts, "updateValue", epoch, key, value)
+}
 
-	if err != nil {
-		return *new(common.Address), err
+// UpdateValue is a paid mutator transaction binding the contract method 0x46512486.
+//
+// Solidity: function updateValue(uint256 epoch, uint256 key, bytes32 value) returns()
+func (_Governance *GovernanceSession) UpdateValue(epoch *big.Int, key *big.Int, value [32]byte) (*types.Transaction, error) {
+	return _Governance.Contract.UpdateValue(&_Governance.TransactOpts, epoch, key, value)
+}
+
+// UpdateValue is a paid mutator transaction binding the contract method 0x46512486.
+//
+// Solidity: function updateValue(uint256 epoch, uint256 key, bytes32 value) returns()
+func (_Governance *GovernanceTransactorSession) UpdateValue(epoch *big.Int, key *big.Int, value [32]byte) (*types.Transaction, error) {
+	return _Governance.Contract.UpdateValue(&_Governance.TransactOpts, epoch, key, value)
+}
+
+// GovernanceValueUpdatedIterator is returned from FilterValueUpdated and is used to iterate over the raw logs and unpacked data for ValueUpdated events raised by the Governance contract.
+type GovernanceValueUpdatedIterator struct {
+	Event *GovernanceValueUpdated // Event containing the contract specifics and raw log
+
+	contract *bind.BoundContract // Generic contract to use for unpacking event data
+	event    string              // Event name to use for unpacking event data
+
+	logs chan types.Log        // Log channel receiving the found contract events
+	sub  ethereum.Subscription // Subscription for errors, completion and termination
+	done bool                  // Whether the subscription completed delivering logs
+	fail error                 // Occurred error to stop iteration
+}
+
+// Next advances the iterator to the subsequent event, returning whether there
+// are any more events found. In case of a retrieval or parsing error, false is
+// returned and Error() can be queried for the exact failure.
+func (it *GovernanceValueUpdatedIterator) Next() bool {
+	// If the iterator failed, stop iterating
+	if it.fail != nil {
+		return false
+	}
+	// If the iterator completed, deliver directly whatever's available
+	if it.done {
+		select {
+		case log := <-it.logs:
+			it.Event = new(GovernanceValueUpdated)
+			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+				it.fail = err
+				return false
+			}
+			it.Event.Raw = log
+			return true
+
+		default:
+			return false
+		}
+	}
+	// Iterator still in progress, wait for either a data or an error event
+	select {
+	case log := <-it.logs:
+		it.Event = new(GovernanceValueUpdated)
+		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+			it.fail = err
+			return false
+		}
+		it.Event.Raw = log
+		return true
+
+	case err := <-it.sub.Err():
+		it.done = true
+		it.fail = err
+		return it.Next()
+	}
+}
+
+// Error returns any retrieval or parsing error occurred during filtering.
+func (it *GovernanceValueUpdatedIterator) Error() error {
+	return it.fail
+}
+
+// Close terminates the iteration process, releasing any pending underlying
+// resources.
+func (it *GovernanceValueUpdatedIterator) Close() error {
+	it.sub.Unsubscribe()
+	return nil
+}
+
+// GovernanceValueUpdated represents a ValueUpdated event raised by the Governance contract.
+type GovernanceValueUpdated struct {
+	Epoch *big.Int
+	Key   *big.Int
+	Value [32]byte
+	Who   common.Address
+	Raw   types.Log // Blockchain specific contextual infos
+}
+
+// FilterValueUpdated is a free log retrieval operation binding the contract event 0x36dcd0e03525dedd9d5c21a263ef5f35d030298b5c48f1a713006aefc064ad05.
+//
+// Solidity: event ValueUpdated(uint256 indexed epoch, uint256 indexed key, bytes32 indexed value, address who)
+func (_Governance *GovernanceFilterer) FilterValueUpdated(opts *bind.FilterOpts, epoch []*big.Int, key []*big.Int, value [][32]byte) (*GovernanceValueUpdatedIterator, error) {
+
+	var epochRule []interface{}
+	for _, epochItem := range epoch {
+		epochRule = append(epochRule, epochItem)
+	}
+	var keyRule []interface{}
+	for _, keyItem := range key {
+		keyRule = append(keyRule, keyItem)
+	}
+	var valueRule []interface{}
+	for _, valueItem := range value {
+		valueRule = append(valueRule, valueItem)
 	}
 
-	out0 := *abi.ConvertType(out[0], new(common.Address)).(*common.Address)
-
-	return out0, err
-
-}
-
-// GetGovernance is a free data retrieval call binding the contract method 0x289b3c0d.
-//
-// Solidity: function getGovernance() view returns(address)
-func (_Governance *GovernanceSession) GetGovernance() (common.Address, error) {
-	return _Governance.Contract.GetGovernance(&_Governance.CallOpts)
-}
-
-// GetGovernance is a free data retrieval call binding the contract method 0x289b3c0d.
-//
-// Solidity: function getGovernance() view returns(address)
-func (_Governance *GovernanceCallerSession) GetGovernance() (common.Address, error) {
-	return _Governance.Contract.GetGovernance(&_Governance.CallOpts)
-}
-
-// IsAllowedProposal is a free data retrieval call binding the contract method 0x3771165e.
-//
-// Solidity: function isAllowedProposal(address addr) view returns(bool)
-func (_Governance *GovernanceCaller) IsAllowedProposal(opts *bind.CallOpts, addr common.Address) (bool, error) {
-	var out []interface{}
-	err := _Governance.contract.Call(opts, &out, "isAllowedProposal", addr)
-
+	logs, sub, err := _Governance.contract.FilterLogs(opts, "ValueUpdated", epochRule, keyRule, valueRule)
 	if err != nil {
-		return *new(bool), err
+		return nil, err
+	}
+	return &GovernanceValueUpdatedIterator{contract: _Governance.contract, event: "ValueUpdated", logs: logs, sub: sub}, nil
+}
+
+// WatchValueUpdated is a free log subscription operation binding the contract event 0x36dcd0e03525dedd9d5c21a263ef5f35d030298b5c48f1a713006aefc064ad05.
+//
+// Solidity: event ValueUpdated(uint256 indexed epoch, uint256 indexed key, bytes32 indexed value, address who)
+func (_Governance *GovernanceFilterer) WatchValueUpdated(opts *bind.WatchOpts, sink chan<- *GovernanceValueUpdated, epoch []*big.Int, key []*big.Int, value [][32]byte) (event.Subscription, error) {
+
+	var epochRule []interface{}
+	for _, epochItem := range epoch {
+		epochRule = append(epochRule, epochItem)
+	}
+	var keyRule []interface{}
+	for _, keyItem := range key {
+		keyRule = append(keyRule, keyItem)
+	}
+	var valueRule []interface{}
+	for _, valueItem := range value {
+		valueRule = append(valueRule, valueItem)
 	}
 
-	out0 := *abi.ConvertType(out[0], new(bool)).(*bool)
+	logs, sub, err := _Governance.contract.WatchLogs(opts, "ValueUpdated", epochRule, keyRule, valueRule)
+	if err != nil {
+		return nil, err
+	}
+	return event.NewSubscription(func(quit <-chan struct{}) error {
+		defer sub.Unsubscribe()
+		for {
+			select {
+			case log := <-logs:
+				// New log arrived, parse the event and forward to the user
+				event := new(GovernanceValueUpdated)
+				if err := _Governance.contract.UnpackLog(event, "ValueUpdated", log); err != nil {
+					return err
+				}
+				event.Raw = log
 
-	return out0, err
-
+				select {
+				case sink <- event:
+				case err := <-sub.Err():
+					return err
+				case <-quit:
+					return nil
+				}
+			case err := <-sub.Err():
+				return err
+			case <-quit:
+				return nil
+			}
+		}
+	}), nil
 }
 
-// IsAllowedProposal is a free data retrieval call binding the contract method 0x3771165e.
+// ParseValueUpdated is a log parse operation binding the contract event 0x36dcd0e03525dedd9d5c21a263ef5f35d030298b5c48f1a713006aefc064ad05.
 //
-// Solidity: function isAllowedProposal(address addr) view returns(bool)
-func (_Governance *GovernanceSession) IsAllowedProposal(addr common.Address) (bool, error) {
-	return _Governance.Contract.IsAllowedProposal(&_Governance.CallOpts, addr)
-}
-
-// IsAllowedProposal is a free data retrieval call binding the contract method 0x3771165e.
-//
-// Solidity: function isAllowedProposal(address addr) view returns(bool)
-func (_Governance *GovernanceCallerSession) IsAllowedProposal(addr common.Address) (bool, error) {
-	return _Governance.Contract.IsAllowedProposal(&_Governance.CallOpts, addr)
-}
-
-// SetGovernance is a paid mutator transaction binding the contract method 0xab033ea9.
-//
-// Solidity: function setGovernance(address governance_) returns()
-func (_Governance *GovernanceTransactor) SetGovernance(opts *bind.TransactOpts, governance_ common.Address) (*types.Transaction, error) {
-	return _Governance.contract.Transact(opts, "setGovernance", governance_)
-}
-
-// SetGovernance is a paid mutator transaction binding the contract method 0xab033ea9.
-//
-// Solidity: function setGovernance(address governance_) returns()
-func (_Governance *GovernanceSession) SetGovernance(governance_ common.Address) (*types.Transaction, error) {
-	return _Governance.Contract.SetGovernance(&_Governance.TransactOpts, governance_)
-}
-
-// SetGovernance is a paid mutator transaction binding the contract method 0xab033ea9.
-//
-// Solidity: function setGovernance(address governance_) returns()
-func (_Governance *GovernanceTransactorSession) SetGovernance(governance_ common.Address) (*types.Transaction, error) {
-	return _Governance.Contract.SetGovernance(&_Governance.TransactOpts, governance_)
+// Solidity: event ValueUpdated(uint256 indexed epoch, uint256 indexed key, bytes32 indexed value, address who)
+func (_Governance *GovernanceFilterer) ParseValueUpdated(log types.Log) (*GovernanceValueUpdated, error) {
+	event := new(GovernanceValueUpdated)
+	if err := _Governance.contract.UnpackLog(event, "ValueUpdated", log); err != nil {
+		return nil, err
+	}
+	event.Raw = log
+	return event, nil
 }
 
 // GovernanceManagerMetaData contains all meta data concerning the GovernanceManager contract.
@@ -17380,6 +17503,341 @@ func (_IGovernanceManager *IGovernanceManagerSession) AllowedProposal() (common.
 // Solidity: function allowedProposal() view returns(address)
 func (_IGovernanceManager *IGovernanceManagerCallerSession) AllowedProposal() (common.Address, error) {
 	return _IGovernanceManager.Contract.AllowedProposal(&_IGovernanceManager.CallOpts)
+}
+
+// IGovernorMetaData contains all meta data concerning the IGovernor contract.
+var IGovernorMetaData = &bind.MetaData{
+	ABI: "[{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"epoch\",\"type\":\"uint256\"},{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"key\",\"type\":\"uint256\"},{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"value\",\"type\":\"bytes32\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"who\",\"type\":\"address\"}],\"name\":\"ValueUpdated\",\"type\":\"event\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"epoch\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"key\",\"type\":\"uint256\"},{\"internalType\":\"bytes32\",\"name\":\"value\",\"type\":\"bytes32\"}],\"name\":\"updateValue\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}]",
+}
+
+// IGovernorABI is the input ABI used to generate the binding from.
+// Deprecated: Use IGovernorMetaData.ABI instead.
+var IGovernorABI = IGovernorMetaData.ABI
+
+// IGovernor is an auto generated Go binding around an Ethereum contract.
+type IGovernor struct {
+	IGovernorCaller     // Read-only binding to the contract
+	IGovernorTransactor // Write-only binding to the contract
+	IGovernorFilterer   // Log filterer for contract events
+}
+
+// IGovernorCaller is an auto generated read-only Go binding around an Ethereum contract.
+type IGovernorCaller struct {
+	contract *bind.BoundContract // Generic contract wrapper for the low level calls
+}
+
+// IGovernorTransactor is an auto generated write-only Go binding around an Ethereum contract.
+type IGovernorTransactor struct {
+	contract *bind.BoundContract // Generic contract wrapper for the low level calls
+}
+
+// IGovernorFilterer is an auto generated log filtering Go binding around an Ethereum contract events.
+type IGovernorFilterer struct {
+	contract *bind.BoundContract // Generic contract wrapper for the low level calls
+}
+
+// IGovernorSession is an auto generated Go binding around an Ethereum contract,
+// with pre-set call and transact options.
+type IGovernorSession struct {
+	Contract     *IGovernor        // Generic contract binding to set the session for
+	CallOpts     bind.CallOpts     // Call options to use throughout this session
+	TransactOpts bind.TransactOpts // Transaction auth options to use throughout this session
+}
+
+// IGovernorCallerSession is an auto generated read-only Go binding around an Ethereum contract,
+// with pre-set call options.
+type IGovernorCallerSession struct {
+	Contract *IGovernorCaller // Generic contract caller binding to set the session for
+	CallOpts bind.CallOpts    // Call options to use throughout this session
+}
+
+// IGovernorTransactorSession is an auto generated write-only Go binding around an Ethereum contract,
+// with pre-set transact options.
+type IGovernorTransactorSession struct {
+	Contract     *IGovernorTransactor // Generic contract transactor binding to set the session for
+	TransactOpts bind.TransactOpts    // Transaction auth options to use throughout this session
+}
+
+// IGovernorRaw is an auto generated low-level Go binding around an Ethereum contract.
+type IGovernorRaw struct {
+	Contract *IGovernor // Generic contract binding to access the raw methods on
+}
+
+// IGovernorCallerRaw is an auto generated low-level read-only Go binding around an Ethereum contract.
+type IGovernorCallerRaw struct {
+	Contract *IGovernorCaller // Generic read-only contract binding to access the raw methods on
+}
+
+// IGovernorTransactorRaw is an auto generated low-level write-only Go binding around an Ethereum contract.
+type IGovernorTransactorRaw struct {
+	Contract *IGovernorTransactor // Generic write-only contract binding to access the raw methods on
+}
+
+// NewIGovernor creates a new instance of IGovernor, bound to a specific deployed contract.
+func NewIGovernor(address common.Address, backend bind.ContractBackend) (*IGovernor, error) {
+	contract, err := bindIGovernor(address, backend, backend, backend)
+	if err != nil {
+		return nil, err
+	}
+	return &IGovernor{IGovernorCaller: IGovernorCaller{contract: contract}, IGovernorTransactor: IGovernorTransactor{contract: contract}, IGovernorFilterer: IGovernorFilterer{contract: contract}}, nil
+}
+
+// NewIGovernorCaller creates a new read-only instance of IGovernor, bound to a specific deployed contract.
+func NewIGovernorCaller(address common.Address, caller bind.ContractCaller) (*IGovernorCaller, error) {
+	contract, err := bindIGovernor(address, caller, nil, nil)
+	if err != nil {
+		return nil, err
+	}
+	return &IGovernorCaller{contract: contract}, nil
+}
+
+// NewIGovernorTransactor creates a new write-only instance of IGovernor, bound to a specific deployed contract.
+func NewIGovernorTransactor(address common.Address, transactor bind.ContractTransactor) (*IGovernorTransactor, error) {
+	contract, err := bindIGovernor(address, nil, transactor, nil)
+	if err != nil {
+		return nil, err
+	}
+	return &IGovernorTransactor{contract: contract}, nil
+}
+
+// NewIGovernorFilterer creates a new log filterer instance of IGovernor, bound to a specific deployed contract.
+func NewIGovernorFilterer(address common.Address, filterer bind.ContractFilterer) (*IGovernorFilterer, error) {
+	contract, err := bindIGovernor(address, nil, nil, filterer)
+	if err != nil {
+		return nil, err
+	}
+	return &IGovernorFilterer{contract: contract}, nil
+}
+
+// bindIGovernor binds a generic wrapper to an already deployed contract.
+func bindIGovernor(address common.Address, caller bind.ContractCaller, transactor bind.ContractTransactor, filterer bind.ContractFilterer) (*bind.BoundContract, error) {
+	parsed, err := abi.JSON(strings.NewReader(IGovernorABI))
+	if err != nil {
+		return nil, err
+	}
+	return bind.NewBoundContract(address, parsed, caller, transactor, filterer), nil
+}
+
+// Call invokes the (constant) contract method with params as input values and
+// sets the output to result. The result type might be a single field for simple
+// returns, a slice of interfaces for anonymous returns and a struct for named
+// returns.
+func (_IGovernor *IGovernorRaw) Call(opts *bind.CallOpts, result *[]interface{}, method string, params ...interface{}) error {
+	return _IGovernor.Contract.IGovernorCaller.contract.Call(opts, result, method, params...)
+}
+
+// Transfer initiates a plain transaction to move funds to the contract, calling
+// its default method if one is available.
+func (_IGovernor *IGovernorRaw) Transfer(opts *bind.TransactOpts) (*types.Transaction, error) {
+	return _IGovernor.Contract.IGovernorTransactor.contract.Transfer(opts)
+}
+
+// Transact invokes the (paid) contract method with params as input values.
+func (_IGovernor *IGovernorRaw) Transact(opts *bind.TransactOpts, method string, params ...interface{}) (*types.Transaction, error) {
+	return _IGovernor.Contract.IGovernorTransactor.contract.Transact(opts, method, params...)
+}
+
+// Call invokes the (constant) contract method with params as input values and
+// sets the output to result. The result type might be a single field for simple
+// returns, a slice of interfaces for anonymous returns and a struct for named
+// returns.
+func (_IGovernor *IGovernorCallerRaw) Call(opts *bind.CallOpts, result *[]interface{}, method string, params ...interface{}) error {
+	return _IGovernor.Contract.contract.Call(opts, result, method, params...)
+}
+
+// Transfer initiates a plain transaction to move funds to the contract, calling
+// its default method if one is available.
+func (_IGovernor *IGovernorTransactorRaw) Transfer(opts *bind.TransactOpts) (*types.Transaction, error) {
+	return _IGovernor.Contract.contract.Transfer(opts)
+}
+
+// Transact invokes the (paid) contract method with params as input values.
+func (_IGovernor *IGovernorTransactorRaw) Transact(opts *bind.TransactOpts, method string, params ...interface{}) (*types.Transaction, error) {
+	return _IGovernor.Contract.contract.Transact(opts, method, params...)
+}
+
+// UpdateValue is a paid mutator transaction binding the contract method 0x46512486.
+//
+// Solidity: function updateValue(uint256 epoch, uint256 key, bytes32 value) returns()
+func (_IGovernor *IGovernorTransactor) UpdateValue(opts *bind.TransactOpts, epoch *big.Int, key *big.Int, value [32]byte) (*types.Transaction, error) {
+	return _IGovernor.contract.Transact(opts, "updateValue", epoch, key, value)
+}
+
+// UpdateValue is a paid mutator transaction binding the contract method 0x46512486.
+//
+// Solidity: function updateValue(uint256 epoch, uint256 key, bytes32 value) returns()
+func (_IGovernor *IGovernorSession) UpdateValue(epoch *big.Int, key *big.Int, value [32]byte) (*types.Transaction, error) {
+	return _IGovernor.Contract.UpdateValue(&_IGovernor.TransactOpts, epoch, key, value)
+}
+
+// UpdateValue is a paid mutator transaction binding the contract method 0x46512486.
+//
+// Solidity: function updateValue(uint256 epoch, uint256 key, bytes32 value) returns()
+func (_IGovernor *IGovernorTransactorSession) UpdateValue(epoch *big.Int, key *big.Int, value [32]byte) (*types.Transaction, error) {
+	return _IGovernor.Contract.UpdateValue(&_IGovernor.TransactOpts, epoch, key, value)
+}
+
+// IGovernorValueUpdatedIterator is returned from FilterValueUpdated and is used to iterate over the raw logs and unpacked data for ValueUpdated events raised by the IGovernor contract.
+type IGovernorValueUpdatedIterator struct {
+	Event *IGovernorValueUpdated // Event containing the contract specifics and raw log
+
+	contract *bind.BoundContract // Generic contract to use for unpacking event data
+	event    string              // Event name to use for unpacking event data
+
+	logs chan types.Log        // Log channel receiving the found contract events
+	sub  ethereum.Subscription // Subscription for errors, completion and termination
+	done bool                  // Whether the subscription completed delivering logs
+	fail error                 // Occurred error to stop iteration
+}
+
+// Next advances the iterator to the subsequent event, returning whether there
+// are any more events found. In case of a retrieval or parsing error, false is
+// returned and Error() can be queried for the exact failure.
+func (it *IGovernorValueUpdatedIterator) Next() bool {
+	// If the iterator failed, stop iterating
+	if it.fail != nil {
+		return false
+	}
+	// If the iterator completed, deliver directly whatever's available
+	if it.done {
+		select {
+		case log := <-it.logs:
+			it.Event = new(IGovernorValueUpdated)
+			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+				it.fail = err
+				return false
+			}
+			it.Event.Raw = log
+			return true
+
+		default:
+			return false
+		}
+	}
+	// Iterator still in progress, wait for either a data or an error event
+	select {
+	case log := <-it.logs:
+		it.Event = new(IGovernorValueUpdated)
+		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+			it.fail = err
+			return false
+		}
+		it.Event.Raw = log
+		return true
+
+	case err := <-it.sub.Err():
+		it.done = true
+		it.fail = err
+		return it.Next()
+	}
+}
+
+// Error returns any retrieval or parsing error occurred during filtering.
+func (it *IGovernorValueUpdatedIterator) Error() error {
+	return it.fail
+}
+
+// Close terminates the iteration process, releasing any pending underlying
+// resources.
+func (it *IGovernorValueUpdatedIterator) Close() error {
+	it.sub.Unsubscribe()
+	return nil
+}
+
+// IGovernorValueUpdated represents a ValueUpdated event raised by the IGovernor contract.
+type IGovernorValueUpdated struct {
+	Epoch *big.Int
+	Key   *big.Int
+	Value [32]byte
+	Who   common.Address
+	Raw   types.Log // Blockchain specific contextual infos
+}
+
+// FilterValueUpdated is a free log retrieval operation binding the contract event 0x36dcd0e03525dedd9d5c21a263ef5f35d030298b5c48f1a713006aefc064ad05.
+//
+// Solidity: event ValueUpdated(uint256 indexed epoch, uint256 indexed key, bytes32 indexed value, address who)
+func (_IGovernor *IGovernorFilterer) FilterValueUpdated(opts *bind.FilterOpts, epoch []*big.Int, key []*big.Int, value [][32]byte) (*IGovernorValueUpdatedIterator, error) {
+
+	var epochRule []interface{}
+	for _, epochItem := range epoch {
+		epochRule = append(epochRule, epochItem)
+	}
+	var keyRule []interface{}
+	for _, keyItem := range key {
+		keyRule = append(keyRule, keyItem)
+	}
+	var valueRule []interface{}
+	for _, valueItem := range value {
+		valueRule = append(valueRule, valueItem)
+	}
+
+	logs, sub, err := _IGovernor.contract.FilterLogs(opts, "ValueUpdated", epochRule, keyRule, valueRule)
+	if err != nil {
+		return nil, err
+	}
+	return &IGovernorValueUpdatedIterator{contract: _IGovernor.contract, event: "ValueUpdated", logs: logs, sub: sub}, nil
+}
+
+// WatchValueUpdated is a free log subscription operation binding the contract event 0x36dcd0e03525dedd9d5c21a263ef5f35d030298b5c48f1a713006aefc064ad05.
+//
+// Solidity: event ValueUpdated(uint256 indexed epoch, uint256 indexed key, bytes32 indexed value, address who)
+func (_IGovernor *IGovernorFilterer) WatchValueUpdated(opts *bind.WatchOpts, sink chan<- *IGovernorValueUpdated, epoch []*big.Int, key []*big.Int, value [][32]byte) (event.Subscription, error) {
+
+	var epochRule []interface{}
+	for _, epochItem := range epoch {
+		epochRule = append(epochRule, epochItem)
+	}
+	var keyRule []interface{}
+	for _, keyItem := range key {
+		keyRule = append(keyRule, keyItem)
+	}
+	var valueRule []interface{}
+	for _, valueItem := range value {
+		valueRule = append(valueRule, valueItem)
+	}
+
+	logs, sub, err := _IGovernor.contract.WatchLogs(opts, "ValueUpdated", epochRule, keyRule, valueRule)
+	if err != nil {
+		return nil, err
+	}
+	return event.NewSubscription(func(quit <-chan struct{}) error {
+		defer sub.Unsubscribe()
+		for {
+			select {
+			case log := <-logs:
+				// New log arrived, parse the event and forward to the user
+				event := new(IGovernorValueUpdated)
+				if err := _IGovernor.contract.UnpackLog(event, "ValueUpdated", log); err != nil {
+					return err
+				}
+				event.Raw = log
+
+				select {
+				case sink <- event:
+				case err := <-sub.Err():
+					return err
+				case <-quit:
+					return nil
+				}
+			case err := <-sub.Err():
+				return err
+			case <-quit:
+				return nil
+			}
+		}
+	}), nil
+}
+
+// ParseValueUpdated is a log parse operation binding the contract event 0x36dcd0e03525dedd9d5c21a263ef5f35d030298b5c48f1a713006aefc064ad05.
+//
+// Solidity: event ValueUpdated(uint256 indexed epoch, uint256 indexed key, bytes32 indexed value, address who)
+func (_IGovernor *IGovernorFilterer) ParseValueUpdated(log types.Log) (*IGovernorValueUpdated, error) {
+	event := new(IGovernorValueUpdated)
+	if err := _IGovernor.contract.UnpackLog(event, "ValueUpdated", log); err != nil {
+		return nil, err
+	}
+	event.Raw = log
+	return event, nil
 }
 
 // IMagicEthTransferMetaData contains all meta data concerning the IMagicEthTransfer contract.
