@@ -2,7 +2,7 @@
 pragma solidity ^0.8.11;
 
 import "./GovernanceStorage.sol";
-import "./Governance.sol";
+import "./OldGovernance.sol";
 import "../tokens/interfaces/INFTStake.sol";
 
 interface IGovernanceManager {
