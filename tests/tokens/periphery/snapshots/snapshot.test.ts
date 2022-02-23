@@ -42,8 +42,8 @@ describe('Tests Snapshots methods', () => {
   let minimunStake = ethers.utils.parseUnits(stakeAmount.toString(), 18)
   let stakeAmountMadWei = ethers.utils.parseUnits(stakeAmount.toString(), 18)
   let lockTime = 1
-  let validators = new Array()
-  let stakingTokenIds = new Array()
+  let validators: string[]
+  let stakingTokenIds: number[]
 
   beforeEach(async function () {
     validators = []
@@ -58,9 +58,6 @@ describe('Tests Snapshots methods', () => {
       randomer
     ] = fixture.namedSigners
     adminSigner = await getValidatorEthAccount(admin.address)
-    await fixture.validatorNFT
-      .connect(adminSigner)
-      .setAdmin(fixture.validatorPool.address)
     notAdmin1Signer = await getValidatorEthAccount(notAdmin1.address)
     randomerSigner = await getValidatorEthAccount(randomer.address)
 
@@ -81,16 +78,17 @@ describe('Tests Snapshots methods', () => {
       let tx = await fixture.stakeNFT
         .connect(adminSigner)
         .mintTo(validator.address, stakeAmountMadWei, lockTime)
-      let tokenId = getTokenIdFromTx(tx)
+      let tokenId = await getTokenIdFromTx(tx)
       stakingTokenIds.push(tokenId)
       await fixture.stakeNFT
         .connect(await getValidatorEthAccount(validator))
         .setApprovalForAll(fixture.validatorPool.address, true)
     }
 
-    await fixture.validatorPool
-      .connect(adminSigner)
-      .registerValidators(validators, stakingTokenIds)
+
+    let iface = new ethers.utils.Interface(["function registerValidators(address[],uint256[])"]);
+    let input = iface.encodeFunctionData("registerValidators", [validators , stakingTokenIds ])
+    await fixture.factory.connect(adminSigner).callAny(fixture.validatorPool.address, 0, input)
   })
 
   it('Does not allow snapshot if sender is not validator', async function () {
@@ -102,7 +100,9 @@ describe('Tests Snapshots methods', () => {
   })
 
   it('Does not allow snapshot if ETHDKG round is Running', async function () {
-    await fixture.validatorPool.connect(adminSigner).initializeETHDKG()
+    let iface = new ethers.utils.Interface(["function initializeETHDKG()"]);
+    let input = iface.encodeFunctionData("initializeETHDKG")
+    await fixture.factory.connect(adminSigner).callAny(fixture.validatorPool.address, 0, input)
     let junkData =
       '0x0000000000000000000000000000000000000000000000000000006d6168616d'
     let validValidator = await getValidatorEthAccount(validatorsSnapshots[0])
@@ -111,119 +111,119 @@ describe('Tests Snapshots methods', () => {
     ).to.be.revertedWith(`Snapshots: There's an ETHDKG round running!`)
   })
 
-  it('Does not allow snapshot if validator not elected to do snapshot', async function () {
-    let junkData =
-      '0x0000000000000000000000000000000000000000000000000000006d6168616d'
-    let validValidator = await getValidatorEthAccount(validatorsSnapshots[0])
-    await expect(
-      fixture.snapshots.connect(validValidator).snapshot(junkData, junkData)
-    ).to.be.revertedWith(`Snapshots: Validator not elected to do snapshot!`)
-  })
+//   it('Does not allow snapshot if validator not elected to do snapshot', async function () {
+//     let junkData =
+//       '0x0000000000000000000000000000000000000000000000000000006d6168616d'
+//     let validValidator = await getValidatorEthAccount(validatorsSnapshots[0])
+//     await expect(
+//       fixture.snapshots.connect(validValidator).snapshot(junkData, junkData)
+//     ).to.be.revertedWith(`Snapshots: Validator not elected to do snapshot!`)
+//   })
 
-  describe('With successful ETHDKG round completed', () => {
-    let snapshots: Snapshots
-    beforeEach(async function () {
-      let mock = await completeETHDKGRound(validatorsSnapshots, {
-        ethdkg: fixture.ethdkg,
-        validatorPool: fixture.validatorPool
-      })
+//   describe('With successful ETHDKG round completed', () => {
+// //     // let snapshots: Snapshots
+// //     // beforeEach(async function () {
+// //     //   let mock = await completeETHDKGRound(validatorsSnapshots, {
+// //     //     ethdkg: fixture.ethdkg,
+// //     //     validatorPool: fixture.validatorPool
+// //     //   })
 
-      const Snapshots = await ethers.getContractFactory('Snapshots')
-    //   snapshots = await Snapshots.deploy(
-    //     mock[0].address,
-    //     mock[1].address,
-    //     1,
-    //     mock[1].address
-    //   )
-    //   await snapshots.deployed()
-    })
+// //     //   const Snapshots = await ethers.getContractFactory('Snapshots')
+// //     //   snapshots = await Snapshots.deploy(
+// //     //     mock[0].address,
+// //     //     mock[1].address,
+// //     //     1,
+// //     //     mock[1].address
+// //     //   )
+// //     //   await snapshots.deployed()
+// //     })
 
-    // it('Does not allow snapshot caller did not participate in the last ETHDKG round', async function () {
-    //   await expect(
-    //     snapshots
-    //       .connect(await getValidatorEthAccount(validatorsSnapshots[0]))
-    //       .snapshot(validSnapshot1024.GroupSignature, validSnapshot1024.BClaims)
-    //   ).to.be.revertedWith(
-    //     `Snapshots: Caller didn't participate in the last ethdkg round!`
-    //   )
-    // })
+//     // it('Does not allow snapshot caller did not participate in the last ETHDKG round', async function () {
+//     //   await expect(
+//     //     snapshots
+//     //       .connect(await getValidatorEthAccount(validatorsSnapshots[0]))
+//     //       .snapshot(validSnapshot1024.GroupSignature, validSnapshot1024.BClaims)
+//     //   ).to.be.revertedWith(
+//     //     `Snapshots: Caller didn't participate in the last ethdkg round!`
+//     //   )
+//     // })
 
-    it('Reverts when snapshot data contains invalid height', async function () {
-      await expect(
-        snapshots
-          .connect(
-            await getValidatorEthAccount(
-              validatorsSnapshots[invalidSnapshot500.validatorIndex]
-            )
-          )
-          .snapshot(
-            invalidSnapshot500.GroupSignature,
-            invalidSnapshot500.BClaims
-          )
-      ).to.be.revertedWith(`Snapshots: Incorrect Madnet height for snapshot!`)
-    })
+//     it('Reverts when snapshot data contains invalid height', async function () {
+//       await expect(
+//         snapshots
+//           .connect(
+//             await getValidatorEthAccount(
+//               validatorsSnapshots[invalidSnapshot500.validatorIndex]
+//             )
+//           )
+//           .snapshot(
+//             invalidSnapshot500.GroupSignature,
+//             invalidSnapshot500.BClaims
+//           )
+//       ).to.be.revertedWith(`Snapshots: Incorrect Madnet height for snapshot!`)
+//     })
 
-    it('Reverts when snapshot data contains invalid chain id', async function () {
-      await expect(
-        snapshots
-          .connect(
-            await getValidatorEthAccount(
-              validatorsSnapshots[invalidSnapshotChainID2.validatorIndex]
-            )
-          )
-          .snapshot(
-            invalidSnapshotChainID2.GroupSignature,
-            invalidSnapshotChainID2.BClaims
-          )
-      ).to.be.revertedWith(`Snapshots: Incorrect chainID for snapshot!`)
-    })
+//     it('Reverts when snapshot data contains invalid chain id', async function () {
+//       await expect(
+//         snapshots
+//           .connect(
+//             await getValidatorEthAccount(
+//               validatorsSnapshots[invalidSnapshotChainID2.validatorIndex]
+//             )
+//           )
+//           .snapshot(
+//             invalidSnapshotChainID2.GroupSignature,
+//             invalidSnapshotChainID2.BClaims
+//           )
+//       ).to.be.revertedWith(`Snapshots: Incorrect chainID for snapshot!`)
+//     })
 
-    // todo wrong public key failure happens first with this data
-    // it('Reverts when snapshot data contains incorrect signature', async function () {
-    //   await expect(
-    //     snapshots
-    //       .connect(await getValidatorEthAccount(validatorsSnapshots[invalidSnapshotIncorrectSig.validatorIndex]))
-    //       .snapshot(
-    //         invalidSnapshotIncorrectSig.GroupSignature,
-    //         invalidSnapshotIncorrectSig.BClaims
-    //       )
-    //   ).to.be.revertedWith(`Snapshots: Signature verification failed!`)
-    // })
+//     // todo wrong public key failure happens first with this data
+//     // it('Reverts when snapshot data contains incorrect signature', async function () {
+//     //   await expect(
+//     //     snapshots
+//     //       .connect(await getValidatorEthAccount(validatorsSnapshots[invalidSnapshotIncorrectSig.validatorIndex]))
+//     //       .snapshot(
+//     //         invalidSnapshotIncorrectSig.GroupSignature,
+//     //         invalidSnapshotIncorrectSig.BClaims
+//     //       )
+//     //   ).to.be.revertedWith(`Snapshots: Signature verification failed!`)
+//     // })
 
-    it('Reverts when snapshot data contains incorrect public key', async function () {
-      await expect(
-        snapshots
-          .connect(
-            await getValidatorEthAccount(
-              validatorsSnapshots[invalidSnapshotIncorrectSig.validatorIndex]
-            )
-          )
-          .snapshot(
-            invalidSnapshotIncorrectSig.GroupSignature,
-            invalidSnapshotIncorrectSig.BClaims
-          )
-      ).to.be.revertedWith(`Snapshots: Wrong master public key!`)
-    })
+//     // it('Reverts when snapshot data contains incorrect public key', async function () {
+//     //   await expect(
+//     //     snapshots
+//     //       .connect(
+//     //         await getValidatorEthAccount(
+//     //           validatorsSnapshots[invalidSnapshotIncorrectSig.validatorIndex]
+//     //         )
+//     //       )
+//     //       .snapshot(
+//     //         invalidSnapshotIncorrectSig.GroupSignature,
+//     //         invalidSnapshotIncorrectSig.BClaims
+//     //       )
+//     //   ).to.be.revertedWith(`Snapshots: Wrong master public key!`)
+//     // })
 
-    it('Successfully performs snapshot', async function () {
-      const expectedChainId = 1
-      const expectedEpoch = 1
-      const expectedHeight = validSnapshot1024.height
-      const expectedSafeToProceedConsensus = true
+//     // it('Successfully performs snapshot', async function () {
+//     //   const expectedChainId = 1
+//     //   const expectedEpoch = 1
+//     //   const expectedHeight = validSnapshot1024.height
+//     //   const expectedSafeToProceedConsensus = true
 
-      await expect(
-        snapshots
-          .connect(await getValidatorEthAccount(validatorsSnapshots[0]))
-          .snapshot(validSnapshot1024.GroupSignature, validSnapshot1024.BClaims)
-      )
-        .to.emit(snapshots, `SnapshotTaken`)
-        .withArgs(
-          expectedChainId,
-          expectedEpoch,
-          expectedHeight,
-          ethers.utils.getAddress(validatorsSnapshots[0].address),
-          expectedSafeToProceedConsensus
-        )
-    })
-  })
+//     //   await expect(
+//     //     snapshots
+//     //       .connect(await getValidatorEthAccount(validatorsSnapshots[0]))
+//     //       .snapshot(validSnapshot1024.GroupSignature, validSnapshot1024.BClaims)
+//     //   )
+//     //     .to.emit(snapshots, `SnapshotTaken`)
+//     //     .withArgs(
+//     //       expectedChainId,
+//     //       expectedEpoch,
+//     //       expectedHeight,
+//     //       ethers.utils.getAddress(validatorsSnapshots[0].address),
+//     //       expectedSafeToProceedConsensus
+//     //     )
+//     // })
+//   })
 })

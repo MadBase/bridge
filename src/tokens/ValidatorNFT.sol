@@ -3,11 +3,24 @@ pragma solidity ^0.8.11;
 
 import "./StakeNFT.sol";
 
+abstract contract DeterministicValidatorPool is DeterministicAddress {
+    address private immutable _validatorPool;
+
+    constructor() {
+        _validatorPool = getMetamorphicContractAddress(0x56616c696461746f72506f6f6c00000000000000000000000000000000000000, msg.sender);
+    }
+
+    modifier onlyValidatorPool() {
+        require(msg.sender == _validatorPool, "Only ValidatorPool allowed!");
+        _;
+    }
+}
+
 /// @custom:salt ValidatorNFT
 /// @custom:deploy-type deployStatic
-contract ValidatorNFT is StakeNFTBase {
+contract ValidatorNFT is StakeNFTBase, DeterministicValidatorPool {
     // solhint-disable no-empty-blocks
-    constructor() StakeNFTBase() {}
+    constructor() StakeNFTBase() DeterministicValidatorPool() {}
     function initialize() public initializer onlyAdmin {
         __StakeNFTBase_init("MNVSNFT", "MNVS");
     }
@@ -15,7 +28,7 @@ contract ValidatorNFT is StakeNFTBase {
     /// requires the caller to have performed an approve invocation against
     /// MadToken into this contract. This function will fail if the circuit
     /// breaker is tripped.
-    function mint(uint256 amount_) public override withCircuitBreaker onlyAdmin returns (uint256 tokenID) {
+    function mint(uint256 amount_) public override withCircuitBreaker onlyValidatorPool returns (uint256 tokenID) {
         return _mintNFT(msg.sender, amount_);
     }
 
@@ -29,7 +42,7 @@ contract ValidatorNFT is StakeNFTBase {
         address to_,
         uint256 amount_,
         uint256 lockDuration_
-    ) public override withCircuitBreaker onlyAdmin returns (uint256 tokenID) {
+    ) public override withCircuitBreaker onlyValidatorPool returns (uint256 tokenID) {
         require(
             lockDuration_ <= _MAX_MINT_LOCK,
             "StakeNFT: The lock duration must be less or equal than the maxMintLock!"
@@ -46,7 +59,7 @@ contract ValidatorNFT is StakeNFTBase {
     function burn(uint256 tokenID_)
         public
         override
-        onlyAdmin
+        onlyValidatorPool
         returns (uint256 payoutEth, uint256 payoutMadToken)
     {
         return _burn(msg.sender, msg.sender, tokenID_);
@@ -57,7 +70,7 @@ contract ValidatorNFT is StakeNFTBase {
     function burnTo(address to_, uint256 tokenID_)
         public
         override
-        onlyAdmin
+        onlyValidatorPool
         returns (uint256 payoutEth, uint256 payoutMadToken)
     {
         return _burn(msg.sender, to_, tokenID_);
