@@ -1197,7 +1197,7 @@ type CryptoLibraryTransactorRaw struct {
 func NewCryptoLibrary(address common.Address, backend bind.ContractBackend) (*CryptoLibrary, error) {
 	contract, err := bindCryptoLibrary(address, backend, backend, backend)
 	if err != nil {
-		return nil, err
+		return *new(*big.Int), err
 	}
 	return &CryptoLibrary{CryptoLibraryCaller: CryptoLibraryCaller{contract: contract}, CryptoLibraryTransactor: CryptoLibraryTransactor{contract: contract}, CryptoLibraryFilterer: CryptoLibraryFilterer{contract: contract}}, nil
 }
@@ -1215,7 +1215,7 @@ func NewCryptoLibraryCaller(address common.Address, caller bind.ContractCaller) 
 func NewCryptoLibraryTransactor(address common.Address, transactor bind.ContractTransactor) (*CryptoLibraryTransactor, error) {
 	contract, err := bindCryptoLibrary(address, nil, transactor, nil)
 	if err != nil {
-		return nil, err
+		return *new(*big.Int), err
 	}
 	return &CryptoLibraryTransactor{contract: contract}, nil
 }
@@ -2267,7 +2267,7 @@ func NewERC20UpgradeableTransactor(address common.Address, transactor bind.Contr
 func NewERC20UpgradeableFilterer(address common.Address, filterer bind.ContractFilterer) (*ERC20UpgradeableFilterer, error) {
 	contract, err := bindERC20Upgradeable(address, nil, nil, filterer)
 	if err != nil {
-		return nil, err
+		return *new(bool), err
 	}
 	return &ERC20UpgradeableFilterer{contract: contract}, nil
 }
@@ -2658,12 +2658,7 @@ func (it *ERC20UpgradeableApprovalIterator) Next() bool {
 		it.Event.Raw = log
 		return true
 
-	case err := <-it.sub.Err():
-		it.done = true
-		it.fail = err
-		return it.Next()
-	}
-}
+	return out0, err
 
 // Error returns any retrieval or parsing error occurred during filtering.
 func (it *ERC20UpgradeableApprovalIterator) Error() error {
@@ -2701,7 +2696,7 @@ func (_ERC20Upgradeable *ERC20UpgradeableFilterer) FilterApproval(opts *bind.Fil
 
 	logs, sub, err := _ERC20Upgradeable.contract.FilterLogs(opts, "Approval", ownerRule, spenderRule)
 	if err != nil {
-		return nil, err
+		return *new(*big.Int), err
 	}
 	return &ERC20UpgradeableApprovalIterator{contract: _ERC20Upgradeable.contract, event: "Approval", logs: logs, sub: sub}, nil
 }
@@ -2736,20 +2731,6 @@ func (_ERC20Upgradeable *ERC20UpgradeableFilterer) WatchApproval(opts *bind.Watc
 				}
 				event.Raw = log
 
-				select {
-				case sink <- event:
-				case err := <-sub.Err():
-					return err
-				case <-quit:
-					return nil
-				}
-			case err := <-sub.Err():
-				return err
-			case <-quit:
-				return nil
-			}
-		}
-	}), nil
 }
 
 // ParseApproval is a log parse operation binding the contract event 0x8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b925.
@@ -2797,9 +2778,8 @@ func (it *ERC20UpgradeableTransferIterator) Next() bool {
 			it.Event.Raw = log
 			return true
 
-		default:
-			return false
-		}
+	if err != nil {
+		return *new(bool), err
 	}
 	// Iterator still in progress, wait for either a data or an error event
 	select {
@@ -2812,12 +2792,7 @@ func (it *ERC20UpgradeableTransferIterator) Next() bool {
 		it.Event.Raw = log
 		return true
 
-	case err := <-it.sub.Err():
-		it.done = true
-		it.fail = err
-		return it.Next()
-	}
-}
+	out0 := *abi.ConvertType(out[0], new(bool)).(*bool)
 
 // Error returns any retrieval or parsing error occurred during filtering.
 func (it *ERC20UpgradeableTransferIterator) Error() error {
@@ -2876,7 +2851,7 @@ func (_ERC20Upgradeable *ERC20UpgradeableFilterer) WatchTransfer(opts *bind.Watc
 
 	logs, sub, err := _ERC20Upgradeable.contract.WatchLogs(opts, "Transfer", fromRule, toRule)
 	if err != nil {
-		return nil, err
+		return *new(*big.Int), err
 	}
 	return event.NewSubscription(func(quit <-chan struct{}) error {
 		defer sub.Unsubscribe()
@@ -2890,20 +2865,10 @@ func (_ERC20Upgradeable *ERC20UpgradeableFilterer) WatchTransfer(opts *bind.Watc
 				}
 				event.Raw = log
 
-				select {
-				case sink <- event:
-				case err := <-sub.Err():
-					return err
-				case <-quit:
-					return nil
-				}
-			case err := <-sub.Err():
-				return err
-			case <-quit:
-				return nil
-			}
-		}
-	}), nil
+	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
+
+	return out0, err
+
 }
 
 // ParseTransfer is a log parse operation binding the contract event 0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef.
@@ -3021,7 +2986,10 @@ func NewERC721Holder(address common.Address, backend bind.ContractBackend) (*ERC
 func NewERC721HolderCaller(address common.Address, caller bind.ContractCaller) (*ERC721HolderCaller, error) {
 	contract, err := bindERC721Holder(address, caller, nil, nil)
 	if err != nil {
-		return nil, err
+		return common.Address{}, nil, nil, err
+	}
+	if parsed == nil {
+		return common.Address{}, nil, nil, errors.New("GetABI returned nil")
 	}
 	return &ERC721HolderCaller{contract: contract}, nil
 }
@@ -3642,13 +3610,14 @@ func (_ERC721Upgradeable *ERC721UpgradeableTransactorSession) TransferFrom(from 
 type ERC721UpgradeableApprovalIterator struct {
 	Event *ERC721UpgradeableApproval // Event containing the contract specifics and raw log
 
-	contract *bind.BoundContract // Generic contract to use for unpacking event data
-	event    string              // Event name to use for unpacking event data
+// DSAuthEventsCallerRaw is an auto generated low-level read-only Go binding around an Ethereum contract.
+type DSAuthEventsCallerRaw struct {
+	Contract *DSAuthEventsCaller // Generic read-only contract binding to access the raw methods on
+}
 
-	logs chan types.Log        // Log channel receiving the found contract events
-	sub  ethereum.Subscription // Subscription for errors, completion and termination
-	done bool                  // Whether the subscription completed delivering logs
-	fail error                 // Occurred error to stop iteration
+// DSAuthEventsTransactorRaw is an auto generated low-level write-only Go binding around an Ethereum contract.
+type DSAuthEventsTransactorRaw struct {
+	Contract *DSAuthEventsTransactor // Generic write-only contract binding to access the raw methods on
 }
 
 // Next advances the iterator to the subsequent event, returning whether there
@@ -3671,9 +3640,11 @@ func (it *ERC721UpgradeableApprovalIterator) Next() bool {
 			it.Event.Raw = log
 			return true
 
-		default:
-			return false
-		}
+// NewDSAuthEventsCaller creates a new read-only instance of DSAuthEvents, bound to a specific deployed contract.
+func NewDSAuthEventsCaller(address common.Address, caller bind.ContractCaller) (*DSAuthEventsCaller, error) {
+	contract, err := bindDSAuthEvents(address, caller, nil, nil)
+	if err != nil {
+		return nil, err
 	}
 	// Iterator still in progress, wait for either a data or an error event
 	select {
@@ -3686,11 +3657,13 @@ func (it *ERC721UpgradeableApprovalIterator) Next() bool {
 		it.Event.Raw = log
 		return true
 
-	case err := <-it.sub.Err():
-		it.done = true
-		it.fail = err
-		return it.Next()
+// NewDSAuthEventsTransactor creates a new write-only instance of DSAuthEvents, bound to a specific deployed contract.
+func NewDSAuthEventsTransactor(address common.Address, transactor bind.ContractTransactor) (*DSAuthEventsTransactor, error) {
+	contract, err := bindDSAuthEvents(address, nil, transactor, nil)
+	if err != nil {
+		return nil, err
 	}
+	return &DSAuthEventsTransactor{contract: contract}, nil
 }
 
 // Error returns any retrieval or parsing error occurred during filtering.
@@ -3772,20 +3745,10 @@ func (_ERC721Upgradeable *ERC721UpgradeableFilterer) WatchApproval(opts *bind.Wa
 				}
 				event.Raw = log
 
-				select {
-				case sink <- event:
-				case err := <-sub.Err():
-					return err
-				case <-quit:
-					return nil
-				}
-			case err := <-sub.Err():
-				return err
-			case <-quit:
-				return nil
-			}
-		}
-	}), nil
+// Transfer initiates a plain transaction to move funds to the contract, calling
+// its default method if one is available.
+func (_DSAuthEvents *DSAuthEventsTransactorRaw) Transfer(opts *bind.TransactOpts) (*types.Transaction, error) {
+	return _DSAuthEvents.Contract.contract.Transfer(opts)
 }
 
 // ParseApproval is a log parse operation binding the contract event 0x8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b925.
@@ -5178,14 +5141,13 @@ func (_ETHDKG *ETHDKGTransactorSession) SubmitMasterPublicKey(masterPublicKey_ [
 type ETHDKGAddressRegisteredIterator struct {
 	Event *ETHDKGAddressRegistered // Event containing the contract specifics and raw log
 
-	contract *bind.BoundContract // Generic contract to use for unpacking event data
-	event    string              // Event name to use for unpacking event data
+// DSStopABI is the input ABI used to generate the binding from.
+// Deprecated: Use DSStopMetaData.ABI instead.
+var DSStopABI = DSStopMetaData.ABI
 
-	logs chan types.Log        // Log channel receiving the found contract events
-	sub  ethereum.Subscription // Subscription for errors, completion and termination
-	done bool                  // Whether the subscription completed delivering logs
-	fail error                 // Occurred error to stop iteration
-}
+// DSStopBin is the compiled bytecode used for deploying new contracts.
+// Deprecated: Use DSStopMetaData.Bin instead.
+var DSStopBin = DSStopMetaData.Bin
 
 // Next advances the iterator to the subsequent event, returning whether there
 // are any more events found. In case of a retrieval or parsing error, false is
@@ -5222,11 +5184,11 @@ func (it *ETHDKGAddressRegisteredIterator) Next() bool {
 		it.Event.Raw = log
 		return true
 
-	case err := <-it.sub.Err():
-		it.done = true
-		it.fail = err
-		return it.Next()
+	address, tx, contract, err := bind.DeployContract(auth, *parsed, common.FromHex(DSStopBin), backend)
+	if err != nil {
+		return common.Address{}, nil, nil, err
 	}
+	return address, tx, &DSStop{DSStopCaller: DSStopCaller{contract: contract}, DSStopTransactor: DSStopTransactor{contract: contract}, DSStopFilterer: DSStopFilterer{contract: contract}}, nil
 }
 
 // Error returns any retrieval or parsing error occurred during filtering.
@@ -5307,8 +5269,7 @@ func (_ETHDKG *ETHDKGFilterer) ParseAddressRegistered(log types.Log) (*ETHDKGAdd
 	if err := _ETHDKG.contract.UnpackLog(event, "AddressRegistered", log); err != nil {
 		return nil, err
 	}
-	event.Raw = log
-	return event, nil
+	return &DSStopFilterer{contract: contract}, nil
 }
 
 // ETHDKGGPKJSubmissionCompleteIterator is returned from FilterGPKJSubmissionComplete and is used to iterate over the raw logs and unpacked data for GPKJSubmissionComplete events raised by the ETHDKG contract.
@@ -5359,11 +5320,9 @@ func (it *ETHDKGGPKJSubmissionCompleteIterator) Next() bool {
 		it.Event.Raw = log
 		return true
 
-	case err := <-it.sub.Err():
-		it.done = true
-		it.fail = err
-		return it.Next()
-	}
+// Transact invokes the (paid) contract method with params as input values.
+func (_DSStop *DSStopRaw) Transact(opts *bind.TransactOpts, method string, params ...interface{}) (*types.Transaction, error) {
+	return _DSStop.Contract.DSStopTransactor.contract.Transact(opts, method, params...)
 }
 
 // Error returns any retrieval or parsing error occurred during filtering.
@@ -5391,7 +5350,7 @@ func (_ETHDKG *ETHDKGFilterer) FilterGPKJSubmissionComplete(opts *bind.FilterOpt
 
 	logs, sub, err := _ETHDKG.contract.FilterLogs(opts, "GPKJSubmissionComplete")
 	if err != nil {
-		return nil, err
+		return *new(common.Address), err
 	}
 	return &ETHDKGGPKJSubmissionCompleteIterator{contract: _ETHDKG.contract, event: "GPKJSubmissionComplete", logs: logs, sub: sub}, nil
 }
@@ -5417,20 +5376,6 @@ func (_ETHDKG *ETHDKGFilterer) WatchGPKJSubmissionComplete(opts *bind.WatchOpts,
 				}
 				event.Raw = log
 
-				select {
-				case sink <- event:
-				case err := <-sub.Err():
-					return err
-				case <-quit:
-					return nil
-				}
-			case err := <-sub.Err():
-				return err
-			case <-quit:
-				return nil
-			}
-		}
-	}), nil
 }
 
 // ParseGPKJSubmissionComplete is a log parse operation binding the contract event 0x87bfe600b78cad9f7cf68c99eb582c1748f636b3269842b37d5873b0e069f628.
@@ -5449,13 +5394,14 @@ func (_ETHDKG *ETHDKGFilterer) ParseGPKJSubmissionComplete(log types.Log) (*ETHD
 type ETHDKGKeyShareSubmissionCompleteIterator struct {
 	Event *ETHDKGKeyShareSubmissionComplete // Event containing the contract specifics and raw log
 
-	contract *bind.BoundContract // Generic contract to use for unpacking event data
-	event    string              // Event name to use for unpacking event data
+	if err != nil {
+		return *new(bool), err
+	}
 
-	logs chan types.Log        // Log channel receiving the found contract events
-	sub  ethereum.Subscription // Subscription for errors, completion and termination
-	done bool                  // Whether the subscription completed delivering logs
-	fail error                 // Occurred error to stop iteration
+	out0 := *abi.ConvertType(out[0], new(bool)).(*bool)
+
+	return out0, err
+
 }
 
 // Next advances the iterator to the subsequent event, returning whether there
@@ -5493,11 +5439,11 @@ func (it *ETHDKGKeyShareSubmissionCompleteIterator) Next() bool {
 		it.Event.Raw = log
 		return true
 
-	case err := <-it.sub.Err():
-		it.done = true
-		it.fail = err
-		return it.Next()
-	}
+// SetAuthority is a paid mutator transaction binding the contract method 0x7a9e5e4b.
+//
+// Solidity: function setAuthority(address authority_) returns()
+func (_DSStop *DSStopTransactor) SetAuthority(opts *bind.TransactOpts, authority_ common.Address) (*types.Transaction, error) {
+	return _DSStop.contract.Transact(opts, "setAuthority", authority_)
 }
 
 // Error returns any retrieval or parsing error occurred during filtering.
@@ -5551,20 +5497,11 @@ func (_ETHDKG *ETHDKGFilterer) WatchKeyShareSubmissionComplete(opts *bind.WatchO
 				}
 				event.Raw = log
 
-				select {
-				case sink <- event:
-				case err := <-sub.Err():
-					return err
-				case <-quit:
-					return nil
-				}
-			case err := <-sub.Err():
-				return err
-			case <-quit:
-				return nil
-			}
-		}
-	}), nil
+// Stop is a paid mutator transaction binding the contract method 0x07da68f5.
+//
+// Solidity: function stop() returns()
+func (_DSStop *DSStopSession) Stop() (*types.Transaction, error) {
+	return _DSStop.Contract.Stop(&_DSStop.TransactOpts)
 }
 
 // ParseKeyShareSubmissionComplete is a log parse operation binding the contract event 0x522cec98f6caa194456c44afa9e8cef9ac63eecb0be60e20d180ce19cfb0ef59.
@@ -5858,14 +5795,13 @@ func (_ETHDKG *ETHDKGFilterer) ParseMPKSet(log types.Log) (*ETHDKGMPKSet, error)
 type ETHDKGRegistrationCompleteIterator struct {
 	Event *ETHDKGRegistrationComplete // Event containing the contract specifics and raw log
 
-	contract *bind.BoundContract // Generic contract to use for unpacking event data
-	event    string              // Event name to use for unpacking event data
+// DSTokenABI is the input ABI used to generate the binding from.
+// Deprecated: Use DSTokenMetaData.ABI instead.
+var DSTokenABI = DSTokenMetaData.ABI
 
-	logs chan types.Log        // Log channel receiving the found contract events
-	sub  ethereum.Subscription // Subscription for errors, completion and termination
-	done bool                  // Whether the subscription completed delivering logs
-	fail error                 // Occurred error to stop iteration
-}
+// DSTokenBin is the compiled bytecode used for deploying new contracts.
+// Deprecated: Use DSTokenMetaData.Bin instead.
+var DSTokenBin = DSTokenMetaData.Bin
 
 // Next advances the iterator to the subsequent event, returning whether there
 // are any more events found. In case of a retrieval or parsing error, false is
@@ -5902,11 +5838,11 @@ func (it *ETHDKGRegistrationCompleteIterator) Next() bool {
 		it.Event.Raw = log
 		return true
 
-	case err := <-it.sub.Err():
-		it.done = true
-		it.fail = err
-		return it.Next()
+	address, tx, contract, err := bind.DeployContract(auth, *parsed, common.FromHex(DSTokenBin), backend, symbol_)
+	if err != nil {
+		return common.Address{}, nil, nil, err
 	}
+	return address, tx, &DSToken{DSTokenCaller: DSTokenCaller{contract: contract}, DSTokenTransactor: DSTokenTransactor{contract: contract}, DSTokenFilterer: DSTokenFilterer{contract: contract}}, nil
 }
 
 // Error returns any retrieval or parsing error occurred during filtering.
@@ -5984,21 +5920,25 @@ func (_ETHDKG *ETHDKGFilterer) ParseRegistrationComplete(log types.Log) (*ETHDKG
 	if err := _ETHDKG.contract.UnpackLog(event, "RegistrationComplete", log); err != nil {
 		return nil, err
 	}
-	event.Raw = log
-	return event, nil
+	return &DSTokenFilterer{contract: contract}, nil
 }
 
 // ETHDKGRegistrationOpenedIterator is returned from FilterRegistrationOpened and is used to iterate over the raw logs and unpacked data for RegistrationOpened events raised by the ETHDKG contract.
 type ETHDKGRegistrationOpenedIterator struct {
 	Event *ETHDKGRegistrationOpened // Event containing the contract specifics and raw log
 
-	contract *bind.BoundContract // Generic contract to use for unpacking event data
-	event    string              // Event name to use for unpacking event data
+// Call invokes the (constant) contract method with params as input values and
+// sets the output to result. The result type might be a single field for simple
+// returns, a slice of interfaces for anonymous returns and a struct for named
+// returns.
+func (_DSToken *DSTokenRaw) Call(opts *bind.CallOpts, result *[]interface{}, method string, params ...interface{}) error {
+	return _DSToken.Contract.DSTokenCaller.contract.Call(opts, result, method, params...)
+}
 
-	logs chan types.Log        // Log channel receiving the found contract events
-	sub  ethereum.Subscription // Subscription for errors, completion and termination
-	done bool                  // Whether the subscription completed delivering logs
-	fail error                 // Occurred error to stop iteration
+// Transfer initiates a plain transaction to move funds to the contract, calling
+// its default method if one is available.
+func (_DSToken *DSTokenRaw) Transfer(opts *bind.TransactOpts) (*types.Transaction, error) {
+	return _DSToken.Contract.DSTokenTransactor.contract.Transfer(opts)
 }
 
 // Next advances the iterator to the subsequent event, returning whether there
@@ -6072,7 +6012,7 @@ func (_ETHDKG *ETHDKGFilterer) FilterRegistrationOpened(opts *bind.FilterOpts) (
 
 	logs, sub, err := _ETHDKG.contract.FilterLogs(opts, "RegistrationOpened")
 	if err != nil {
-		return nil, err
+		return *new(*big.Int), err
 	}
 	return &ETHDKGRegistrationOpenedIterator{contract: _ETHDKG.contract, event: "RegistrationOpened", logs: logs, sub: sub}, nil
 }
@@ -6084,7 +6024,7 @@ func (_ETHDKG *ETHDKGFilterer) WatchRegistrationOpened(opts *bind.WatchOpts, sin
 
 	logs, sub, err := _ETHDKG.contract.WatchLogs(opts, "RegistrationOpened")
 	if err != nil {
-		return nil, err
+		return *new(common.Address), err
 	}
 	return event.NewSubscription(func(quit <-chan struct{}) error {
 		defer sub.Unsubscribe()
@@ -6098,20 +6038,10 @@ func (_ETHDKG *ETHDKGFilterer) WatchRegistrationOpened(opts *bind.WatchOpts, sin
 				}
 				event.Raw = log
 
-				select {
-				case sink <- event:
-				case err := <-sub.Err():
-					return err
-				case <-quit:
-					return nil
-				}
-			case err := <-sub.Err():
-				return err
-			case <-quit:
-				return nil
-			}
-		}
-	}), nil
+	out0 := *abi.ConvertType(out[0], new(common.Address)).(*common.Address)
+
+	return out0, err
+
 }
 
 // ParseRegistrationOpened is a log parse operation binding the contract event 0xbda431b9b63510f1398bf33d700e013315bcba905507078a1780f13ea5b354b9.
@@ -6159,9 +6089,8 @@ func (it *ETHDKGShareDistributionCompleteIterator) Next() bool {
 			it.Event.Raw = log
 			return true
 
-		default:
-			return false
-		}
+	if err != nil {
+		return *new(*big.Int), err
 	}
 	// Iterator still in progress, wait for either a data or an error event
 	select {
@@ -6174,12 +6103,7 @@ func (it *ETHDKGShareDistributionCompleteIterator) Next() bool {
 		it.Event.Raw = log
 		return true
 
-	case err := <-it.sub.Err():
-		it.done = true
-		it.fail = err
-		return it.Next()
-	}
-}
+	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
 
 // Error returns any retrieval or parsing error occurred during filtering.
 func (it *ETHDKGShareDistributionCompleteIterator) Error() error {
@@ -6206,7 +6130,7 @@ func (_ETHDKG *ETHDKGFilterer) FilterShareDistributionComplete(opts *bind.Filter
 
 	logs, sub, err := _ETHDKG.contract.FilterLogs(opts, "ShareDistributionComplete")
 	if err != nil {
-		return nil, err
+		return *new(*big.Int), err
 	}
 	return &ETHDKGShareDistributionCompleteIterator{contract: _ETHDKG.contract, event: "ShareDistributionComplete", logs: logs, sub: sub}, nil
 }
@@ -6218,7 +6142,7 @@ func (_ETHDKG *ETHDKGFilterer) WatchShareDistributionComplete(opts *bind.WatchOp
 
 	logs, sub, err := _ETHDKG.contract.WatchLogs(opts, "ShareDistributionComplete")
 	if err != nil {
-		return nil, err
+		return *new([32]byte), err
 	}
 	return event.NewSubscription(func(quit <-chan struct{}) error {
 		defer sub.Unsubscribe()
@@ -6232,20 +6156,10 @@ func (_ETHDKG *ETHDKGFilterer) WatchShareDistributionComplete(opts *bind.WatchOp
 				}
 				event.Raw = log
 
-				select {
-				case sink <- event:
-				case err := <-sub.Err():
-					return err
-				case <-quit:
-					return nil
-				}
-			case err := <-sub.Err():
-				return err
-			case <-quit:
-				return nil
-			}
-		}
-	}), nil
+	out0 := *abi.ConvertType(out[0], new([32]byte)).(*[32]byte)
+
+	return out0, err
+
 }
 
 // ParseShareDistributionComplete is a log parse operation binding the contract event 0xbfe94ffef5ddde4d25ac7b652f3f67686ea63f9badbfe1f25451e26fc262d11c.
@@ -6344,7 +6258,7 @@ func (_ETHDKG *ETHDKGFilterer) FilterSharesDistributed(opts *bind.FilterOpts) (*
 
 	logs, sub, err := _ETHDKG.contract.FilterLogs(opts, "SharesDistributed")
 	if err != nil {
-		return nil, err
+		return *new([32]byte), err
 	}
 	return &ETHDKGSharesDistributedIterator{contract: _ETHDKG.contract, event: "SharesDistributed", logs: logs, sub: sub}, nil
 }
@@ -6402,13 +6316,18 @@ func (_ETHDKG *ETHDKGFilterer) ParseSharesDistributed(log types.Log) (*ETHDKGSha
 type ETHDKGValidatorMemberAddedIterator struct {
 	Event *ETHDKGValidatorMemberAdded // Event containing the contract specifics and raw log
 
-	contract *bind.BoundContract // Generic contract to use for unpacking event data
-	event    string              // Event name to use for unpacking event data
+// Burn0 is a paid mutator transaction binding the contract method 0x9dc29fac.
+//
+// Solidity: function burn(address guy, uint256 wad) returns()
+func (_DSToken *DSTokenTransactor) Burn0(opts *bind.TransactOpts, guy common.Address, wad *big.Int) (*types.Transaction, error) {
+	return _DSToken.contract.Transact(opts, "burn0", guy, wad)
+}
 
-	logs chan types.Log        // Log channel receiving the found contract events
-	sub  ethereum.Subscription // Subscription for errors, completion and termination
-	done bool                  // Whether the subscription completed delivering logs
-	fail error                 // Occurred error to stop iteration
+// Burn0 is a paid mutator transaction binding the contract method 0x9dc29fac.
+//
+// Solidity: function burn(address guy, uint256 wad) returns()
+func (_DSToken *DSTokenSession) Burn0(guy common.Address, wad *big.Int) (*types.Transaction, error) {
+	return _DSToken.Contract.Burn0(&_DSToken.TransactOpts, guy, wad)
 }
 
 // Next advances the iterator to the subsequent event, returning whether there
@@ -6424,6 +6343,291 @@ func (it *ETHDKGValidatorMemberAddedIterator) Next() bool {
 		select {
 		case log := <-it.logs:
 			it.Event = new(ETHDKGValidatorMemberAdded)
+			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+				it.fail = err
+				return false
+			}
+			it.Event.Raw = log
+			return true
+
+// Mint is a paid mutator transaction binding the contract method 0x40c10f19.
+//
+// Solidity: function mint(address guy, uint256 wad) returns()
+func (_DSToken *DSTokenTransactor) Mint(opts *bind.TransactOpts, guy common.Address, wad *big.Int) (*types.Transaction, error) {
+	return _DSToken.contract.Transact(opts, "mint", guy, wad)
+}
+
+// Mint is a paid mutator transaction binding the contract method 0x40c10f19.
+//
+// Solidity: function mint(address guy, uint256 wad) returns()
+func (_DSToken *DSTokenSession) Mint(guy common.Address, wad *big.Int) (*types.Transaction, error) {
+	return _DSToken.Contract.Mint(&_DSToken.TransactOpts, guy, wad)
+}
+
+// Mint is a paid mutator transaction binding the contract method 0x40c10f19.
+//
+// Solidity: function mint(address guy, uint256 wad) returns()
+func (_DSToken *DSTokenTransactorSession) Mint(guy common.Address, wad *big.Int) (*types.Transaction, error) {
+	return _DSToken.Contract.Mint(&_DSToken.TransactOpts, guy, wad)
+}
+
+// Mint0 is a paid mutator transaction binding the contract method 0xa0712d68.
+//
+// Solidity: function mint(uint256 wad) returns()
+func (_DSToken *DSTokenTransactor) Mint0(opts *bind.TransactOpts, wad *big.Int) (*types.Transaction, error) {
+	return _DSToken.contract.Transact(opts, "mint0", wad)
+}
+
+// Mint0 is a paid mutator transaction binding the contract method 0xa0712d68.
+//
+// Solidity: function mint(uint256 wad) returns()
+func (_DSToken *DSTokenSession) Mint0(wad *big.Int) (*types.Transaction, error) {
+	return _DSToken.Contract.Mint0(&_DSToken.TransactOpts, wad)
+}
+
+// Mint0 is a paid mutator transaction binding the contract method 0xa0712d68.
+//
+// Solidity: function mint(uint256 wad) returns()
+func (_DSToken *DSTokenTransactorSession) Mint0(wad *big.Int) (*types.Transaction, error) {
+	return _DSToken.Contract.Mint0(&_DSToken.TransactOpts, wad)
+}
+
+// Move is a paid mutator transaction binding the contract method 0xbb35783b.
+//
+// Solidity: function move(address src, address dst, uint256 wad) returns()
+func (_DSToken *DSTokenTransactor) Move(opts *bind.TransactOpts, src common.Address, dst common.Address, wad *big.Int) (*types.Transaction, error) {
+	return _DSToken.contract.Transact(opts, "move", src, dst, wad)
+}
+
+// Move is a paid mutator transaction binding the contract method 0xbb35783b.
+//
+// Solidity: function move(address src, address dst, uint256 wad) returns()
+func (_DSToken *DSTokenSession) Move(src common.Address, dst common.Address, wad *big.Int) (*types.Transaction, error) {
+	return _DSToken.Contract.Move(&_DSToken.TransactOpts, src, dst, wad)
+}
+
+// Move is a paid mutator transaction binding the contract method 0xbb35783b.
+//
+// Solidity: function move(address src, address dst, uint256 wad) returns()
+func (_DSToken *DSTokenTransactorSession) Move(src common.Address, dst common.Address, wad *big.Int) (*types.Transaction, error) {
+	return _DSToken.Contract.Move(&_DSToken.TransactOpts, src, dst, wad)
+}
+
+// Pull is a paid mutator transaction binding the contract method 0xf2d5d56b.
+//
+// Solidity: function pull(address src, uint256 wad) returns()
+func (_DSToken *DSTokenTransactor) Pull(opts *bind.TransactOpts, src common.Address, wad *big.Int) (*types.Transaction, error) {
+	return _DSToken.contract.Transact(opts, "pull", src, wad)
+}
+
+// Pull is a paid mutator transaction binding the contract method 0xf2d5d56b.
+//
+// Solidity: function pull(address src, uint256 wad) returns()
+func (_DSToken *DSTokenSession) Pull(src common.Address, wad *big.Int) (*types.Transaction, error) {
+	return _DSToken.Contract.Pull(&_DSToken.TransactOpts, src, wad)
+}
+
+// Pull is a paid mutator transaction binding the contract method 0xf2d5d56b.
+//
+// Solidity: function pull(address src, uint256 wad) returns()
+func (_DSToken *DSTokenTransactorSession) Pull(src common.Address, wad *big.Int) (*types.Transaction, error) {
+	return _DSToken.Contract.Pull(&_DSToken.TransactOpts, src, wad)
+}
+
+// Push is a paid mutator transaction binding the contract method 0xb753a98c.
+//
+// Solidity: function push(address dst, uint256 wad) returns()
+func (_DSToken *DSTokenTransactor) Push(opts *bind.TransactOpts, dst common.Address, wad *big.Int) (*types.Transaction, error) {
+	return _DSToken.contract.Transact(opts, "push", dst, wad)
+}
+
+// Push is a paid mutator transaction binding the contract method 0xb753a98c.
+//
+// Solidity: function push(address dst, uint256 wad) returns()
+func (_DSToken *DSTokenSession) Push(dst common.Address, wad *big.Int) (*types.Transaction, error) {
+	return _DSToken.Contract.Push(&_DSToken.TransactOpts, dst, wad)
+}
+
+// Push is a paid mutator transaction binding the contract method 0xb753a98c.
+//
+// Solidity: function push(address dst, uint256 wad) returns()
+func (_DSToken *DSTokenTransactorSession) Push(dst common.Address, wad *big.Int) (*types.Transaction, error) {
+	return _DSToken.Contract.Push(&_DSToken.TransactOpts, dst, wad)
+}
+
+// SetAuthority is a paid mutator transaction binding the contract method 0x7a9e5e4b.
+//
+// Solidity: function setAuthority(address authority_) returns()
+func (_DSToken *DSTokenTransactor) SetAuthority(opts *bind.TransactOpts, authority_ common.Address) (*types.Transaction, error) {
+	return _DSToken.contract.Transact(opts, "setAuthority", authority_)
+}
+
+// SetAuthority is a paid mutator transaction binding the contract method 0x7a9e5e4b.
+//
+// Solidity: function setAuthority(address authority_) returns()
+func (_DSToken *DSTokenSession) SetAuthority(authority_ common.Address) (*types.Transaction, error) {
+	return _DSToken.Contract.SetAuthority(&_DSToken.TransactOpts, authority_)
+}
+
+// SetAuthority is a paid mutator transaction binding the contract method 0x7a9e5e4b.
+//
+// Solidity: function setAuthority(address authority_) returns()
+func (_DSToken *DSTokenTransactorSession) SetAuthority(authority_ common.Address) (*types.Transaction, error) {
+	return _DSToken.Contract.SetAuthority(&_DSToken.TransactOpts, authority_)
+}
+
+// SetName is a paid mutator transaction binding the contract method 0x5ac801fe.
+//
+// Solidity: function setName(bytes32 name_) returns()
+func (_DSToken *DSTokenTransactor) SetName(opts *bind.TransactOpts, name_ [32]byte) (*types.Transaction, error) {
+	return _DSToken.contract.Transact(opts, "setName", name_)
+}
+
+// SetName is a paid mutator transaction binding the contract method 0x5ac801fe.
+//
+// Solidity: function setName(bytes32 name_) returns()
+func (_DSToken *DSTokenSession) SetName(name_ [32]byte) (*types.Transaction, error) {
+	return _DSToken.Contract.SetName(&_DSToken.TransactOpts, name_)
+}
+
+// SetName is a paid mutator transaction binding the contract method 0x5ac801fe.
+//
+// Solidity: function setName(bytes32 name_) returns()
+func (_DSToken *DSTokenTransactorSession) SetName(name_ [32]byte) (*types.Transaction, error) {
+	return _DSToken.Contract.SetName(&_DSToken.TransactOpts, name_)
+}
+
+// SetOwner is a paid mutator transaction binding the contract method 0x13af4035.
+//
+// Solidity: function setOwner(address owner_) returns()
+func (_DSToken *DSTokenTransactor) SetOwner(opts *bind.TransactOpts, owner_ common.Address) (*types.Transaction, error) {
+	return _DSToken.contract.Transact(opts, "setOwner", owner_)
+}
+
+// SetOwner is a paid mutator transaction binding the contract method 0x13af4035.
+//
+// Solidity: function setOwner(address owner_) returns()
+func (_DSToken *DSTokenSession) SetOwner(owner_ common.Address) (*types.Transaction, error) {
+	return _DSToken.Contract.SetOwner(&_DSToken.TransactOpts, owner_)
+}
+
+// SetOwner is a paid mutator transaction binding the contract method 0x13af4035.
+//
+// Solidity: function setOwner(address owner_) returns()
+func (_DSToken *DSTokenTransactorSession) SetOwner(owner_ common.Address) (*types.Transaction, error) {
+	return _DSToken.Contract.SetOwner(&_DSToken.TransactOpts, owner_)
+}
+
+// Start is a paid mutator transaction binding the contract method 0xbe9a6555.
+//
+// Solidity: function start() returns()
+func (_DSToken *DSTokenTransactor) Start(opts *bind.TransactOpts) (*types.Transaction, error) {
+	return _DSToken.contract.Transact(opts, "start")
+}
+
+// Start is a paid mutator transaction binding the contract method 0xbe9a6555.
+//
+// Solidity: function start() returns()
+func (_DSToken *DSTokenSession) Start() (*types.Transaction, error) {
+	return _DSToken.Contract.Start(&_DSToken.TransactOpts)
+}
+
+// Start is a paid mutator transaction binding the contract method 0xbe9a6555.
+//
+// Solidity: function start() returns()
+func (_DSToken *DSTokenTransactorSession) Start() (*types.Transaction, error) {
+	return _DSToken.Contract.Start(&_DSToken.TransactOpts)
+}
+
+// Stop is a paid mutator transaction binding the contract method 0x07da68f5.
+//
+// Solidity: function stop() returns()
+func (_DSToken *DSTokenTransactor) Stop(opts *bind.TransactOpts) (*types.Transaction, error) {
+	return _DSToken.contract.Transact(opts, "stop")
+}
+
+// Stop is a paid mutator transaction binding the contract method 0x07da68f5.
+//
+// Solidity: function stop() returns()
+func (_DSToken *DSTokenSession) Stop() (*types.Transaction, error) {
+	return _DSToken.Contract.Stop(&_DSToken.TransactOpts)
+}
+
+// Stop is a paid mutator transaction binding the contract method 0x07da68f5.
+//
+// Solidity: function stop() returns()
+func (_DSToken *DSTokenTransactorSession) Stop() (*types.Transaction, error) {
+	return _DSToken.Contract.Stop(&_DSToken.TransactOpts)
+}
+
+// Transfer is a paid mutator transaction binding the contract method 0xa9059cbb.
+//
+// Solidity: function transfer(address dst, uint256 wad) returns(bool)
+func (_DSToken *DSTokenTransactor) Transfer(opts *bind.TransactOpts, dst common.Address, wad *big.Int) (*types.Transaction, error) {
+	return _DSToken.contract.Transact(opts, "transfer", dst, wad)
+}
+
+// Transfer is a paid mutator transaction binding the contract method 0xa9059cbb.
+//
+// Solidity: function transfer(address dst, uint256 wad) returns(bool)
+func (_DSToken *DSTokenSession) Transfer(dst common.Address, wad *big.Int) (*types.Transaction, error) {
+	return _DSToken.Contract.Transfer(&_DSToken.TransactOpts, dst, wad)
+}
+
+// Transfer is a paid mutator transaction binding the contract method 0xa9059cbb.
+//
+// Solidity: function transfer(address dst, uint256 wad) returns(bool)
+func (_DSToken *DSTokenTransactorSession) Transfer(dst common.Address, wad *big.Int) (*types.Transaction, error) {
+	return _DSToken.Contract.Transfer(&_DSToken.TransactOpts, dst, wad)
+}
+
+// TransferFrom is a paid mutator transaction binding the contract method 0x23b872dd.
+//
+// Solidity: function transferFrom(address src, address dst, uint256 wad) returns(bool)
+func (_DSToken *DSTokenTransactor) TransferFrom(opts *bind.TransactOpts, src common.Address, dst common.Address, wad *big.Int) (*types.Transaction, error) {
+	return _DSToken.contract.Transact(opts, "transferFrom", src, dst, wad)
+}
+
+// TransferFrom is a paid mutator transaction binding the contract method 0x23b872dd.
+//
+// Solidity: function transferFrom(address src, address dst, uint256 wad) returns(bool)
+func (_DSToken *DSTokenSession) TransferFrom(src common.Address, dst common.Address, wad *big.Int) (*types.Transaction, error) {
+	return _DSToken.Contract.TransferFrom(&_DSToken.TransactOpts, src, dst, wad)
+}
+
+// TransferFrom is a paid mutator transaction binding the contract method 0x23b872dd.
+//
+// Solidity: function transferFrom(address src, address dst, uint256 wad) returns(bool)
+func (_DSToken *DSTokenTransactorSession) TransferFrom(src common.Address, dst common.Address, wad *big.Int) (*types.Transaction, error) {
+	return _DSToken.Contract.TransferFrom(&_DSToken.TransactOpts, src, dst, wad)
+}
+
+// DSTokenApprovalIterator is returned from FilterApproval and is used to iterate over the raw logs and unpacked data for Approval events raised by the DSToken contract.
+type DSTokenApprovalIterator struct {
+	Event *DSTokenApproval // Event containing the contract specifics and raw log
+
+	contract *bind.BoundContract // Generic contract to use for unpacking event data
+	event    string              // Event name to use for unpacking event data
+
+	logs chan types.Log        // Log channel receiving the found contract events
+	sub  ethereum.Subscription // Subscription for errors, completion and termination
+	done bool                  // Whether the subscription completed delivering logs
+	fail error                 // Occurred error to stop iteration
+}
+
+// Next advances the iterator to the subsequent event, returning whether there
+// are any more events found. In case of a retrieval or parsing error, false is
+// returned and Error() can be queried for the exact failure.
+func (it *DSTokenApprovalIterator) Next() bool {
+	// If the iterator failed, stop iterating
+	if it.fail != nil {
+		return false
+	}
+	// If the iterator completed, deliver directly whatever's available
+	if it.done {
+		select {
+		case log := <-it.logs:
+			it.Event = new(DSTokenApproval)
 			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
 				it.fail = err
 				return false
@@ -8015,7 +8219,7 @@ func NewGovernanceMaxLock(address common.Address, backend bind.ContractBackend) 
 func NewGovernanceMaxLockCaller(address common.Address, caller bind.ContractCaller) (*GovernanceMaxLockCaller, error) {
 	contract, err := bindGovernanceMaxLock(address, caller, nil, nil)
 	if err != nil {
-		return nil, err
+		return *new(common.Address), err
 	}
 	return &GovernanceMaxLockCaller{contract: contract}, nil
 }
@@ -8166,7 +8370,7 @@ func NewGovernanceStorage(address common.Address, backend bind.ContractBackend) 
 func NewGovernanceStorageCaller(address common.Address, caller bind.ContractCaller) (*GovernanceStorageCaller, error) {
 	contract, err := bindGovernanceStorage(address, caller, nil, nil)
 	if err != nil {
-		return nil, err
+		return *new(bool), err
 	}
 	return &GovernanceStorageCaller{contract: contract}, nil
 }
@@ -8731,7 +8935,6 @@ func bindIERC165Upgradeable(address common.Address, caller bind.ContractCaller, 
 	if err != nil {
 		return nil, err
 	}
-	return bind.NewBoundContract(address, parsed, caller, transactor, filterer), nil
 }
 
 // Call invokes the (constant) contract method with params as input values and
@@ -9085,6 +9288,9 @@ func (_IERC20MetadataUpgradeable *IERC20MetadataUpgradeableCaller) Symbol(opts *
 	var out []interface{}
 	err := _IERC20MetadataUpgradeable.contract.Call(opts, &out, "symbol")
 
+// DeployDiamondUpdateFacet deploys a new Ethereum contract, binding an instance of DiamondUpdateFacet to it.
+func DeployDiamondUpdateFacet(auth *bind.TransactOpts, backend bind.ContractBackend) (common.Address, *types.Transaction, *DiamondUpdateFacet, error) {
+	parsed, err := DiamondUpdateFacetMetaData.GetAbi()
 	if err != nil {
 		return *new(string), err
 	}
@@ -9735,21 +9941,21 @@ func (_IERC20Transferable *IERC20TransferableTransactorSession) Transfer(recipie
 	return _IERC20Transferable.Contract.Transfer(&_IERC20Transferable.TransactOpts, recipient, amount)
 }
 
-// TransferFrom is a paid mutator transaction binding the contract method 0x23b872dd.
+// RevokeOperator is a paid mutator transaction binding the contract method 0xfad8b32a.
 //
 // Solidity: function transferFrom(address sender, address recipient, uint256 amount) returns(bool)
 func (_IERC20Transferable *IERC20TransferableTransactor) TransferFrom(opts *bind.TransactOpts, sender common.Address, recipient common.Address, amount *big.Int) (*types.Transaction, error) {
 	return _IERC20Transferable.contract.Transact(opts, "transferFrom", sender, recipient, amount)
 }
 
-// TransferFrom is a paid mutator transaction binding the contract method 0x23b872dd.
+// RevokeOperator is a paid mutator transaction binding the contract method 0xfad8b32a.
 //
 // Solidity: function transferFrom(address sender, address recipient, uint256 amount) returns(bool)
 func (_IERC20Transferable *IERC20TransferableSession) TransferFrom(sender common.Address, recipient common.Address, amount *big.Int) (*types.Transaction, error) {
 	return _IERC20Transferable.Contract.TransferFrom(&_IERC20Transferable.TransactOpts, sender, recipient, amount)
 }
 
-// TransferFrom is a paid mutator transaction binding the contract method 0x23b872dd.
+// RevokeOperator is a paid mutator transaction binding the contract method 0xfad8b32a.
 //
 // Solidity: function transferFrom(address sender, address recipient, uint256 amount) returns(bool)
 func (_IERC20Transferable *IERC20TransferableTransactorSession) TransferFrom(sender common.Address, recipient common.Address, amount *big.Int) (*types.Transaction, error) {
@@ -12919,11 +13125,30 @@ func (_IERC721Upgradeable *IERC721UpgradeableCaller) BalanceOf(opts *bind.CallOp
 	if err != nil {
 		return *new(*big.Int), err
 	}
+	// If the iterator completed, deliver directly whatever's available
+	if it.done {
+		select {
+		case log := <-it.logs:
+			it.Event = new(ETHDKGAccusationsMPKSet)
+			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+				it.fail = err
+				return false
+			}
+			it.Event.Raw = log
+			return true
 
 	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
 
-	return out0, err
+	case err := <-it.sub.Err():
+		it.done = true
+		it.fail = err
+		return it.Next()
+	}
+}
 
+// Error returns any retrieval or parsing error occurred during filtering.
+func (it *ETHDKGAccusationsMPKSetIterator) Error() error {
+	return it.fail
 }
 
 // BalanceOf is a free data retrieval call binding the contract method 0x70a08231.
@@ -12947,8 +13172,9 @@ func (_IERC721Upgradeable *IERC721UpgradeableCaller) GetApproved(opts *bind.Call
 	var out []interface{}
 	err := _IERC721Upgradeable.contract.Call(opts, &out, "getApproved", tokenId)
 
+	logs, sub, err := _ETHDKGAccusations.contract.FilterLogs(opts, "MPKSet")
 	if err != nil {
-		return *new(common.Address), err
+		return nil, err
 	}
 
 	out0 := *abi.ConvertType(out[0], new(common.Address)).(*common.Address)
@@ -12978,9 +13204,21 @@ func (_IERC721Upgradeable *IERC721UpgradeableCaller) IsApprovedForAll(opts *bind
 	var out []interface{}
 	err := _IERC721Upgradeable.contract.Call(opts, &out, "isApprovedForAll", owner, operator)
 
+	logs, sub, err := _ETHDKGAccusations.contract.WatchLogs(opts, "MPKSet")
 	if err != nil {
 		return *new(bool), err
 	}
+	return event.NewSubscription(func(quit <-chan struct{}) error {
+		defer sub.Unsubscribe()
+		for {
+			select {
+			case log := <-logs:
+				// New log arrived, parse the event and forward to the user
+				event := new(ETHDKGAccusationsMPKSet)
+				if err := _ETHDKGAccusations.contract.UnpackLog(event, "MPKSet", log); err != nil {
+					return err
+				}
+				event.Raw = log
 
 	out0 := *abi.ConvertType(out[0], new(bool)).(*bool)
 
@@ -13043,6 +13281,8 @@ func (_IERC721Upgradeable *IERC721UpgradeableCaller) SupportsInterface(opts *bin
 	if err != nil {
 		return *new(bool), err
 	}
+	return &ETHDKGAccusationsRegistrationCompleteIterator{contract: _ETHDKGAccusations.contract, event: "RegistrationComplete", logs: logs, sub: sub}, nil
+}
 
 	out0 := *abi.ConvertType(out[0], new(bool)).(*bool)
 
@@ -17379,14 +17619,60 @@ func (_INFTStake *INFTStakeCaller) GetTotalReserveMadToken(opts *bind.CallOpts) 
 	var out []interface{}
 	err := _INFTStake.contract.Call(opts, &out, "getTotalReserveMadToken")
 
-	if err != nil {
-		return *new(*big.Int), err
+	contract *bind.BoundContract // Generic contract to use for unpacking event data
+	event    string              // Event name to use for unpacking event data
+
+	logs chan types.Log        // Log channel receiving the found contract events
+	sub  ethereum.Subscription // Subscription for errors, completion and termination
+	done bool                  // Whether the subscription completed delivering logs
+	fail error                 // Occurred error to stop iteration
+}
+
+// Next advances the iterator to the subsequent event, returning whether there
+// are any more events found. In case of a retrieval or parsing error, false is
+// returned and Error() can be queried for the exact failure.
+func (it *GovernorValueUpdatedIterator) Next() bool {
+	// If the iterator failed, stop iterating
+	if it.fail != nil {
+		return false
 	}
+	// If the iterator completed, deliver directly whatever's available
+	if it.done {
+		select {
+		case log := <-it.logs:
+			it.Event = new(GovernorValueUpdated)
+			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+				it.fail = err
+				return false
+			}
+			it.Event.Raw = log
+			return true
 
-	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
+		default:
+			return false
+		}
+	}
+	// Iterator still in progress, wait for either a data or an error event
+	select {
+	case log := <-it.logs:
+		it.Event = new(GovernorValueUpdated)
+		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+			it.fail = err
+			return false
+		}
+		it.Event.Raw = log
+		return true
 
-	return out0, err
+	case err := <-it.sub.Err():
+		it.done = true
+		it.fail = err
+		return it.Next()
+	}
+}
 
+// Error returns any retrieval or parsing error occurred during filtering.
+func (it *GovernorValueUpdatedIterator) Error() error {
+	return it.fail
 }
 
 // GetTotalReserveMadToken is a free data retrieval call binding the contract method 0x9aeac659.
@@ -17410,15 +17696,46 @@ func (_INFTStake *INFTStakeCaller) GetTotalShares(opts *bind.CallOpts) (*big.Int
 	var out []interface{}
 	err := _INFTStake.contract.Call(opts, &out, "getTotalShares")
 
+	logs, sub, err := _Governor.contract.FilterLogs(opts, "ValueUpdated", epochRule, keyRule, valueRule)
 	if err != nil {
-		return *new(*big.Int), err
+		return nil, err
+	}
+	return &GovernorValueUpdatedIterator{contract: _Governor.contract, event: "ValueUpdated", logs: logs, sub: sub}, nil
+}
+
+// WatchValueUpdated is a free log subscription operation binding the contract event 0x36dcd0e03525dedd9d5c21a263ef5f35d030298b5c48f1a713006aefc064ad05.
+//
+// Solidity: event ValueUpdated(uint256 indexed epoch, uint256 indexed key, bytes32 indexed value, address who)
+func (_Governor *GovernorFilterer) WatchValueUpdated(opts *bind.WatchOpts, sink chan<- *GovernorValueUpdated, epoch []*big.Int, key []*big.Int, value [][32]byte) (event.Subscription, error) {
+
+	var epochRule []interface{}
+	for _, epochItem := range epoch {
+		epochRule = append(epochRule, epochItem)
+	}
+	var keyRule []interface{}
+	for _, keyItem := range key {
+		keyRule = append(keyRule, keyItem)
+	}
+	var valueRule []interface{}
+	for _, valueItem := range value {
+		valueRule = append(valueRule, valueItem)
 	}
 
-	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
-
-	return out0, err
-
-}
+	logs, sub, err := _Governor.contract.WatchLogs(opts, "ValueUpdated", epochRule, keyRule, valueRule)
+	if err != nil {
+		return nil, err
+	}
+	return event.NewSubscription(func(quit <-chan struct{}) error {
+		defer sub.Unsubscribe()
+		for {
+			select {
+			case log := <-logs:
+				// New log arrived, parse the event and forward to the user
+				event := new(GovernorValueUpdated)
+				if err := _Governor.contract.UnpackLog(event, "ValueUpdated", log); err != nil {
+					return err
+				}
+				event.Raw = log
 
 // GetTotalShares is a free data retrieval call binding the contract method 0xd5002f2e.
 //
@@ -17830,7 +18147,7 @@ func NewIProxy(address common.Address, backend bind.ContractBackend) (*IProxy, e
 func NewIProxyCaller(address common.Address, caller bind.ContractCaller) (*IProxyCaller, error) {
 	contract, err := bindIProxy(address, caller, nil, nil)
 	if err != nil {
-		return nil, err
+		return *new([4]*big.Int), err
 	}
 	return &IProxyCaller{contract: contract}, nil
 }
@@ -17857,10 +18174,8 @@ func NewIProxyFilterer(address common.Address, filterer bind.ContractFilterer) (
 func bindIProxy(address common.Address, caller bind.ContractCaller, transactor bind.ContractTransactor, filterer bind.ContractFilterer) (*bind.BoundContract, error) {
 	parsed, err := abi.JSON(strings.NewReader(IProxyABI))
 	if err != nil {
-		return nil, err
+		return *new(*big.Int), err
 	}
-	return bind.NewBoundContract(address, parsed, caller, transactor, filterer), nil
-}
 
 // Call invokes the (constant) contract method with params as input values and
 // sets the output to result. The result type might be a single field for simple
@@ -18039,7 +18354,7 @@ func NewISnapshotsFilterer(address common.Address, filterer bind.ContractFiltere
 func bindISnapshots(address common.Address, caller bind.ContractCaller, transactor bind.ContractTransactor, filterer bind.ContractFilterer) (*bind.BoundContract, error) {
 	parsed, err := abi.JSON(strings.NewReader(ISnapshotsABI))
 	if err != nil {
-		return nil, err
+		return *new(*big.Int), err
 	}
 	return bind.NewBoundContract(address, parsed, caller, transactor, filterer), nil
 }
@@ -18405,8 +18720,18 @@ func (_ISnapshots *ISnapshotsCaller) GetMadnetHeightFromLatestSnapshot(opts *bin
 
 	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
 
-	return out0, err
+// InitializeETHDKG is a paid mutator transaction binding the contract method 0x57b51c9c.
+//
+// Solidity: function initializeETHDKG() returns()
+func (_IETHDKG *IETHDKGSession) InitializeETHDKG() (*types.Transaction, error) {
+	return _IETHDKG.Contract.InitializeETHDKG(&_IETHDKG.TransactOpts)
+}
 
+// InitializeETHDKG is a paid mutator transaction binding the contract method 0x57b51c9c.
+//
+// Solidity: function initializeETHDKG() returns()
+func (_IETHDKG *IETHDKGTransactorSession) InitializeETHDKG() (*types.Transaction, error) {
+	return _IETHDKG.Contract.InitializeETHDKG(&_IETHDKG.TransactOpts)
 }
 
 // GetMadnetHeightFromLatestSnapshot is a free data retrieval call binding the contract method 0x9c262671.
@@ -18436,8 +18761,18 @@ func (_ISnapshots *ISnapshotsCaller) GetMadnetHeightFromSnapshot(opts *bind.Call
 
 	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
 
-	return out0, err
+// SetConfirmationLength is a paid mutator transaction binding the contract method 0xff3e5e45.
+//
+// Solidity: function setConfirmationLength(uint16 confirmationLength_) returns()
+func (_IETHDKG *IETHDKGTransactorSession) SetConfirmationLength(confirmationLength_ uint16) (*types.Transaction, error) {
+	return _IETHDKG.Contract.SetConfirmationLength(&_IETHDKG.TransactOpts, confirmationLength_)
+}
 
+// SetMinNumberOfValidator is a paid mutator transaction binding the contract method 0xfb89c899.
+//
+// Solidity: function setMinNumberOfValidator(uint16 minValidators_) returns()
+func (_IETHDKG *IETHDKGTransactor) SetMinNumberOfValidator(opts *bind.TransactOpts, minValidators_ uint16) (*types.Transaction, error) {
+	return _IETHDKG.contract.Transact(opts, "setMinNumberOfValidator", minValidators_)
 }
 
 // GetMadnetHeightFromSnapshot is a free data retrieval call binding the contract method 0xa8c07fc3.
@@ -18467,8 +18802,18 @@ func (_ISnapshots *ISnapshotsCaller) GetSignatureFromLatestSnapshot(opts *bind.C
 
 	out0 := *abi.ConvertType(out[0], new([2]*big.Int)).(*[2]*big.Int)
 
-	return out0, err
+// SetValidatorPoolAddress is a paid mutator transaction binding the contract method 0xfe0fe422.
+//
+// Solidity: function setValidatorPoolAddress(address validatorPool) returns()
+func (_IETHDKG *IETHDKGTransactor) SetValidatorPoolAddress(opts *bind.TransactOpts, validatorPool common.Address) (*types.Transaction, error) {
+	return _IETHDKG.contract.Transact(opts, "setValidatorPoolAddress", validatorPool)
+}
 
+// SetValidatorPoolAddress is a paid mutator transaction binding the contract method 0xfe0fe422.
+//
+// Solidity: function setValidatorPoolAddress(address validatorPool) returns()
+func (_IETHDKG *IETHDKGSession) SetValidatorPoolAddress(validatorPool common.Address) (*types.Transaction, error) {
+	return _IETHDKG.Contract.SetValidatorPoolAddress(&_IETHDKG.TransactOpts, validatorPool)
 }
 
 // GetSignatureFromLatestSnapshot is a free data retrieval call binding the contract method 0xc0804ea9.
@@ -18498,8 +18843,18 @@ func (_ISnapshots *ISnapshotsCaller) GetSignatureFromSnapshot(opts *bind.CallOpt
 
 	out0 := *abi.ConvertType(out[0], new([2]*big.Int)).(*[2]*big.Int)
 
-	return out0, err
+// SubmitKeyShare is a paid mutator transaction binding the contract method 0x62a6523e.
+//
+// Solidity: function submitKeyShare(uint256[2] keyShareG1, uint256[2] keyShareG1CorrectnessProof, uint256[4] keyShareG2) returns()
+func (_IETHDKG *IETHDKGSession) SubmitKeyShare(keyShareG1 [2]*big.Int, keyShareG1CorrectnessProof [2]*big.Int, keyShareG2 [4]*big.Int) (*types.Transaction, error) {
+	return _IETHDKG.Contract.SubmitKeyShare(&_IETHDKG.TransactOpts, keyShareG1, keyShareG1CorrectnessProof, keyShareG2)
+}
 
+// SubmitKeyShare is a paid mutator transaction binding the contract method 0x62a6523e.
+//
+// Solidity: function submitKeyShare(uint256[2] keyShareG1, uint256[2] keyShareG1CorrectnessProof, uint256[4] keyShareG2) returns()
+func (_IETHDKG *IETHDKGTransactorSession) SubmitKeyShare(keyShareG1 [2]*big.Int, keyShareG1CorrectnessProof [2]*big.Int, keyShareG2 [4]*big.Int) (*types.Transaction, error) {
+	return _IETHDKG.Contract.SubmitKeyShare(&_IETHDKG.TransactOpts, keyShareG1, keyShareG1CorrectnessProof, keyShareG2)
 }
 
 // GetSignatureFromSnapshot is a free data retrieval call binding the contract method 0xdbe7eae7.
@@ -18529,8 +18884,16 @@ func (_ISnapshots *ISnapshotsCaller) GetSnapshot(opts *bind.CallOpts, epoch_ *bi
 
 	out0 := *abi.ConvertType(out[0], new(Snapshot)).(*Snapshot)
 
-	return out0, err
+// IETHDKGEvents is an auto generated Go binding around an Ethereum contract.
+type IETHDKGEvents struct {
+	IETHDKGEventsCaller     // Read-only binding to the contract
+	IETHDKGEventsTransactor // Write-only binding to the contract
+	IETHDKGEventsFilterer   // Log filterer for contract events
+}
 
+// IETHDKGEventsCaller is an auto generated read-only Go binding around an Ethereum contract.
+type IETHDKGEventsCaller struct {
+	contract *bind.BoundContract // Generic contract wrapper for the low level calls
 }
 
 // GetSnapshot is a free data retrieval call binding the contract method 0x76f10ad0.
@@ -19022,6 +19385,17 @@ func (_IValidatorPool *IValidatorPoolCaller) GetLocation(opts *bind.CallOpts, va
 	if err != nil {
 		return *new(string), err
 	}
+	// If the iterator completed, deliver directly whatever's available
+	if it.done {
+		select {
+		case log := <-it.logs:
+			it.Event = new(IETHDKGEventsAddressRegistered)
+			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+				it.fail = err
+				return false
+			}
+			it.Event.Raw = log
+			return true
 
 	out0 := *abi.ConvertType(out[0], new(string)).(*string)
 
@@ -19270,11 +19644,38 @@ func (_IValidatorPool *IValidatorPoolCaller) IsMaintenanceScheduled(opts *bind.C
 	if err != nil {
 		return *new(bool), err
 	}
+	// If the iterator completed, deliver directly whatever's available
+	if it.done {
+		select {
+		case log := <-it.logs:
+			it.Event = new(IETHDKGEventsGPKJSubmissionComplete)
+			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+				it.fail = err
+				return false
+			}
+			it.Event.Raw = log
+			return true
 
-	out0 := *abi.ConvertType(out[0], new(bool)).(*bool)
+		default:
+			return false
+		}
+	}
+	// Iterator still in progress, wait for either a data or an error event
+	select {
+	case log := <-it.logs:
+		it.Event = new(IETHDKGEventsGPKJSubmissionComplete)
+		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+			it.fail = err
+			return false
+		}
+		it.Event.Raw = log
+		return true
 
-	return out0, err
-
+	case err := <-it.sub.Err():
+		it.done = true
+		it.fail = err
+		return it.Next()
+	}
 }
 
 // IsMaintenanceScheduled is a free data retrieval call binding the contract method 0x1885570f.
@@ -19298,14 +19699,48 @@ func (_IValidatorPool *IValidatorPoolCaller) IsValidator(opts *bind.CallOpts, pa
 	var out []interface{}
 	err := _IValidatorPool.contract.Call(opts, &out, "isValidator", participant)
 
+	logs, sub, err := _IETHDKGEvents.contract.FilterLogs(opts, "GPKJSubmissionComplete")
 	if err != nil {
-		return *new(bool), err
+		return nil, err
 	}
+	return &IETHDKGEventsGPKJSubmissionCompleteIterator{contract: _IETHDKGEvents.contract, event: "GPKJSubmissionComplete", logs: logs, sub: sub}, nil
+}
 
-	out0 := *abi.ConvertType(out[0], new(bool)).(*bool)
+// WatchGPKJSubmissionComplete is a free log subscription operation binding the contract event 0x87bfe600b78cad9f7cf68c99eb582c1748f636b3269842b37d5873b0e069f628.
+//
+// Solidity: event GPKJSubmissionComplete(uint256 blockNumber)
+func (_IETHDKGEvents *IETHDKGEventsFilterer) WatchGPKJSubmissionComplete(opts *bind.WatchOpts, sink chan<- *IETHDKGEventsGPKJSubmissionComplete) (event.Subscription, error) {
 
-	return out0, err
+	logs, sub, err := _IETHDKGEvents.contract.WatchLogs(opts, "GPKJSubmissionComplete")
+	if err != nil {
+		return nil, err
+	}
+	return event.NewSubscription(func(quit <-chan struct{}) error {
+		defer sub.Unsubscribe()
+		for {
+			select {
+			case log := <-logs:
+				// New log arrived, parse the event and forward to the user
+				event := new(IETHDKGEventsGPKJSubmissionComplete)
+				if err := _IETHDKGEvents.contract.UnpackLog(event, "GPKJSubmissionComplete", log); err != nil {
+					return err
+				}
+				event.Raw = log
 
+				select {
+				case sink <- event:
+				case err := <-sub.Err():
+					return err
+				case <-quit:
+					return nil
+				}
+			case err := <-sub.Err():
+				return err
+			case <-quit:
+				return nil
+			}
+		}
+	}), nil
 }
 
 // IsValidator is a free data retrieval call binding the contract method 0xfacd743b.
@@ -21767,8 +22202,7 @@ func (_MadByte *MadByteFilterer) ParseApproval(log types.Log) (*MadByteApproval,
 	if err := _MadByte.contract.UnpackLog(event, "Approval", log); err != nil {
 		return nil, err
 	}
-	event.Raw = log
-	return event, nil
+	return &MerkleProofLibraryFilterer{contract: contract}, nil
 }
 
 // MadByteDepositReceivedIterator is returned from FilterDepositReceived and is used to iterate over the raw logs and unpacked data for DepositReceived events raised by the MadByte contract.
@@ -21778,10 +22212,12 @@ type MadByteDepositReceivedIterator struct {
 	contract *bind.BoundContract // Generic contract to use for unpacking event data
 	event    string              // Event name to use for unpacking event data
 
-	logs chan types.Log        // Log channel receiving the found contract events
-	sub  ethereum.Subscription // Subscription for errors, completion and termination
-	done bool                  // Whether the subscription completed delivering logs
-	fail error                 // Occurred error to stop iteration
+// Call invokes the (constant) contract method with params as input values and
+// sets the output to result. The result type might be a single field for simple
+// returns, a slice of interfaces for anonymous returns and a struct for named
+// returns.
+func (_MerkleProofLibrary *MerkleProofLibraryRaw) Call(opts *bind.CallOpts, result *[]interface{}, method string, params ...interface{}) error {
+	return _MerkleProofLibrary.Contract.MerkleProofLibraryCaller.contract.Call(opts, result, method, params...)
 }
 
 // Next advances the iterator to the subsequent event, returning whether there
@@ -21819,11 +22255,12 @@ func (it *MadByteDepositReceivedIterator) Next() bool {
 		it.Event.Raw = log
 		return true
 
-	case err := <-it.sub.Err():
-		it.done = true
-		it.fail = err
-		return it.Next()
-	}
+// Call invokes the (constant) contract method with params as input values and
+// sets the output to result. The result type might be a single field for simple
+// returns, a slice of interfaces for anonymous returns and a struct for named
+// returns.
+func (_MerkleProofLibrary *MerkleProofLibraryCallerRaw) Call(opts *bind.CallOpts, result *[]interface{}, method string, params ...interface{}) error {
+	return _MerkleProofLibrary.Contract.contract.Call(opts, result, method, params...)
 }
 
 // Error returns any retrieval or parsing error occurred during filtering.
@@ -21867,7 +22304,10 @@ func (_MadByte *MadByteFilterer) FilterDepositReceived(opts *bind.FilterOpts, de
 
 	logs, sub, err := _MadByte.contract.FilterLogs(opts, "DepositReceived", depositIDRule, accountTypeRule, depositorRule)
 	if err != nil {
-		return nil, err
+		return common.Address{}, nil, nil, err
+	}
+	if parsed == nil {
+		return common.Address{}, nil, nil, errors.New("GetABI returned nil")
 	}
 	return &MadByteDepositReceivedIterator{contract: _MadByte.contract, event: "DepositReceived", logs: logs, sub: sub}, nil
 }
@@ -21892,7 +22332,7 @@ func (_MadByte *MadByteFilterer) WatchDepositReceived(opts *bind.WatchOpts, sink
 
 	logs, sub, err := _MadByte.contract.WatchLogs(opts, "DepositReceived", depositIDRule, accountTypeRule, depositorRule)
 	if err != nil {
-		return nil, err
+		return common.Address{}, nil, nil, err
 	}
 	return event.NewSubscription(func(quit <-chan struct{}) error {
 		defer sub.Unsubscribe()
@@ -21941,10 +22381,9 @@ type MadByteTransferIterator struct {
 	contract *bind.BoundContract // Generic contract to use for unpacking event data
 	event    string              // Event name to use for unpacking event data
 
-	logs chan types.Log        // Log channel receiving the found contract events
-	sub  ethereum.Subscription // Subscription for errors, completion and termination
-	done bool                  // Whether the subscription completed delivering logs
-	fail error                 // Occurred error to stop iteration
+// MerkleProofParserLibraryTransactor is an auto generated write-only Go binding around an Ethereum contract.
+type MerkleProofParserLibraryTransactor struct {
+	contract *bind.BoundContract // Generic contract wrapper for the low level calls
 }
 
 // Next advances the iterator to the subsequent event, returning whether there
@@ -21982,11 +22421,11 @@ func (it *MadByteTransferIterator) Next() bool {
 		it.Event.Raw = log
 		return true
 
-	case err := <-it.sub.Err():
-		it.done = true
-		it.fail = err
-		return it.Next()
-	}
+// MerkleProofParserLibraryCallerSession is an auto generated read-only Go binding around an Ethereum contract,
+// with pre-set call options.
+type MerkleProofParserLibraryCallerSession struct {
+	Contract *MerkleProofParserLibraryCaller // Generic contract caller binding to set the session for
+	CallOpts bind.CallOpts                   // Call options to use throughout this session
 }
 
 // Error returns any retrieval or parsing error occurred during filtering.
@@ -22060,20 +22499,13 @@ func (_MadByte *MadByteFilterer) WatchTransfer(opts *bind.WatchOpts, sink chan<-
 				}
 				event.Raw = log
 
-				select {
-				case sink <- event:
-				case err := <-sub.Err():
-					return err
-				case <-quit:
-					return nil
-				}
-			case err := <-sub.Err():
-				return err
-			case <-quit:
-				return nil
-			}
-		}
-	}), nil
+// NewMerkleProofParserLibraryFilterer creates a new log filterer instance of MerkleProofParserLibrary, bound to a specific deployed contract.
+func NewMerkleProofParserLibraryFilterer(address common.Address, filterer bind.ContractFilterer) (*MerkleProofParserLibraryFilterer, error) {
+	contract, err := bindMerkleProofParserLibrary(address, nil, nil, filterer)
+	if err != nil {
+		return nil, err
+	}
+	return &MerkleProofParserLibraryFilterer{contract: contract}, nil
 }
 
 // ParseTransfer is a log parse operation binding the contract event 0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef.
@@ -22084,8 +22516,7 @@ func (_MadByte *MadByteFilterer) ParseTransfer(log types.Log) (*MadByteTransfer,
 	if err := _MadByte.contract.UnpackLog(event, "Transfer", log); err != nil {
 		return nil, err
 	}
-	event.Raw = log
-	return event, nil
+	return bind.NewBoundContract(address, parsed, caller, transactor, filterer), nil
 }
 
 // MadTokenMetaData contains all meta data concerning the MadToken contract.
@@ -22274,8 +22705,18 @@ func (_MadToken *MadTokenCaller) Allowance(opts *bind.CallOpts, owner common.Add
 
 	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
 
-	return out0, err
+// GrantOperator is a paid mutator transaction binding the contract method 0xe348da13.
+//
+// Solidity: function grantOperator(address who) returns()
+func (_MigrateETHDKG *MigrateETHDKGSession) GrantOperator(who common.Address) (*types.Transaction, error) {
+	return _MigrateETHDKG.Contract.GrantOperator(&_MigrateETHDKG.TransactOpts, who)
+}
 
+// GrantOperator is a paid mutator transaction binding the contract method 0xe348da13.
+//
+// Solidity: function grantOperator(address who) returns()
+func (_MigrateETHDKG *MigrateETHDKGTransactorSession) GrantOperator(who common.Address) (*types.Transaction, error) {
+	return _MigrateETHDKG.Contract.GrantOperator(&_MigrateETHDKG.TransactOpts, who)
 }
 
 // Allowance is a free data retrieval call binding the contract method 0xdd62ed3e.
@@ -22305,8 +22746,18 @@ func (_MadToken *MadTokenCaller) BalanceOf(opts *bind.CallOpts, account common.A
 
 	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
 
-	return out0, err
+// Migrate is a paid mutator transaction binding the contract method 0xd35d5cbf.
+//
+// Solidity: function migrate(uint256 _epoch, uint32 _ethHeight, uint32 _madHeight, uint256[4] _master_public_key, address[] _addresses, uint256[4][] _gpkj) returns()
+func (_MigrateETHDKG *MigrateETHDKGTransactorSession) Migrate(_epoch *big.Int, _ethHeight uint32, _madHeight uint32, _master_public_key [4]*big.Int, _addresses []common.Address, _gpkj [][4]*big.Int) (*types.Transaction, error) {
+	return _MigrateETHDKG.Contract.Migrate(&_MigrateETHDKG.TransactOpts, _epoch, _ethHeight, _madHeight, _master_public_key, _addresses, _gpkj)
+}
 
+// RevokeOperator is a paid mutator transaction binding the contract method 0xfad8b32a.
+//
+// Solidity: function revokeOperator(address who) returns()
+func (_MigrateETHDKG *MigrateETHDKGTransactor) RevokeOperator(opts *bind.TransactOpts, who common.Address) (*types.Transaction, error) {
+	return _MigrateETHDKG.contract.Transact(opts, "revokeOperator", who)
 }
 
 // BalanceOf is a free data retrieval call binding the contract method 0x70a08231.
@@ -22786,10 +23237,11 @@ type MadTokenTransferIterator struct {
 	contract *bind.BoundContract // Generic contract to use for unpacking event data
 	event    string              // Event name to use for unpacking event data
 
-	logs chan types.Log        // Log channel receiving the found contract events
-	sub  ethereum.Subscription // Subscription for errors, completion and termination
-	done bool                  // Whether the subscription completed delivering logs
-	fail error                 // Occurred error to stop iteration
+// SetGovernance is a paid mutator transaction binding the contract method 0xab033ea9.
+//
+// Solidity: function setGovernance(address governance_) returns()
+func (_MigrateSnapshotsFacet *MigrateSnapshotsFacetTransactor) SetGovernance(opts *bind.TransactOpts, governance_ common.Address) (*types.Transaction, error) {
+	return _MigrateSnapshotsFacet.contract.Transact(opts, "setGovernance", governance_)
 }
 
 // Next advances the iterator to the subsequent event, returning whether there
@@ -22827,11 +23279,11 @@ func (it *MadTokenTransferIterator) Next() bool {
 		it.Event.Raw = log
 		return true
 
-	case err := <-it.sub.Err():
-		it.done = true
-		it.fail = err
-		return it.Next()
-	}
+// Snapshot is a paid mutator transaction binding the contract method 0x7d7335b0.
+//
+// Solidity: function snapshot(uint256 snapshotId, bytes _signatureGroup, bytes _bclaims) returns()
+func (_MigrateSnapshotsFacet *MigrateSnapshotsFacetTransactor) Snapshot(opts *bind.TransactOpts, snapshotId *big.Int, _signatureGroup []byte, _bclaims []byte) (*types.Transaction, error) {
+	return _MigrateSnapshotsFacet.contract.Transact(opts, "snapshot", snapshotId, _signatureGroup, _bclaims)
 }
 
 // Error returns any retrieval or parsing error occurred during filtering.
@@ -22891,7 +23343,7 @@ func (_MadToken *MadTokenFilterer) WatchTransfer(opts *bind.WatchOpts, sink chan
 
 	logs, sub, err := _MadToken.contract.WatchLogs(opts, "Transfer", fromRule, toRule)
 	if err != nil {
-		return nil, err
+		return common.Address{}, nil, nil, err
 	}
 	return event.NewSubscription(func(quit <-chan struct{}) error {
 		defer sub.Unsubscribe()
@@ -22929,9 +23381,6 @@ func (_MadToken *MadTokenFilterer) ParseTransfer(log types.Log) (*MadTokenTransf
 	if err := _MadToken.contract.UnpackLog(event, "Transfer", log); err != nil {
 		return nil, err
 	}
-	event.Raw = log
-	return event, nil
-}
 
 // MadTokenBaseMetaData contains all meta data concerning the MadTokenBase contract.
 var MadTokenBaseMetaData = &bind.MetaData{
@@ -23431,14 +23880,13 @@ func (_MadTokenBase *MadTokenBaseTransactorSession) TransferFrom(from common.Add
 type MadTokenBaseApprovalIterator struct {
 	Event *MadTokenBaseApproval // Event containing the contract specifics and raw log
 
-	contract *bind.BoundContract // Generic contract to use for unpacking event data
-	event    string              // Event name to use for unpacking event data
+// PClaimsParserLibraryABI is the input ABI used to generate the binding from.
+// Deprecated: Use PClaimsParserLibraryMetaData.ABI instead.
+var PClaimsParserLibraryABI = PClaimsParserLibraryMetaData.ABI
 
-	logs chan types.Log        // Log channel receiving the found contract events
-	sub  ethereum.Subscription // Subscription for errors, completion and termination
-	done bool                  // Whether the subscription completed delivering logs
-	fail error                 // Occurred error to stop iteration
-}
+// PClaimsParserLibraryBin is the compiled bytecode used for deploying new contracts.
+// Deprecated: Use PClaimsParserLibraryMetaData.Bin instead.
+var PClaimsParserLibraryBin = PClaimsParserLibraryMetaData.Bin
 
 // Next advances the iterator to the subsequent event, returning whether there
 // are any more events found. In case of a retrieval or parsing error, false is
@@ -23475,11 +23923,11 @@ func (it *MadTokenBaseApprovalIterator) Next() bool {
 		it.Event.Raw = log
 		return true
 
-	case err := <-it.sub.Err():
-		it.done = true
-		it.fail = err
-		return it.Next()
+	address, tx, contract, err := bind.DeployContract(auth, *parsed, common.FromHex(PClaimsParserLibraryBin), backend)
+	if err != nil {
+		return common.Address{}, nil, nil, err
 	}
+	return address, tx, &PClaimsParserLibrary{PClaimsParserLibraryCaller: PClaimsParserLibraryCaller{contract: contract}, PClaimsParserLibraryTransactor: PClaimsParserLibraryTransactor{contract: contract}, PClaimsParserLibraryFilterer: PClaimsParserLibraryFilterer{contract: contract}}, nil
 }
 
 // Error returns any retrieval or parsing error occurred during filtering.
@@ -23536,6 +23984,8 @@ func (_MadTokenBase *MadTokenBaseFilterer) WatchApproval(opts *bind.WatchOpts, s
 	for _, spenderItem := range spender {
 		spenderRule = append(spenderRule, spenderItem)
 	}
+	return &PClaimsParserLibraryCaller{contract: contract}, nil
+}
 
 	logs, sub, err := _MadTokenBase.contract.WatchLogs(opts, "Approval", ownerRule, spenderRule)
 	if err != nil {
@@ -23553,20 +24003,13 @@ func (_MadTokenBase *MadTokenBaseFilterer) WatchApproval(opts *bind.WatchOpts, s
 				}
 				event.Raw = log
 
-				select {
-				case sink <- event:
-				case err := <-sub.Err():
-					return err
-				case <-quit:
-					return nil
-				}
-			case err := <-sub.Err():
-				return err
-			case <-quit:
-				return nil
-			}
-		}
-	}), nil
+// NewPClaimsParserLibraryFilterer creates a new log filterer instance of PClaimsParserLibrary, bound to a specific deployed contract.
+func NewPClaimsParserLibraryFilterer(address common.Address, filterer bind.ContractFilterer) (*PClaimsParserLibraryFilterer, error) {
+	contract, err := bindPClaimsParserLibrary(address, nil, nil, filterer)
+	if err != nil {
+		return nil, err
+	}
+	return &PClaimsParserLibraryFilterer{contract: contract}, nil
 }
 
 // ParseApproval is a log parse operation binding the contract event 0x8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b925.
@@ -23577,8 +24020,7 @@ func (_MadTokenBase *MadTokenBaseFilterer) ParseApproval(log types.Log) (*MadTok
 	if err := _MadTokenBase.contract.UnpackLog(event, "Approval", log); err != nil {
 		return nil, err
 	}
-	event.Raw = log
-	return event, nil
+	return bind.NewBoundContract(address, parsed, caller, transactor, filterer), nil
 }
 
 // MadTokenBaseTransferIterator is returned from FilterTransfer and is used to iterate over the raw logs and unpacked data for Transfer events raised by the MadTokenBase contract.
@@ -24589,13 +25031,15 @@ func (_MadnetFactory *MadnetFactoryFilterer) ParseDeployed(log types.Log) (*Madn
 type MadnetFactoryDeployedProxyIterator struct {
 	Event *MadnetFactoryDeployedProxy // Event containing the contract specifics and raw log
 
-	contract *bind.BoundContract // Generic contract to use for unpacking event data
-	event    string              // Event name to use for unpacking event data
+// ParticipantsEventsABI is the input ABI used to generate the binding from.
+// Deprecated: Use ParticipantsEventsMetaData.ABI instead.
+var ParticipantsEventsABI = ParticipantsEventsMetaData.ABI
 
-	logs chan types.Log        // Log channel receiving the found contract events
-	sub  ethereum.Subscription // Subscription for errors, completion and termination
-	done bool                  // Whether the subscription completed delivering logs
-	fail error                 // Occurred error to stop iteration
+// ParticipantsEvents is an auto generated Go binding around an Ethereum contract.
+type ParticipantsEvents struct {
+	ParticipantsEventsCaller     // Read-only binding to the contract
+	ParticipantsEventsTransactor // Write-only binding to the contract
+	ParticipantsEventsFilterer   // Log filterer for contract events
 }
 
 // Next advances the iterator to the subsequent event, returning whether there
@@ -24633,11 +25077,9 @@ func (it *MadnetFactoryDeployedProxyIterator) Next() bool {
 		it.Event.Raw = log
 		return true
 
-	case err := <-it.sub.Err():
-		it.done = true
-		it.fail = err
-		return it.Next()
-	}
+// ParticipantsEventsFilterer is an auto generated log filtering Go binding around an Ethereum contract events.
+type ParticipantsEventsFilterer struct {
+	contract *bind.BoundContract // Generic contract wrapper for the low level calls
 }
 
 // Error returns any retrieval or parsing error occurred during filtering.
@@ -24691,20 +25133,13 @@ func (_MadnetFactory *MadnetFactoryFilterer) WatchDeployedProxy(opts *bind.Watch
 				}
 				event.Raw = log
 
-				select {
-				case sink <- event:
-				case err := <-sub.Err():
-					return err
-				case <-quit:
-					return nil
-				}
-			case err := <-sub.Err():
-				return err
-			case <-quit:
-				return nil
-			}
-		}
-	}), nil
+// NewParticipantsEventsFilterer creates a new log filterer instance of ParticipantsEvents, bound to a specific deployed contract.
+func NewParticipantsEventsFilterer(address common.Address, filterer bind.ContractFilterer) (*ParticipantsEventsFilterer, error) {
+	contract, err := bindParticipantsEvents(address, nil, nil, filterer)
+	if err != nil {
+		return nil, err
+	}
+	return &ParticipantsEventsFilterer{contract: contract}, nil
 }
 
 // ParseDeployedProxy is a log parse operation binding the contract event 0x06690e5b52be10a3d5820ec875c3dd3327f3077954a09f104201e40e5f7082c6.
@@ -24715,8 +25150,45 @@ func (_MadnetFactory *MadnetFactoryFilterer) ParseDeployedProxy(log types.Log) (
 	if err := _MadnetFactory.contract.UnpackLog(event, "DeployedProxy", log); err != nil {
 		return nil, err
 	}
-	event.Raw = log
-	return event, nil
+	return bind.NewBoundContract(address, parsed, caller, transactor, filterer), nil
+}
+
+// Call invokes the (constant) contract method with params as input values and
+// sets the output to result. The result type might be a single field for simple
+// returns, a slice of interfaces for anonymous returns and a struct for named
+// returns.
+func (_ParticipantsEvents *ParticipantsEventsRaw) Call(opts *bind.CallOpts, result *[]interface{}, method string, params ...interface{}) error {
+	return _ParticipantsEvents.Contract.ParticipantsEventsCaller.contract.Call(opts, result, method, params...)
+}
+
+// Transfer initiates a plain transaction to move funds to the contract, calling
+// its default method if one is available.
+func (_ParticipantsEvents *ParticipantsEventsRaw) Transfer(opts *bind.TransactOpts) (*types.Transaction, error) {
+	return _ParticipantsEvents.Contract.ParticipantsEventsTransactor.contract.Transfer(opts)
+}
+
+// Transact invokes the (paid) contract method with params as input values.
+func (_ParticipantsEvents *ParticipantsEventsRaw) Transact(opts *bind.TransactOpts, method string, params ...interface{}) (*types.Transaction, error) {
+	return _ParticipantsEvents.Contract.ParticipantsEventsTransactor.contract.Transact(opts, method, params...)
+}
+
+// Call invokes the (constant) contract method with params as input values and
+// sets the output to result. The result type might be a single field for simple
+// returns, a slice of interfaces for anonymous returns and a struct for named
+// returns.
+func (_ParticipantsEvents *ParticipantsEventsCallerRaw) Call(opts *bind.CallOpts, result *[]interface{}, method string, params ...interface{}) error {
+	return _ParticipantsEvents.Contract.contract.Call(opts, result, method, params...)
+}
+
+// Transfer initiates a plain transaction to move funds to the contract, calling
+// its default method if one is available.
+func (_ParticipantsEvents *ParticipantsEventsTransactorRaw) Transfer(opts *bind.TransactOpts) (*types.Transaction, error) {
+	return _ParticipantsEvents.Contract.contract.Transfer(opts)
+}
+
+// Transact invokes the (paid) contract method with params as input values.
+func (_ParticipantsEvents *ParticipantsEventsTransactorRaw) Transact(opts *bind.TransactOpts, method string, params ...interface{}) (*types.Transaction, error) {
+	return _ParticipantsEvents.Contract.contract.Transact(opts, method, params...)
 }
 
 // MadnetFactoryDeployedRawIterator is returned from FilterDeployedRaw and is used to iterate over the raw logs and unpacked data for DeployedRaw events raised by the MadnetFactory contract.
@@ -25743,14 +26215,13 @@ func (_MadnetFactoryBase *MadnetFactoryBaseFilterer) ParseDeployed(log types.Log
 type MadnetFactoryBaseDeployedProxyIterator struct {
 	Event *MadnetFactoryBaseDeployedProxy // Event containing the contract specifics and raw log
 
-	contract *bind.BoundContract // Generic contract to use for unpacking event data
-	event    string              // Event name to use for unpacking event data
+// ParticipantsFacetABI is the input ABI used to generate the binding from.
+// Deprecated: Use ParticipantsFacetMetaData.ABI instead.
+var ParticipantsFacetABI = ParticipantsFacetMetaData.ABI
 
-	logs chan types.Log        // Log channel receiving the found contract events
-	sub  ethereum.Subscription // Subscription for errors, completion and termination
-	done bool                  // Whether the subscription completed delivering logs
-	fail error                 // Occurred error to stop iteration
-}
+// ParticipantsFacetBin is the compiled bytecode used for deploying new contracts.
+// Deprecated: Use ParticipantsFacetMetaData.Bin instead.
+var ParticipantsFacetBin = ParticipantsFacetMetaData.Bin
 
 // Next advances the iterator to the subsequent event, returning whether there
 // are any more events found. In case of a retrieval or parsing error, false is
@@ -25787,11 +26258,11 @@ func (it *MadnetFactoryBaseDeployedProxyIterator) Next() bool {
 		it.Event.Raw = log
 		return true
 
-	case err := <-it.sub.Err():
-		it.done = true
-		it.fail = err
-		return it.Next()
+	address, tx, contract, err := bind.DeployContract(auth, *parsed, common.FromHex(ParticipantsFacetBin), backend)
+	if err != nil {
+		return common.Address{}, nil, nil, err
 	}
+	return address, tx, &ParticipantsFacet{ParticipantsFacetCaller: ParticipantsFacetCaller{contract: contract}, ParticipantsFacetTransactor: ParticipantsFacetTransactor{contract: contract}, ParticipantsFacetFilterer: ParticipantsFacetFilterer{contract: contract}}, nil
 }
 
 // Error returns any retrieval or parsing error occurred during filtering.
@@ -25869,8 +26340,7 @@ func (_MadnetFactoryBase *MadnetFactoryBaseFilterer) ParseDeployedProxy(log type
 	if err := _MadnetFactoryBase.contract.UnpackLog(event, "DeployedProxy", log); err != nil {
 		return nil, err
 	}
-	event.Raw = log
-	return event, nil
+	return &ParticipantsFacetCaller{contract: contract}, nil
 }
 
 // MadnetFactoryBaseDeployedRawIterator is returned from FilterDeployedRaw and is used to iterate over the raw logs and unpacked data for DeployedRaw events raised by the MadnetFactoryBase contract.
@@ -25906,9 +26376,11 @@ func (it *MadnetFactoryBaseDeployedRawIterator) Next() bool {
 			it.Event.Raw = log
 			return true
 
-		default:
-			return false
-		}
+// bindParticipantsFacet binds a generic wrapper to an already deployed contract.
+func bindParticipantsFacet(address common.Address, caller bind.ContractCaller, transactor bind.ContractTransactor, filterer bind.ContractFilterer) (*bind.BoundContract, error) {
+	parsed, err := abi.JSON(strings.NewReader(ParticipantsFacetABI))
+	if err != nil {
+		return nil, err
 	}
 	// Iterator still in progress, wait for either a data or an error event
 	select {
@@ -25921,11 +26393,12 @@ func (it *MadnetFactoryBaseDeployedRawIterator) Next() bool {
 		it.Event.Raw = log
 		return true
 
-	case err := <-it.sub.Err():
-		it.done = true
-		it.fail = err
-		return it.Next()
-	}
+// Call invokes the (constant) contract method with params as input values and
+// sets the output to result. The result type might be a single field for simple
+// returns, a slice of interfaces for anonymous returns and a struct for named
+// returns.
+func (_ParticipantsFacet *ParticipantsFacetRaw) Call(opts *bind.CallOpts, result *[]interface{}, method string, params ...interface{}) error {
+	return _ParticipantsFacet.Contract.ParticipantsFacetCaller.contract.Call(opts, result, method, params...)
 }
 
 // Error returns any retrieval or parsing error occurred during filtering.
@@ -25965,7 +26438,7 @@ func (_MadnetFactoryBase *MadnetFactoryBaseFilterer) WatchDeployedRaw(opts *bind
 
 	logs, sub, err := _MadnetFactoryBase.contract.WatchLogs(opts, "DeployedRaw")
 	if err != nil {
-		return nil, err
+		return *new(uint32), err
 	}
 	return event.NewSubscription(func(quit <-chan struct{}) error {
 		defer sub.Unsubscribe()
@@ -25979,20 +26452,10 @@ func (_MadnetFactoryBase *MadnetFactoryBaseFilterer) WatchDeployedRaw(opts *bind
 				}
 				event.Raw = log
 
-				select {
-				case sink <- event:
-				case err := <-sub.Err():
-					return err
-				case <-quit:
-					return nil
-				}
-			case err := <-sub.Err():
-				return err
-			case <-quit:
-				return nil
-			}
-		}
-	}), nil
+	out0 := *abi.ConvertType(out[0], new(uint32)).(*uint32)
+
+	return out0, err
+
 }
 
 // ParseDeployedRaw is a log parse operation binding the contract event 0xd3acf0da590cfcd8f020afd7f40b7e6e4c8bd2fc9eb7aec9836837b667685b3a.
@@ -26040,9 +26503,8 @@ func (it *MadnetFactoryBaseDeployedStaticIterator) Next() bool {
 			it.Event.Raw = log
 			return true
 
-		default:
-			return false
-		}
+	if err != nil {
+		return *new([2]*big.Int), err
 	}
 	// Iterator still in progress, wait for either a data or an error event
 	select {
@@ -26055,12 +26517,7 @@ func (it *MadnetFactoryBaseDeployedStaticIterator) Next() bool {
 		it.Event.Raw = log
 		return true
 
-	case err := <-it.sub.Err():
-		it.done = true
-		it.fail = err
-		return it.Next()
-	}
-}
+	out0 := *abi.ConvertType(out[0], new([2]*big.Int)).(*[2]*big.Int)
 
 // Error returns any retrieval or parsing error occurred during filtering.
 func (it *MadnetFactoryBaseDeployedStaticIterator) Error() error {
@@ -26099,7 +26556,7 @@ func (_MadnetFactoryBase *MadnetFactoryBaseFilterer) WatchDeployedStatic(opts *b
 
 	logs, sub, err := _MadnetFactoryBase.contract.WatchLogs(opts, "DeployedStatic")
 	if err != nil {
-		return nil, err
+		return *new([]common.Address), err
 	}
 	return event.NewSubscription(func(quit <-chan struct{}) error {
 		defer sub.Unsubscribe()
@@ -26113,20 +26570,10 @@ func (_MadnetFactoryBase *MadnetFactoryBaseFilterer) WatchDeployedStatic(opts *b
 				}
 				event.Raw = log
 
-				select {
-				case sink <- event:
-				case err := <-sub.Err():
-					return err
-				case <-quit:
-					return nil
-				}
-			case err := <-sub.Err():
-				return err
-			case <-quit:
-				return nil
-			}
-		}
-	}), nil
+	out0 := *abi.ConvertType(out[0], new([]common.Address)).(*[]common.Address)
+
+	return out0, err
+
 }
 
 // ParseDeployedStatic is a log parse operation binding the contract event 0xe8b9cb7d60827a7d55e211f1382dd0f129adb541af9fe45a09ab4a18b76e7c65.
@@ -26174,9 +26621,8 @@ func (it *MadnetFactoryBaseDeployedTemplateIterator) Next() bool {
 			it.Event.Raw = log
 			return true
 
-		default:
-			return false
-		}
+	if err != nil {
+		return *new(bool), err
 	}
 	// Iterator still in progress, wait for either a data or an error event
 	select {
@@ -26189,12 +26635,7 @@ func (it *MadnetFactoryBaseDeployedTemplateIterator) Next() bool {
 		it.Event.Raw = log
 		return true
 
-	case err := <-it.sub.Err():
-		it.done = true
-		it.fail = err
-		return it.Next()
-	}
-}
+	out0 := *abi.ConvertType(out[0], new(bool)).(*bool)
 
 // Error returns any retrieval or parsing error occurred during filtering.
 func (it *MadnetFactoryBaseDeployedTemplateIterator) Error() error {
@@ -26233,7 +26674,7 @@ func (_MadnetFactoryBase *MadnetFactoryBaseFilterer) WatchDeployedTemplate(opts 
 
 	logs, sub, err := _MadnetFactoryBase.contract.WatchLogs(opts, "DeployedTemplate")
 	if err != nil {
-		return nil, err
+		return *new(uint8), err
 	}
 	return event.NewSubscription(func(quit <-chan struct{}) error {
 		defer sub.Unsubscribe()
@@ -26247,20 +26688,10 @@ func (_MadnetFactoryBase *MadnetFactoryBaseFilterer) WatchDeployedTemplate(opts 
 				}
 				event.Raw = log
 
-				select {
-				case sink <- event:
-				case err := <-sub.Err():
-					return err
-				case <-quit:
-					return nil
-				}
-			case err := <-sub.Err():
-				return err
-			case <-quit:
-				return nil
-			}
-		}
-	}), nil
+	out0 := *abi.ConvertType(out[0], new(uint8)).(*uint8)
+
+	return out0, err
+
 }
 
 // ParseDeployedTemplate is a log parse operation binding the contract event 0x6cd94ea1c5d9f99038bb4629d8a759399654d3861b73bf3a2b0cf484dae72138.
@@ -26271,8 +26702,298 @@ func (_MadnetFactoryBase *MadnetFactoryBaseFilterer) ParseDeployedTemplate(log t
 	if err := _MadnetFactoryBase.contract.UnpackLog(event, "DeployedTemplate", log); err != nil {
 		return nil, err
 	}
-	event.Raw = log
-	return event, nil
+
+	out0 := *abi.ConvertType(out[0], new(uint8)).(*uint8)
+
+	return out0, err
+
+}
+
+// ValidatorMaxCount is a free data retrieval call binding the contract method 0x09f0d45d.
+//
+// Solidity: function validatorMaxCount() view returns(uint8)
+func (_ParticipantsFacet *ParticipantsFacetSession) ValidatorMaxCount() (uint8, error) {
+	return _ParticipantsFacet.Contract.ValidatorMaxCount(&_ParticipantsFacet.CallOpts)
+}
+
+// ValidatorMaxCount is a free data retrieval call binding the contract method 0x09f0d45d.
+//
+// Solidity: function validatorMaxCount() view returns(uint8)
+func (_ParticipantsFacet *ParticipantsFacetCallerSession) ValidatorMaxCount() (uint8, error) {
+	return _ParticipantsFacet.Contract.ValidatorMaxCount(&_ParticipantsFacet.CallOpts)
+}
+
+// AddValidator is a paid mutator transaction binding the contract method 0xeb6320c7.
+//
+// Solidity: function addValidator(address _validator, uint256[2] _madID) returns(uint8)
+func (_ParticipantsFacet *ParticipantsFacetTransactor) AddValidator(opts *bind.TransactOpts, _validator common.Address, _madID [2]*big.Int) (*types.Transaction, error) {
+	return _ParticipantsFacet.contract.Transact(opts, "addValidator", _validator, _madID)
+}
+
+// AddValidator is a paid mutator transaction binding the contract method 0xeb6320c7.
+//
+// Solidity: function addValidator(address _validator, uint256[2] _madID) returns(uint8)
+func (_ParticipantsFacet *ParticipantsFacetSession) AddValidator(_validator common.Address, _madID [2]*big.Int) (*types.Transaction, error) {
+	return _ParticipantsFacet.Contract.AddValidator(&_ParticipantsFacet.TransactOpts, _validator, _madID)
+}
+
+// AddValidator is a paid mutator transaction binding the contract method 0xeb6320c7.
+//
+// Solidity: function addValidator(address _validator, uint256[2] _madID) returns(uint8)
+func (_ParticipantsFacet *ParticipantsFacetTransactorSession) AddValidator(_validator common.Address, _madID [2]*big.Int) (*types.Transaction, error) {
+	return _ParticipantsFacet.Contract.AddValidator(&_ParticipantsFacet.TransactOpts, _validator, _madID)
+}
+
+// ConfirmValidators is a paid mutator transaction binding the contract method 0x35c6a163.
+//
+// Solidity: function confirmValidators() returns(bool)
+func (_ParticipantsFacet *ParticipantsFacetTransactor) ConfirmValidators(opts *bind.TransactOpts) (*types.Transaction, error) {
+	return _ParticipantsFacet.contract.Transact(opts, "confirmValidators")
+}
+
+// ConfirmValidators is a paid mutator transaction binding the contract method 0x35c6a163.
+//
+// Solidity: function confirmValidators() returns(bool)
+func (_ParticipantsFacet *ParticipantsFacetSession) ConfirmValidators() (*types.Transaction, error) {
+	return _ParticipantsFacet.Contract.ConfirmValidators(&_ParticipantsFacet.TransactOpts)
+}
+
+// ConfirmValidators is a paid mutator transaction binding the contract method 0x35c6a163.
+//
+// Solidity: function confirmValidators() returns(bool)
+func (_ParticipantsFacet *ParticipantsFacetTransactorSession) ConfirmValidators() (*types.Transaction, error) {
+	return _ParticipantsFacet.Contract.ConfirmValidators(&_ParticipantsFacet.TransactOpts)
+}
+
+// GrantOperator is a paid mutator transaction binding the contract method 0xe348da13.
+//
+// Solidity: function grantOperator(address who) returns()
+func (_ParticipantsFacet *ParticipantsFacetTransactor) GrantOperator(opts *bind.TransactOpts, who common.Address) (*types.Transaction, error) {
+	return _ParticipantsFacet.contract.Transact(opts, "grantOperator", who)
+}
+
+// GrantOperator is a paid mutator transaction binding the contract method 0xe348da13.
+//
+// Solidity: function grantOperator(address who) returns()
+func (_ParticipantsFacet *ParticipantsFacetSession) GrantOperator(who common.Address) (*types.Transaction, error) {
+	return _ParticipantsFacet.Contract.GrantOperator(&_ParticipantsFacet.TransactOpts, who)
+}
+
+// GrantOperator is a paid mutator transaction binding the contract method 0xe348da13.
+//
+// Solidity: function grantOperator(address who) returns()
+func (_ParticipantsFacet *ParticipantsFacetTransactorSession) GrantOperator(who common.Address) (*types.Transaction, error) {
+	return _ParticipantsFacet.Contract.GrantOperator(&_ParticipantsFacet.TransactOpts, who)
+}
+
+// GrantOwner is a paid mutator transaction binding the contract method 0xdc978059.
+//
+// Solidity: function grantOwner(address who) returns()
+func (_ParticipantsFacet *ParticipantsFacetTransactor) GrantOwner(opts *bind.TransactOpts, who common.Address) (*types.Transaction, error) {
+	return _ParticipantsFacet.contract.Transact(opts, "grantOwner", who)
+}
+
+// GrantOwner is a paid mutator transaction binding the contract method 0xdc978059.
+//
+// Solidity: function grantOwner(address who) returns()
+func (_ParticipantsFacet *ParticipantsFacetSession) GrantOwner(who common.Address) (*types.Transaction, error) {
+	return _ParticipantsFacet.Contract.GrantOwner(&_ParticipantsFacet.TransactOpts, who)
+}
+
+// GrantOwner is a paid mutator transaction binding the contract method 0xdc978059.
+//
+// Solidity: function grantOwner(address who) returns()
+func (_ParticipantsFacet *ParticipantsFacetTransactorSession) GrantOwner(who common.Address) (*types.Transaction, error) {
+	return _ParticipantsFacet.Contract.GrantOwner(&_ParticipantsFacet.TransactOpts, who)
+}
+
+// InitializeParticipants is a paid mutator transaction binding the contract method 0xee8420dd.
+//
+// Solidity: function initializeParticipants(address registry) returns()
+func (_ParticipantsFacet *ParticipantsFacetTransactor) InitializeParticipants(opts *bind.TransactOpts, registry common.Address) (*types.Transaction, error) {
+	return _ParticipantsFacet.contract.Transact(opts, "initializeParticipants", registry)
+}
+
+// InitializeParticipants is a paid mutator transaction binding the contract method 0xee8420dd.
+//
+// Solidity: function initializeParticipants(address registry) returns()
+func (_ParticipantsFacet *ParticipantsFacetSession) InitializeParticipants(registry common.Address) (*types.Transaction, error) {
+	return _ParticipantsFacet.Contract.InitializeParticipants(&_ParticipantsFacet.TransactOpts, registry)
+}
+
+// InitializeParticipants is a paid mutator transaction binding the contract method 0xee8420dd.
+//
+// Solidity: function initializeParticipants(address registry) returns()
+func (_ParticipantsFacet *ParticipantsFacetTransactorSession) InitializeParticipants(registry common.Address) (*types.Transaction, error) {
+	return _ParticipantsFacet.Contract.InitializeParticipants(&_ParticipantsFacet.TransactOpts, registry)
+}
+
+// RemoveValidator is a paid mutator transaction binding the contract method 0x844469b2.
+//
+// Solidity: function removeValidator(address _validator, uint256[2] _madID) returns(uint8)
+func (_ParticipantsFacet *ParticipantsFacetTransactor) RemoveValidator(opts *bind.TransactOpts, _validator common.Address, _madID [2]*big.Int) (*types.Transaction, error) {
+	return _ParticipantsFacet.contract.Transact(opts, "removeValidator", _validator, _madID)
+}
+
+// RemoveValidator is a paid mutator transaction binding the contract method 0x844469b2.
+//
+// Solidity: function removeValidator(address _validator, uint256[2] _madID) returns(uint8)
+func (_ParticipantsFacet *ParticipantsFacetSession) RemoveValidator(_validator common.Address, _madID [2]*big.Int) (*types.Transaction, error) {
+	return _ParticipantsFacet.Contract.RemoveValidator(&_ParticipantsFacet.TransactOpts, _validator, _madID)
+}
+
+// RemoveValidator is a paid mutator transaction binding the contract method 0x844469b2.
+//
+// Solidity: function removeValidator(address _validator, uint256[2] _madID) returns(uint8)
+func (_ParticipantsFacet *ParticipantsFacetTransactorSession) RemoveValidator(_validator common.Address, _madID [2]*big.Int) (*types.Transaction, error) {
+	return _ParticipantsFacet.Contract.RemoveValidator(&_ParticipantsFacet.TransactOpts, _validator, _madID)
+}
+
+// RevokeOperator is a paid mutator transaction binding the contract method 0xfad8b32a.
+//
+// Solidity: function revokeOperator(address who) returns()
+func (_ParticipantsFacet *ParticipantsFacetTransactor) RevokeOperator(opts *bind.TransactOpts, who common.Address) (*types.Transaction, error) {
+	return _ParticipantsFacet.contract.Transact(opts, "revokeOperator", who)
+}
+
+// RevokeOperator is a paid mutator transaction binding the contract method 0xfad8b32a.
+//
+// Solidity: function revokeOperator(address who) returns()
+func (_ParticipantsFacet *ParticipantsFacetSession) RevokeOperator(who common.Address) (*types.Transaction, error) {
+	return _ParticipantsFacet.Contract.RevokeOperator(&_ParticipantsFacet.TransactOpts, who)
+}
+
+// RevokeOperator is a paid mutator transaction binding the contract method 0xfad8b32a.
+//
+// Solidity: function revokeOperator(address who) returns()
+func (_ParticipantsFacet *ParticipantsFacetTransactorSession) RevokeOperator(who common.Address) (*types.Transaction, error) {
+	return _ParticipantsFacet.Contract.RevokeOperator(&_ParticipantsFacet.TransactOpts, who)
+}
+
+// SetChainId is a paid mutator transaction binding the contract method 0xa179f124.
+//
+// Solidity: function setChainId(uint32 _chainId) returns()
+func (_ParticipantsFacet *ParticipantsFacetTransactor) SetChainId(opts *bind.TransactOpts, _chainId uint32) (*types.Transaction, error) {
+	return _ParticipantsFacet.contract.Transact(opts, "setChainId", _chainId)
+}
+
+// SetChainId is a paid mutator transaction binding the contract method 0xa179f124.
+//
+// Solidity: function setChainId(uint32 _chainId) returns()
+func (_ParticipantsFacet *ParticipantsFacetSession) SetChainId(_chainId uint32) (*types.Transaction, error) {
+	return _ParticipantsFacet.Contract.SetChainId(&_ParticipantsFacet.TransactOpts, _chainId)
+}
+
+// SetChainId is a paid mutator transaction binding the contract method 0xa179f124.
+//
+// Solidity: function setChainId(uint32 _chainId) returns()
+func (_ParticipantsFacet *ParticipantsFacetTransactorSession) SetChainId(_chainId uint32) (*types.Transaction, error) {
+	return _ParticipantsFacet.Contract.SetChainId(&_ParticipantsFacet.TransactOpts, _chainId)
+}
+
+// SetGovernance is a paid mutator transaction binding the contract method 0xab033ea9.
+//
+// Solidity: function setGovernance(address governance_) returns()
+func (_ParticipantsFacet *ParticipantsFacetTransactor) SetGovernance(opts *bind.TransactOpts, governance_ common.Address) (*types.Transaction, error) {
+	return _ParticipantsFacet.contract.Transact(opts, "setGovernance", governance_)
+}
+
+// SetGovernance is a paid mutator transaction binding the contract method 0xab033ea9.
+//
+// Solidity: function setGovernance(address governance_) returns()
+func (_ParticipantsFacet *ParticipantsFacetSession) SetGovernance(governance_ common.Address) (*types.Transaction, error) {
+	return _ParticipantsFacet.Contract.SetGovernance(&_ParticipantsFacet.TransactOpts, governance_)
+}
+
+// SetGovernance is a paid mutator transaction binding the contract method 0xab033ea9.
+//
+// Solidity: function setGovernance(address governance_) returns()
+func (_ParticipantsFacet *ParticipantsFacetTransactorSession) SetGovernance(governance_ common.Address) (*types.Transaction, error) {
+	return _ParticipantsFacet.Contract.SetGovernance(&_ParticipantsFacet.TransactOpts, governance_)
+}
+
+// SetValidatorMaxCount is a paid mutator transaction binding the contract method 0x2cab37f7.
+//
+// Solidity: function setValidatorMaxCount(uint8 max) returns()
+func (_ParticipantsFacet *ParticipantsFacetTransactor) SetValidatorMaxCount(opts *bind.TransactOpts, max uint8) (*types.Transaction, error) {
+	return _ParticipantsFacet.contract.Transact(opts, "setValidatorMaxCount", max)
+}
+
+// SetValidatorMaxCount is a paid mutator transaction binding the contract method 0x2cab37f7.
+//
+// Solidity: function setValidatorMaxCount(uint8 max) returns()
+func (_ParticipantsFacet *ParticipantsFacetSession) SetValidatorMaxCount(max uint8) (*types.Transaction, error) {
+	return _ParticipantsFacet.Contract.SetValidatorMaxCount(&_ParticipantsFacet.TransactOpts, max)
+}
+
+// SetValidatorMaxCount is a paid mutator transaction binding the contract method 0x2cab37f7.
+//
+// Solidity: function setValidatorMaxCount(uint8 max) returns()
+func (_ParticipantsFacet *ParticipantsFacetTransactorSession) SetValidatorMaxCount(max uint8) (*types.Transaction, error) {
+	return _ParticipantsFacet.Contract.SetValidatorMaxCount(&_ParticipantsFacet.TransactOpts, max)
+}
+
+// Start is a paid mutator transaction binding the contract method 0xbe9a6555.
+//
+// Solidity: function start() returns()
+func (_ParticipantsFacet *ParticipantsFacetTransactor) Start(opts *bind.TransactOpts) (*types.Transaction, error) {
+	return _ParticipantsFacet.contract.Transact(opts, "start")
+}
+
+// Start is a paid mutator transaction binding the contract method 0xbe9a6555.
+//
+// Solidity: function start() returns()
+func (_ParticipantsFacet *ParticipantsFacetSession) Start() (*types.Transaction, error) {
+	return _ParticipantsFacet.Contract.Start(&_ParticipantsFacet.TransactOpts)
+}
+
+// Start is a paid mutator transaction binding the contract method 0xbe9a6555.
+//
+// Solidity: function start() returns()
+func (_ParticipantsFacet *ParticipantsFacetTransactorSession) Start() (*types.Transaction, error) {
+	return _ParticipantsFacet.Contract.Start(&_ParticipantsFacet.TransactOpts)
+}
+
+// Stop is a paid mutator transaction binding the contract method 0x07da68f5.
+//
+// Solidity: function stop() returns()
+func (_ParticipantsFacet *ParticipantsFacetTransactor) Stop(opts *bind.TransactOpts) (*types.Transaction, error) {
+	return _ParticipantsFacet.contract.Transact(opts, "stop")
+}
+
+// Stop is a paid mutator transaction binding the contract method 0x07da68f5.
+//
+// Solidity: function stop() returns()
+func (_ParticipantsFacet *ParticipantsFacetSession) Stop() (*types.Transaction, error) {
+	return _ParticipantsFacet.Contract.Stop(&_ParticipantsFacet.TransactOpts)
+}
+
+// Stop is a paid mutator transaction binding the contract method 0x07da68f5.
+//
+// Solidity: function stop() returns()
+func (_ParticipantsFacet *ParticipantsFacetTransactorSession) Stop() (*types.Transaction, error) {
+	return _ParticipantsFacet.Contract.Stop(&_ParticipantsFacet.TransactOpts)
+}
+
+// TakeOwnership is a paid mutator transaction binding the contract method 0x60536172.
+//
+// Solidity: function takeOwnership() returns()
+func (_ParticipantsFacet *ParticipantsFacetTransactor) TakeOwnership(opts *bind.TransactOpts) (*types.Transaction, error) {
+	return _ParticipantsFacet.contract.Transact(opts, "takeOwnership")
+}
+
+// TakeOwnership is a paid mutator transaction binding the contract method 0x60536172.
+//
+// Solidity: function takeOwnership() returns()
+func (_ParticipantsFacet *ParticipantsFacetSession) TakeOwnership() (*types.Transaction, error) {
+	return _ParticipantsFacet.Contract.TakeOwnership(&_ParticipantsFacet.TransactOpts)
+}
+
+// TakeOwnership is a paid mutator transaction binding the contract method 0x60536172.
+//
+// Solidity: function takeOwnership() returns()
+func (_ParticipantsFacet *ParticipantsFacetTransactorSession) TakeOwnership() (*types.Transaction, error) {
+	return _ParticipantsFacet.Contract.TakeOwnership(&_ParticipantsFacet.TransactOpts)
 }
 
 // MagicEthTransferMetaData contains all meta data concerning the MagicEthTransfer contract.
@@ -32086,63 +32807,63 @@ func (_StakeNFTBase *StakeNFTBaseTransactorSession) Approve(to common.Address, t
 	return _StakeNFTBase.Contract.Approve(&_StakeNFTBase.TransactOpts, to, tokenId)
 }
 
-// Burn is a paid mutator transaction binding the contract method 0x42966c68.
+// GrantOwner is a paid mutator transaction binding the contract method 0xdc978059.
 //
 // Solidity: function burn(uint256 tokenID_) returns(uint256 payoutEth, uint256 payoutMadToken)
 func (_StakeNFTBase *StakeNFTBaseTransactor) Burn(opts *bind.TransactOpts, tokenID_ *big.Int) (*types.Transaction, error) {
 	return _StakeNFTBase.contract.Transact(opts, "burn", tokenID_)
 }
 
-// Burn is a paid mutator transaction binding the contract method 0x42966c68.
+// RevokeOperator is a paid mutator transaction binding the contract method 0xfad8b32a.
 //
 // Solidity: function burn(uint256 tokenID_) returns(uint256 payoutEth, uint256 payoutMadToken)
 func (_StakeNFTBase *StakeNFTBaseSession) Burn(tokenID_ *big.Int) (*types.Transaction, error) {
 	return _StakeNFTBase.Contract.Burn(&_StakeNFTBase.TransactOpts, tokenID_)
 }
 
-// Burn is a paid mutator transaction binding the contract method 0x42966c68.
+// RevokeOperator is a paid mutator transaction binding the contract method 0xfad8b32a.
 //
 // Solidity: function burn(uint256 tokenID_) returns(uint256 payoutEth, uint256 payoutMadToken)
 func (_StakeNFTBase *StakeNFTBaseTransactorSession) Burn(tokenID_ *big.Int) (*types.Transaction, error) {
 	return _StakeNFTBase.Contract.Burn(&_StakeNFTBase.TransactOpts, tokenID_)
 }
 
-// BurnTo is a paid mutator transaction binding the contract method 0xea785a5e.
+// RevokeOperator is a paid mutator transaction binding the contract method 0xfad8b32a.
 //
 // Solidity: function burnTo(address to_, uint256 tokenID_) returns(uint256 payoutEth, uint256 payoutMadToken)
 func (_StakeNFTBase *StakeNFTBaseTransactor) BurnTo(opts *bind.TransactOpts, to_ common.Address, tokenID_ *big.Int) (*types.Transaction, error) {
 	return _StakeNFTBase.contract.Transact(opts, "burnTo", to_, tokenID_)
 }
 
-// BurnTo is a paid mutator transaction binding the contract method 0xea785a5e.
+// SetGovernance is a paid mutator transaction binding the contract method 0xab033ea9.
 //
 // Solidity: function burnTo(address to_, uint256 tokenID_) returns(uint256 payoutEth, uint256 payoutMadToken)
 func (_StakeNFTBase *StakeNFTBaseSession) BurnTo(to_ common.Address, tokenID_ *big.Int) (*types.Transaction, error) {
 	return _StakeNFTBase.Contract.BurnTo(&_StakeNFTBase.TransactOpts, to_, tokenID_)
 }
 
-// BurnTo is a paid mutator transaction binding the contract method 0xea785a5e.
+// SetGovernance is a paid mutator transaction binding the contract method 0xab033ea9.
 //
 // Solidity: function burnTo(address to_, uint256 tokenID_) returns(uint256 payoutEth, uint256 payoutMadToken)
 func (_StakeNFTBase *StakeNFTBaseTransactorSession) BurnTo(to_ common.Address, tokenID_ *big.Int) (*types.Transaction, error) {
 	return _StakeNFTBase.Contract.BurnTo(&_StakeNFTBase.TransactOpts, to_, tokenID_)
 }
 
-// CollectEth is a paid mutator transaction binding the contract method 0x2a0d8bd1.
+// SetGovernance is a paid mutator transaction binding the contract method 0xab033ea9.
 //
 // Solidity: function collectEth(uint256 tokenID_) returns(uint256 payout)
 func (_StakeNFTBase *StakeNFTBaseTransactor) CollectEth(opts *bind.TransactOpts, tokenID_ *big.Int) (*types.Transaction, error) {
 	return _StakeNFTBase.contract.Transact(opts, "collectEth", tokenID_)
 }
 
-// CollectEth is a paid mutator transaction binding the contract method 0x2a0d8bd1.
+// Start is a paid mutator transaction binding the contract method 0xbe9a6555.
 //
 // Solidity: function collectEth(uint256 tokenID_) returns(uint256 payout)
 func (_StakeNFTBase *StakeNFTBaseSession) CollectEth(tokenID_ *big.Int) (*types.Transaction, error) {
 	return _StakeNFTBase.Contract.CollectEth(&_StakeNFTBase.TransactOpts, tokenID_)
 }
 
-// CollectEth is a paid mutator transaction binding the contract method 0x2a0d8bd1.
+// Start is a paid mutator transaction binding the contract method 0xbe9a6555.
 //
 // Solidity: function collectEth(uint256 tokenID_) returns(uint256 payout)
 func (_StakeNFTBase *StakeNFTBaseTransactorSession) CollectEth(tokenID_ *big.Int) (*types.Transaction, error) {
@@ -32510,13 +33231,18 @@ func (_StakeNFTBase *StakeNFTBaseTransactorSession) TripCB() (*types.Transaction
 type StakeNFTBaseApprovalIterator struct {
 	Event *StakeNFTBaseApproval // Event containing the contract specifics and raw log
 
-	contract *bind.BoundContract // Generic contract to use for unpacking event data
-	event    string              // Event name to use for unpacking event data
+// Burn0 is a paid mutator transaction binding the contract method 0x9dc29fac.
+//
+// Solidity: function burn(address guy, uint256 wad) returns()
+func (_Token *TokenTransactorSession) Burn0(guy common.Address, wad *big.Int) (*types.Transaction, error) {
+	return _Token.Contract.Burn0(&_Token.TransactOpts, guy, wad)
+}
 
-	logs chan types.Log        // Log channel receiving the found contract events
-	sub  ethereum.Subscription // Subscription for errors, completion and termination
-	done bool                  // Whether the subscription completed delivering logs
-	fail error                 // Occurred error to stop iteration
+// GrantOperator is a paid mutator transaction binding the contract method 0xe348da13.
+//
+// Solidity: function grantOperator(address _operator) returns()
+func (_Token *TokenTransactor) GrantOperator(opts *bind.TransactOpts, _operator common.Address) (*types.Transaction, error) {
+	return _Token.contract.Transact(opts, "grantOperator", _operator)
 }
 
 // Next advances the iterator to the subsequent event, returning whether there
@@ -32554,11 +33280,11 @@ func (it *StakeNFTBaseApprovalIterator) Next() bool {
 		it.Event.Raw = log
 		return true
 
-	case err := <-it.sub.Err():
-		it.done = true
-		it.fail = err
-		return it.Next()
-	}
+// Mint is a paid mutator transaction binding the contract method 0x40c10f19.
+//
+// Solidity: function mint(address guy, uint256 wad) returns()
+func (_Token *TokenTransactor) Mint(opts *bind.TransactOpts, guy common.Address, wad *big.Int) (*types.Transaction, error) {
+	return _Token.contract.Transact(opts, "mint", guy, wad)
 }
 
 // Error returns any retrieval or parsing error occurred during filtering.
@@ -32640,20 +33366,11 @@ func (_StakeNFTBase *StakeNFTBaseFilterer) WatchApproval(opts *bind.WatchOpts, s
 				}
 				event.Raw = log
 
-				select {
-				case sink <- event:
-				case err := <-sub.Err():
-					return err
-				case <-quit:
-					return nil
-				}
-			case err := <-sub.Err():
-				return err
-			case <-quit:
-				return nil
-			}
-		}
-	}), nil
+// Pull is a paid mutator transaction binding the contract method 0xf2d5d56b.
+//
+// Solidity: function pull(address src, uint256 wad) returns()
+func (_Token *TokenSession) Pull(src common.Address, wad *big.Int) (*types.Transaction, error) {
+	return _Token.Contract.Pull(&_Token.TransactOpts, src, wad)
 }
 
 // ParseApproval is a log parse operation binding the contract event 0x8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b925.
@@ -33331,6 +34048,16 @@ func DeployValidatorNFT(auth *bind.TransactOpts, backend bind.ContractBackend) (
 	if parsed == nil {
 		return common.Address{}, nil, nil, errors.New("GetABI returned nil")
 	}
+	// Iterator still in progress, wait for either a data or an error event
+	select {
+	case log := <-it.logs:
+		it.Event = new(TokenLogSetOwner)
+		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+			it.fail = err
+			return false
+		}
+		it.Event.Raw = log
+		return true
 
 	address, tx, contract, err := bind.DeployContract(auth, *parsed, common.FromHex(ValidatorNFTBin), backend)
 	if err != nil {
@@ -33520,8 +34247,19 @@ func (_ValidatorNFT *ValidatorNFTCaller) CircuitBreakerState(opts *bind.CallOpts
 	err := _ValidatorNFT.contract.Call(opts, &out, "circuitBreakerState")
 
 	if err != nil {
-		return *new(bool), err
+		return nil, err
 	}
+	return event.NewSubscription(func(quit <-chan struct{}) error {
+		defer sub.Unsubscribe()
+		for {
+			select {
+			case log := <-logs:
+				// New log arrived, parse the event and forward to the user
+				event := new(TokenLogSetOwner)
+				if err := _Token.contract.UnpackLog(event, "LogSetOwner", log); err != nil {
+					return err
+				}
+				event.Raw = log
 
 	out0 := *abi.ConvertType(out[0], new(bool)).(*bool)
 
@@ -35002,13 +35740,25 @@ func (_ValidatorNFT *ValidatorNFTFilterer) ParseApprovalForAll(log types.Log) (*
 type ValidatorNFTTransferIterator struct {
 	Event *ValidatorNFTTransfer // Event containing the contract specifics and raw log
 
-	contract *bind.BoundContract // Generic contract to use for unpacking event data
-	event    string              // Event name to use for unpacking event data
+// ValidatorLocationsLibraryBin is the compiled bytecode used for deploying new contracts.
+// Deprecated: Use ValidatorLocationsLibraryMetaData.Bin instead.
+var ValidatorLocationsLibraryBin = ValidatorLocationsLibraryMetaData.Bin
 
-	logs chan types.Log        // Log channel receiving the found contract events
-	sub  ethereum.Subscription // Subscription for errors, completion and termination
-	done bool                  // Whether the subscription completed delivering logs
-	fail error                 // Occurred error to stop iteration
+// DeployValidatorLocationsLibrary deploys a new Ethereum contract, binding an instance of ValidatorLocationsLibrary to it.
+func DeployValidatorLocationsLibrary(auth *bind.TransactOpts, backend bind.ContractBackend) (common.Address, *types.Transaction, *ValidatorLocationsLibrary, error) {
+	parsed, err := ValidatorLocationsLibraryMetaData.GetAbi()
+	if err != nil {
+		return common.Address{}, nil, nil, err
+	}
+	if parsed == nil {
+		return common.Address{}, nil, nil, errors.New("GetABI returned nil")
+	}
+
+	address, tx, contract, err := bind.DeployContract(auth, *parsed, common.FromHex(ValidatorLocationsLibraryBin), backend)
+	if err != nil {
+		return common.Address{}, nil, nil, err
+	}
+	return address, tx, &ValidatorLocationsLibrary{ValidatorLocationsLibraryCaller: ValidatorLocationsLibraryCaller{contract: contract}, ValidatorLocationsLibraryTransactor: ValidatorLocationsLibraryTransactor{contract: contract}, ValidatorLocationsLibraryFilterer: ValidatorLocationsLibraryFilterer{contract: contract}}, nil
 }
 
 // Next advances the iterator to the subsequent event, returning whether there
@@ -35031,9 +35781,11 @@ func (it *ValidatorNFTTransferIterator) Next() bool {
 			it.Event.Raw = log
 			return true
 
-		default:
-			return false
-		}
+// NewValidatorLocationsLibraryCaller creates a new read-only instance of ValidatorLocationsLibrary, bound to a specific deployed contract.
+func NewValidatorLocationsLibraryCaller(address common.Address, caller bind.ContractCaller) (*ValidatorLocationsLibraryCaller, error) {
+	contract, err := bindValidatorLocationsLibrary(address, caller, nil, nil)
+	if err != nil {
+		return nil, err
 	}
 	// Iterator still in progress, wait for either a data or an error event
 	select {
@@ -35046,11 +35798,13 @@ func (it *ValidatorNFTTransferIterator) Next() bool {
 		it.Event.Raw = log
 		return true
 
-	case err := <-it.sub.Err():
-		it.done = true
-		it.fail = err
-		return it.Next()
+// NewValidatorLocationsLibraryTransactor creates a new write-only instance of ValidatorLocationsLibrary, bound to a specific deployed contract.
+func NewValidatorLocationsLibraryTransactor(address common.Address, transactor bind.ContractTransactor) (*ValidatorLocationsLibraryTransactor, error) {
+	contract, err := bindValidatorLocationsLibrary(address, nil, transactor, nil)
+	if err != nil {
+		return nil, err
 	}
+	return &ValidatorLocationsLibraryTransactor{contract: contract}, nil
 }
 
 // Error returns any retrieval or parsing error occurred during filtering.
@@ -35132,20 +35886,13 @@ func (_ValidatorNFT *ValidatorNFTFilterer) WatchTransfer(opts *bind.WatchOpts, s
 				}
 				event.Raw = log
 
-				select {
-				case sink <- event:
-				case err := <-sub.Err():
-					return err
-				case <-quit:
-					return nil
-				}
-			case err := <-sub.Err():
-				return err
-			case <-quit:
-				return nil
-			}
-		}
-	}), nil
+// NewValidatorPoolFilterer creates a new log filterer instance of ValidatorPool, bound to a specific deployed contract.
+func NewValidatorPoolFilterer(address common.Address, filterer bind.ContractFilterer) (*ValidatorPoolFilterer, error) {
+	contract, err := bindValidatorPool(address, nil, nil, filterer)
+	if err != nil {
+		return nil, err
+	}
+	return &ValidatorPoolFilterer{contract: contract}, nil
 }
 
 // ParseTransfer is a log parse operation binding the contract event 0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef.
@@ -35156,8 +35903,316 @@ func (_ValidatorNFT *ValidatorNFTFilterer) ParseTransfer(log types.Log) (*Valida
 	if err := _ValidatorNFT.contract.UnpackLog(event, "Transfer", log); err != nil {
 		return nil, err
 	}
-	event.Raw = log
-	return event, nil
+	return bind.NewBoundContract(address, parsed, caller, transactor, filterer), nil
+}
+
+// Call invokes the (constant) contract method with params as input values and
+// sets the output to result. The result type might be a single field for simple
+// returns, a slice of interfaces for anonymous returns and a struct for named
+// returns.
+func (_ValidatorPool *ValidatorPoolRaw) Call(opts *bind.CallOpts, result *[]interface{}, method string, params ...interface{}) error {
+	return _ValidatorPool.Contract.ValidatorPoolCaller.contract.Call(opts, result, method, params...)
+}
+
+// Transfer initiates a plain transaction to move funds to the contract, calling
+// its default method if one is available.
+func (_ValidatorPool *ValidatorPoolRaw) Transfer(opts *bind.TransactOpts) (*types.Transaction, error) {
+	return _ValidatorPool.Contract.ValidatorPoolTransactor.contract.Transfer(opts)
+}
+
+// Transact invokes the (paid) contract method with params as input values.
+func (_ValidatorPool *ValidatorPoolRaw) Transact(opts *bind.TransactOpts, method string, params ...interface{}) (*types.Transaction, error) {
+	return _ValidatorPool.Contract.ValidatorPoolTransactor.contract.Transact(opts, method, params...)
+}
+
+// Call invokes the (constant) contract method with params as input values and
+// sets the output to result. The result type might be a single field for simple
+// returns, a slice of interfaces for anonymous returns and a struct for named
+// returns.
+func (_ValidatorPool *ValidatorPoolCallerRaw) Call(opts *bind.CallOpts, result *[]interface{}, method string, params ...interface{}) error {
+	return _ValidatorPool.Contract.contract.Call(opts, result, method, params...)
+}
+
+// Transfer initiates a plain transaction to move funds to the contract, calling
+// its default method if one is available.
+func (_ValidatorPool *ValidatorPoolTransactorRaw) Transfer(opts *bind.TransactOpts) (*types.Transaction, error) {
+	return _ValidatorPool.Contract.contract.Transfer(opts)
+}
+
+// Transact invokes the (paid) contract method with params as input values.
+func (_ValidatorPool *ValidatorPoolTransactorRaw) Transact(opts *bind.TransactOpts, method string, params ...interface{}) (*types.Transaction, error) {
+	return _ValidatorPool.Contract.contract.Transact(opts, method, params...)
+}
+
+// GetValidator is a free data retrieval call binding the contract method 0xb5d89627.
+//
+// Solidity: function getValidator(uint256 index) view returns(address)
+func (_ValidatorPool *ValidatorPoolCaller) GetValidator(opts *bind.CallOpts, index *big.Int) (common.Address, error) {
+	var out []interface{}
+	err := _ValidatorPool.contract.Call(opts, &out, "getValidator", index)
+
+	if err != nil {
+		return *new(common.Address), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(common.Address)).(*common.Address)
+
+	return out0, err
+
+}
+
+// GetValidator is a free data retrieval call binding the contract method 0xb5d89627.
+//
+// Solidity: function getValidator(uint256 index) view returns(address)
+func (_ValidatorPool *ValidatorPoolSession) GetValidator(index *big.Int) (common.Address, error) {
+	return _ValidatorPool.Contract.GetValidator(&_ValidatorPool.CallOpts, index)
+}
+
+// GetValidator is a free data retrieval call binding the contract method 0xb5d89627.
+//
+// Solidity: function getValidator(uint256 index) view returns(address)
+func (_ValidatorPool *ValidatorPoolCallerSession) GetValidator(index *big.Int) (common.Address, error) {
+	return _ValidatorPool.Contract.GetValidator(&_ValidatorPool.CallOpts, index)
+}
+
+// GetValidatorAddresses is a free data retrieval call binding the contract method 0xf74e921f.
+//
+// Solidity: function getValidatorAddresses() view returns(address[] addresses)
+func (_ValidatorPool *ValidatorPoolCaller) GetValidatorAddresses(opts *bind.CallOpts) ([]common.Address, error) {
+	var out []interface{}
+	err := _ValidatorPool.contract.Call(opts, &out, "getValidatorAddresses")
+
+	if err != nil {
+		return *new([]common.Address), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new([]common.Address)).(*[]common.Address)
+
+	return out0, err
+
+}
+
+// GetValidatorAddresses is a free data retrieval call binding the contract method 0xf74e921f.
+//
+// Solidity: function getValidatorAddresses() view returns(address[] addresses)
+func (_ValidatorPool *ValidatorPoolSession) GetValidatorAddresses() ([]common.Address, error) {
+	return _ValidatorPool.Contract.GetValidatorAddresses(&_ValidatorPool.CallOpts)
+}
+
+// GetValidatorAddresses is a free data retrieval call binding the contract method 0xf74e921f.
+//
+// Solidity: function getValidatorAddresses() view returns(address[] addresses)
+func (_ValidatorPool *ValidatorPoolCallerSession) GetValidatorAddresses() ([]common.Address, error) {
+	return _ValidatorPool.Contract.GetValidatorAddresses(&_ValidatorPool.CallOpts)
+}
+
+// GetValidatorsCount is a free data retrieval call binding the contract method 0x27498240.
+//
+// Solidity: function getValidatorsCount() view returns(uint256)
+func (_ValidatorPool *ValidatorPoolCaller) GetValidatorsCount(opts *bind.CallOpts) (*big.Int, error) {
+	var out []interface{}
+	err := _ValidatorPool.contract.Call(opts, &out, "getValidatorsCount")
+
+	if err != nil {
+		return *new(*big.Int), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
+
+	return out0, err
+
+}
+
+// GetValidatorsCount is a free data retrieval call binding the contract method 0x27498240.
+//
+// Solidity: function getValidatorsCount() view returns(uint256)
+func (_ValidatorPool *ValidatorPoolSession) GetValidatorsCount() (*big.Int, error) {
+	return _ValidatorPool.Contract.GetValidatorsCount(&_ValidatorPool.CallOpts)
+}
+
+// GetValidatorsCount is a free data retrieval call binding the contract method 0x27498240.
+//
+// Solidity: function getValidatorsCount() view returns(uint256)
+func (_ValidatorPool *ValidatorPoolCallerSession) GetValidatorsCount() (*big.Int, error) {
+	return _ValidatorPool.Contract.GetValidatorsCount(&_ValidatorPool.CallOpts)
+}
+
+// IsValidator is a free data retrieval call binding the contract method 0xfacd743b.
+//
+// Solidity: function isValidator(address participant) view returns(bool)
+func (_ValidatorPool *ValidatorPoolCaller) IsValidator(opts *bind.CallOpts, participant common.Address) (bool, error) {
+	var out []interface{}
+	err := _ValidatorPool.contract.Call(opts, &out, "isValidator", participant)
+
+	if err != nil {
+		return *new(bool), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(bool)).(*bool)
+
+	return out0, err
+
+}
+
+// IsValidator is a free data retrieval call binding the contract method 0xfacd743b.
+//
+// Solidity: function isValidator(address participant) view returns(bool)
+func (_ValidatorPool *ValidatorPoolSession) IsValidator(participant common.Address) (bool, error) {
+	return _ValidatorPool.Contract.IsValidator(&_ValidatorPool.CallOpts, participant)
+}
+
+// IsValidator is a free data retrieval call binding the contract method 0xfacd743b.
+//
+// Solidity: function isValidator(address participant) view returns(bool)
+func (_ValidatorPool *ValidatorPoolCallerSession) IsValidator(participant common.Address) (bool, error) {
+	return _ValidatorPool.Contract.IsValidator(&_ValidatorPool.CallOpts, participant)
+}
+
+// AddValidator is a paid mutator transaction binding the contract method 0x4d238c8e.
+//
+// Solidity: function addValidator(address v) returns()
+func (_ValidatorPool *ValidatorPoolTransactor) AddValidator(opts *bind.TransactOpts, v common.Address) (*types.Transaction, error) {
+	return _ValidatorPool.contract.Transact(opts, "addValidator", v)
+}
+
+// AddValidator is a paid mutator transaction binding the contract method 0x4d238c8e.
+//
+// Solidity: function addValidator(address v) returns()
+func (_ValidatorPool *ValidatorPoolSession) AddValidator(v common.Address) (*types.Transaction, error) {
+	return _ValidatorPool.Contract.AddValidator(&_ValidatorPool.TransactOpts, v)
+}
+
+// AddValidator is a paid mutator transaction binding the contract method 0x4d238c8e.
+//
+// Solidity: function addValidator(address v) returns()
+func (_ValidatorPool *ValidatorPoolTransactorSession) AddValidator(v common.Address) (*types.Transaction, error) {
+	return _ValidatorPool.Contract.AddValidator(&_ValidatorPool.TransactOpts, v)
+}
+
+// InitializeETHDKG is a paid mutator transaction binding the contract method 0x57b51c9c.
+//
+// Solidity: function initializeETHDKG() returns()
+func (_ValidatorPool *ValidatorPoolTransactor) InitializeETHDKG(opts *bind.TransactOpts) (*types.Transaction, error) {
+	return _ValidatorPool.contract.Transact(opts, "initializeETHDKG")
+}
+
+// InitializeETHDKG is a paid mutator transaction binding the contract method 0x57b51c9c.
+//
+// Solidity: function initializeETHDKG() returns()
+func (_ValidatorPool *ValidatorPoolSession) InitializeETHDKG() (*types.Transaction, error) {
+	return _ValidatorPool.Contract.InitializeETHDKG(&_ValidatorPool.TransactOpts)
+}
+
+// InitializeETHDKG is a paid mutator transaction binding the contract method 0x57b51c9c.
+//
+// Solidity: function initializeETHDKG() returns()
+func (_ValidatorPool *ValidatorPoolTransactorSession) InitializeETHDKG() (*types.Transaction, error) {
+	return _ValidatorPool.Contract.InitializeETHDKG(&_ValidatorPool.TransactOpts)
+}
+
+// MajorSlash is a paid mutator transaction binding the contract method 0x150ef01b.
+//
+// Solidity: function majorSlash(address validator) returns()
+func (_ValidatorPool *ValidatorPoolTransactor) MajorSlash(opts *bind.TransactOpts, validator common.Address) (*types.Transaction, error) {
+	return _ValidatorPool.contract.Transact(opts, "majorSlash", validator)
+}
+
+// MajorSlash is a paid mutator transaction binding the contract method 0x150ef01b.
+//
+// Solidity: function majorSlash(address validator) returns()
+func (_ValidatorPool *ValidatorPoolSession) MajorSlash(validator common.Address) (*types.Transaction, error) {
+	return _ValidatorPool.Contract.MajorSlash(&_ValidatorPool.TransactOpts, validator)
+}
+
+// MajorSlash is a paid mutator transaction binding the contract method 0x150ef01b.
+//
+// Solidity: function majorSlash(address validator) returns()
+func (_ValidatorPool *ValidatorPoolTransactorSession) MajorSlash(validator common.Address) (*types.Transaction, error) {
+	return _ValidatorPool.Contract.MajorSlash(&_ValidatorPool.TransactOpts, validator)
+}
+
+// MinorSlash is a paid mutator transaction binding the contract method 0xa19ebb21.
+//
+// Solidity: function minorSlash(address validator) returns()
+func (_ValidatorPool *ValidatorPoolTransactor) MinorSlash(opts *bind.TransactOpts, validator common.Address) (*types.Transaction, error) {
+	return _ValidatorPool.contract.Transact(opts, "minorSlash", validator)
+}
+
+// MinorSlash is a paid mutator transaction binding the contract method 0xa19ebb21.
+//
+// Solidity: function minorSlash(address validator) returns()
+func (_ValidatorPool *ValidatorPoolSession) MinorSlash(validator common.Address) (*types.Transaction, error) {
+	return _ValidatorPool.Contract.MinorSlash(&_ValidatorPool.TransactOpts, validator)
+}
+
+// MinorSlash is a paid mutator transaction binding the contract method 0xa19ebb21.
+//
+// Solidity: function minorSlash(address validator) returns()
+func (_ValidatorPool *ValidatorPoolTransactorSession) MinorSlash(validator common.Address) (*types.Transaction, error) {
+	return _ValidatorPool.Contract.MinorSlash(&_ValidatorPool.TransactOpts, validator)
+}
+
+// RemoveAllValidators is a paid mutator transaction binding the contract method 0xa74a97b1.
+//
+// Solidity: function removeAllValidators() returns()
+func (_ValidatorPool *ValidatorPoolTransactor) RemoveAllValidators(opts *bind.TransactOpts) (*types.Transaction, error) {
+	return _ValidatorPool.contract.Transact(opts, "removeAllValidators")
+}
+
+// RemoveAllValidators is a paid mutator transaction binding the contract method 0xa74a97b1.
+//
+// Solidity: function removeAllValidators() returns()
+func (_ValidatorPool *ValidatorPoolSession) RemoveAllValidators() (*types.Transaction, error) {
+	return _ValidatorPool.Contract.RemoveAllValidators(&_ValidatorPool.TransactOpts)
+}
+
+// RemoveAllValidators is a paid mutator transaction binding the contract method 0xa74a97b1.
+//
+// Solidity: function removeAllValidators() returns()
+func (_ValidatorPool *ValidatorPoolTransactorSession) RemoveAllValidators() (*types.Transaction, error) {
+	return _ValidatorPool.Contract.RemoveAllValidators(&_ValidatorPool.TransactOpts)
+}
+
+// RemoveValidator is a paid mutator transaction binding the contract method 0x40a141ff.
+//
+// Solidity: function removeValidator(address validator) returns()
+func (_ValidatorPool *ValidatorPoolTransactor) RemoveValidator(opts *bind.TransactOpts, validator common.Address) (*types.Transaction, error) {
+	return _ValidatorPool.contract.Transact(opts, "removeValidator", validator)
+}
+
+// RemoveValidator is a paid mutator transaction binding the contract method 0x40a141ff.
+//
+// Solidity: function removeValidator(address validator) returns()
+func (_ValidatorPool *ValidatorPoolSession) RemoveValidator(validator common.Address) (*types.Transaction, error) {
+	return _ValidatorPool.Contract.RemoveValidator(&_ValidatorPool.TransactOpts, validator)
+}
+
+// RemoveValidator is a paid mutator transaction binding the contract method 0x40a141ff.
+//
+// Solidity: function removeValidator(address validator) returns()
+func (_ValidatorPool *ValidatorPoolTransactorSession) RemoveValidator(validator common.Address) (*types.Transaction, error) {
+	return _ValidatorPool.Contract.RemoveValidator(&_ValidatorPool.TransactOpts, validator)
+}
+
+// SetETHDKG is a paid mutator transaction binding the contract method 0x8785a460.
+//
+// Solidity: function setETHDKG(address ethdkg) returns()
+func (_ValidatorPool *ValidatorPoolTransactor) SetETHDKG(opts *bind.TransactOpts, ethdkg common.Address) (*types.Transaction, error) {
+	return _ValidatorPool.contract.Transact(opts, "setETHDKG", ethdkg)
+}
+
+// SetETHDKG is a paid mutator transaction binding the contract method 0x8785a460.
+//
+// Solidity: function setETHDKG(address ethdkg) returns()
+func (_ValidatorPool *ValidatorPoolSession) SetETHDKG(ethdkg common.Address) (*types.Transaction, error) {
+	return _ValidatorPool.Contract.SetETHDKG(&_ValidatorPool.TransactOpts, ethdkg)
+}
+
+// SetETHDKG is a paid mutator transaction binding the contract method 0x8785a460.
+//
+// Solidity: function setETHDKG(address ethdkg) returns()
+func (_ValidatorPool *ValidatorPoolTransactorSession) SetETHDKG(ethdkg common.Address) (*types.Transaction, error) {
+	return _ValidatorPool.Contract.SetETHDKG(&_ValidatorPool.TransactOpts, ethdkg)
 }
 
 // ValidatorPoolMetaData contains all meta data concerning the ValidatorPool contract.
