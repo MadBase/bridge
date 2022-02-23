@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MIT-open-group
 pragma solidity ^0.8.11;
 
-import "./interfaces/IGovernor.sol";
+import "./interfaces/IDirectGovernor.sol";
 
-/// @custom:salt Governance
+/// @custom:salt DirectGovernance
 /// @custom:deploy-type deployUpgradeable
-contract Governance is IGovernor {
+contract DirectGovernance is IDirectGovernor {
     address internal immutable _factory;
 
     constructor() {
@@ -13,7 +13,7 @@ contract Governance is IGovernor {
     }
 
     function updateValue(uint256 epoch, uint256 key, bytes32 value) external {
-        require(msg.sender == _factory , "Governance: Only factory allowed!");
+        require(msg.sender == _factory , "DirectGovernance: Only factory allowed!");
         emit ValueUpdated(epoch, key, value, msg.sender);
     }
 }

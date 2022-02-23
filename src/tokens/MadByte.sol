@@ -22,7 +22,7 @@ contract MadByte is ERC20Upgradeable, Admin, Mutex, MagicEthTransfer, EthSafeTra
 
     /// @notice Event emitted when a deposit is received
     event DepositReceived(uint256 indexed depositID, uint8 indexed accountType, address indexed depositor, uint256 amount);
-    
+
     struct Deposit {
         uint8 accountType;
         address account;
@@ -50,7 +50,7 @@ contract MadByte is ERC20Upgradeable, Admin, Mutex, MagicEthTransfer, EthSafeTra
     // Tracks the amount of each deposit. Key is deposit id, value is amount
     // deposited.
     mapping(uint256 => Deposit) internal _deposits;
-    
+
     constructor() Admin(msg.sender) Mutex() immutableFactory(msg.sender) immutableStakeNFT() immutableValidatorNFT() immutableStakeNFTLP() immutableFoundation(){}
 
     function initialize() public onlyFactory initializer {
@@ -324,7 +324,7 @@ contract MadByte is ERC20Upgradeable, Admin, Mutex, MagicEthTransfer, EthSafeTra
       return _min(poolBalance_, _fp(totalSupply_) - _fp(totalSupply_ - numMB_));
     }
 
-    function _newDeposit(uint8 accountType_, address account_, uint256 value_) internal returns(Deposit memory) {
+    function _newDeposit(uint8 accountType_, address account_, uint256 value_) internal pure returns(Deposit memory) {
         Deposit memory d = Deposit(accountType_, account_, value_);
         return d;
     }

@@ -49,7 +49,7 @@ const config: HardhatUserConfig = {
       // blockGasLimit: 30000000000000,
       // gas: 30000000,
       // gasPrice: 10000000000,
-      allowUnlimitedContractSize: true,
+      allowUnlimitedContractSize: false,
       mining: {
         auto: true,
         //interval: 15000,

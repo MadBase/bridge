@@ -6,7 +6,7 @@ export type DeployList = {
 }
 
 export async function readDeploymentList() {
-    //this output object allows dynamic addition of fields 
+    //this output object allows dynamic addition of fields
     let outputObj = <DeployList>{};
     //if there is a file or directory at that location
     if(fs.existsSync(`./deployments/${env}/deployList.json`)){
@@ -24,7 +24,11 @@ export async function getDeploymentList() {
 
 export async function writeDeploymentList(newFactoryConfig: DeployList) {
     let jsonString = JSON.stringify(newFactoryConfig);
+    if(!fs.existsSync(`./deployments/${env}/`)){
+        fs.mkdirSync(`./deployments/${env}/`)
+    }
     fs.writeFileSync(`./deployments/${env}/deployList.json`, jsonString);
+
 }
 
 

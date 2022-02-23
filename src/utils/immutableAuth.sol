@@ -1,6 +1,6 @@
 
 // SPDX-License-Identifier: MIT-open-group
-pragma solidity 0.8.11;
+pragma solidity ^0.8.11;
 
 import "./DeterministicAddress.sol";
 
@@ -25,7 +25,7 @@ abstract contract immutableFactory is DeterministicAddress {
 
 
 abstract contract immutableValidatorNFT is immutableFactory {
-    
+
     address private immutable _ValidatorNFT;
 
     constructor() {
@@ -44,13 +44,13 @@ abstract contract immutableValidatorNFT is immutableFactory {
     function _saltForValidatorNFT() internal pure returns(bytes32) {
         return 0x56616c696461746f724e46540000000000000000000000000000000000000000;
     }
-    
+
 }
 
 
 
 abstract contract immutableMadToken is immutableFactory {
-    
+
     address private immutable _MadToken;
 
     constructor() {
@@ -69,13 +69,13 @@ abstract contract immutableMadToken is immutableFactory {
     function _saltForMadToken() internal pure returns(bytes32) {
         return 0x4d6164546f6b656e000000000000000000000000000000000000000000000000;
     }
-    
+
 }
 
 
 
 abstract contract immutableStakeNFT is immutableFactory {
-    
+
     address private immutable _StakeNFT;
 
     constructor() {
@@ -94,13 +94,13 @@ abstract contract immutableStakeNFT is immutableFactory {
     function _saltForStakeNFT() internal pure returns(bytes32) {
         return 0x5374616b654e4654000000000000000000000000000000000000000000000000;
     }
-    
+
 }
 
 
 
 abstract contract immutableMadByte is immutableFactory {
-    
+
     address private immutable _MadByte;
 
     constructor() {
@@ -119,13 +119,13 @@ abstract contract immutableMadByte is immutableFactory {
     function _saltForMadByte() internal pure returns(bytes32) {
         return 0x4d61644279746500000000000000000000000000000000000000000000000000;
     }
-    
+
 }
 
 
 
 abstract contract immutableGovernance is immutableFactory {
-    
+
     address private immutable _Governance;
 
     constructor() {
@@ -144,13 +144,13 @@ abstract contract immutableGovernance is immutableFactory {
     function _saltForGovernance() internal pure returns(bytes32) {
         return 0x476f7665726e616e636500000000000000000000000000000000000000000000;
     }
-    
+
 }
 
 
 
 abstract contract immutableValidatorPool is immutableFactory {
-    
+
     address private immutable _ValidatorPool;
 
     constructor() {
@@ -169,13 +169,13 @@ abstract contract immutableValidatorPool is immutableFactory {
     function _saltForValidatorPool() internal pure returns(bytes32) {
         return 0x56616c696461746f72506f6f6c00000000000000000000000000000000000000;
     }
-    
+
 }
 
 
 
 abstract contract immutableETHDKG is immutableFactory {
-    
+
     address private immutable _ETHDKG;
 
     constructor() {
@@ -194,13 +194,13 @@ abstract contract immutableETHDKG is immutableFactory {
     function _saltForETHDKG() internal pure returns(bytes32) {
         return 0x455448444b470000000000000000000000000000000000000000000000000000;
     }
-    
+
 }
 
 
 
 abstract contract immutableETHDKGAccusations is immutableFactory {
-    
+
     address private immutable _ETHDKGAccusations;
 
     constructor() {
@@ -219,13 +219,13 @@ abstract contract immutableETHDKGAccusations is immutableFactory {
     function _saltForETHDKGAccusations() internal pure returns(bytes32) {
         return 0x455448444b4741636375736174696f6e73000000000000000000000000000000;
     }
-    
+
 }
 
 
 
 abstract contract immutableSnapshots is immutableFactory {
-    
+
     address private immutable _Snapshots;
 
     constructor() {
@@ -244,13 +244,13 @@ abstract contract immutableSnapshots is immutableFactory {
     function _saltForSnapshots() internal pure returns(bytes32) {
         return 0x536e617073686f74730000000000000000000000000000000000000000000000;
     }
-    
+
 }
 
 
 
 abstract contract immutableETHDKGPhases is immutableFactory {
-    
+
     address private immutable _ETHDKGPhases;
 
     constructor() {
@@ -269,13 +269,13 @@ abstract contract immutableETHDKGPhases is immutableFactory {
     function _saltForETHDKGPhases() internal pure returns(bytes32) {
         return 0x455448444b475068617365730000000000000000000000000000000000000000;
     }
-    
+
 }
 
 
 
 abstract contract immutableStakeNFTLP is immutableFactory {
-    
+
     address private immutable _StakeNFTLP;
 
     constructor() {
@@ -294,13 +294,13 @@ abstract contract immutableStakeNFTLP is immutableFactory {
     function _saltForStakeNFTLP() internal pure returns(bytes32) {
         return 0x5374616b654e46544c5000000000000000000000000000000000000000000000;
     }
-    
+
 }
 
 
 
 abstract contract immutableFoundation is immutableFactory {
-    
+
     address private immutable _Foundation;
 
     constructor() {
@@ -319,7 +319,7 @@ abstract contract immutableFoundation is immutableFactory {
     function _saltForFoundation() internal pure returns(bytes32) {
         return 0x466f756e646174696f6e00000000000000000000000000000000000000000000;
     }
-    
+
 }
 
 
