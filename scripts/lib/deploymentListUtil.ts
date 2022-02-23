@@ -24,6 +24,9 @@ export async function getDeploymentList() {
 
 export async function writeDeploymentList(newFactoryConfig: DeployList) {
     let jsonString = JSON.stringify(newFactoryConfig);
+    if(!fs.existsSync(`./deployments/`)){
+        fs.mkdirSync(`./deployments/`)
+    }
     if(!fs.existsSync(`./deployments/${env}/`)){
         fs.mkdirSync(`./deployments/${env}/`)
     }

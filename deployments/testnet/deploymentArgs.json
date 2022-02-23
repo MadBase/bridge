@@ -1,0 +1,16 @@
+{
+  "constructorArgs": {
+    "src/tokens/periphery/snapshots/Snapshots.sol:Snapshots": [
+      { "chainID_": "1", "type": "uint256" }
+    ]
+  },
+  "initializerArgs": {
+    "src/tokens/MadToken.sol:MadToken": [
+      { "owner_": "0x546f99f244b7b58b855330ae0e2bc1b30b41302f", "type": "address" }
+    ],
+    "src/tokens/periphery/snapshots/Snapshots.sol:Snapshots": [
+      { "desperationDelay_": "10", "type": "uint32" },
+      { "desperationFactor_": "40", "type": "uint32" }
+    ]
+  }
+}
