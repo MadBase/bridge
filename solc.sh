@@ -12,6 +12,7 @@ solc \
     ./src/tokens/periphery/ethdkg/ETHDKG.sol \
     ./src/tokens/periphery/validatorPool/ValidatorPool.sol \
     ./src/tokens/periphery/snapshots/Snapshots.sol \
+    ./src/tokens/periphery/governance/Governance.sol \
     ./src/tokens/MadByte.sol \
     ./src/tokens/MadToken.sol \
     ./src/tokens/StakeNFT.sol \

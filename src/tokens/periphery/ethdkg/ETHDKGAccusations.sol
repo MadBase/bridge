@@ -13,8 +13,8 @@ import "../../../CryptoLibrary.sol";
 contract ETHDKGAccusations is ETHDKGStorage, IETHDKGEvents, ETHDKGUtils {
 
     constructor() ETHDKGStorage(){
-        _admin = msg.sender;
     }
+
     function accuseParticipantNotRegistered(address[] memory dishonestAddresses) external {
         require(
             _ethdkgPhase == Phase.RegistrationOpen &&

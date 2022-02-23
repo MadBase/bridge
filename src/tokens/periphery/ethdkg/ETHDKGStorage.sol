@@ -4,6 +4,8 @@ pragma solidity ^0.8.11;
 import "../validatorPool/interfaces/IValidatorPool.sol";
 import "../snapshots/interfaces/ISnapshots.sol";
 import "../../../utils/DeterministicAddress.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import "../../../proxy/Proxy.sol";
 
 enum Phase {
     RegistrationOpen,
@@ -28,12 +30,10 @@ struct Participant {
     uint256[4] gpkj;
 }
 
-abstract contract ETHDKGStorage is DeterministicAddress {
+abstract contract ETHDKGStorage is Initializable, DeterministicAddress {
 
     ISnapshots internal immutable _snapshots;
     IValidatorPool internal immutable _validatorPool;
-    address internal immutable _ethdkgAccusations;
-    address internal immutable _ethdkgPhases;
     address internal immutable _factory;
     uint256 internal constant  MIN_VALIDATOR = 4;
 
@@ -55,16 +55,17 @@ abstract contract ETHDKGStorage is DeterministicAddress {
     uint256[2] internal _mpkG1;
 
     mapping(address => Participant) internal _participants;
+
+    modifier onlyFactory(){
+        require(msg.sender == _factory, "ETHDKG: Only Factory allowed!");
+        _;
+    }
+
     constructor() {
         _factory = msg.sender;
         // bytes32("Snapshots") = 0x536e617073686f74730000000000000000000000000000000000000000000000;
         _snapshots = ISnapshots(getMetamorphicContractAddress(0x536e617073686f74730000000000000000000000000000000000000000000000, _factory));
         // bytes32("ValidatorPool") = 0x56616c696461746f72506f6f6c00000000000000000000000000000000000000;
         _validatorPool = IValidatorPool(getMetamorphicContractAddress(0x56616c696461746f72506f6f6c00000000000000000000000000000000000000, _factory));
-        // bytes32("ETHDKGPhases") = 0x455448444b475068617365730000000000000000000000000000000000000000;
-        _ethdkgPhases = getMetamorphicContractAddress(0x455448444b475068617365730000000000000000000000000000000000000000, _factory);
-        // bytes32("ETHDKGAccusations") = 0x455448444b4741636375736174696f6e73000000000000000000000000000000;
-        _ethdkgAccusations= getMetamorphicContractAddress(0x455448444b4741636375736174696f6e73000000000000000000000000000000, _factory);
-
     }
 }
