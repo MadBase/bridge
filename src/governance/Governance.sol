@@ -3,7 +3,7 @@ pragma solidity ^0.8.0;
 
 import "./GovernanceManager.sol";
 
-abstract contract Governance {
+abstract contract _Governance {
 
     // _governance is a privileged contract
     address _governance;

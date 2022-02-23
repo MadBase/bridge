@@ -121,6 +121,7 @@ subtask("deployCreate", "deploys a contract from the factory using create")
     let deployBytecode = deployTx.data
     //get a factory instance connected to the factory addr
     const factory = await MadnetFactory.at(factoryData.address);
+    console.log(taskArgs.contractName)
     let txResponse = await factory.deployCreate(deployBytecode);
     let deployCreateData:DeployCreateData = {
       name: taskArgs.contractName,
@@ -478,7 +479,7 @@ async function getSalt(contractName:string, hre:HardhatRuntimeEnvironment): Prom
  * @returns the string that represents the 32Bytes version
  * of the salt specified by custom:salt
  */
-async function getBytes32Salt(contractName:string, hre:HardhatRuntimeEnvironment){
+export async function getBytes32Salt(contractName:string, hre:HardhatRuntimeEnvironment){
   let salt:string = await getSalt(contractName, hre);
   return hre.ethers.utils.formatBytes32String(salt);
 }

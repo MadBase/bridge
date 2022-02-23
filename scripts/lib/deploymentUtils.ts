@@ -223,3 +223,8 @@ export async function getSalt(fullName: string) {
     //console.log(info)
     return info["devdoc"]["custom:salt"]
 }
+
+export async function getBytes32Salt(contractName:string){
+    let salt:string = await getSalt(contractName);
+    return ethers.utils.formatBytes32String(salt);
+  }

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT-open-group
 pragma solidity ^0.8.11;
 
-import "./proxy/Proxy.sol";
+import "../../src/proxy/Proxy.sol";
 interface Iendpointlockable {
     function i() external view returns(uint256);
     function addOne() external;
