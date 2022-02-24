@@ -1,6 +1,6 @@
 pragma solidity ^0.8.11;
 
-import "../../src/proxy/Proxy.sol";
+import "../../../src/proxy/Proxy.sol";
 contract MockSD is ProxyInternalUpgradeLock, ProxyInternalUpgradeUnlock {
     address factory_;
     uint256 public v;

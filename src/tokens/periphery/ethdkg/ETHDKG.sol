@@ -8,17 +8,17 @@ import "./interfaces/IETHDKGEvents.sol";
 import "./interfaces/IETHDKG.sol";
 import "./ETHDKGStorage.sol";
 import "./utils/ETHDKGUtils.sol";
-import "../../../utils/immutableAuth.sol";
+import "../../../utils/ImmutableAuth.sol";
 
 import "../../../proxy/Proxy.sol";
 
 /// @custom:salt ETHDKG
 /// @custom:deploy-type deployUpgradeable
-contract ETHDKG is ETHDKGStorage, IETHDKG, IETHDKGEvents, ETHDKGUtils, immutableETHDKGAccusations, immutableETHDKGPhases {
+contract ETHDKG is ETHDKGStorage, IETHDKG, IETHDKGEvents, ETHDKGUtils, ImmutableETHDKGAccusations, ImmutableETHDKGPhases {
     address internal immutable _ethdkgAccusations;
     address internal immutable _ethdkgPhases;
 
-    constructor() ETHDKGStorage() immutableETHDKGAccusations() immutableETHDKGPhases(){
+    constructor() ETHDKGStorage() ImmutableETHDKGAccusations() ImmutableETHDKGPhases(){
         // bytes32("ETHDKGPhases") = 0x455448444b475068617365730000000000000000000000000000000000000000;
         address ethdkgPhases = IProxy(_ETHDKGPhasesAddress()).getImplementationAddress();
         assembly {

@@ -4,7 +4,7 @@ pragma solidity ^0.8.11;
 import "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol";
 import "../governance/GovernanceMaxLock.sol";
-import "../utils/immutableAuth.sol";
+import "../utils/ImmutableAuth.sol";
 import "../governance/GovernanceManager.sol";
 import "./utils/EthSafeTransfer.sol";
 import "./utils/ERC20SafeTransfer.sol";
@@ -19,10 +19,10 @@ contract Foundation is
     MagicValue,
     EthSafeTransfer,
     ERC20SafeTransfer,
-    immutableFactory,
-    immutableMadToken
+    ImmutableFactory,
+    ImmutableMadToken
 {
-    constructor() immutableFactory(msg.sender) immutableMadToken() {}
+    constructor() ImmutableFactory(msg.sender) ImmutableMadToken() {}
 
     function initialize() public initializer onlyFactory {}
 

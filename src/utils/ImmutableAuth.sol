@@ -4,7 +4,7 @@ pragma solidity ^0.8.11;
 
 import "./DeterministicAddress.sol";
 
-abstract contract immutableFactory is DeterministicAddress {
+abstract contract ImmutableFactory is DeterministicAddress {
 
     address private immutable _factory;
 
@@ -24,7 +24,7 @@ abstract contract immutableFactory is DeterministicAddress {
 }
 
 
-abstract contract immutableValidatorNFT is immutableFactory {
+abstract contract ImmutableValidatorNFT is ImmutableFactory {
 
     address private immutable _ValidatorNFT;
 
@@ -49,7 +49,7 @@ abstract contract immutableValidatorNFT is immutableFactory {
 
 
 
-abstract contract immutableMadToken is immutableFactory {
+abstract contract ImmutableMadToken is ImmutableFactory {
 
     address private immutable _MadToken;
 
@@ -74,7 +74,7 @@ abstract contract immutableMadToken is immutableFactory {
 
 
 
-abstract contract immutableStakeNFT is immutableFactory {
+abstract contract ImmutableStakeNFT is ImmutableFactory {
 
     address private immutable _StakeNFT;
 
@@ -99,7 +99,7 @@ abstract contract immutableStakeNFT is immutableFactory {
 
 
 
-abstract contract immutableMadByte is immutableFactory {
+abstract contract ImmutableMadByte is ImmutableFactory {
 
     address private immutable _MadByte;
 
@@ -124,7 +124,7 @@ abstract contract immutableMadByte is immutableFactory {
 
 
 
-abstract contract immutableGovernance is immutableFactory {
+abstract contract ImmutableGovernance is ImmutableFactory {
 
     address private immutable _Governance;
 
@@ -149,7 +149,7 @@ abstract contract immutableGovernance is immutableFactory {
 
 
 
-abstract contract immutableValidatorPool is immutableFactory {
+abstract contract ImmutableValidatorPool is ImmutableFactory {
 
     address private immutable _ValidatorPool;
 
@@ -174,7 +174,7 @@ abstract contract immutableValidatorPool is immutableFactory {
 
 
 
-abstract contract immutableETHDKG is immutableFactory {
+abstract contract ImmutableETHDKG is ImmutableFactory {
 
     address private immutable _ETHDKG;
 
@@ -199,7 +199,7 @@ abstract contract immutableETHDKG is immutableFactory {
 
 
 
-abstract contract immutableETHDKGAccusations is immutableFactory {
+abstract contract ImmutableETHDKGAccusations is ImmutableFactory {
 
     address private immutable _ETHDKGAccusations;
 
@@ -224,7 +224,7 @@ abstract contract immutableETHDKGAccusations is immutableFactory {
 
 
 
-abstract contract immutableSnapshots is immutableFactory {
+abstract contract ImmutableSnapshots is ImmutableFactory {
 
     address private immutable _Snapshots;
 
@@ -249,7 +249,7 @@ abstract contract immutableSnapshots is immutableFactory {
 
 
 
-abstract contract immutableETHDKGPhases is immutableFactory {
+abstract contract ImmutableETHDKGPhases is ImmutableFactory {
 
     address private immutable _ETHDKGPhases;
 
@@ -274,7 +274,7 @@ abstract contract immutableETHDKGPhases is immutableFactory {
 
 
 
-abstract contract immutableStakeNFTLP is immutableFactory {
+abstract contract ImmutableStakeNFTLP is ImmutableFactory {
 
     address private immutable _StakeNFTLP;
 
@@ -299,7 +299,7 @@ abstract contract immutableStakeNFTLP is immutableFactory {
 
 
 
-abstract contract immutableFoundation is immutableFactory {
+abstract contract ImmutableFoundation is ImmutableFactory {
 
     address private immutable _Foundation;
 

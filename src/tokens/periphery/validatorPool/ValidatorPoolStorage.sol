@@ -5,7 +5,7 @@ import "../../interfaces/INFTStake.sol";
 import "../../interfaces/IERC20Transferable.sol";
 import "../ethdkg/interfaces/IETHDKG.sol";
 
-abstract contract ValidatorPoolStorage is immutableFactory, immutableSnapshots, immutableETHDKG, immutableStakeNFT, immutableValidatorNFT, immutableMadToken{
+abstract contract ValidatorPoolStorage is ImmutableFactory, ImmutableSnapshots, ImmutableETHDKG, ImmutableStakeNFT, ImmutableValidatorNFT, ImmutableMadToken{
     // _positionLockPeriod describes the maximum interval a STAKENFT Position may be locked after
     // being given back to validator exiting the pool
     uint256 public constant _positionLockPeriod = 172800;
@@ -48,12 +48,12 @@ abstract contract ValidatorPoolStorage is immutableFactory, immutableSnapshots, 
     // Mapping to keep track of the active validators IPs.
     mapping(address => string) internal _ipLocations;
 
-    constructor() 
-        immutableFactory(msg.sender) 
-        immutableSnapshots() 
-        immutableETHDKG() 
-        immutableStakeNFT() 
-        immutableValidatorNFT() 
-        immutableMadToken() 
+    constructor()
+        ImmutableFactory(msg.sender)
+        ImmutableSnapshots()
+        ImmutableETHDKG()
+        ImmutableStakeNFT()
+        ImmutableValidatorNFT()
+        ImmutableMadToken()
         {}
 }

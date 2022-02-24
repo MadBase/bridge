@@ -9,7 +9,7 @@ import "../../../../utils/DeterministicAddress.sol";
 import "../../../interfaces/INFTStake.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 
-contract ValidatorPoolMock is Initializable, IValidatorPool, immutableFactory, immutableSnapshots, immutableETHDKG, immutableValidatorNFT {
+contract ValidatorPoolMock is Initializable, IValidatorPool, ImmutableFactory, ImmutableSnapshots, ImmutableETHDKG, ImmutableValidatorNFT {
     using CustomEnumerableMaps for ValidatorDataMap;
 
     uint256 internal _tokenIDCounter;
@@ -26,7 +26,7 @@ contract ValidatorPoolMock is Initializable, IValidatorPool, immutableFactory, i
     uint256 internal _stakeAmount;
 
     // solhint-disable no-empty-blocks
-    constructor() immutableFactory(msg.sender) immutableValidatorNFT() immutableSnapshots() immutableETHDKG(){
+    constructor() ImmutableFactory(msg.sender) ImmutableValidatorNFT() ImmutableSnapshots() ImmutableETHDKG(){
     }
 
     function initialize() public onlyFactory initializer {
