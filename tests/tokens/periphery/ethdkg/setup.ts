@@ -11,6 +11,7 @@ import {
   ValidatorPoolMock,
 } from "../../../../typechain-types";
 import { getFixture, getValidatorEthAccount, mineBlocks } from "../setup";
+import { factoryCallAny } from "../../periphery/setup";
 
 export const PLACEHOLDER_ADDRESS = "0x0000000000000000000000000000000000000000";
 
@@ -323,7 +324,9 @@ export const initializeETHDKG = async (
   validatorPool: ValidatorPoolMock | ValidatorPool
 ) => {
   let nonce = await ethdkg.getNonce();
-  await expect(validatorPool.initializeETHDKG()).to.emit(
+  await expect(
+    validatorPool.initializeETHDKG()
+  ).to.emit(
     ethdkg,
     "RegistrationOpened"
   );
@@ -552,14 +555,14 @@ export const startAtDistributeShares = async (
     validatorPool: ValidatorPoolMock | ValidatorPool;
   }
 ): Promise<[ETHDKG, ValidatorPoolMock | ValidatorPool, number]> => {
-  const { ethdkg, validatorPool} =
+  const { ethdkg, validatorPool } =
     typeof contracts !== "undefined" ? contracts : await getFixture(true);
   // add validators
   if ((<ValidatorPoolMock>validatorPool).isMock) {
     await addValidators(validatorPool, validators);
+    // start ETHDKG
+    await initializeETHDKG(ethdkg, validatorPool);
   }
-  // start ETHDKG
-  await initializeETHDKG(ethdkg, validatorPool);
   const expectedNonce = (await ethdkg.getNonce()).toNumber();
   // register all validators
   await registerValidators(ethdkg, validatorPool, validators, expectedNonce);
@@ -679,3 +682,4 @@ export const completeETHDKGRound = async (
     expectedMadHeight,
   ];
 };
+

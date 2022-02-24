@@ -59,4 +59,6 @@ interface IValidatorPool {
     function majorSlash(address dishonestValidator_, address disputer_) external;
 
     function minorSlash(address dishonestValidator_, address disputer_) external;
+
+    function isConsensusRunning() external view returns (bool);
 }

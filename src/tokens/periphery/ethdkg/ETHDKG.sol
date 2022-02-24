@@ -9,7 +9,6 @@ import "./interfaces/IETHDKG.sol";
 import "./ETHDKGStorage.sol";
 import "./utils/ETHDKGUtils.sol";
 import "../../../utils/ImmutableAuth.sol";
-
 import "../../../proxy/Proxy.sol";
 
 /// @custom:salt ETHDKG
@@ -177,7 +176,7 @@ contract ETHDKG is ETHDKGStorage, IETHDKG, IETHDKGEvents, ETHDKGUtils, Immutable
 
     function tryGetParticipantIndex(address participant) public view returns (bool, uint256) {
         Participant memory participantData = _participants[participant];
-        if (participantData.nonce == _nonce) {
+        if (participantData.nonce == _nonce && _nonce != 0) {
             return (true, _participants[participant].index);
         }
         return (false, 0);

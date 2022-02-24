@@ -213,7 +213,7 @@ async function deployUpgradeableWithFactory(
   let contractTx;
   if (constructorArgs !== undefined) {
     contractTx = await factory.deployTemplate(
-      (deployCode = _Contract.getDeployTransaction(constructorArgs)
+      (deployCode = _Contract.getDeployTransaction(...constructorArgs)
         .data as BytesLike)
     );
   } else {
@@ -343,7 +343,7 @@ export const getFixture = async (
       "SnapshotsMock",
       "Snapshots",
       undefined,
-      [1]
+      [1,1]
     )) as Snapshots;
   } else {
     // Snapshots
