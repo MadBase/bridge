@@ -141,6 +141,10 @@ contract ValidatorPool is
     function isMaintenanceScheduled() public view returns (bool) {
         return _isMaintenanceScheduled;
     }
+    
+    function isConsensusRunning() public view returns (bool) {
+        return _isConsensusRunning;
+    }
 
     function scheduleMaintenance() public onlyFactory {
         _isMaintenanceScheduled = true;
