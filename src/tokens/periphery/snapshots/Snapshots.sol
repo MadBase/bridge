@@ -16,10 +16,13 @@ import "./SnapshotsStorage.sol";
 /// @custom:salt Snapshots
 /// @custom:deploy-type deployUpgradeable
 contract Snapshots is Initializable, SnapshotsStorage, ISnapshots {
-    constructor(uint256 chainID_) SnapshotsStorage(chainID_) {
-    }
+    constructor(uint256 chainID_) SnapshotsStorage(chainID_) {}
 
-    function initialize(uint32 desperationDelay_, uint32 desperationFactor_) public onlyFactory initializer {
+    function initialize(uint32 desperationDelay_, uint32 desperationFactor_)
+        public
+        onlyFactory
+        initializer
+    {
         _snapshotDesperationDelay = desperationDelay_;
         _snapshotDesperationFactor = desperationFactor_;
     }
@@ -76,11 +79,7 @@ contract Snapshots is Initializable, SnapshotsStorage, ISnapshots {
         return _snapshots[_epoch].blockClaims;
     }
 
-    function getSignatureFromSnapshot(uint256 epoch_)
-        public
-        view
-        returns (uint256[2] memory)
-    {
+    function getSignatureFromSnapshot(uint256 epoch_) public view returns (uint256[2] memory) {
         return _snapshots[epoch_].signature;
     }
 
@@ -120,10 +119,18 @@ contract Snapshots is Initializable, SnapshotsStorage, ISnapshots {
         public
         returns (bool)
     {
-        require(IValidatorPool(_ValidatorPoolAddress()).isValidator(msg.sender), "Snapshots: Only validators allowed!");
-        require(!IETHDKG(_ETHDKGAddress()).isETHDKGRunning(), "Snapshots: There's an ETHDKG round running!");
+        require(
+            IValidatorPool(_ValidatorPoolAddress()).isValidator(msg.sender),
+            "Snapshots: Only validators allowed!"
+        );
+        require(
+            IValidatorPool(_ValidatorPoolAddress()).isConsensusRunning(),
+            "Snapshots: Consensus is not running!"
+        );
 
-        (bool success, uint256 validatorIndex) = IETHDKG(_ETHDKGAddress()).tryGetParticipantIndex(msg.sender);
+        (bool success, uint256 validatorIndex) = IETHDKG(_ETHDKGAddress()).tryGetParticipantIndex(
+            msg.sender
+        );
         require(success, "Snapshots: Caller didn't participate in the last ethdkg round!");
         // todo: critical! add eth min blocks between snapshots
 
