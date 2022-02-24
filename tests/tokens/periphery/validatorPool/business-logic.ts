@@ -90,7 +90,7 @@ describe("Testing ValidatorPool Business Logic ", () => {
 
   })
 
-  describe("Registration", async function () {
+  describe("Registration:", async function () {
 
     it("Should not allow registering validators if the STAKENFT position doesn’t have enough MADTokens staked", async function () {
       await createValidators(validatorsSnapshots)
@@ -358,10 +358,6 @@ describe("Testing ValidatorPool Business Logic ", () => {
       expectedState.ValidatorNFT.ETH -= 1
       expectedState.validators[0].ETH += 1
       let currentState: state = await getCurrentState()
-      // //Ignore transactions gas costs
-      // currentState.validators.map(async (validator, index) => {
-      //   expectedState.validators[index].ETH = validator.ETH
-      // })
       await showState("Expected state after collect profit", expectedState)
       await showState("Current state after collect profit", currentState)
       expect(currentState).
