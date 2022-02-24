@@ -46,7 +46,15 @@ const config: HardhatUserConfig = {
     dev:{
       url: "http://127.0.0.1:8545",
       gas: "auto",
+      gasPrice: 1000000,
+      //gasMultiplier: 2,
+      //gasPrice: "auto",
+    },
+    dev_deploy:{
+      url: "http://127.0.0.1:8545",
+      gas: "auto",
       //gasPrice: 1000000,
+      //gasMultiplier: 2,
       gasPrice: "auto",
     },
     ganache:{

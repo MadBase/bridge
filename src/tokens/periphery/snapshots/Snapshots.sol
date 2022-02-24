@@ -16,7 +16,7 @@ import "./SnapshotsStorage.sol";
 /// @custom:salt Snapshots
 /// @custom:deploy-type deployUpgradeable
 contract Snapshots is Initializable, SnapshotsStorage, ISnapshots {
-    constructor(uint256 chainID_) SnapshotsStorage(chainID_){
+    constructor(uint256 chainID_) SnapshotsStorage(chainID_) {
     }
 
     function initialize(uint32 desperationDelay_, uint32 desperationFactor_) public onlyFactory initializer {
@@ -125,16 +125,23 @@ contract Snapshots is Initializable, SnapshotsStorage, ISnapshots {
 
         (bool success, uint256 validatorIndex) = IETHDKG(_ETHDKGAddress()).tryGetParticipantIndex(msg.sender);
         require(success, "Snapshots: Caller didn't participate in the last ethdkg round!");
+        // todo: critical! add eth min blocks between snapshots
 
         //todo: are we going to snapshot on epoch 0?
         uint32 epoch = _epoch + 1;
-        uint256 ethBlocksSinceLastSnapshot = block.number - _snapshots[epoch - 1].committedAt;
+        // todo: explicitly verify min eth boundary
+        // uint256 ethBlocksSinceLastSnapshot = block.number - _snapshots[epoch - 1].committedAt;
 
+        // TODO: BRING BACK AFTER GOLANG LOGIC IS DEBUGED AND MERGED
+        /*
         uint256 blocksSinceDesperation = ethBlocksSinceLastSnapshot >= _snapshotDesperationDelay
             ? ethBlocksSinceLastSnapshot - _snapshotDesperationDelay
             : 0;
+        */
 
         // Check if sender is the elected validator allowed to make the snapshot
+        // TODO: BRING BACK AFTER GOLANG LOGIC IS DEBUGED AND MERGED
+        /*
         require(
             _mayValidatorSnapshot(
                 IValidatorPool(_ValidatorPoolAddress()).getValidatorsCount(),
@@ -145,6 +152,7 @@ contract Snapshots is Initializable, SnapshotsStorage, ISnapshots {
             ),
             "Snapshots: Validator not elected to do snapshot!"
         );
+        */
 
         (uint256[4] memory masterPublicKey, uint256[2] memory signature) = RCertParserLibrary
             .extractSigGroup(groupSignature_, 0);

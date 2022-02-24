@@ -35,13 +35,15 @@ task("registerValidators", "registers validators")
   const { ethers } = hre
   console.log("registerValidators", taskArgs['addresses'])
 
+  // rpc call gasPrice: 1000000,
+  //await hre.network.provider.send("eth_gasPrice", ["0xF4240"]);
+
   const lockTime = 1;
   const validatorAddresses: string[] = taskArgs['addresses']
   const stakingTokenIds: BigNumber[] = []
-  const stakeAmountMadWei: BigNumber = BigNumber.from(20000)
+  const stakeAmountMadWei: BigNumber = BigNumber.from(20000).mul("1000000000000000000")
 
-  const namedSigners = await ethers.getSigners();
-  const [admin] = namedSigners;
+  const [admin] = await ethers.getSigners();
   const adminSigner = await ethers.getSigner(admin.address);
 
   // todo: get factory address from args
@@ -53,9 +55,10 @@ task("registerValidators", "registers validators")
 
   // approve tokens
   // madToken.approve(validatorPool.address, stakeAmountMadWei.mul(validatorAddresses.length));
-  await madToken.approve(stakeNFT.address, stakeAmountMadWei.mul(validatorAddresses.length));
+  let tx = await madToken.approve(stakeNFT.address, stakeAmountMadWei.mul(validatorAddresses.length));
+  await tx.wait()
 
-  console.log("After creating");
+  console.log("Starting the registration process...");
 
   //await stakeNFT.setApprovalForAll(admin.address, true)
 
@@ -63,20 +66,20 @@ task("registerValidators", "registers validators")
   for (const validatorAddress of validatorAddresses) {
     let tx = await stakeNFT
       .mintTo(validatorAddress, stakeAmountMadWei, lockTime);
-    console.log("a")
+    
     let receipt = await tx.wait()
-    console.log("b", receipt)
     let tokenId = BigNumber.from(await getTokenIdFromTx(ethers, tx))
-    console.log("c", process.cwd())
+    console.log("c")//, process.cwd())
     stakingTokenIds.push(tokenId);
 
     let jsonWallet = fs.readFileSync("../MadNet_leonardo/scripts/generated/keystores/keys/" + validatorAddress).toString()
     let validatorWallet = await ethers.Wallet.fromEncryptedJson(jsonWallet, "abc123")
     validatorWallet = validatorWallet.connect(hre.ethers.provider)
 
-    await stakeNFT
+    tx = await stakeNFT
       .connect(validatorWallet)
       .approve(validatorPool.address, tokenId);
+    await tx.wait()
     console.log("d")
   }
 
@@ -88,9 +91,18 @@ task("registerValidators", "registers validators")
   console.log("f")
   let input = iface.encodeFunctionData("registerValidators", [validatorAddresses, stakingTokenIds])
   console.log("g")
-  await factory.connect(adminSigner).callAny(validatorPool.address, 0, input)
+  tx = await factory.connect(adminSigner).callAny(validatorPool.address, 0, input)
+  await tx.wait()
   console.log("h")
 });
+
+task("ethdkgInput", "calculate the initializeETHDKG selector")
+.setAction(async (taskArgs, hre) => {
+  const { ethers } = hre
+  let iface = new ethers.utils.Interface(["function initializeETHDKG()"]);
+  let input = iface.encodeFunctionData("initializeETHDKG")
+  console.log("input", input)
+})
 
 // task("deployFactory", "Deploys an instance of a factory contract specified by its name")
 //   .setAction(async (taskArgs, hre) => {
