@@ -7,6 +7,7 @@ import {
 } from "../setup";
 import {
   completeETHDKGRound,
+  initializeETHDKG,
   ValidatorRawData,
 } from '../ethdkg/setup'
 import { ethers } from "hardhat";
@@ -17,6 +18,7 @@ import {
 } from '../snapshots/assets/4-validators-snapshots-1'
 import {
   BigNumber,
+  ContractTransaction,
   Signer,
 } from "ethers";
 
@@ -52,7 +54,7 @@ describe("Testing ValidatorPool Business Logic ", () => {
 
   beforeEach(async function () {
 
-    fixture = await getFixture(false, false)
+    fixture = await getFixture(false, true)
     const [admin, notAdmin1, notAdmin2, notAdmin3, notAdmin4] =
       fixture.namedSigners
     adminSigner = await getValidatorEthAccount(admin.address)
@@ -233,7 +235,7 @@ describe("Testing ValidatorPool Business Logic ", () => {
         .to.be.revertedWith("ValidatorPool: There are not enough validators to be removed!")
     })
 
-    it("Should successfully register validators if all conditions are met", async function () {
+    it("Should successfully unregister validators if all conditions are met", async function () {
       await createValidators(validatorsSnapshots)
       await stakeValidators(validatorsSnapshots)
       let expectedState: state = await getCurrentState()
@@ -254,7 +256,7 @@ describe("Testing ValidatorPool Business Logic ", () => {
         to.be.deep.equal(expectedState)
     });
 
-    it('Unregister all validators', async function () {
+    it("Should successfully unregister validators if all conditions are met", async function () {
       await createValidators(validatorsSnapshots)
       await stakeValidators(validatorsSnapshots)
       let expectedState: state = await getCurrentState()
@@ -276,7 +278,7 @@ describe("Testing ValidatorPool Business Logic ", () => {
   })
   describe("Claiming:", async function () {
 
-    xit("Claim exiting NFT position", async function () {
+    it("Should successfully claim exiting NFT positions of all validators", async function () {
       await createValidators(validatorsSnapshots)
       await stakeValidators(validatorsSnapshots)
       //As this is a complete cycle, expect the initial state to be exactly the same as the final state
@@ -285,14 +287,13 @@ describe("Testing ValidatorPool Business Logic ", () => {
         "registerValidators", [validators, stakingTokenIds])
       await factoryCallAny(fixture, "validatorPool",
         "unregisterValidators", [validators])
-      // Error: Transaction reverted: function returned an unexpected amount of data
-      // ...or if we change to SnapshotMock:
-      // Error: missing argument:  in Contract constructor (count=1, expectedCount=2, code=MISSING_ARGUMENT, version=contracts/5.5.0)
-      //      at deployUpgradeableWithFactory (tests/tokens/periphery/setup.ts:216:31)
       await getSnapshots(4)
       for (const validatorsSnapshot of validatorsSnapshots) {
-        await factoryCallAny(fixture, "validatorPool",
-          "claimExitingNFTPosition")
+        await fixture.validatorPool
+          .connect(await getValidatorEthAccount(validatorsSnapshot))
+          .claimExitingNFTPosition()
+        // await factoryCallAny(fixture, "validatorPool",
+        // "claimExitingNFTPosition")
       }
       let currentState: state = await getCurrentState()
       await showState("Expected state after claiming exiting NFT position", expectedState)
@@ -304,7 +305,7 @@ describe("Testing ValidatorPool Business Logic ", () => {
   })
   describe("Collecting:", async function () {
 
-    xit("Should fail to re-register validators before 172800 epochs after claiming NFT positions", async function () {
+    it("Should fail to re-register validators before 172800 epochs after claiming NFT positions", async function () {
       await createValidators(validatorsSnapshots)
       await stakeValidators(validatorsSnapshots)
       await factoryCallAny(fixture, "validatorPool",
@@ -314,8 +315,10 @@ describe("Testing ValidatorPool Business Logic ", () => {
       await getSnapshots(4)
       stakingTokenIds = []
       for (const validator of validatorsSnapshots) {
-        let receipt = await factoryCallAny(fixture, "validatorPool",
-          "claimExitingNFTPosition")
+        let tx = await fixture.validatorPool
+          .connect(await getValidatorEthAccount(validator))
+          .claimExitingNFTPosition() as ContractTransaction
+        let receipt = await ethers.provider.getTransactionReceipt(tx.hash)
         //When a token is claimed it gets burned an minted so gets a new tokenId so we need to update array for re-registration
         const tokenId = BigNumber.from(receipt.logs[0].topics[3])
         stakingTokenIds.push(tokenId)
@@ -330,7 +333,7 @@ describe("Testing ValidatorPool Business Logic ", () => {
         .to.be.revertedWith("StakeNFT: The position is not ready to be burned!")
     })
 
-    xit("Collect profit", async function () {
+    it("Should successfully collect profit of validators", async function () {
       await createValidators(validatorsSnapshots)
       await stakeValidators(validatorsSnapshots)
       await factoryCallAny(fixture, "validatorPool",
@@ -344,57 +347,20 @@ describe("Testing ValidatorPool Business Logic ", () => {
         })
       //Expect ValidatorNFT balance to increment by earnings
       expectedState.ValidatorNFT.ETH += 4
-      //Complete ETHDKG Round
-      // await completeETHDKGRound(validatorsSnapshots, {
-      //   ethdkg: fixture.ethdkg,
-      //   validatorPool: fixture.validatorPool
-      // })
-
-      // Error: VM Exception while processing transaction: reverted with reason string 'ValidatorPool: Only validators allowed!'
-      // How to use callAny connecting as msg.sender
+      // Complete ETHDKG Round
       await factoryCallAny(fixture, "validatorPool",
-        "collectProfits")
+        "initializeETHDKG")
+      await completeETHDKGRound(validatorsSnapshots, {
+        ethdkg: fixture.ethdkg,
+        validatorPool: fixture.validatorPool
+      })
+      await fixture.validatorPool
+        .connect(await getValidatorEthAccount(validatorsSnapshots[0]))
+        .collectProfits()
       // Expect that a fraction of the earnings (1/4 validators) to be transfer from ValidatorNFT to collecting validator
       expectedState.ValidatorNFT.ETH -= 1
       expectedState.validators[0].ETH += 1
       let currentState: state = await getCurrentState()
-      await showState("Expected state after collect profit", expectedState)
-      await showState("Current state after collect profit", currentState)
-      expect(currentState).
-        to.be.deep.equal(expectedState)
-    })
-
-    xit("Unregister validators after earn  (ERROR: Transfer failed)", async function () {
-      await createValidators(validatorsSnapshots)
-      await stakeValidators(validatorsSnapshots)
-      await fixture.validatorPool
-        .connect(adminSigner)
-        .registerValidators(validators, stakingTokenIds);
-      let expectedState: state = await getCurrentState()
-      //Simulate 4 ETH earned by pool after validators registration
-      //Expect ValidatorNFT balance to increment by earnings
-      expectedState.ValidatorNFT.ETH += 4
-      await fixture.validatorNFT
-        .connect(adminSigner)
-        .depositEth(42, {
-          value: ethers.utils.parseEther("4.0")
-        })
-      //Complete ETHDKG Round
-      // await completeETHDKGRound(validatorsSnapshots, {
-      //   ethdkg: fixture.ethdkg,
-      //   validatorPool: fixture.validatorPool
-      // })
-      // Expect a fraction of the earnings (1/validators) to be transfer from ValidatorNFT to collecting validator
-      expectedState.ValidatorNFT.ETH -= 1
-      expectedState.validators[0].ETH += 1
-      await fixture.validatorPool
-        .connect(await getValidatorEthAccount(validatorsSnapshots[0]))
-        .collectProfits()
-      let currentState: state = await getCurrentState()
-      //Ignore transactions gas costs
-      currentState.validators.map(async (validator, index) => {
-        expectedState.validators[index].ETH = validator.ETH
-      })
       await showState("Expected state after collect profit", expectedState)
       await showState("Current state after collect profit", currentState)
       expect(currentState).
@@ -406,31 +372,11 @@ describe("Testing ValidatorPool Business Logic ", () => {
   const getSnapshots = (async (numberOfSnapshots: number) => {
     if (process.env.npm_config_detailed == "true") console.log("Taking", numberOfSnapshots, "snapshots");
     let mock = await completeETHDKGRound(validatorsSnapshots)
-    const Snapshots = await ethers.getContractFactory('Snapshots')
-    const snapshots = await Snapshots.deploy(
-      mock[0].address
-    )
-    await snapshots.deployed()
     for (let i = 0; i <= numberOfSnapshots; i++) {
-      let tx = await snapshots
+      let tx = await fixture.snapshots
         .connect(await getValidatorEthAccount(validatorsSnapshots[0]))
         .snapshot(validSnapshot1024.GroupSignature, validSnapshot1024.BClaims)
-      // let receipt = await ethers.provider.getTransactionReceipt(tx.hash)
-      // console.log(receipt)
-      // consumedWei += receipt.cumulativeGasUsed.toNumber() * receipt.effectiveGasPrice.toNumber()
-
-      // console.log("consumedGas", consumedWei)
-
     }
-    // fixture.validatorPool.setSnapshot(snapshots.address);
-    // const result = await tx.wait(); // 0ms, as tx is already confirmed
-    // console.log(result)
-    // const events = result.events?.find(event => event.event === 'SnapshotTaken');
-    // if (events?.args) {
-    //   const [chainId, epoch, height, validator, safeToProceedConsensus] = events.args
-    //   console.log(chainId, epoch, height, validator, safeToProceedConsensus);
-    // }
-
   })
 
   async function getCurrentState() {
