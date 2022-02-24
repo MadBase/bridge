@@ -1,7 +1,8 @@
 {
   "constructorArgs": {
     "src/tokens/periphery/snapshots/Snapshots.sol:Snapshots": [
-      { "chainID_": "42", "type": "uint256" }
+      { "chainID_": "42", "type": "uint256" },
+      { "epochLength_": "16", "type": "uint256" }
     ]
   },
   "initializerArgs": {
