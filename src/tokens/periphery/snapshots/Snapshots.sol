@@ -16,7 +16,7 @@ import "./SnapshotsStorage.sol";
 /// @custom:salt Snapshots
 /// @custom:deploy-type deployUpgradeable
 contract Snapshots is Initializable, SnapshotsStorage, ISnapshots {
-    constructor(uint256 chainID_) SnapshotsStorage(chainID_) {}
+    constructor(uint256 chainID_, uint256 epochLength_) SnapshotsStorage(chainID_, epochLength_) {}
 
     function initialize(uint32 desperationDelay_, uint32 desperationFactor_)
         public
@@ -51,8 +51,8 @@ contract Snapshots is Initializable, SnapshotsStorage, ISnapshots {
         return _epoch;
     }
 
-    function getEpochLength() public pure returns (uint256) {
-        return EPOCH_LENGTH;
+    function getEpochLength() public view returns (uint256) {
+        return _epochLength;
     }
 
     function getChainIdFromSnapshot(uint256 epoch_) public view returns (uint256) {
@@ -180,7 +180,7 @@ contract Snapshots is Initializable, SnapshotsStorage, ISnapshots {
         );
 
         require(
-            epoch * EPOCH_LENGTH == blockClaims.height,
+            epoch * _epochLength == blockClaims.height,
             "Snapshots: Incorrect Madnet height for snapshot!"
         );
 

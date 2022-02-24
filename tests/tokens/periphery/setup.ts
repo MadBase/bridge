@@ -49,7 +49,7 @@ export interface Fixture {
   ethdkg: ETHDKG;
   factory: MadnetFactory;
   namedSigners: SignerWithAddress[];
-  [key: string]: any; 
+  [key: string]: any;
 }
 
 /**
@@ -283,11 +283,9 @@ export const getFixture = async (
   await factory.deployed();
 
   // MadToken
-  const madToken = (await deployStaticWithFactory(
-    factory,
-    "MadToken",
-    [admin.address]
-  )) as MadToken;
+  const madToken = (await deployStaticWithFactory(factory, "MadToken", [
+    admin.address,
+  ])) as MadToken;
 
   // MadByte
   const madByte = (await deployStaticWithFactory(
@@ -343,7 +341,7 @@ export const getFixture = async (
       "SnapshotsMock",
       "Snapshots",
       undefined,
-      [1,1]
+      [1, 1]
     )) as Snapshots;
   } else {
     // Snapshots
@@ -352,7 +350,7 @@ export const getFixture = async (
       "Snapshots",
       undefined,
       undefined,
-      [1]
+      [1, 1024]
     )) as Snapshots;
   }
 
@@ -389,13 +387,22 @@ export async function getTokenIdFromTx(tx: any) {
   return tokenId;
 }
 
-export async function factoryCallAny(fixture: Fixture, contractName: string, functionName: string, args?: Array<any>) {
-  let factory = fixture.factory
-  let contract = fixture[contractName]
+export async function factoryCallAny(
+  fixture: Fixture,
+  contractName: string,
+  functionName: string,
+  args?: Array<any>
+) {
+  let factory = fixture.factory;
+  let contract = fixture[contractName];
   if (args === undefined) {
-    args = []
+    args = [];
   }
-  let txResponse = await factory.callAny(contract.address, 0, contract.interface.encodeFunctionData(functionName, args))
-  let receipt = await txResponse.wait()
-  return receipt
+  let txResponse = await factory.callAny(
+    contract.address,
+    0,
+    contract.interface.encodeFunctionData(functionName, args)
+  );
+  let receipt = await txResponse.wait();
+  return receipt;
 }
