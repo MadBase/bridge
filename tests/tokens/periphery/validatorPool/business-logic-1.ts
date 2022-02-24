@@ -63,21 +63,12 @@ describe("Testing ValidatorPool Business Logic ", () => {
     const [admin, notAdmin1, notAdmin2, notAdmin3, notAdmin4] =
       fixture.namedSigners
     adminSigner = await getValidatorEthAccount(admin.address)
-<<<<<<< Updated upstream
-    await fixture.validatorNFT
-      .connect(adminSigner)
-      .setAdmin(fixture.validatorPool.address)
-    await fixture.validatorPool
-      .connect(adminSigner)
-      .setETHDKG(fixture.ethdkg.address)
-=======
     // await fixture.validatorNFT
     //   .connect(adminSigner)
     //   .setAdmin(fixture.validatorPool.address)
     // await fixture.validatorPool
     //   .connect(adminSigner)
     //   .setETHDKG(fixture.ethdkg.address)
->>>>>>> Stashed changes
 
     // Shrink validators array to max permitted 
     validatorsSnapshots.length = maxNumValidators
@@ -93,11 +84,7 @@ describe("Testing ValidatorPool Business Logic ", () => {
 
   describe("Settings:", async function () {
 
-<<<<<<< Updated upstream
-    it("Should not allow registering validators if the STAKENFT position doesn’t have enough MADTokens staked", async function () {
-=======
     it.only("Should not allow registering validators if the STAKENFT position doesn’t have enough MADTokens staked", async function () {
->>>>>>> Stashed changes
       await createValidators(validatorsSnapshots)
       await stakeValidators(validatorsSnapshots)
       await fixture.validatorPool
@@ -477,14 +464,7 @@ describe("Testing ValidatorPool Business Logic ", () => {
     let mock = await completeETHDKGRound(validatorsSnapshots)
     const Snapshots = await ethers.getContractFactory('Snapshots')
     const snapshots = await Snapshots.deploy(
-<<<<<<< Updated upstream
-      mock[0].address,
-      mock[1].address,
-      1,
-      mock[1].address
-=======
       mock[0].address
->>>>>>> Stashed changes
     )
     await snapshots.deployed()
     for (let i = 0; i <= numberOfSnapshots; i++) {
