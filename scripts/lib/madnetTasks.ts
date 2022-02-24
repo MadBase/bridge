@@ -69,7 +69,7 @@ task("registerValidators", "registers validators")
     
     let receipt = await tx.wait()
     let tokenId = BigNumber.from(await getTokenIdFromTx(ethers, tx))
-    console.log("c")//, process.cwd())
+    // console.log(`validator ${validatorAddress} got StakeNFT.tokenID ${tokenId}`)
     stakingTokenIds.push(tokenId);
 
     let jsonWallet = fs.readFileSync("../MadNet_leonardo/scripts/generated/keystores/keys/" + validatorAddress).toString()
@@ -80,20 +80,18 @@ task("registerValidators", "registers validators")
       .connect(validatorWallet)
       .approve(validatorPool.address, tokenId);
     await tx.wait()
-    console.log("d")
+    console.log(`validator ${validatorAddress} approved tokenID:${tokenId} to ValidatorPool`)
   }
 
-  console.log("e")
+  console.log(`registering ${validatorAddresses.length} validators with ValidatorPool...`)
 
   // add validators to the ValidatorPool
   // await validatorPool.registerValidators(validatorAddresses, stakingTokenIds)
   let iface = new ethers.utils.Interface(["function registerValidators(address[],uint256[])"]);
-  console.log("f")
   let input = iface.encodeFunctionData("registerValidators", [validatorAddresses, stakingTokenIds])
-  console.log("g")
   tx = await factory.connect(adminSigner).callAny(validatorPool.address, 0, input)
   await tx.wait()
-  console.log("h")
+  console.log("done")
 });
 
 task("ethdkgInput", "calculate the initializeETHDKG selector")
