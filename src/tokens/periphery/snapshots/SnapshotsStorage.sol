@@ -9,7 +9,8 @@ import "../../../utils/immutableAuth.sol";
 
 abstract contract SnapshotsStorage is immutableETHDKG, immutableValidatorPool {
 
-    uint256 internal constant EPOCH_LENGTH = 1024;
+    // todo: fix this!
+    uint256 internal constant EPOCH_LENGTH = 16;
 
     uint256 internal immutable _chainId;
 
