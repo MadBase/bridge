@@ -1,8 +1,7 @@
-import { getTokenIdFromTxReceipt, getFixture } from "../setup";
+import { getTokenIdFromTx, getValidatorEthAccount,getFixture } from "../setup";
 import {
   addValidators,
   initializeETHDKG,
-  getValidatorEthAccount,
   completeETHDKGRound,
   ValidatorRawData,
 } from '../ethdkg/setup'
@@ -591,7 +590,7 @@ describe("Testing ValidatorPool Business Logic ", () => {
         connect(await getValidatorEthAccount(validator)).
         mintTo(validator.address, stakeAmountMadWei, lockTime);
       // Get the proof of staking (NFT's tokenID)
-      let tokenID = await getTokenIdFromTxReceipt(tx)
+      let tokenID = await getTokenIdFromTx(tx)
       stakingTokenIds.push(tokenID);
       //Allow validatorPool to withdraw NFT from StakeNFT
       await fixture.stakeNFT.
