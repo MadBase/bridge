@@ -12,9 +12,6 @@ describe("Testing ValidatorPool Access Control ", () => {
   let stakeAmount = 20000
   let validators = new Array()
   let stakingTokenIds = new Array()
-  let factory: Fixture["factory"]
-  let validatorPool: Fixture["validatorPool"]
-  let validatorPoolAddress: string
 
   beforeEach(async function () {
     validators = []
@@ -24,9 +21,6 @@ describe("Testing ValidatorPool Access Control ", () => {
       fixture.namedSigners
     adminSigner = await ethers.getSigner(admin.address)
     notAdmin1Signer = await ethers.getSigner(notAdmin1.address)
-    factory = fixture.factory
-    validatorPool = fixture.validatorPool
-    validatorPoolAddress = validatorPool.address
   })
 
   describe("A user with admin role should be able to:", async function () {
