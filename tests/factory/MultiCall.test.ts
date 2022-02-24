@@ -8,22 +8,42 @@ import {
   DEPLOYED_RAW,
   DEPLOYED_STATIC,
   DEPLOYED_TEMPLATE,
+  deployFactory,
   endPointBase,
+  getAccounts,
   getCreateAddress,
   getEventVar,
   getMetamorphicAddress,
   getSalt,
+  MADNET_FACTORY,
   metaMockLogicTest,
   mockBase,
   proxyBase,
   proxyMockLogicTest,
+  utilsBase,
 } from "./Setup.test";
 
 describe("Multicall deploy meta", async () => {
+  let firstOwner: string;
+  let secondOwner: string;
+  let firstDelegator: string;
+  let accounts: Array<string> = [];
   let utilsContract: Utils;
   let factory: MadnetFactory;
 
+  beforeEach(async () => {
+    accounts = await getAccounts();
+    firstOwner = accounts[0];
+    secondOwner = accounts[1];
+    firstDelegator = accounts[2];
+    utilsContract = await utilsBase.new();
+    factory = await deployFactory(MADNET_FACTORY);
+    let cSize = await utilsContract.getCodeSize(factory.address);
+    expect(cSize.toNumber()).to.be.greaterThan(0);
+  });
+
   describe("Multicall deploy proxy", async () => {
+
     it("multicall deployproxy, deploycreate, upgradeproxy expect success", async () => {
       let Salt = getSalt();
       let mockCon = await ethers.getContractFactory("Mock");
