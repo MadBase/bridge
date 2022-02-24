@@ -425,7 +425,7 @@ contract ValidatorPool is
         uint256 stakeAmount = _stakeAmount;
         require(
             stakeShares >= stakeAmount,
-            "ValidatorStakeNFT: Error, the Stake position doesn't have enough founds!"
+            "ValidatorStakeNFT: Error, the Stake position doesn't have enough funds!"
         );
         IERC721Transferable(_StakeNFTAddress()).safeTransferFrom(
             to_,

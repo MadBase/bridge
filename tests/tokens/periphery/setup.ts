@@ -388,3 +388,14 @@ export async function getTokenIdFromTx(tx: any) {
   const { from, to, tokenId } = log.args;
   return tokenId;
 }
+
+export async function factoryCallAny(fixture: Fixture, contractName: string, functionName: string, args?: Array<any>) {
+  let factory = fixture.factory
+  let contract = fixture[contractName]
+  if (args === undefined) {
+    args = []
+  }
+  let txResponse = await factory.callAny(contract.address, 0, contract.interface.encodeFunctionData(functionName, args))
+  let receipt = await txResponse.wait()
+  return receipt
+}

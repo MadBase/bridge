@@ -1,5 +1,6 @@
 {
   "name": "bridge",
+  "version": "0.1.0",
   "scripts": {
     "test": "npx hardhat test --show-stack-traces",
     "test:parallel": "npx mocha --require hardhat/register --recursive --parallel --exit --timeout 60000 --jobs 8 --full-trace --extension ts tests/"

@@ -9,6 +9,7 @@ import "hardhat-gas-reporter";
 import "solidity-coverage";
 import "@nomiclabs/hardhat-truffle5";
 import "./scripts/lib/madnetFactoryTasks";
+import "./scripts/lib/madnetTasks";
 
 /**
  * @type import('hardhat/config').HardhatUserConfig
@@ -43,7 +44,10 @@ const config: HardhatUserConfig = {
   //defaultNetwork: "ganache",
   networks: {
     dev:{
-      url: "http://127.0.0.1:8545"
+      url: "http://127.0.0.1:8545",
+      gas: "auto",
+      //gasPrice: 1000000,
+      gasPrice: "auto",
     },
     ganache:{
       url: "http://127.0.0.1:8545"
