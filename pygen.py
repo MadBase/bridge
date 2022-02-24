@@ -22,7 +22,7 @@ pragma solidity 0.8.11;
 
 import "./DeterministicAddress.sol";
 
-abstract contract immutableFactory is DeterministicAddress {ocurl}
+abstract contract ImmutableFactory is DeterministicAddress {ocurl}
 
     address private immutable _factory;
 
@@ -44,8 +44,8 @@ abstract contract immutableFactory is DeterministicAddress {ocurl}
     tmpl = (
         lambda name, salt: f"""
 
-abstract contract immutable{name} is immutableFactory {ocurl}
-    
+abstract contract immutable{name} is ImmutableFactory {ocurl}
+
     address private immutable _{name};
 
     constructor() {ocurl}
@@ -64,7 +64,7 @@ abstract contract immutable{name} is immutableFactory {ocurl}
     function _saltFor{name}() internal pure returns(bytes32) {ocurl}
         return 0x{salt};
     {ccurl}
-    
+
 {ccurl}
 
 """
@@ -72,7 +72,7 @@ abstract contract immutable{name} is immutableFactory {ocurl}
     for c in cdefs:
         name = c.name
         salt = c.saltString.encode().ljust(32, binascii.unhexlify(b"00"))
-        
+
         salt = binascii.hexlify(salt).decode("utf-8")
         render = tmpl(name, salt)
         outf = "".join([outf, render])

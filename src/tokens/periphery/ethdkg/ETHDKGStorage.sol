@@ -3,7 +3,7 @@ pragma solidity ^0.8.11;
 
 import "../validatorPool/interfaces/IValidatorPool.sol";
 import "../snapshots/interfaces/ISnapshots.sol";
-import "../../../utils/immutableAuth.sol";
+import "../../../utils/ImmutableAuth.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "../../../proxy/Proxy.sol";
 enum Phase {
@@ -29,7 +29,7 @@ struct Participant {
     uint256[4] gpkj;
 }
 
-abstract contract ETHDKGStorage is Initializable, immutableFactory, immutableSnapshots, immutableValidatorPool {
+abstract contract ETHDKGStorage is Initializable, ImmutableFactory, ImmutableSnapshots, ImmutableValidatorPool {
 
     // ISnapshots internal immutable _snapshots;
     // IValidatorPool internal immutable _validatorPool;
@@ -55,7 +55,7 @@ abstract contract ETHDKGStorage is Initializable, immutableFactory, immutableSna
 
     mapping(address => Participant) internal _participants;
 
-    constructor() immutableFactory(msg.sender) immutableSnapshots() immutableValidatorPool() {
+    constructor() ImmutableFactory(msg.sender) ImmutableSnapshots() ImmutableValidatorPool() {
         // _factory = msg.sender;
         // bytes32("Snapshots") = 0x536e617073686f74730000000000000000000000000000000000000000000000;
         // _snapshots = ISnapshots(getMetamorphicContractAddress(0x536e617073686f74730000000000000000000000000000000000000000000000, _factory));

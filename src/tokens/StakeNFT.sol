@@ -4,7 +4,7 @@ pragma solidity ^0.8.11;
 import "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol";
 import "../governance/GovernanceMaxLock.sol";
-import "../utils/immutableAuth.sol";
+import "../utils/ImmutableAuth.sol";
 import "../governance/GovernanceManager.sol";
 import "./utils/EthSafeTransfer.sol";
 import "./utils/ERC20SafeTransfer.sol";
@@ -89,12 +89,12 @@ abstract contract StakeNFTBase is
     GovernanceMaxLock,
     ICBOpener,
     INFTStake,
-    immutableFactory,
-    immutableValidatorPool,
-    immutableMadToken,
-    immutableGovernance {
-  
-    constructor() immutableFactory(msg.sender) immutableMadToken() immutableGovernance() immutableValidatorPool() {
+    ImmutableFactory,
+    ImmutableValidatorPool,
+    ImmutableMadToken,
+    ImmutableGovernance {
+
+    constructor() ImmutableFactory(msg.sender) ImmutableMadToken() ImmutableGovernance() ImmutableValidatorPool() {
        //IERC20Transferable(_MadTokenAddress())
        //IERC20Transferable(_GovernanceAddress())
         // _madToken = IERC20Transferable(getMetamorphicContractAddress(0x4d6164546f6b656e000000000000000000000000000000000000000000000000, _factory));
@@ -110,7 +110,7 @@ abstract contract StakeNFTBase is
     modifier withCircuitBreaker() {
         require(_circuitBreaker == CIRCUIT_BREAKER_CLOSED, "CircuitBreaker: The Circuit breaker is opened!");
         _;
-    } 
+    }
 
     function isAllowedProposal(address addr) public view returns(bool) {
         return _isAllowedProposal(addr);

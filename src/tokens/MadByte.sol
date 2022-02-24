@@ -7,12 +7,12 @@ import "./utils/Mutex.sol";
 import "./utils/MagicEthTransfer.sol";
 import "./utils/EthSafeTransfer.sol";
 import "./math/Sigmoid.sol";
-import "../utils/immutableAuth.sol";
+import "../utils/ImmutableAuth.sol";
 
 
 /// @custom:salt MadByte
 /// @custom:deploy-type deployStatic
-contract MadByte is ERC20Upgradeable, Admin, Mutex, MagicEthTransfer, EthSafeTransfer, Sigmoid, immutableFactory, immutableStakeNFT, immutableValidatorNFT, immutableStakeNFTLP, immutableFoundation {
+contract MadByte is ERC20Upgradeable, Admin, Mutex, MagicEthTransfer, EthSafeTransfer, Sigmoid, ImmutableFactory, ImmutableStakeNFT, ImmutableValidatorNFT, ImmutableStakeNFTLP, ImmutableFoundation {
 
     // multiply factor for the selling/minting bonding curve
     uint256 internal constant _MARKET_SPREAD = 4;
@@ -51,7 +51,7 @@ contract MadByte is ERC20Upgradeable, Admin, Mutex, MagicEthTransfer, EthSafeTra
     // deposited.
     mapping(uint256 => Deposit) internal _deposits;
 
-    constructor() Admin(msg.sender) Mutex() immutableFactory(msg.sender) immutableStakeNFT() immutableValidatorNFT() immutableStakeNFTLP() immutableFoundation(){}
+    constructor() Admin(msg.sender) Mutex() ImmutableFactory(msg.sender) ImmutableStakeNFT() ImmutableValidatorNFT() ImmutableStakeNFTLP() ImmutableFoundation(){}
 
     function initialize() public onlyFactory initializer {
         __ERC20_init("MadByte", "MB");

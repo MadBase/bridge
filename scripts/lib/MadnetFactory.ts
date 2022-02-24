@@ -1,14 +1,16 @@
-//separate deploy of template from deploy of deterministic address 
+//separate deploy of template from deploy of deterministic address
 
 //import { string } from "hardhat/internal/core/params/argumentTypes";
 
-//assume you have to divide the transaction 
-//estimate gas, observe gas limit, 
+//assume you have to divide the transaction
+//estimate gas, observe gas limit,
 
-//return all addresses 
+//return all addresses
 
 //return the logs
+import { BytesLike } from "ethers";
 import {artifacts, ethers} from "hardhat";
+import { MadnetFactory } from "../../typechain-types";
 import { CONTRACT_ADDR, DEPLOYED_RAW } from "./constants";
 const defaultFactoryName = "MadnetFactory";
 const DeployedRawEvent = "DeployedRaw";
@@ -24,7 +26,7 @@ const templateAddrKey = "TemplateAddress"
 
 export async function deployUpgradeable(contractName:string, factoryAddress:string, constructorArgs:Array<string>){
     let MadnetFactory = await artifacts.require(defaultFactoryName);
-    let factory = await MadnetFactory.at(factoryAddress); 
+    let factory = await MadnetFactory.at(factoryAddress);
     let deployCreateArgs = await getDeployCreateArgs(contractName, constructorArgs);
     //deploy the bytecode using the factory
     let txResponse = await factory.deployCreate(...deployCreateArgs);
@@ -46,53 +48,60 @@ export async function deployUpgradeable(contractName:string, factoryAddress:stri
         return res
     } else {
         console.error(`${contractName} contract missing salt`)
-    } 
+    }
     return res
-        
-    
-    
+
+
+
 }
 
-export async function upgradeProxy(contractName:string, factoryAddress:string){
-    //let logicContract = await artifacts.readArtifact(logicContractPath + ":" + logicContractName);
-    let MadnetFactory = await artifacts.require(defaultFactoryName);
-    let factory = await MadnetFactory.at(factoryAddress); 
+export async function upgradeProxy(contractName:string, factoryAddress:string, constructorArgs?:string[]){
+    let _MadnetFactory = await artifacts.require(defaultFactoryName);
+    let factory = await _MadnetFactory.at(factoryAddress);
     let logicContractInterface = await ethers.getContractFactory(contractName);
-    let deployBCode = await logicContractInterface.getDeployTransaction(factoryAddress);
-    //deploy the new logic contract from the factory
-    let receipt = await factory.deployCreate(deployBCode.data);
-    //instantiate the return object 
+    let deployBCode: BytesLike
+    if (typeof constructorArgs !== "undefined" && constructorArgs.length >= 0) {
+        deployBCode  = logicContractInterface.getDeployTransaction(...constructorArgs).data as BytesLike
+    } else {
+        deployBCode = logicContractInterface.getDeployTransaction().data as BytesLike
+    }
+    //instantiate the return object
+    let txResponse = await factory.deployCreate(deployBCode)
     let res = {
-        logicAddress: await getEventVar(receipt, DeployedRawEvent, contractAddrVar),
+        logicAddress: await getEventVar(txResponse, DeployedRawEvent, contractAddrVar),
         proxySalt: await getSalt(contractName)
     };
-    //upgrade the proxy 
-    receipt = await factory.upgradeProxy(res.proxySalt, res.logicAddress, "0x");
+    //upgrade the proxy
+    await factory.upgradeProxy(res.proxySalt as BytesLike, res.logicAddress, "0x");
     return res;
 }
 
 export async function deployStatic(contractName:string, factoryAddress:string){
     let MadnetFactory = await artifacts.require(defaultFactoryName);
     let logicContract = await artifacts.require(contractName);
-    let factory = await MadnetFactory.at(factoryAddress); 
+    let factory: MadnetFactory = await MadnetFactory.at(factoryAddress);
     let deployBCode = logicContract.bytecode
     let receipt = await factory.deployTemplate(deployBCode);
-    let res = {
-        templateAddress: await getEventVar(receipt, deployedTemplateEvent, contractAddrVar),
-        metaAddress: null,
-        metaSalt: await getSalt(contractName)
+    let templateAddress: string = await getEventVar(receipt, deployedTemplateEvent, contractAddrVar)
+    let metaSalt = await getSalt(contractName)
+    if (typeof metaSalt === "undefined") {
+        throw "Couldn't get the salt for:" + contractName
+    }
+    receipt = await factory.deployStatic(metaSalt, "0x");
+    let metaAddress: string = await getEventVar(receipt, deployedStaticEvent, contractAddrVar);
+    return {
+        templateAddress,
+        metaSalt,
+        metaAddress
     };
-    receipt = await factory.deployStatic(res.metaSalt, "0x");
-    res.metaAddress = await getEventVar(receipt, deployedStaticEvent, contractAddrVar);
-    return res;
 }
 
-async function getFullyQaulifiedName(contractName:string) {
+async function getFullyQualifiedName(contractName:string) {
     let artifactPaths = await artifacts.getAllFullyQualifiedNames();
     for (let i = 0; i < artifactPaths.length; i++){
         if (artifactPaths[i].split(":")[1] === contractName){
             return String(artifactPaths[i]);
-        } 
+        }
     }
     return undefined;
 }
@@ -104,7 +113,7 @@ function extractPath(qualifiedName:string) {
 async function getDeployCreateArgs(contractName:string, constructorArgs:Array<any>, txParam?:any){
     //get an instance of the logic contract interface
     let contractInterface = await ethers.getContractFactory(contractName);
-    //get the deployment bytecode from the interface 
+    //get the deployment bytecode from the interface
     let deployBCode = await contractInterface.getDeployTransaction(...constructorArgs);
     let deployCreateArgs;
     if(txParam === undefined){
@@ -120,11 +129,11 @@ async function getDeployUpgradeableMultiCallArgs(factoryName:string, Salt:string
     let deployProxy = await MNFactory.interface.encodeFunctionData("deployProxy", [Salt]);
     let upgradeProxy
     if (initCallData !== undefined){
-        let upgradeProxy = await MNFactory.interface.encodeFunctionData("upgradeProxy", [Salt, logicAddress, initCallData]);
+        upgradeProxy = await MNFactory.interface.encodeFunctionData("upgradeProxy", [Salt, logicAddress, initCallData]);
     }else{
-        let upgradeProxy = await MNFactory.interface.encodeFunctionData("upgradeProxy", [Salt, logicAddress, "0x"]);
-    }    
-    
+        upgradeProxy = await MNFactory.interface.encodeFunctionData("upgradeProxy", [Salt, logicAddress, "0x"]);
+    }
+
     let res;
     if(txParam === undefined){
         res = [[deployProxy, upgradeProxy]];
@@ -135,7 +144,7 @@ async function getDeployUpgradeableMultiCallArgs(factoryName:string, Salt:string
 }
 
 async function getSalt(contractName:string){
-    let qualifiedName:any = await getFullyQaulifiedName(contractName);
+    let qualifiedName:any = await getFullyQualifiedName(contractName);
     let buildInfo= await artifacts.getBuildInfo(qualifiedName);
     let contractOutput:any
     let devdoc:any
@@ -148,14 +157,14 @@ async function getSalt(contractName:string){
       if (salt !== undefined && salt !==""){
         return ethers.utils.formatBytes32String(salt);
       }
-      
+
     }else{
         console.error("Missing custom:salt");
     }
 }
 
 async function getDeployTypeWithContractName(contractName:string){
-    let qualifiedName:any = await getFullyQaulifiedName(contractName);
+    let qualifiedName:any = await getFullyQualifiedName(contractName);
     let buildInfo= await artifacts.getBuildInfo(qualifiedName);
     let deployType:any
     if (buildInfo !== undefined){
@@ -166,7 +175,7 @@ async function getDeployTypeWithContractName(contractName:string){
 }
 
 function getEventVar(receipt:any, eventName:string, varName:string){
-    let result 
+    let result
     for (let i = 0; i < receipt["logs"].length; i++) {
         //look for the event
         if(receipt["logs"][i]["event"] == eventName){
