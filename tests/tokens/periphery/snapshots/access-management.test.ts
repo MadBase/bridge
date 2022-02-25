@@ -1,36 +1,13 @@
 import {
   Fixture,
   getFixture,
-  getTokenIdFromTx,
-  PLACEHOLDER_ADDRESS,
   getValidatorEthAccount,
   factoryCallAny
 } from '../setup'
-import { ethers } from 'hardhat'
-import { expect, assert } from '../../../chai-setup'
-import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
-import {
-  addValidators,
-  initializeETHDKG,
-  completeETHDKGRound
-} from '../ethdkg/setup'
-import {
-  BigNumber,
-  BigNumberish,
-  ContractTransaction,
-  Signer,
-  utils,
-  Wallet
-} from 'ethers'
-import {
-  validatorsSnapshots,
-  validSnapshot1024,
-  invalidSnapshot500,
-  invalidSnapshotChainID2,
-  invalidSnapshotIncorrectSig,
-  validSnapshot2048
-} from './assets/4-validators-snapshots-1'
-import { IValidatorPool, Snapshots } from '../../../../typechain-types'
+
+import { expect } from '../../../chai-setup'
+
+import { Signer } from 'ethers'
 
 describe('Tests Snapshots methods', () => {
   let fixture: Fixture
