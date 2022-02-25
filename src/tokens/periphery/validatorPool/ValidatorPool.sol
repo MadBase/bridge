@@ -50,11 +50,10 @@ contract ValidatorPool is
          _;
     }
 
-    function initialize() public onlyFactory initializer {
-        //20000*10**18 MadWei = 20k MadTokens
-        _stakeAmount = 20000 * 10**18;
-        _maxNumValidators = 5;
-        _disputerReward = 1;
+    function initialize(uint256 stakeAmount_, uint256 maxNumValidators_, uint256 disputerReward_) public onlyFactory initializer {
+        _stakeAmount = stakeAmount_;
+        _maxNumValidators = maxNumValidators_;
+        _disputerReward = disputerReward_;
     }
 
     function setStakeAmount(uint256 stakeAmount_) public onlyFactory {
@@ -71,6 +70,18 @@ contract ValidatorPool is
 
     function setLocation(string calldata ip_) public onlyValidator {
         _ipLocations[msg.sender] = ip_;
+    }
+
+    function getStakeAmount() public view returns(uint256) {
+        return _stakeAmount;
+    }
+
+    function getMaxNumValidators() public view returns(uint256) {
+        return _maxNumValidators;
+    }
+
+    function getDisputerReward() public view returns(uint256) {
+        return _disputerReward;
     }
 
     function getValidatorsCount() public view returns (uint256) {

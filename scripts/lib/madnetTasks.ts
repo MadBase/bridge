@@ -1,6 +1,4 @@
-import {
-  env,
-} from "./constants";
+import { env } from "./constants";
 import { task, types } from "hardhat/config";
 import fs from "fs";
 
@@ -21,39 +19,36 @@ export async function getTokenIdFromTx(ethers: any, tx: any) {
 task(
   "updateDeploymentArgsWithFactory",
   "Computes factory address and to the deploymentArgs file"
-)
-  .addParam(
-    "factoryOwner",
-    "Name of owner contract that will deploy the factory",
-    "string"
-  )
-  .setAction(async (taskArgs, hre) => {
-    const path: string = `./deployments/${env()}/deploymentArgsTemplate.json`;
-    if (!fs.existsSync(path)) {
-      throw "Error: Could not find deployment Args file expected at " + path;
-    }
-    console.log(`Loading deploymentArgs from: ${path}`);
-    let rawData = fs.readFileSync(path);
-    let txCount = await hre.ethers.provider.getTransactionCount(taskArgs.factoryOwner);
-    //calculate the factory address for the constructor arg
-    const factoryAddress = hre.ethers.utils.getContractAddress({
-        from: taskArgs.factoryOwner,
-        nonce: txCount,
-    });
-    console.log(`Future factory Address: ${factoryAddress}`)
-    let replaceStringsPair = [
-      [`"selfAddr_": "UNDEFINED"`, `"selfAddr_": "${factoryAddress}"`],
-      [`"owner_": "UNDEFINED"`, `"owner_": "${taskArgs.factoryOwner}"`],
-    ];
-    let outputData = rawData.toString();
-    for (let pair of replaceStringsPair) {
-      outputData = outputData.replace(pair[0], pair[1]);
-    }
-    console.log(`Saving file at: ${path}`);
-    fs.writeFileSync(`./deployments/${env()}/deploymentArgs.json`, outputData);
+).setAction(async (taskArgs, hre) => {
+  const path: string = `./deployments/${env()}/deploymentArgsTemplate.json`;
+  if (!fs.existsSync(path)) {
+    throw "Error: Could not find deployment Args file expected at " + path;
+  }
+  console.log(`Loading deploymentArgs from: ${path}`);
+  let rawData = fs.readFileSync(path);
+  // Make sure that admin is the named account at position 0
+  const [admin] = await hre.ethers.getSigners();
+  let txCount = await hre.ethers.provider.getTransactionCount(admin.address);
+  //calculate the factory address for the constructor arg
+  const factoryAddress = hre.ethers.utils.getContractAddress({
+    from: admin.address,
+    nonce: txCount,
   });
+  console.log(`Future factory Address: ${factoryAddress}`);
+  let replaceStringsPair = [
+    [`"selfAddr_": "UNDEFINED"`, `"selfAddr_": "${factoryAddress}"`],
+    [`"owner_": "UNDEFINED"`, `"owner_": "${admin.address}"`],
+  ];
+  let outputData = rawData.toString();
+  for (let pair of replaceStringsPair) {
+    outputData = outputData.replace(pair[0], pair[1]);
+  }
+  console.log(`Saving file at: ${path}`);
+  fs.writeFileSync(`./deployments/${env()}/deploymentArgs.json`, outputData);
+});
 
 task("registerValidators", "registers validators")
+  .addParam("factoryAddress", "address of the factory deploying the contract")
   .addVariadicPositionalParam(
     "addresses",
     "validators' addresses",
@@ -62,84 +57,87 @@ task("registerValidators", "registers validators")
     false
   )
   .setAction(async (taskArgs, hre) => {
-    const { ethers } = hre;
-    console.log("registerValidators", taskArgs["addresses"]);
+    console.log("registerValidators", taskArgs.addresses);
 
-    // rpc call gasPrice: 1000000,
-    //await hre.network.provider.send("eth_gasPrice", ["0xF4240"]);
+    const factory = await hre.ethers.getContractAt(
+      "MadnetFactory",
+      taskArgs.factoryAddress
+    );
 
     const lockTime = 1;
-    const validatorAddresses: string[] = taskArgs["addresses"];
+    const validatorAddresses: string[] = taskArgs.addresses;
     const stakingTokenIds: BigNumber[] = [];
-    const stakeAmountMadWei: BigNumber = BigNumber.from(20000).mul(
-      "1000000000000000000"
-    );
 
-    const [admin] = await ethers.getSigners();
-    const adminSigner = await ethers.getSigner(admin.address);
-
-    // todo: get factory address from args
-    const factory = await ethers.getContractAt(
-      "MadnetFactory",
-      "0x0b1f9c2b7bed6db83295c7b5158e3806d67ec5bc"
-    );
-
-    const madToken = await ethers.getContractAt(
+    const madToken = await hre.ethers.getContractAt(
       "MadToken",
       await factory.lookup("MadToken")
     );
-    const stakeNFT = await ethers.getContractAt(
+    console.log(`MadToken Address: ${madToken.address}`);
+    const stakeNFT = await hre.ethers.getContractAt(
       "StakeNFT",
       await factory.lookup("StakeNFT")
     );
-    const validatorPool = await ethers.getContractAt(
+    console.log(`stakeNFT Address: ${stakeNFT.address}`);
+    const validatorPool = await hre.ethers.getContractAt(
       "ValidatorPool",
       await factory.lookup("ValidatorPool")
     );
+    console.log(`validatorPool Address: ${validatorPool.address}`);
+
+    const stakeAmountMadWei = await validatorPool.getStakeAmount();
+
+    console.log(
+      `Minimum amount MadWei to stake: ${stakeAmountMadWei.toNumber()}`
+    );
+
+    // Make sure that admin is the named account at position 0
+    const [admin] = await hre.ethers.getSigners();
+
+    console.log(`Admin address: ${admin.address}`);
 
     // approve tokens
-    // madToken.approve(validatorPool.address, stakeAmountMadWei.mul(validatorAddresses.length));
-    let tx = await madToken.approve(
-      stakeNFT.address,
-      stakeAmountMadWei.mul(validatorAddresses.length)
-    );
+    let tx = await madToken
+      .connect(admin)
+      .approve(
+        stakeNFT.address,
+        stakeAmountMadWei.mul(validatorAddresses.length)
+      );
     await tx.wait();
+
+    console.log(
+      `Approved allowance to validatorPool of: ${stakeAmountMadWei
+        .mul(validatorAddresses.length)
+        .toNumber()} MadWei`
+    );
 
     console.log("Starting the registration process...");
 
-    //await stakeNFT.setApprovalForAll(admin.address, true)
-
     // mint StakeNFT positions to validators
-    for (const validatorAddress of validatorAddresses) {
-      let tx = await stakeNFT.mintTo(
-        validatorAddress,
-        stakeAmountMadWei,
-        lockTime
-      );
+    for (let i=0; i<validatorAddresses.length; i++) {
+      let tx = await stakeNFT
+        .connect(admin)
+        .mintTo(factory.address, stakeAmountMadWei, lockTime);
+      await tx.wait();
 
-      let receipt = await tx.wait();
-      let tokenId = BigNumber.from(await getTokenIdFromTx(ethers, tx));
-      // console.log(`validator ${validatorAddress} got StakeNFT.tokenID ${tokenId}`)
+      let tokenId = BigNumber.from(await getTokenIdFromTx(hre.ethers, tx));
+      console.log(`Minted StakeNFT.tokenID ${tokenId}`);
       stakingTokenIds.push(tokenId);
 
-      let jsonWallet = fs
-        .readFileSync(
-          "../MadNet/scripts/generated/keystores/keys/" + validatorAddress
-        )
-        .toString();
-      let validatorWallet = await ethers.Wallet.fromEncryptedJson(
-        jsonWallet,
-        "abc123"
-      );
-      validatorWallet = validatorWallet.connect(hre.ethers.provider);
+      let iface = new hre.ethers.utils.Interface([
+        "function approve(address,uint256)",
+      ]);
+      let input = iface.encodeFunctionData("approve", [
+        validatorPool.address,
+        tokenId,
+      ]);
+      tx = await factory
+        .connect(admin)
+        .callAny(stakeNFT.address, 0, input);
 
-      tx = await stakeNFT
-        .connect(validatorWallet)
-        .approve(validatorPool.address, tokenId);
       await tx.wait();
-      console.log(
-        `validator ${validatorAddress} approved tokenID:${tokenId} to ValidatorPool`
-      );
+
+
+      console.log(`Approved tokenID:${tokenId} to ValidatorPool`);
     }
 
     console.log(
@@ -148,16 +146,14 @@ task("registerValidators", "registers validators")
 
     // add validators to the ValidatorPool
     // await validatorPool.registerValidators(validatorAddresses, stakingTokenIds)
-    let iface = new ethers.utils.Interface([
+    let iface = new hre.ethers.utils.Interface([
       "function registerValidators(address[],uint256[])",
     ]);
     let input = iface.encodeFunctionData("registerValidators", [
       validatorAddresses,
       stakingTokenIds,
     ]);
-    tx = await factory
-      .connect(adminSigner)
-      .callAny(validatorPool.address, 0, input);
+    tx = await factory.connect(admin).callAny(validatorPool.address, 0, input);
     await tx.wait();
     console.log("done");
   });

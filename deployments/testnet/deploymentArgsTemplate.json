@@ -8,7 +8,7 @@
     ],
     "src/tokens/periphery/snapshots/Snapshots.sol:Snapshots": [
       {
-        "chainID_": "42",
+        "chainID_": "67",
         "type": "uint256"
       },
       {
@@ -42,6 +42,20 @@
       {
         "desperationFactor_": "40",
         "type": "uint32"
+      }
+    ],
+    "src/tokens/periphery/validatorPool/ValidatorPool.sol:ValidatorPool": [
+      {
+        "stakeAmount_": "1",
+        "type": "uint256"
+      },
+      {
+        "maxNumValidators_": "10",
+        "type": "uint256"
+      },
+      {
+        "disputerReward_": "1",
+        "type": "uint256"
       }
     ]
   }

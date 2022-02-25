@@ -26,11 +26,11 @@
     ],
     "src/tokens/periphery/ethdkg/ETHDKG.sol:ETHDKG": [
       {
-        "phaseLength_": "12",
+        "phaseLength_": "15",
         "type": "uint256"
       },
       {
-        "confirmationLength_": "3",
+        "confirmationLength_": "4",
         "type": "uint256"
       }
     ],
@@ -42,6 +42,20 @@
       {
         "desperationFactor_": "40",
         "type": "uint32"
+      }
+    ],
+    "src/tokens/periphery/validatorPool/ValidatorPool.sol:ValidatorPool": [
+      {
+        "stakeAmount_": "1",
+        "type": "uint256"
+      },
+      {
+        "maxNumValidators_": "10",
+        "type": "uint256"
+      },
+      {
+        "disputerReward_": "1",
+        "type": "uint256"
       }
     ]
   }

@@ -59,6 +59,18 @@ contract ValidatorPoolMock is Initializable, IValidatorPool, ImmutableFactory, I
         return _validators.contains(participant);
     }
 
+    function getStakeAmount() public view returns(uint256) {
+        return _stakeAmount;
+    }
+
+    function getMaxNumValidators() public view returns(uint256) {
+        return 5;
+    }
+
+    function getDisputerReward() public view returns(uint256) {
+        return 1;
+    }
+
     function registerValidators(address[] memory v) internal {
         for (uint256 idx; idx < v.length; idx++) {
             uint256 tokenID = _tokenIDCounter + 1;

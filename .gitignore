@@ -25,7 +25,8 @@ bin
 
 .openzeppelin/.session
 
-deployments/*
+deployments/*/archive/*
+deployments/*/factoryState.json
 bindings/*_caller.go
 bindings/*_filterer.go
 bindings/*_transactor.go

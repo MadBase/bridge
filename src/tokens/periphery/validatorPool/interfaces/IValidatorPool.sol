@@ -25,6 +25,12 @@ interface IValidatorPool {
 
     function getLocations(address[] calldata validators_) external view returns (string[] memory);
 
+    function getStakeAmount() external view returns(uint256) ;
+
+    function getMaxNumValidators() external view returns(uint256);
+
+    function getDisputerReward() external view returns(uint256);
+
     function tryGetTokenID(address account_) external view returns(bool, address, uint256);
 
     function isValidator(address participant) external view returns (bool);
