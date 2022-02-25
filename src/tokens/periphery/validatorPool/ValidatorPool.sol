@@ -20,7 +20,7 @@ import "../../interfaces/INFTStake.sol";
 
 /// @custom:salt ValidatorPool
 /// @custom:deploy-type deployUpgradeable
-contract ValidatorPool is 
+contract ValidatorPool is
     Initializable,
     ValidatorPoolStorage,
     IValidatorPool,
@@ -141,7 +141,7 @@ contract ValidatorPool is
     function isMaintenanceScheduled() public view returns (bool) {
         return _isMaintenanceScheduled;
     }
-    
+
     function isConsensusRunning() public view returns (bool) {
         return _isConsensusRunning;
     }
@@ -189,11 +189,11 @@ contract ValidatorPool is
             validators_.length == stakerTokenIDs_.length,
             "ValidatorPool: Both input array should have same length!"
         );
-        
+
         for (uint256 i = 0; i < validators_.length; i++) {
             require(
-                validators_[i] == IERC721(_StakeNFTAddress()).ownerOf(stakerTokenIDs_[i]),
-                "ValidatorPool: The address should be the owner of the StakeNFT position!"
+                _factoryAddress() == IERC721(_StakeNFTAddress()).ownerOf(stakerTokenIDs_[i]),
+                "ValidatorPool: The factory should be the owner of the StakeNFT position!"
             );
             _registerValidator(validators_[i], stakerTokenIDs_[i]);
         }
@@ -208,7 +208,7 @@ contract ValidatorPool is
             _unregisterValidator(validators_[i]);
         }
     }
-    
+
 
     function unregisterAllValidators() external onlyFactory assertNotETHDKGRunning assertNotConsensusRunning {
         while (_validators.length() > 0) {
