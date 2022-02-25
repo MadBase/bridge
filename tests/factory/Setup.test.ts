@@ -130,8 +130,8 @@ export function getEventVar(receipt: any, eventName: string, varName: string) {
   return result;
 }
 
-export function expectTxSuccess(receipt: any) {
-  expect(receipt["receipt"]["status"]).to.equal(true);
+export function expectTxSuccess(txResponse: any) {
+  expect(txResponse["receipt"]["status"]).to.equal(true);
 }
 
 export function getCreateAddress(Address: string, nonce: number) {

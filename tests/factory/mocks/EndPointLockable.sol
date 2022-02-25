@@ -2,6 +2,8 @@
 pragma solidity ^0.8.11;
 
 import "../../../src/proxy/Proxy.sol";
+import "../../../src/proxy/ProxyInternalUpgradeLock.sol";
+import "../../../src/proxy/ProxyInternalUpgradeUnlock.sol";
 
 interface IEndpointlockable {
     function i() external view returns (uint256);
@@ -12,7 +14,7 @@ interface IEndpointlockable {
 
     function factory() external returns (address);
 }
-
+/// @custom:salt EndPointLockable
 contract EndPointLockable is ProxyInternalUpgradeLock, ProxyInternalUpgradeUnlock {
     address private immutable factory_;
     address public owner;
