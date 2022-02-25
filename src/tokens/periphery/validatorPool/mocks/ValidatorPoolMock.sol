@@ -123,6 +123,14 @@ contract ValidatorPoolMock is Initializable, IValidatorPool, ImmutableFactory, I
         return _isMaintenanceScheduled;
     }
 
+    function isConsensusRunning() public view returns (bool) {
+        return _isConsensusRunning;
+    }
+
+    function setConsensusRunning(bool isRunning) public {
+        _isConsensusRunning = isRunning;
+    }
+
     function claimExitingNFTPosition() public pure returns (uint256) {
         return 0;
     }

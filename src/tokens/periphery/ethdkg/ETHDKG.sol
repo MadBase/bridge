@@ -177,7 +177,7 @@ contract ETHDKG is ETHDKGStorage, IETHDKG, IETHDKGEvents, ETHDKGUtils, Immutable
 
     function tryGetParticipantIndex(address participant) public view returns (bool, uint256) {
         Participant memory participantData = _participants[participant];
-        if (participantData.nonce == _nonce) {
+        if (participantData.nonce == _nonce && _nonce != 0) {
             return (true, _participants[participant].index);
         }
         return (false, 0);

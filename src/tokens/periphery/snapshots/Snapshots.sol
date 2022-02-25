@@ -16,10 +16,13 @@ import "./SnapshotsStorage.sol";
 /// @custom:salt Snapshots
 /// @custom:deploy-type deployUpgradeable
 contract Snapshots is Initializable, SnapshotsStorage, ISnapshots {
-    constructor(uint256 chainID_) SnapshotsStorage(chainID_){
-    }
+    constructor(uint256 chainID_, uint256 epochLength_) SnapshotsStorage(chainID_, epochLength_) {}
 
-    function initialize(uint32 desperationDelay_, uint32 desperationFactor_) public onlyFactory initializer {
+    function initialize(uint32 desperationDelay_, uint32 desperationFactor_)
+        public
+        onlyFactory
+        initializer
+    {
         _snapshotDesperationDelay = desperationDelay_;
         _snapshotDesperationFactor = desperationFactor_;
     }
@@ -48,8 +51,8 @@ contract Snapshots is Initializable, SnapshotsStorage, ISnapshots {
         return _epoch;
     }
 
-    function getEpochLength() public pure returns (uint256) {
-        return EPOCH_LENGTH;
+    function getEpochLength() public view returns (uint256) {
+        return _epochLength;
     }
 
     function getChainIdFromSnapshot(uint256 epoch_) public view returns (uint256) {
@@ -76,11 +79,7 @@ contract Snapshots is Initializable, SnapshotsStorage, ISnapshots {
         return _snapshots[_epoch].blockClaims;
     }
 
-    function getSignatureFromSnapshot(uint256 epoch_)
-        public
-        view
-        returns (uint256[2] memory)
-    {
+    function getSignatureFromSnapshot(uint256 epoch_) public view returns (uint256[2] memory) {
         return _snapshots[epoch_].signature;
     }
 
@@ -120,21 +119,36 @@ contract Snapshots is Initializable, SnapshotsStorage, ISnapshots {
         public
         returns (bool)
     {
-        require(IValidatorPool(_ValidatorPoolAddress()).isValidator(msg.sender), "Snapshots: Only validators allowed!");
-        require(!IETHDKG(_ETHDKGAddress()).isETHDKGRunning(), "Snapshots: There's an ETHDKG round running!");
+        require(
+            IValidatorPool(_ValidatorPoolAddress()).isValidator(msg.sender),
+            "Snapshots: Only validators allowed!"
+        );
+        require(
+            IValidatorPool(_ValidatorPoolAddress()).isConsensusRunning(),
+            "Snapshots: Consensus is not running!"
+        );
 
-        (bool success, uint256 validatorIndex) = IETHDKG(_ETHDKGAddress()).tryGetParticipantIndex(msg.sender);
+        (bool success, uint256 validatorIndex) = IETHDKG(_ETHDKGAddress()).tryGetParticipantIndex(
+            msg.sender
+        );
         require(success, "Snapshots: Caller didn't participate in the last ethdkg round!");
+        // todo: critical! add eth min blocks between snapshots
 
         //todo: are we going to snapshot on epoch 0?
         uint32 epoch = _epoch + 1;
-        uint256 ethBlocksSinceLastSnapshot = block.number - _snapshots[epoch - 1].committedAt;
+        // todo: explicitly verify min eth boundary
+        // uint256 ethBlocksSinceLastSnapshot = block.number - _snapshots[epoch - 1].committedAt;
 
+        // TODO: BRING BACK AFTER GOLANG LOGIC IS DEBUGED AND MERGED
+        /*
         uint256 blocksSinceDesperation = ethBlocksSinceLastSnapshot >= _snapshotDesperationDelay
             ? ethBlocksSinceLastSnapshot - _snapshotDesperationDelay
             : 0;
+        */
 
         // Check if sender is the elected validator allowed to make the snapshot
+        // TODO: BRING BACK AFTER GOLANG LOGIC IS DEBUGED AND MERGED
+        /*
         require(
             _mayValidatorSnapshot(
                 IValidatorPool(_ValidatorPoolAddress()).getValidatorsCount(),
@@ -145,6 +159,7 @@ contract Snapshots is Initializable, SnapshotsStorage, ISnapshots {
             ),
             "Snapshots: Validator not elected to do snapshot!"
         );
+        */
 
         (uint256[4] memory masterPublicKey, uint256[2] memory signature) = RCertParserLibrary
             .extractSigGroup(groupSignature_, 0);
@@ -165,7 +180,7 @@ contract Snapshots is Initializable, SnapshotsStorage, ISnapshots {
         );
 
         require(
-            epoch * EPOCH_LENGTH == blockClaims.height,
+            epoch * _epochLength == blockClaims.height,
             "Snapshots: Incorrect Madnet height for snapshot!"
         );
 
