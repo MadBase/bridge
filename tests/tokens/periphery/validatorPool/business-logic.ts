@@ -3,7 +3,8 @@ import {
   getTokenIdFromTx,
   getValidatorEthAccount,
   getFixture,
-  factoryCallAny
+  factoryCallAny,
+  factoryCallAnyFrom
 } from "../setup";
 import {
   completeETHDKGRound,
@@ -31,8 +32,11 @@ describe("Testing ValidatorPool Business Logic ", () => {
   let stakeAmountMadWei = ethers.utils.parseUnits(stakeAmount.toString(), 18);
   let lockTime = 0;
   let validators = new Array()
+  let originalValidatorsSnapshots = new Array()
   let stakingTokenIds = new Array();
   let validatorPool: Fixture["validatorPool"]
+  let dummyAddress = '0x000000000000000000000000000000000000dEaD'
+
 
   interface state {
     StakeNFT: {
@@ -58,12 +62,11 @@ describe("Testing ValidatorPool Business Logic ", () => {
     const [admin, notAdmin1, notAdmin2, notAdmin3, notAdmin4] =
       fixture.namedSigners
     adminSigner = await getValidatorEthAccount(admin.address)
-    // Shrink validators array to max permitted 
-    validatorsSnapshots.length = maxNumValidators
+    console.log(await fixture.madToken.balanceOf(await adminSigner.getAddress()))
 
-    // await createValidators(validatorsSnapshots)
+    await createValidators(validatorsSnapshots)
+    await stakeValidators(validatorsSnapshots)
 
-    // await createValidators(validatorsSnapshots)
     // //We don't need all the validators for testing purposes so trimming arrays
     // validators.length = maxNumValidators
     // stakingTokenIds.length = maxNumValidators
@@ -76,27 +79,117 @@ describe("Testing ValidatorPool Business Logic ", () => {
     });
 
     it("Initialize ETHDKG", async function () {
-      await createValidators(validatorsSnapshots)
-      await stakeValidators(validatorsSnapshots)
       await factoryCallAny(fixture, "validatorPool",
         "registerValidators", [validators, stakingTokenIds])
       await factoryCallAny(fixture, "validatorPool",
         "initializeETHDKG")
     });
 
-    it("Pause consensus", async function () {
-      await expect(factoryCallAny(fixture, "validatorPool",
-        "pauseConsensusOnArbitraryHeight", [1]))
-        .to.be.revertedWith("ValidatorPool: Condition not met to stop consensus!");
+    xit("Should not allow pausing “consensus” before 1.5 without snapshots.", async function () {
+      await fixture.validatorPool.
+        connect(await getValidatorEthAccount(validatorsSnapshots[0])).
+        pauseConsensus();
+
+      // await expect(factoryCallAny(fixture, "snapshots",
+      //   "pauseConsensus"))
+      //   .to.be.revertedWith("ValidatorPool: Condition not met to stop consensus!");
     });
+
+    it("Complete ETHDKG and check if the necessary state was set properly", async function () {
+      await factoryCallAny(fixture, "validatorPool",
+        "registerValidators", [validators, stakingTokenIds])
+      let expectedState: state = await getCurrentState()
+      // Complete ETHDKG Round
+      await factoryCallAny(fixture, "validatorPool",
+        "initializeETHDKG")
+      await completeETHDKGRound(validatorsSnapshots, {
+        ethdkg: fixture.ethdkg,
+        validatorPool: fixture.validatorPool
+      })
+      expect(await fixture.validatorPool.isMaintenanceScheduled()).to.be.false
+      //Consensus Running should be true
+      await expect(factoryCallAny(fixture, "validatorPool",
+        "registerValidators", [validators, stakingTokenIds]))
+        .to.be.revertedWith("ValidatorPool: Error Madnet Consensus should be halted!")
+    })
+
+    it("Should not allow start ETHDKG if consensus is true or and ETHDKG round is running.", async function () {
+      await factoryCallAny(fixture, "validatorPool",
+        "registerValidators", [validators, stakingTokenIds])
+      let expectedState: state = await getCurrentState()
+      // Complete ETHDKG Round
+      await factoryCallAny(fixture, "validatorPool",
+        "initializeETHDKG")
+      await completeETHDKGRound(validatorsSnapshots, {
+        ethdkg: fixture.ethdkg,
+        validatorPool: fixture.validatorPool
+      })
+      await expect(factoryCallAny(fixture, "validatorPool",
+        "initializeETHDKG"))
+        .to.be.revertedWith("ValidatorPool: Error Madnet Consensus should be halted!")
+    })
+
+    xit("Register validators, run ETHDKG to completion, schedule maintenance, do a snapshot, and see if the consensus is halted.", async function () {
+      await factoryCallAny(fixture, "validatorPool",
+        "registerValidators", [validators, stakingTokenIds])
+      let expectedState: state = await getCurrentState()
+      // Complete ETHDKG Round
+      await factoryCallAny(fixture, "validatorPool",
+        "initializeETHDKG")
+      await completeETHDKGRound(validatorsSnapshots, {
+        ethdkg: fixture.ethdkg,
+        validatorPool: fixture.validatorPool
+      })
+      await factoryCallAny(fixture, "validatorPool",
+        "scheduleMaintenance")
+      await getSnapshots(4)
+      //Consensus Running should be false
+      factoryCallAny(fixture, "validatorPool",
+        "registerValidators", [validators, stakingTokenIds])
+    })
+
+    xit("Test running ETHDKG with the arbitrary height sent as input, see if the value (the arbitrary height) is correctly added to the ethdkg completion event.", async function () {
+      await factoryCallAny(fixture, "validatorPool",
+        "registerValidators", [validators, stakingTokenIds])
+      let expectedState: state = await getCurrentState()
+      // Complete ETHDKG Round
+      await factoryCallAnyFrom(fixture, "validatorPool", "ethdkg",
+        "initializeETHDKG")
+      await completeETHDKGRound(validatorsSnapshots, {
+        ethdkg: fixture.ethdkg,
+        validatorPool: fixture.validatorPool
+      })
+      await factoryCallAny(fixture, "validatorPool",
+        "scheduleMaintenance")
+      await getSnapshots(4)
+
+      await expect(
+        // fixture.ethdkg.
+        //   connect(await getValidatorEthAccount(validatorsSnapshots[0])).
+        //   setCustomMadnetHeight(4)
+        factoryCallAny(fixture, "validatorPool",
+          "setCustomMadnetHeight", [4])
+      )
+        .to.emit(fixture.ethdkg, 'ValidatorSetCompleted')
+        .withArgs(
+          0,
+          0,
+          fixture.snapshots.getEpoch(),
+          fixture.snapshots.getCommittedHeightFromLatestSnapshot(),
+          fixture.snapshots.getMadnetHeightFromSnapshot(await fixture.snapshots.getEpoch()),
+          0x0,
+          0x0,
+          0x0,
+          0x0
+        );
+    })
+
 
   })
 
   describe("Registration:", async function () {
 
     it("Should not allow registering validators if the STAKENFT position doesn’t have enough MADTokens staked", async function () {
-      await createValidators(validatorsSnapshots)
-      await stakeValidators(validatorsSnapshots)
       let rcpt = await factoryCallAny(fixture, "validatorPool",
         "setStakeAmount", [stakeAmountMadWei.add(1)]) //Add 1 to max amount allowed
       expect(rcpt.status).to.equal(1)
@@ -107,8 +200,6 @@ describe("Testing ValidatorPool Business Logic ", () => {
     })
 
     it("Should not allow registering more validators that the current number of free spots in the pool", async function () {
-      await createValidators(validatorsSnapshots)
-      await stakeValidators(validatorsSnapshots)
       let rcpt = await factoryCallAny(fixture, "validatorPool",
         "setMaxNumValidators", [maxNumValidators - 1]) // Set maxNumValidators to 1 under default number of validators
       await expect(
@@ -118,8 +209,7 @@ describe("Testing ValidatorPool Business Logic ", () => {
     })
 
     it("Should not allow registering validators if the size of the input data is not correct", async function () {
-      await createValidators(validatorsSnapshots)
-      await stakeValidators(validatorsSnapshots)
+
       validators.length = maxNumValidators
       stakingTokenIds.length = maxNumValidators - 1
       await expect(
@@ -128,9 +218,23 @@ describe("Testing ValidatorPool Business Logic ", () => {
         to.be.revertedWith("ValidatorPool: Both input array should have same length!")
     })
 
+    it('Should not allow registering validators if "Madnet consensus is running" or ETHDKG round is running', async function () {
+      await factoryCallAny(fixture, "validatorPool",
+        "registerValidators", [validators, stakingTokenIds])
+      let expectedState: state = await getCurrentState()
+      // Complete ETHDKG Round
+      await factoryCallAny(fixture, "validatorPool",
+        "initializeETHDKG")
+      await completeETHDKGRound(validatorsSnapshots, {
+        ethdkg: fixture.ethdkg,
+        validatorPool: fixture.validatorPool
+      })
+      await expect(factoryCallAny(fixture, "validatorPool",
+        "registerValidators", [validators, stakingTokenIds]))
+        .to.be.revertedWith("ValidatorPool: Error Madnet Consensus should be halted!")
+    })
+
     it("Should not allow registering validators if the STAKENFT position was not given permissions for the ValidatorPool contract burn it", async function () {
-      await createValidators(validatorsSnapshots)
-      await stakeValidators(validatorsSnapshots)
       for (const validator of validatorsSnapshots) {
         //Disallow validatorPool to withdraw validator's NFT from StakeNFT
         await fixture.stakeNFT.
@@ -161,8 +265,6 @@ describe("Testing ValidatorPool Business Logic ", () => {
     })
 
     it("Should not allow registering an address that is in the exiting queue", async function () {
-      await createValidators(validatorsSnapshots)
-      await stakeValidators(validatorsSnapshots)
       await
         factoryCallAny(fixture, "validatorPool",
           "registerValidators", [validators, stakingTokenIds])
@@ -171,17 +273,13 @@ describe("Testing ValidatorPool Business Logic ", () => {
         factoryCallAny(fixture, "validatorPool",
           "unregisterValidators", [validators])
       showState("after un-registering", await getCurrentState())
-      await createValidators(validatorsSnapshots)
-      await stakeValidators(validatorsSnapshots)
       await expect(
         factoryCallAny(fixture, "validatorPool",
           "registerValidators", [validators, stakingTokenIds]))
         .to.be.revertedWith("ValidatorPool: Address is already a validator or it is in the exiting line!")
     })
 
-    it("Should successfully register validators if all conditions are met", async function () {
-      await createValidators(validatorsSnapshots)
-      await stakeValidators(validatorsSnapshots)
+    it.only("Should successfully register validators if all conditions are met", async function () {
       let expectedState: state = await getCurrentState()
       //Expect that NFTs are transferred from each validator to ValidatorPool sd ValidatorNFTs
       validators.map((element, index) => {
@@ -200,13 +298,38 @@ describe("Testing ValidatorPool Business Logic ", () => {
         to.be.deep.equal(expectedState)
     });
 
+    it("Set and get the validator's location after registering", async function () {
+      await factoryCallAny(fixture, "validatorPool",
+        "registerValidators", [validators, stakingTokenIds])
+      let currentState: state = await getCurrentState()
+      await showState("after registering", currentState)
+      await fixture.validatorPool.
+        connect(await getValidatorEthAccount(validatorsSnapshots[0])).
+        setLocation("1.1.1.1")
+      expect(await fixture.validatorPool.
+        getLocation(await validators[0])).
+        to.be.equal("1.1.1.1")
+    });
+
+    it("Should not allow non-validator to set an IP location", async function () {
+      await factoryCallAny(fixture, "validatorPool",
+        "registerValidators", [validators, stakingTokenIds])
+      let currentState: state = await getCurrentState()
+      await showState("after registering", currentState)
+      // Original Validators has all the validators not only the maximun to register
+      // Position 5 is not a register validator
+      console.log(originalValidatorsSnapshots)
+      await expect(fixture.validatorPool.
+        connect(adminSigner).
+        setLocation("1.1.1.1"))
+        .to.be.revertedWith('ValidatorPool: Only validators allowed!')
+    });
+
   })
 
   describe("Unregistration:", async function () {
 
     it("Should not allow unregistering of non-validators (even in the middle of array of validators)", async function () {
-      await createValidators(validatorsSnapshots)
-      await stakeValidators(validatorsSnapshots)
       await
         factoryCallAny(fixture, "validatorPool",
           "registerValidators", [validators, stakingTokenIds])
@@ -218,14 +341,27 @@ describe("Testing ValidatorPool Business Logic ", () => {
         .to.be.revertedWith("ValidatorPool: Address is not a validator_!")
     })
 
+    it("Should not allow unregistering if consensus or an ETHDKG round is running", async function () {
+      await factoryCallAny(fixture, "validatorPool",
+        "registerValidators", [validators, stakingTokenIds])
+      let expectedState: state = await getCurrentState()
+      // Complete ETHDKG Round
+      await factoryCallAny(fixture, "validatorPool",
+        "initializeETHDKG")
+      await completeETHDKGRound(validatorsSnapshots, {
+        ethdkg: fixture.ethdkg,
+        validatorPool: fixture.validatorPool
+      })
+      await expect(factoryCallAny(fixture, "validatorPool",
+        "unregisterValidators", [validators]))
+        .to.be.revertedWith("ValidatorPool: Error Madnet Consensus should be halted!")
+    })
+
     it("Should not allow unregistering more addresses that in the pool", async function () {
-      await createValidators(validatorsSnapshots)
-      await stakeValidators(validatorsSnapshots)
       await
         factoryCallAny(fixture, "validatorPool",
           "registerValidators", [validators, stakingTokenIds])
       showState("after registering", await getCurrentState())
-
       //Add an extraother validator to unregister array
       validators.push('0x000000000000000000000000000000000000dEaD')
       stakingTokenIds.push(0)
@@ -235,9 +371,23 @@ describe("Testing ValidatorPool Business Logic ", () => {
         .to.be.revertedWith("ValidatorPool: There are not enough validators to be removed!")
     })
 
+    it("Should not allow registering an address that was unregistered and didn’t claim is stakeNFT position (i.e still in the exitingQueue).", async function () {
+      await
+        factoryCallAny(fixture, "validatorPool",
+          "registerValidators", [validators, stakingTokenIds])
+      showState("after registering", await getCurrentState())
+      await
+        factoryCallAny(fixture, "validatorPool",
+          "unregisterValidators", [validators])
+      showState("after un-registering", await getCurrentState())
+      await expect(
+        factoryCallAny(fixture, "validatorPool",
+          "registerValidators", [validators, stakingTokenIds]))
+        .to.be.revertedWith("ValidatorPool: Address is already a validator or it is in the exiting line!")
+    })
+
     it("Should successfully unregister validators if all conditions are met", async function () {
-      await createValidators(validatorsSnapshots)
-      await stakeValidators(validatorsSnapshots)
+
       let expectedState: state = await getCurrentState()
       //Expect that NFT are transferred from validators to ValidatorPool and then back to Staking
       validators.map((element, index) => {
@@ -256,9 +406,7 @@ describe("Testing ValidatorPool Business Logic ", () => {
         to.be.deep.equal(expectedState)
     });
 
-    it("Should successfully unregister validators if all conditions are met", async function () {
-      await createValidators(validatorsSnapshots)
-      await stakeValidators(validatorsSnapshots)
+    it("The validatorNFT position was correctly burned and the state of the contract was correctly set (e.g user should not be a validator but should be accusable).", async function () {
       let expectedState: state = await getCurrentState()
       //Expect that NFT are transferred to ValidatorPool as StakeNFTs
       validators.map((element, index) => {
@@ -274,13 +422,16 @@ describe("Testing ValidatorPool Business Logic ", () => {
       await showState("Expected state after unregister all validators", currentState)
       expect(currentState).
         to.be.deep.equal(expectedState)
+      await expect(
+        fixture.validatorPool
+          .isAccusable(validatorsSnapshots[0].address)
+      ).to.be.true
     });
+
   })
-  describe("Claiming:", async function () {
+  describe("Claim stakeNFT position after unregistering :", async function () {
 
     it("Should successfully claim exiting NFT positions of all validators", async function () {
-      await createValidators(validatorsSnapshots)
-      await stakeValidators(validatorsSnapshots)
       //As this is a complete cycle, expect the initial state to be exactly the same as the final state
       let expectedState: state = await getCurrentState()
       await factoryCallAny(fixture, "validatorPool",
@@ -302,12 +453,39 @@ describe("Testing ValidatorPool Business Logic ", () => {
         to.be.deep.equal(expectedState)
     })
 
+    it("After claiming, register the user again with a new stakenft position.", async function () {
+      //As this is a complete cycle, expect the initial state to be exactly the same as the final state
+      let expectedState: state = await getCurrentState()
+      await factoryCallAny(fixture, "validatorPool",
+        "registerValidators", [validators, stakingTokenIds])
+      await factoryCallAny(fixture, "validatorPool",
+        "unregisterValidators", [validators])
+      await getSnapshots(4)
+      for (const validatorsSnapshot of validatorsSnapshots) {
+        await fixture.validatorPool
+          .connect(await getValidatorEthAccount(validatorsSnapshot))
+          .claimExitingNFTPosition()
+        // await factoryCallAny(fixture, "validatorPool",
+        // "claimExitingNFTPosition")
+      }
+      await createValidators(validatorsSnapshots)
+      await stakeValidators(validatorsSnapshots)
+      await factoryCallAny(fixture, "validatorPool",
+        "registerValidators", [validators, stakingTokenIds])
+      let currentState: state = await getCurrentState()
+      //Expect that validators funds are transfered again to ValidatorNFT  
+      expectedState.ValidatorNFT.MAD += stakeAmount * validators.length
+      await showState("Expected state after claiming exiting NFT position", expectedState)
+      await showState("Current state after claiming exiting NFT position", currentState)
+      expect(currentState).
+        to.be.deep.equal(expectedState)
+    })
+
+
   })
   describe("Collecting:", async function () {
 
-    it("Should fail to re-register validators before 172800 epochs after claiming NFT positions", async function () {
-      await createValidators(validatorsSnapshots)
-      await stakeValidators(validatorsSnapshots)
+    it("Should not allow users to claim stakenft position before claim period has passed", async function () {
       await factoryCallAny(fixture, "validatorPool",
         "registerValidators", [validators, stakingTokenIds])
       await factoryCallAny(fixture, "validatorPool",
@@ -334,8 +512,7 @@ describe("Testing ValidatorPool Business Logic ", () => {
     })
 
     it("Should successfully collect profit of validators", async function () {
-      await createValidators(validatorsSnapshots)
-      await stakeValidators(validatorsSnapshots)
+
       await factoryCallAny(fixture, "validatorPool",
         "registerValidators", [validators, stakingTokenIds])
       let expectedState: state = await getCurrentState()
@@ -365,6 +542,17 @@ describe("Testing ValidatorPool Business Logic ", () => {
       await showState("Current state after collect profit", currentState)
       expect(currentState).
         to.be.deep.equal(expectedState)
+    })
+  })
+  describe("Slashing:", async function () {
+
+    xit("Minor slash a validator then major slash it", async function () {
+
+      let expectedState: state = await getCurrentState()
+      // Complete ETHDKG Round
+
+    await factoryCallAnyFrom(fixture, "ethdkg", "validatorPool",
+        "minorSlash", [validators[0], validators[1]])
     })
 
   })
@@ -400,8 +588,8 @@ describe("Testing ValidatorPool Business Logic ", () => {
     }
     // Get state for validators
     for (let i = 0; i < state.validators.length; i++) {
-      state.validators[i].NFT = parseFloat(fixture.stakeNFT.balanceOf(
-        validators[i]).toString())
+      state.validators[i].NFT = parseFloat((await fixture.stakeNFT.balanceOf(
+        validators[i])).toString())
       state.validators[i].MAD = parseFloat(ethers.utils.formatEther(await fixture.madToken.balanceOf(
         validators[i])))
       state.validators[i].ETH = parseFloat((+ethers.utils.formatEther(await ethers.provider.getBalance(validators[i]))).toFixed(0))
@@ -414,10 +602,10 @@ describe("Testing ValidatorPool Business Logic ", () => {
     ]
     // Get state for contracts
     for (let i = 0; i < contractData.length; i++) {
-      contractData[i].contractState.StakeNFT = parseInt(fixture.stakeNFT.balanceOf(
-        contractData[i].contractAddress).toString())
-      contractData[i].contractState.ValidatorNFT = parseInt(fixture.validatorNFT.balanceOf(
-        contractData[i].contractAddress).toString())
+      contractData[i].contractState.StakeNFT = parseInt((await fixture.stakeNFT.balanceOf(
+        contractData[i].contractAddress)).toString())
+      contractData[i].contractState.ValidatorNFT = parseInt((await fixture.validatorNFT.balanceOf(
+        contractData[i].contractAddress)).toString())
       contractData[i].contractState.MAD = parseFloat(ethers.utils.formatEther(await fixture.madToken.balanceOf(
         contractData[i].contractAddress)))
       contractData[i].contractState.ETH = parseFloat((+ethers.utils.formatEther(
@@ -435,37 +623,46 @@ describe("Testing ValidatorPool Business Logic ", () => {
 
   async function createValidators(_validatorsSnapshots: ValidatorRawData[]) {
     validators = []
-    stakingTokenIds = []
     // Approve ValidatorPool to withdraw MAD tokens of validators
     await fixture.madToken.
       approve(fixture.validatorPool.address,
         stakeAmountMadWei.mul(_validatorsSnapshots.length));
-    for (const validator of _validatorsSnapshots) {
-      validators.push(validator.address)
-      //Send MAD tokens to each validator
-      await fixture.madToken.
-        transfer(validator.address, stakeAmountMadWei);
-      // Approve to Stake all MAD tokens
-      await fixture.madToken.
-        connect(await getValidatorEthAccount(validator)).
-        approve(fixture.stakeNFT.address, stakeAmountMadWei);
-    }
+        console.log(await adminSigner.getAddress())
+        for (const validator of _validatorsSnapshots) {
+        validators.push(validator.address)
+        //Send MAD tokens to each validator
+        // await fixture.madToken.
+        //   transfer(validator.address, stakeAmountMadWei);
+        // Approve to Stake all MAD tokens
+      }
+        await fixture.madToken.
+      connect(adminSigner).
+      approve(fixture.stakeNFT.address, stakeAmountMadWei.mul(_validatorsSnapshots.length));
+      console.log(await fixture.madToken.allowance(await adminSigner.getAddress(),fixture.stakeNFT.address))
+
     await showState("After creating:", await getCurrentState())
   }
 
   async function stakeValidators(_validatorsSnapshots: ValidatorRawData[]) {
+    stakingTokenIds = []
     for (const validator of _validatorsSnapshots) {
       // Stake all MAD tokens
       let tx = await fixture.stakeNFT.
-        connect(await getValidatorEthAccount(validator)).
-        mintTo(validator.address, stakeAmountMadWei, lockTime);
+        connect(adminSigner).
+        mintTo(fixture.factory.address,stakeAmountMadWei,lockTime);
       // Get the proof of staking (NFT's tokenID)
       let tokenID = await getTokenIdFromTx(tx)
       stakingTokenIds.push(tokenID);
       //Allow validatorPool to withdraw NFT from StakeNFT
-      await fixture.stakeNFT.
-        connect(await getValidatorEthAccount(validator)).
-        setApprovalForAll(fixture.validatorPool.address, true);
+      // await fixture.stakeNFT.
+      //   connect(adminSigner).
+      //   approve(fixture.validatorPool.address, tokenID);
+
+        await factoryCallAny(fixture, "stakeNFT",
+        "approve", [fixture.validatorPool.address, tokenID])
+        console.log("approved",await fixture.stakeNFT.getApproved(tokenID))
+        console.log(fixture.validatorPool.address)
+
     }
     await showState("After staking:", await getCurrentState())
   }

@@ -408,3 +408,26 @@ export async function factoryCallAny(
   let receipt = await txResponse.wait();
   return receipt;
 }
+
+export async function factoryCallAnyFrom(
+  fixture: Fixture,
+  contractFromName: string,
+  contractName: string,
+  functionName: string,
+  args?: Array<any>
+) {
+  let factory = fixture.factory;
+  let contract = fixture[contractName];
+  let contractFrom = fixture[contractFromName];
+  if (args === undefined) {
+    args = [];
+  }
+  let txResponse = await factory.callAny(
+    contractFrom.address,
+    0,
+    contract.interface.encodeFunctionData(functionName, args)
+  );
+  let receipt = await txResponse.wait();
+  return receipt;
+}
+

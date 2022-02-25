@@ -366,7 +366,7 @@ contract ValidatorPool is
         uint256 balanceBeforeToken = IERC20Transferable(_MadTokenAddress()).balanceOf(address(this));
         uint256 balanceBeforeEth = address(this).balance;
         (validatorTokenID, payoutEth, payoutToken) = _swapStakeNFTForValidatorNFT(
-            validator_,
+            msg.sender,
             stakerTokenID_
         );
 
@@ -432,7 +432,7 @@ contract ValidatorPool is
             "ValidatorStakeNFT: Error, the Stake position doesn't have enough funds!"
         );
         IERC721Transferable(_StakeNFTAddress()).safeTransferFrom(
-            msg.sender,
+            to_,
             address(this),
             stakerTokenID_
         );
