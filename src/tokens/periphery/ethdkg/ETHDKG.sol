@@ -38,9 +38,9 @@ contract ETHDKG is ETHDKGStorage, IETHDKG, IETHDKGEvents, ETHDKGUtils, Immutable
         _ethdkgAccusations = ethdkgAccusations;
     }
 
-    function initialize() public initializer {
-        _phaseLength = 40;
-        _confirmationLength = 6;
+    function initialize(uint256 phaseLength_, uint256 confirmationLength_) public initializer {
+        _phaseLength = uint16(phaseLength_);
+        _confirmationLength = uint16(confirmationLength_);
     }
 
     modifier onlyValidator() {

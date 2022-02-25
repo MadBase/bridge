@@ -104,7 +104,7 @@ task("deployMetamorphic", "deploys template contract, and then deploys metamorph
   });
 
   //factoryName param doesnt do anything right now
-subtask("deployCreate", "deploys a contract from the factory using create")
+task("deployCreate", "deploys a contract from the factory using create")
   .addParam("contractName", "logic contract name")
   .addParam("factoryName", "Name of the factory contract")
   .addParam("factoryAddress", "factory deploying the contract")
@@ -131,11 +131,11 @@ subtask("deployCreate", "deploys a contract from the factory using create")
       constructorArgs: taskArgs?.constructorArgs,
     };
     await updateDeployCreateList(deployCreateData);
-    // console.log("Subtask deployCreate ", taskArgs.contractName, " contract at ", deployCreateData.address, "gas: ", txResponse["receipt"]["gasUsed"]);
+    console.log("Subtask deployCreate ", taskArgs.contractName, " contract at ", deployCreateData.address, "gas: ", txResponse["receipt"]["gasUsed"]);
     return deployCreateData;
   });
 
-subtask("upgradeDeployedProxy", "deploys a contract from the factory using create")
+task("upgradeDeployedProxy", "deploys a contract from the factory using create")
   .addParam("contractName", "logic contract name")
   .addParam("factoryName", "Name of the factory contract")
   .addParam("factoryAddress", "factory deploying the contract")
@@ -150,7 +150,7 @@ subtask("upgradeDeployedProxy", "deploys a contract from the factory using creat
     let lcInstance = hre.artifacts.require(taskArgs.contractName);
     let logicContract:any = await hre.ethers.getContractFactory(taskArgs.contractName);
     const factory = await MadnetFactory.at(factoryData.address);
-    let txResponse = await factory.upgradeProxy(Salt, taskArgs.newLogicAddress, taskArgs.initCallData);
+    let txResponse = await factory.upgradeProxy(Salt, taskArgs.logicAddress, taskArgs.initCallData);
     //Data to return to the main task
     let proxyData:ProxyData = {
       proxyAddress: getMetamorphicAddress(factoryData.address, Salt, hre),
@@ -161,7 +161,7 @@ subtask("upgradeDeployedProxy", "deploys a contract from the factory using creat
       gas: txResponse["receipt"]["gasUsed"],
       initCallData: taskArgs?.initCallData,
     };
-    //console.log("Subtask upgradeDeployedProxy ", taskArgs.contractName, " contract at ", templateData.address, "gas: ", receipt["receipt"]["gasUsed"]);
+    console.log("Subtask upgradeDeployedProxy ", taskArgs.contractName, " contract at ", proxyData.proxyAddress, "gas: ", txResponse["receipt"]["gasUsed"]);
     await updateProxyList(proxyData);
     return proxyData;
   });

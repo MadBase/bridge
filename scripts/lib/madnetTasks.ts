@@ -66,13 +66,13 @@ task("registerValidators", "registers validators")
   for (const validatorAddress of validatorAddresses) {
     let tx = await stakeNFT
       .mintTo(validatorAddress, stakeAmountMadWei, lockTime);
-    
+
     let receipt = await tx.wait()
     let tokenId = BigNumber.from(await getTokenIdFromTx(ethers, tx))
     // console.log(`validator ${validatorAddress} got StakeNFT.tokenID ${tokenId}`)
     stakingTokenIds.push(tokenId);
 
-    let jsonWallet = fs.readFileSync("../MadNet_leonardo/scripts/generated/keystores/keys/" + validatorAddress).toString()
+    let jsonWallet = fs.readFileSync("../MadNet/scripts/generated/keystores/keys/" + validatorAddress).toString()
     let validatorWallet = await ethers.Wallet.fromEncryptedJson(jsonWallet, "abc123")
     validatorWallet = validatorWallet.connect(hre.ethers.provider)
 
@@ -100,6 +100,29 @@ task("ethdkgInput", "calculate the initializeETHDKG selector")
   let iface = new ethers.utils.Interface(["function initializeETHDKG()"]);
   let input = iface.encodeFunctionData("initializeETHDKG")
   console.log("input", input)
+})
+
+task("virtualMintDeposit", "Virtually creates a deposit on the side chain")
+.setAction(async (taskArgs, hre) => {
+  const { ethers } = hre
+  let iface = new ethers.utils.Interface(["function virtualMintDeposit(uint8 accountType_,address to_,uint256 amount_)"]);
+  let input = iface.encodeFunctionData("virtualMintDeposit", [1, "0x546F99F244b7B58B855330AE0E2BC1b30b41302F", 1001 ])
+  console.log("input", input)
+  const [admin] = await ethers.getSigners();
+  const adminSigner = await ethers.getSigner(admin.address);
+  const factory = await ethers.getContractAt("MadnetFactory", "0x0b1f9c2b7bed6db83295c7b5158e3806d67ec5bc");
+  const madByte = await ethers.getContractAt("MadByte", await factory.lookup("MadByte"));
+  let tx = await factory.connect(adminSigner).callAny(madByte.address, 0, input)
+  await tx.wait()
+  let receipt = await ethers.provider.getTransactionReceipt(tx.hash)
+  console.log(receipt)
+  let intrface = new ethers.utils.Interface([
+    "event DepositReceived(uint256 indexed depositID, uint8 indexed accountType, address indexed depositor, uint256 amount)",
+  ]);
+  let data = receipt.logs[0].data;
+  let topics = receipt.logs[0].topics;
+  let event = intrface.decodeEventLog("DepositReceived", data, topics);
+  console.log(event)
 })
 
 // task("deployFactory", "Deploys an instance of a factory contract specified by its name")
@@ -153,7 +176,7 @@ task("ethdkgInput", "calculate the initializeETHDKG selector")
 //   .addOptionalParam("initCallData", "call data used to initialize initializable contracts")
 //   .addOptionalVariadicPositionalParam("constructorArgs", "array that holds all arguements for constructor")
 //   .setAction(async (taskArgs, hre) => {
-//     let factoryData = await getFactoryData(taskArgs);  
+//     let factoryData = await getFactoryData(taskArgs);
 //     //uses the factory Data and logic contractName and returns deploybytecode and any constructor args attached
 //     let callArgs:DeployArgs = await getDeployTemplateArgs(taskArgs);
 //     //deploy create the logic contract
@@ -174,8 +197,8 @@ task("ethdkgInput", "calculate the initializeETHDKG selector")
 //     let factoryData = await getFactoryData(taskArgs);
 //     let MadnetFactory = await hre.artifacts.require("MadnetFactory");
 //     //get logic contract interface
- 
-    
+
+
 //     let logicContract:ContractFactory = await hre.ethers.getContractFactory(taskArgs.contractName);
 //     //encode deployBcode
 //     let deployTx = logicContract.getDeployTransaction(...taskArgs.constructorArgs)
@@ -188,7 +211,7 @@ task("ethdkgInput", "calculate the initializeETHDKG selector")
 //       name: taskArgs.contractName,
 //       address: await getEventVar(txResponse, DEPLOYED_RAW, CONTRACT_ADDR),
 //       factoryAddress: factoryData.address,
-//       gas: txResponse["receipt"]["gasUsed"], 
+//       gas: txResponse["receipt"]["gasUsed"],
 //       constructorArgs: taskArgs?.constructorArgs,
 //     };
 //     await updateDeployCreateList(deployCreateData);
@@ -233,7 +256,7 @@ task("ethdkgInput", "calculate the initializeETHDKG selector")
 //   .addParam("factoryAddress", "factory deploying the contract")
 //   .addOptionalVariadicPositionalParam("constructorArgs", "array that holds all arguements for constructor")
 //   .setAction(async (taskArgs, hre) => {
-    
+
 //     let factoryData = await getFactoryData(taskArgs);
 //     let MadnetFactory = await hre.artifacts.require(factoryData.name);
 //     let logicContract = await hre.ethers.getContractFactory(taskArgs.contractName);
@@ -248,8 +271,8 @@ task("ethdkgInput", "calculate the initializeETHDKG selector")
 //     //get a factory instance connected to the factory addr
 //     const factory = await MadnetFactory.at(factoryData.address);
 //     let txResponse = await factory.deployTemplate(deployBytecode);
-    
-    
+
+
 //     let templateData:TemplateData = {
 //       name: taskArgs.contractName,
 //       address: await getEventVar(txResponse, "DeployedTemplate", CONTRACT_ADDR),
@@ -305,7 +328,7 @@ task("ethdkgInput", "calculate the initializeETHDKG selector")
 //   .addParam("factoryAddress", "factory deploying the contract")
 //   .addParam("initCallData", "call data used to initialize initializable contracts")
 //   .setAction(async (taskArgs, hre) => {
-//     let gas = 0; 
+//     let gas = 0;
 //     let factoryData = await getFactoryData(taskArgs);
 //     //get factory contract artifact object, a truffle contract object
 //     let MadnetFactory = await hre.artifacts.require(factoryData.name);
@@ -458,7 +481,7 @@ task("ethdkgInput", "calculate the initializeETHDKG selector")
 // }
 
 // async function getAccounts(hre: HardhatRuntimeEnvironment){
-//   let signers = await hre.ethers.getSigners();  
+//   let signers = await hre.ethers.getSigners();
 //   let accounts: string[] = [];
 //   for (let signer of signers){
 //       accounts.push(signer.address)
@@ -522,7 +545,7 @@ task("ethdkgInput", "calculate the initializeETHDKG selector")
 //     let salt:string = ""
 //     if (buildInfo !== undefined){
 //       let path = extractPath(qualifiedName)
-//       contractOutput = buildInfo.output.contracts[path][contractName] 
+//       contractOutput = buildInfo.output.contracts[path][contractName]
 //       devdoc = contractOutput.devdoc
 //       salt = devdoc["custom:salt"];
 //       return salt
@@ -530,7 +553,7 @@ task("ethdkgInput", "calculate the initializeETHDKG selector")
 //       console.error("missing salt");
 //     }
 //     return salt
-    
+
 // }
 
 // /**

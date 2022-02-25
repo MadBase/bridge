@@ -56,10 +56,5 @@ abstract contract ETHDKGStorage is Initializable, ImmutableFactory, ImmutableSna
     mapping(address => Participant) internal _participants;
 
     constructor() ImmutableFactory(msg.sender) ImmutableSnapshots() ImmutableValidatorPool() {
-        // _factory = msg.sender;
-        // bytes32("Snapshots") = 0x536e617073686f74730000000000000000000000000000000000000000000000;
-        // _snapshots = ISnapshots(getMetamorphicContractAddress(0x536e617073686f74730000000000000000000000000000000000000000000000, _factory));
-        // bytes32("ValidatorPool") = 0x56616c696461746f72506f6f6c00000000000000000000000000000000000000;
-        // _validatorPool = IValidatorPool(getMetamorphicContractAddress(0x56616c696461746f72506f6f6c00000000000000000000000000000000000000, _factory));
     }
 }

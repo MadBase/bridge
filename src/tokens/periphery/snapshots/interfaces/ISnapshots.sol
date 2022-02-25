@@ -6,7 +6,6 @@ import "../../../../parsers/BClaimsParserLibrary.sol";
 struct Snapshot {
     uint256 committedAt;
     BClaimsParserLibrary.BClaims blockClaims;
-    uint256[2] signature;
 }
 
 interface ISnapshots {
@@ -15,7 +14,8 @@ interface ISnapshots {
         uint256 indexed epoch,
         uint256 height,
         address indexed validator,
-        bool isSafeToProceedConsensus
+        bool isSafeToProceedConsensus,
+        bytes signatureRaw
     );
 
     function setSnapshotDesperationDelay(uint32 desperationDelay_) external;
@@ -45,13 +45,6 @@ interface ISnapshots {
         external
         view
         returns (BClaimsParserLibrary.BClaims memory);
-
-    function getSignatureFromSnapshot(uint256 epoch_)
-        external
-        view
-        returns (uint256[2] memory);
-
-    function getSignatureFromLatestSnapshot() external view returns (uint256[2] memory);
 
     function getCommittedHeightFromSnapshot(uint256 epoch_) external view returns (uint256);
 

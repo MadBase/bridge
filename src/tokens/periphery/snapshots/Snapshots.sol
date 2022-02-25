@@ -79,14 +79,6 @@ contract Snapshots is Initializable, SnapshotsStorage, ISnapshots {
         return _snapshots[_epoch].blockClaims;
     }
 
-    function getSignatureFromSnapshot(uint256 epoch_) public view returns (uint256[2] memory) {
-        return _snapshots[epoch_].signature;
-    }
-
-    function getSignatureFromLatestSnapshot() public view returns (uint256[2] memory) {
-        return _snapshots[_epoch].signature;
-    }
-
     function getCommittedHeightFromSnapshot(uint256 epoch_) public view returns (uint256) {
         return _snapshots[epoch_].committedAt;
     }
@@ -161,19 +153,21 @@ contract Snapshots is Initializable, SnapshotsStorage, ISnapshots {
         );
         */
 
-        (uint256[4] memory masterPublicKey, uint256[2] memory signature) = RCertParserLibrary
-            .extractSigGroup(groupSignature_, 0);
+        {
+            (uint256[4] memory masterPublicKey, uint256[2] memory signature) = RCertParserLibrary
+                .extractSigGroup(groupSignature_, 0);
 
-        require(
-            keccak256(abi.encodePacked(masterPublicKey)) ==
-                keccak256(abi.encodePacked(IETHDKG(_ETHDKGAddress()).getMasterPublicKey())),
-            "Snapshots: Wrong master public key!"
-        );
+            require(
+                keccak256(abi.encodePacked(masterPublicKey)) ==
+                    keccak256(abi.encodePacked(IETHDKG(_ETHDKGAddress()).getMasterPublicKey())),
+                "Snapshots: Wrong master public key!"
+            );
 
-        require(
-            CryptoLibrary.Verify(abi.encodePacked(keccak256(bClaims_)), signature, masterPublicKey),
-            "Snapshots: Signature verification failed!"
-        );
+            require(
+                CryptoLibrary.Verify(abi.encodePacked(keccak256(bClaims_)), signature, masterPublicKey),
+                "Snapshots: Signature verification failed!"
+            );
+        }
 
         BClaimsParserLibrary.BClaims memory blockClaims = BClaimsParserLibrary.extractBClaims(
             bClaims_
@@ -192,7 +186,7 @@ contract Snapshots is Initializable, SnapshotsStorage, ISnapshots {
             IValidatorPool(_ValidatorPoolAddress()).pauseConsensus();
         }
 
-        _snapshots[epoch] = Snapshot(block.number, blockClaims, signature);
+        _snapshots[epoch] = Snapshot(block.number, blockClaims);
         _epoch = epoch;
 
         emit SnapshotTaken(
@@ -200,7 +194,8 @@ contract Snapshots is Initializable, SnapshotsStorage, ISnapshots {
             epoch,
             blockClaims.height,
             msg.sender,
-            isSafeToProceedConsensus
+            isSafeToProceedConsensus,
+            groupSignature_
         );
         return isSafeToProceedConsensus;
     }

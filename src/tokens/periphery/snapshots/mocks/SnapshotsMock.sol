@@ -85,18 +85,6 @@ contract SnapshotsMock is ISnapshots {
         return _snapshots[_epoch].blockClaims;
     }
 
-    function getSignatureFromSnapshot(uint256 epoch_)
-        public
-        view
-        returns (uint256[2] memory)
-    {
-        return _snapshots[epoch_].signature;
-    }
-
-    function getSignatureFromLatestSnapshot() public view returns (uint256[2] memory) {
-        return _snapshots[_epoch].signature;
-    }
-
     function getCommittedHeightFromSnapshot(uint256 epoch_) public view returns (uint256) {
         return _snapshots[epoch_].committedAt;
     }
