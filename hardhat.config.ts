@@ -1,7 +1,6 @@
 import "@typechain/hardhat";
 import "hardhat-deploy";
 import "@nomiclabs/hardhat-ethers";
-import "@openzeppelin/hardhat-upgrades";
 import { HardhatUserConfig, task } from "hardhat/config";
 import "@nomiclabs/hardhat-waffle";
 import "hardhat-contract-sizer";
@@ -46,16 +45,8 @@ const config: HardhatUserConfig = {
     dev:{
       url: "http://127.0.0.1:8545",
       gas: "auto",
-      gasPrice: 1000000,
-      //gasMultiplier: 2,
-      //gasPrice: "auto",
-    },
-    dev_deploy:{
-      url: "http://127.0.0.1:8545",
-      gas: "auto",
-      //gasPrice: 1000000,
-      //gasMultiplier: 2,
-      gasPrice: "auto",
+      gasPrice: 1000000000,
+      accounts: "remote"
     },
     ganache:{
       url: "http://127.0.0.1:8545"

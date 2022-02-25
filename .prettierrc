@@ -9,7 +9,7 @@
         "singleQuote": false,
         "bracketSpacing": false,
         "explicitTypes": "always",
-        "compiler": "0.8.9"
+        "compiler": "^0.8.11"
       }
     }
   ]

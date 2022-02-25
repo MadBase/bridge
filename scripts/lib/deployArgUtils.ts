@@ -1,51 +1,47 @@
 import fs from "fs";
 import { env } from "./constants";
-import { getDefaultFactoryAddress } from "./factoryStateUtils";
 export interface DeployArgs {
-    [key: string]: any
+  [key: string]: any;
 }
 
 export async function readDeploymentArgs() {
-    //this output object allows dynamic addition of fields 
-    let output: DeployArgs = {};
-    let rawData = fs.readFileSync(`./deployments/${env}/deploymentArgs.json`);
-    output = await JSON.parse(rawData.toString("utf8"));
-    return output;
+  //this output object allows dynamic addition of fields
+  let output: DeployArgs = {};
+  let rawData = fs.readFileSync(`./deployments/${env()}/deploymentArgs.json`);
+  output = await JSON.parse(rawData.toString("utf8"));
+  return output;
 }
 
-export async function getDeploymentConstructorArgs(fullName:string){
-    let output:Array<string> = [];
-    //get the deployment args
-    let deploymentArgs:DeployArgs = await readDeploymentArgs();
-    let args = deploymentArgs.constructorArgs[fullName]
-    if(args !== undefined){
-        for(let arg of args){
-            let name:string = Object.keys(arg)[0];
-            output.push(arg[name]);
-        }
-    } else {
-        output = [];
+export async function getDeploymentConstructorArgs(fullName: string) {
+  let output: Array<string> = [];
+  //get the deployment args
+  let deploymentArgs: DeployArgs = await readDeploymentArgs();
+  let args = deploymentArgs.constructorArgs[fullName];
+  if (args !== undefined) {
+    for (let arg of args) {
+      let name: string = Object.keys(arg)[0];
+      output.push(arg[name]);
     }
-    return output;
-} 
-
-export async function getDeploymentInitializerArgs(fullName:string){
-    let output:Array<any> = [];
-    //get the deployment args
-    let deploymentArgs:DeployArgs = await readDeploymentArgs();
-    console.log(fullName, deploymentArgs.initializerArgs[fullName])
-    let args = deploymentArgs.initializerArgs[fullName]
-    console.log("args", args)
-    if(args !== undefined){
-        for(let arg of args){
-            let name:string = Object.keys(arg)[0];
-            output.push(arg[name]);
-        }
-    } else {
-        output = [];
-    }
-    return output;
+  } else {
+    output = [];
+  }
+  return output;
 }
 
-
-
+export async function getDeploymentInitializerArgs(fullName: string) {
+  let output: Array<any> = [];
+  //get the deployment args
+  let deploymentArgs: DeployArgs = await readDeploymentArgs();
+  console.log(fullName, deploymentArgs.initializerArgs[fullName]);
+  let args = deploymentArgs.initializerArgs[fullName];
+  console.log("args", args);
+  if (args !== undefined) {
+    for (let arg of args) {
+      let name: string = Object.keys(arg)[0];
+      output.push(arg[name]);
+    }
+  } else {
+    output = [];
+  }
+  return output;
+}

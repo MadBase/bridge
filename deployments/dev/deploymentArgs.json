@@ -1,0 +1,48 @@
+{
+  "constructorArgs": {
+    "src/factory/MadnetFactory.sol:MadnetFactory": [
+      {
+        "selfAddr_": "0x0b1F9c2b7bED6Db83295c7B5158E3806d67eC5bc",
+        "type": "address"
+      }
+    ],
+    "src/tokens/periphery/snapshots/Snapshots.sol:Snapshots": [
+      {
+        "chainID_": "42",
+        "type": "uint256"
+      },
+      {
+        "epochLength_": "16",
+        "type": "uint256"
+      }
+    ]
+  },
+  "initializerArgs": {
+    "src/tokens/MadToken.sol:MadToken": [
+      {
+        "owner_": "0x546F99F244b7B58B855330AE0E2BC1b30b41302F",
+        "type": "address"
+      }
+    ],
+    "src/tokens/periphery/ethdkg/ETHDKG.sol:ETHDKG": [
+      {
+        "phaseLength_": "12",
+        "type": "uint256"
+      },
+      {
+        "confirmationLength_": "3",
+        "type": "uint256"
+      }
+    ],
+    "src/tokens/periphery/snapshots/Snapshots.sol:Snapshots": [
+      {
+        "desperationDelay_": "10",
+        "type": "uint32"
+      },
+      {
+        "desperationFactor_": "40",
+        "type": "uint32"
+      }
+    ]
+  }
+}

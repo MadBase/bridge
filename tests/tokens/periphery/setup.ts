@@ -330,7 +330,9 @@ export const getFixture = async (
   // ETHDKG
   const ethdkg = (await deployUpgradeableWithFactory(
     factory,
-    "ETHDKG"
+    "ETHDKG",
+    "ETHDKG",
+    [40, 6]
   )) as ETHDKG;
 
   let snapshots;
