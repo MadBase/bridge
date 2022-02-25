@@ -2,6 +2,8 @@
 pragma solidity ^0.8.11;
 import "../utils/DeterministicAddress.sol";
 import "../proxy/Proxy.sol";
+import "../proxy/ProxyUpgrader.sol";
+import "../proxy/IProxy.sol";
 
 abstract contract MadnetFactoryBase is DeterministicAddress, ProxyUpgrader {
     /**

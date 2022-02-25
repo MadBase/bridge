@@ -3,11 +3,6 @@ pragma solidity ^0.8.11;
 
 import "../utils/DeterministicAddress.sol";
 
-
-
-interface IProxy {
-    function getImplementationAddress() external view returns(address);
-}
 /**
 *@notice RUN OPTIMIZER OFF
  */
@@ -94,59 +89,3 @@ contract Proxy {
         }
     }
 }
-
-abstract contract ProxyUpgrader {
-    function __upgrade(address _proxy, address _newImpl) internal {
-        bytes memory cdata = abi.encodeWithSelector(0xca11c0de, _newImpl);
-        assembly {
-            if iszero(call(gas(), _proxy, 0, add(cdata, 0x20), mload(cdata), 0x00, 0x00)) {
-                let ptr := mload(0x40)
-                mstore(0x40, add(ptr, returndatasize()))
-                returndatacopy(ptr, 0x00, returndatasize())
-                revert(ptr, returndatasize())
-            }
-        }
-    }
-}
-
-abstract contract DeterministicAccessControl is DeterministicAddress {
-    modifier onlyContract(address _factory, bytes32 _salt) {
-        require(
-            msg.sender == DeterministicAddress.getMetamorphicContractAddress(_salt, _factory),
-            "notAuth"
-        );
-        _;
-    }
-}
-
-abstract contract ProxyInternalUpgradeLock {
-    function __lockImplementation() internal {
-        assembly {
-            let implSlot := not(0x00)
-            sstore(
-                implSlot,
-                or(
-                    0xca11c0de15dead10cced00000000000000000000000000000000000000000000,
-                    sload(implSlot)
-                )
-            )
-        }
-    }
-}
-
-abstract contract ProxyInternalUpgradeUnlock {
-    function __unlockImplementation() internal {
-        assembly {
-            let implSlot := not(0x00)
-            sstore(
-                implSlot,
-                and(
-                    0x000000000000000000000000ffffffffffffffffffffffffffffffffffffffff,
-                    sload(implSlot)
-                )
-            )
-        }
-    }
-}
-
-

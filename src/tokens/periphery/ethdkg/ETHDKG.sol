@@ -10,7 +10,7 @@ import "./ETHDKGStorage.sol";
 import "./utils/ETHDKGUtils.sol";
 import "../../../utils/ImmutableAuth.sol";
 
-import "../../../proxy/Proxy.sol";
+import "../../../proxy/IProxy.sol";
 
 /// @custom:salt ETHDKG
 /// @custom:deploy-type deployUpgradeable

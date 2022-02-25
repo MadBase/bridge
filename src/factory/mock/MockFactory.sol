@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT-open-group
 pragma solidity  ^0.8.11;
 import "../../utils/DeterministicAddress.sol";
-import "../../proxy/Proxy.sol";
+import "../../proxy/ProxyUpgrader.sol";
 contract MockFactory is DeterministicAddress, ProxyUpgrader {
 
     /**

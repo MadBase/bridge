@@ -49,13 +49,13 @@ describe("Madnet Contract Factory", () => {
     let cSize = await utilsContract.getCodeSize(factory.address);
     expect(cSize.toNumber()).to.be.greaterThan(0);
   });
-
+//delete
   it("deploy mock", async () => {
     let mock = await mockBase.new(2, "s");
     let size = await utilsContract.getCodeSize(mock.address);
     expect(size.toNumber()).to.be.greaterThan(0);
   });
-
+//delete
   it("deploy endpoint", async () => {
     let endPoint = await endPointBase.new(factory.address);
     let size = await utilsContract.getCodeSize(endPoint.address);
@@ -150,7 +150,7 @@ describe("Madnet Contract Factory", () => {
     checkMockInit(mockInitAddr, 2);
   });
 
-  it("deployproxy expect success", async () => {
+  it("deployproxy", async () => {
     let proxySalt = getSalt();
     //the calculated proxy address
     const expectedProxyAddr = getMetamorphicAddress(factory.address, proxySalt);
@@ -361,5 +361,66 @@ describe("Madnet Contract Factory", () => {
     expectTxSuccess(receipt);
     owner = await factory.owner();
     expect(owner).to.equal(accounts[0]);
+  });
+
+  it("upgrade proxy through factory", async () => {
+    let factory = await deployFactory(MADNET_FACTORY);
+    let endPointLockableFactory = await ethers.getContractFactory("EndPointLockable");
+    let endPointLockable = await endPointLockableFactory.deploy(factory.address);
+    let salt = getSalt();
+    let expectedProxyAddr = getMetamorphicAddress(factory.address, salt);
+    let txResponse = await factory.deployProxy(salt);
+    expectTxSuccess(txResponse);
+    let proxyAddr = await getEventVar(txResponse, DEPLOYED_PROXY, CONTRACT_ADDR);
+    expect(proxyAddr).to.equal(expectedProxyAddr);
+    txResponse = await factory.upgradeProxy(salt, endPointLockable.address, "0x");
+    expectTxSuccess(txResponse);
+    let proxyFactory = await ethers.getContractFactory("Proxy");
+    let proxyContract = proxyFactory.attach(proxyAddr)
+    let proxyImplAddress = await proxyContract.callStatic.getImplementationAddress();
+    expect(proxyImplAddress).to.equal(endPointLockable.address);
+  });
+
+  it("lock proxy upgrade from factory", async () => {
+    let factory = await deployFactory(MADNET_FACTORY);
+    let endPointLockableFactory = await ethers.getContractFactory("EndPointLockable");
+    let endPointLockable = await endPointLockableFactory.deploy(factory.address);
+    let salt = getSalt();
+    let expectedProxyAddr = getMetamorphicAddress(factory.address, salt);
+    let txResponse = await factory.deployProxy(salt);
+    expectTxSuccess(txResponse);
+    let proxyAddr = await getEventVar(txResponse, DEPLOYED_PROXY, CONTRACT_ADDR);
+    expect(proxyAddr).to.equal(expectedProxyAddr);
+    txResponse = await factory.upgradeProxy(salt, endPointLockable.address, "0x");
+    expectTxSuccess(txResponse);
+    let proxyFactory = await ethers.getContractFactory("Proxy");
+    let proxyContract = proxyFactory.attach(proxyAddr)
+    let proxyImplAddress = await proxyContract.callStatic.getImplementationAddress();
+    expect(proxyImplAddress).to.equal(endPointLockable.address);
+  });
+
+  it("should prevent locked proxy logic from being upgraded from factory", async () => {
+    let factory = await deployFactory(MADNET_FACTORY);
+    let endPointFactory = await ethers.getContractFactory("EndPoint");
+    let endPoint = await endPointFactory.deploy(factory.address);
+    let endPointLockableFactory = await ethers.getContractFactory("EndPointLockable");
+    let endPointLockable = await endPointLockableFactory.deploy(factory.address);
+    let salt = getSalt();
+    let expectedProxyAddr = getMetamorphicAddress(factory.address, salt);
+    let txResponse = await factory.deployProxy(salt);
+    expectTxSuccess(txResponse);
+    let proxyAddr = await getEventVar(txResponse, DEPLOYED_PROXY, CONTRACT_ADDR);
+    expect(proxyAddr).to.equal(expectedProxyAddr);
+    txResponse = await factory.upgradeProxy(salt, endPointLockable.address, "0x");
+    expectTxSuccess(txResponse);
+    let proxyFactory = await ethers.getContractFactory("Proxy");
+    let proxy = proxyFactory.attach(proxyAddr)
+    let proxyImplAddress = await proxy.callStatic.getImplementationAddress();
+    expect(proxyImplAddress).to.equal(endPointLockable.address);
+    let proxyContract = endPointLockableFactory.attach(proxy.address);
+    let lockResponse = await proxyContract.upgradeLock();
+    let receipt = await lockResponse.wait();
+    expect(receipt.status).to.equal(1);
+    expect(factory.upgradeProxy(salt, endPoint.address, "0x"));
   });
 });

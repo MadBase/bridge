@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT-open-group
 pragma solidity ^0.8.11;
-import "../../../src/proxy/Proxy.sol";
-
+import "../../../src/proxy/ProxyInternalUpgradeLock.sol";
+import "../../../src/proxy/ProxyInternalUpgradeUnlock.sol";
 
 /// @custom:salt Mock
 contract Mock is ProxyInternalUpgradeLock, ProxyInternalUpgradeUnlock {

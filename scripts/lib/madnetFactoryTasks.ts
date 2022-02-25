@@ -150,7 +150,7 @@ subtask("upgradeDeployedProxy", "deploys a contract from the factory using creat
     let lcInstance = hre.artifacts.require(taskArgs.contractName);
     let logicContract:any = await hre.ethers.getContractFactory(taskArgs.contractName);
     const factory = await MadnetFactory.at(factoryData.address);
-    let txResponse = await factory.upgradeProxy(Salt, taskArgs.newLogicAddress, taskArgs.initCallData);
+    let txResponse = await factory.upgradeProxy(Salt, taskArgs.logicAddress, taskArgs.initCallData);
     //Data to return to the main task
     let proxyData:ProxyData = {
       proxyAddress: getMetamorphicAddress(factoryData.address, Salt, hre),
