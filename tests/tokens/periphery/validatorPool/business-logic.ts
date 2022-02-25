@@ -39,6 +39,9 @@ describe("Testing ValidatorPool Business Logic ", () => {
 
 
   interface state {
+    Admin: {
+      StakeNFT: number | null, ValidatorNFT: number, MAD: number, ETH: number
+    },
     StakeNFT: {
       StakeNFT: number, ValidatorNFT: number, MAD: number, ETH: number
     },
@@ -48,6 +51,10 @@ describe("Testing ValidatorPool Business Logic ", () => {
     ValidatorPool: {
       StakeNFT: number, ValidatorNFT: number, MAD: number, ETH: number
     },
+    Factory: {
+      StakeNFT: number, ValidatorNFT: number, MAD: number, ETH: number
+    },
+
     validators: [
       { NFT: number, MAD: number, ETH: number },
       { NFT: number, MAD: number, ETH: number },
@@ -62,7 +69,6 @@ describe("Testing ValidatorPool Business Logic ", () => {
     const [admin, notAdmin1, notAdmin2, notAdmin3, notAdmin4] =
       fixture.namedSigners
     adminSigner = await getValidatorEthAccount(admin.address)
-    console.log(await fixture.madToken.balanceOf(await adminSigner.getAddress()))
 
     await createValidators(validatorsSnapshots)
     await stakeValidators(validatorsSnapshots)
@@ -235,11 +241,10 @@ describe("Testing ValidatorPool Business Logic ", () => {
     })
 
     it("Should not allow registering validators if the STAKENFT position was not given permissions for the ValidatorPool contract burn it", async function () {
-      for (const validator of validatorsSnapshots) {
+      for (const tokenID of stakingTokenIds) {
         //Disallow validatorPool to withdraw validator's NFT from StakeNFT
-        await fixture.stakeNFT.
-          connect(await getValidatorEthAccount(validator)).
-          setApprovalForAll(fixture.validatorPool.address, false);
+        await factoryCallAny(fixture, "stakeNFT",
+          "approve", [dummyAddress, tokenID])
       }
       await expect(
         factoryCallAny(fixture, "validatorPool",
@@ -273,17 +278,19 @@ describe("Testing ValidatorPool Business Logic ", () => {
         factoryCallAny(fixture, "validatorPool",
           "unregisterValidators", [validators])
       showState("after un-registering", await getCurrentState())
+      await createValidators(validatorsSnapshots)
+      await stakeValidators(validatorsSnapshots)
       await expect(
         factoryCallAny(fixture, "validatorPool",
           "registerValidators", [validators, stakingTokenIds]))
         .to.be.revertedWith("ValidatorPool: Address is already a validator or it is in the exiting line!")
     })
 
-    it.only("Should successfully register validators if all conditions are met", async function () {
+    it("Should successfully register validators if all conditions are met", async function () {
       let expectedState: state = await getCurrentState()
       //Expect that NFTs are transferred from each validator to ValidatorPool sd ValidatorNFTs
       validators.map((element, index) => {
-        expectedState.validators[index].NFT--
+        expectedState.Factory.StakeNFT--
         expectedState.ValidatorPool.ValidatorNFT++
       })
       //Expect that all validators funds are transferred from StakeNFT to ValidatorNFT
@@ -294,6 +301,9 @@ describe("Testing ValidatorPool Business Logic ", () => {
         "registerValidators", [validators, stakingTokenIds])
       let currentState: state = await getCurrentState()
       await showState("after registering", currentState)
+      await showState("Expected state after claiming exiting NFT position", expectedState)
+      await showState("Current state after claiming exiting NFT position", currentState)
+
       expect(currentState).
         to.be.deep.equal(expectedState)
     });
@@ -318,7 +328,6 @@ describe("Testing ValidatorPool Business Logic ", () => {
       await showState("after registering", currentState)
       // Original Validators has all the validators not only the maximun to register
       // Position 5 is not a register validator
-      console.log(originalValidatorsSnapshots)
       await expect(fixture.validatorPool.
         connect(adminSigner).
         setLocation("1.1.1.1"))
@@ -380,6 +389,8 @@ describe("Testing ValidatorPool Business Logic ", () => {
         factoryCallAny(fixture, "validatorPool",
           "unregisterValidators", [validators])
       showState("after un-registering", await getCurrentState())
+      await createValidators(validatorsSnapshots)
+      await stakeValidators(validatorsSnapshots)
       await expect(
         factoryCallAny(fixture, "validatorPool",
           "registerValidators", [validators, stakingTokenIds]))
@@ -387,20 +398,21 @@ describe("Testing ValidatorPool Business Logic ", () => {
     })
 
     it("Should successfully unregister validators if all conditions are met", async function () {
-
       let expectedState: state = await getCurrentState()
-      //Expect that NFT are transferred from validators to ValidatorPool and then back to Staking
+      //Expect that NFT are transferred from ValidatorPool to Factory
       validators.map((element, index) => {
-        expectedState.validators[index].NFT--
         expectedState.ValidatorPool.StakeNFT++
+        expectedState.Factory.StakeNFT--
       })
-      await showState("Expected state after registering/un-registering", expectedState)
       await factoryCallAny(fixture, "validatorPool",
         "registerValidators", [validators, stakingTokenIds])
       //  await showState("Current state after registering", await getCurrentState())
+      await showState("after registering", expectedState)
       await factoryCallAny(fixture, "validatorPool",
         "unregisterValidators", [validators])
+      await showState("after unregistering", expectedState)
       let currentState: state = await getCurrentState()
+      await showState("Expected state after registering/un-registering", expectedState)
       await showState("Current state after registering/un-registering", currentState)
       expect(currentState).
         to.be.deep.equal(expectedState)
@@ -410,21 +422,21 @@ describe("Testing ValidatorPool Business Logic ", () => {
       let expectedState: state = await getCurrentState()
       //Expect that NFT are transferred to ValidatorPool as StakeNFTs
       validators.map((element, index) => {
-        expectedState.validators[index].NFT--
         expectedState.ValidatorPool.StakeNFT++
+        expectedState.Factory.StakeNFT--
       })
-      await showState("Expected state after unregister all validators", expectedState)
       await factoryCallAny(fixture, "validatorPool",
         "registerValidators", [validators, stakingTokenIds])
       await factoryCallAny(fixture, "validatorPool",
         "unregisterAllValidators")
       let currentState: state = await getCurrentState()
       await showState("Expected state after unregister all validators", currentState)
+      await showState("Expected state after unregister all validators", expectedState)
       expect(currentState).
         to.be.deep.equal(expectedState)
-      await expect(
+      expect((await
         fixture.validatorPool
-          .isAccusable(validatorsSnapshots[0].address)
+          .isAccusable(validatorsSnapshots[0].address))
       ).to.be.true
     });
 
@@ -434,6 +446,10 @@ describe("Testing ValidatorPool Business Logic ", () => {
     it("Should successfully claim exiting NFT positions of all validators", async function () {
       //As this is a complete cycle, expect the initial state to be exactly the same as the final state
       let expectedState: state = await getCurrentState()
+      validators.map((element, index) => {
+        expectedState.Factory.StakeNFT--
+        expectedState.validators[index].NFT++
+      })
       await factoryCallAny(fixture, "validatorPool",
         "registerValidators", [validators, stakingTokenIds])
       await factoryCallAny(fixture, "validatorPool",
@@ -456,6 +472,13 @@ describe("Testing ValidatorPool Business Logic ", () => {
     it("After claiming, register the user again with a new stakenft position.", async function () {
       //As this is a complete cycle, expect the initial state to be exactly the same as the final state
       let expectedState: state = await getCurrentState()
+      validators.map((element, index) => {
+        expectedState.Factory.StakeNFT--
+        expectedState.validators[index].NFT++
+        //New Staking
+        expectedState.ValidatorPool.ValidatorNFT++
+        expectedState.Admin.MAD -= stakeAmount
+      })
       await factoryCallAny(fixture, "validatorPool",
         "registerValidators", [validators, stakingTokenIds])
       await factoryCallAny(fixture, "validatorPool",
@@ -468,6 +491,8 @@ describe("Testing ValidatorPool Business Logic ", () => {
         // await factoryCallAny(fixture, "validatorPool",
         // "claimExitingNFTPosition")
       }
+      await showState("After claiming:", await getCurrentState())
+      //Re-initialize validators
       await createValidators(validatorsSnapshots)
       await stakeValidators(validatorsSnapshots)
       await factoryCallAny(fixture, "validatorPool",
@@ -481,11 +506,7 @@ describe("Testing ValidatorPool Business Logic ", () => {
         to.be.deep.equal(expectedState)
     })
 
-
-  })
-  describe("Collecting:", async function () {
-
-    it("Should not allow users to claim stakenft position before claim period has passed", async function () {
+    xit("Should not allow users to claim stakenft position before claim period has passed", async function () {
       await factoryCallAny(fixture, "validatorPool",
         "registerValidators", [validators, stakingTokenIds])
       await factoryCallAny(fixture, "validatorPool",
@@ -501,6 +522,7 @@ describe("Testing ValidatorPool Business Logic ", () => {
         const tokenId = BigNumber.from(receipt.logs[0].topics[3])
         stakingTokenIds.push(tokenId)
       }
+      await showState("After claiming:", await getCurrentState())
       // After claiming, position is locked for a period of 172800 Madnet epochs
       // To perform this test with no revert, POSITION_LOCK_PERIOD can be set to 3
       // in ValidatorPool and then take 4 snapshots
@@ -511,12 +533,15 @@ describe("Testing ValidatorPool Business Logic ", () => {
         .to.be.revertedWith("StakeNFT: The position is not ready to be burned!")
     })
 
-    it("Should successfully collect profit of validators", async function () {
+  })
+  describe("Collecting:", async function () {
 
+    it("Should successfully collect profit of validators", async function () {
       await factoryCallAny(fixture, "validatorPool",
         "registerValidators", [validators, stakingTokenIds])
       let expectedState: state = await getCurrentState()
-      //Simulate 4 ETH earned by pool after validators registration
+      //Simulate 4 ETH from admin earned by pool after validators registration
+      expectedState.Admin.ETH -= 4
       await fixture.validatorNFT
         .connect(adminSigner)
         .depositEth(42, {
@@ -525,6 +550,7 @@ describe("Testing ValidatorPool Business Logic ", () => {
       //Expect ValidatorNFT balance to increment by earnings
       expectedState.ValidatorNFT.ETH += 4
       // Complete ETHDKG Round
+      await showState("After deposit:", expectedState)
       await factoryCallAny(fixture, "validatorPool",
         "initializeETHDKG")
       await completeETHDKGRound(validatorsSnapshots, {
@@ -551,7 +577,7 @@ describe("Testing ValidatorPool Business Logic ", () => {
       let expectedState: state = await getCurrentState()
       // Complete ETHDKG Round
 
-    await factoryCallAnyFrom(fixture, "ethdkg", "validatorPool",
+      await factoryCallAnyFrom(fixture, "ethdkg", "validatorPool",
         "minorSlash", [validators[0], validators[1]])
     })
 
@@ -570,6 +596,9 @@ describe("Testing ValidatorPool Business Logic ", () => {
   async function getCurrentState() {
     // System state
     let state: state = {
+      Admin: {
+        StakeNFT: null, ValidatorNFT: 0, MAD: 0, ETH: 0
+      },
       StakeNFT: {
         StakeNFT: 0, ValidatorNFT: 0, MAD: 0, ETH: 0
       },
@@ -579,6 +608,9 @@ describe("Testing ValidatorPool Business Logic ", () => {
       ValidatorPool: {
         StakeNFT: 0, ValidatorNFT: 0, MAD: 0, ETH: 0
       },
+      Factory: {
+        StakeNFT: 0, ValidatorNFT: 0, MAD: 0, ETH: 0
+      },
       validators: [
         { NFT: 0, MAD: 0, ETH: 0 },
         { NFT: 0, MAD: 0, ETH: 0 },
@@ -586,6 +618,15 @@ describe("Testing ValidatorPool Business Logic ", () => {
         { NFT: 0, MAD: 0, ETH: 0 },
       ],
     }
+    // Get state for admin
+    state.Admin.StakeNFT = parseFloat((await fixture.stakeNFT.balanceOf(
+      await adminSigner.getAddress())).toString())
+    state.Admin.ValidatorNFT = parseFloat((await fixture.validatorNFT.balanceOf(
+      await adminSigner.getAddress())).toString())
+    state.Admin.MAD = parseFloat(ethers.utils.formatEther(await fixture.madToken.balanceOf(
+      await adminSigner.getAddress())))
+    state.Admin.ETH = parseFloat((+ethers.utils.formatEther(await ethers.provider.getBalance(
+      await adminSigner.getAddress()))).toFixed(0))
     // Get state for validators
     for (let i = 0; i < state.validators.length; i++) {
       state.validators[i].NFT = parseFloat((await fixture.stakeNFT.balanceOf(
@@ -599,6 +640,7 @@ describe("Testing ValidatorPool Business Logic ", () => {
       { contractState: state.StakeNFT, contractAddress: fixture.stakeNFT.address },
       { contractState: state.ValidatorNFT, contractAddress: fixture.validatorNFT.address },
       { contractState: state.ValidatorPool, contractAddress: fixture.validatorPool.address },
+      { contractState: state.Factory, contractAddress: fixture.factory.address },
     ]
     // Get state for contracts
     for (let i = 0; i < contractData.length; i++) {
@@ -627,19 +669,16 @@ describe("Testing ValidatorPool Business Logic ", () => {
     await fixture.madToken.
       approve(fixture.validatorPool.address,
         stakeAmountMadWei.mul(_validatorsSnapshots.length));
-        console.log(await adminSigner.getAddress())
-        for (const validator of _validatorsSnapshots) {
-        validators.push(validator.address)
-        //Send MAD tokens to each validator
-        // await fixture.madToken.
-        //   transfer(validator.address, stakeAmountMadWei);
-        // Approve to Stake all MAD tokens
-      }
-        await fixture.madToken.
+    for (const validator of _validatorsSnapshots) {
+      await getValidatorEthAccount(validator)
+      validators.push(validator.address)
+      // //Send MAD tokens to each validator
+      // await fixture.madToken.
+      //   transfer(validator.address, stakeAmountMadWei);
+    }
+    await fixture.madToken.
       connect(adminSigner).
       approve(fixture.stakeNFT.address, stakeAmountMadWei.mul(_validatorsSnapshots.length));
-      console.log(await fixture.madToken.allowance(await adminSigner.getAddress(),fixture.stakeNFT.address))
-
     await showState("After creating:", await getCurrentState())
   }
 
@@ -649,7 +688,7 @@ describe("Testing ValidatorPool Business Logic ", () => {
       // Stake all MAD tokens
       let tx = await fixture.stakeNFT.
         connect(adminSigner).
-        mintTo(fixture.factory.address,stakeAmountMadWei,lockTime);
+        mintTo(fixture.factory.address, stakeAmountMadWei, lockTime);
       // Get the proof of staking (NFT's tokenID)
       let tokenID = await getTokenIdFromTx(tx)
       stakingTokenIds.push(tokenID);
@@ -658,10 +697,8 @@ describe("Testing ValidatorPool Business Logic ", () => {
       //   connect(adminSigner).
       //   approve(fixture.validatorPool.address, tokenID);
 
-        await factoryCallAny(fixture, "stakeNFT",
+      await factoryCallAny(fixture, "stakeNFT",
         "approve", [fixture.validatorPool.address, tokenID])
-        console.log("approved",await fixture.stakeNFT.getApproved(tokenID))
-        console.log(fixture.validatorPool.address)
 
     }
     await showState("After staking:", await getCurrentState())
