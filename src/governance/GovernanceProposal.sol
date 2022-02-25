@@ -19,6 +19,7 @@ abstract contract GovernanceProposal is GovernanceStorage {
     /// address is required since address(this) will yield the GovernanceManager
     /// address instead of the address of deployed proposal contract.
     function execute(address self) public virtual returns(bool) {
+        self; //no-op to silence compiling warnings
         return callback();
     }
 

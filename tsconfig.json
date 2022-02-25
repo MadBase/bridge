@@ -17,6 +17,7 @@
     "./src/**/*",
     "./typechain-types/**/*",
     "**/*.ts",
+    "./decs.d.ts",
   ],
   "files": ["./hardhat.config.ts"]
 }

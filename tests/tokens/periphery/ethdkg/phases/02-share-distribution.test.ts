@@ -2,7 +2,6 @@ import { validators4 } from "../assets/4-validators-successful-case";
 import { ethers } from "hardhat";
 import { BigNumber } from "ethers";
 import {
-  getFixture,
   addValidators,
   initializeETHDKG,
   registerValidators,
@@ -10,17 +9,16 @@ import {
   distributeValidatorsShares,
   startAtDistributeShares,
   expect,
-  getValidatorEthAccount,
 } from "../setup";
+import { getFixture, getValidatorEthAccount } from "../../setup";
 
 describe("Distribute Shares", () => {
   it("does not let distribute shares before Distribute Share Phase is open", async function () {
-    const { ethdkg, validatorPool } = await getFixture();
+    const { ethdkg, validatorPool } = await getFixture(true);
 
     const expectedNonce = 1;
 
     // add validators
-    await validatorPool.setETHDKG(ethdkg.address);
     await addValidators(validatorPool, validators4);
 
     // start ETHDKG

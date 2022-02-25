@@ -4,6 +4,7 @@
   "rules": {
     "prettier/prettier": "error",
     "reason-string": ["warn", { "maxLength": 80 }],
-    "compiler-version": ["error", "^0.8.11"]
+    "compiler-version": "off",
+    "no-inline-assembly": "off"
   }
 }

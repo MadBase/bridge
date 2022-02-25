@@ -6,8 +6,8 @@ import {
   distributeValidatorsShares,
   startAtDistributeShares,
   expect,
-  getValidatorEthAccount,
 } from "../../setup";
+import { getValidatorEthAccount } from "../../../setup";
 
 describe("Missing distribute share accusation", () => {
   it("allows accusation of all missing validators after distribute shares Phase", async function () {

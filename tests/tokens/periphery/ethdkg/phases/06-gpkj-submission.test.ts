@@ -5,8 +5,8 @@ import {
   startAtGPKJ,
   submitValidatorsGPKJ,
   expect,
-  getValidatorEthAccount,
 } from "../setup";
+import { getValidatorEthAccount } from "../../setup";
 
 describe("GPKj submission", () => {
   it("should not allow GPKj submission outside of GPKjSubmission phase", async () => {
@@ -39,7 +39,7 @@ describe("GPKj submission", () => {
       validatorPool,
       validators4.slice(0, 1),
       expectedNonce,
-      1
+      0
     );
 
     await expect(
@@ -48,7 +48,7 @@ describe("GPKj submission", () => {
         validatorPool,
         validators4.slice(0, 1),
         expectedNonce,
-        1
+        0
       )
     ).to.be.revertedWith(
       "ETHDKG: Participant already submitted GPKj this ETHDKG round!"

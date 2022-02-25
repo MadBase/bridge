@@ -1,0 +1,17 @@
+{
+  "deployments": [
+    "src/factory/MadnetFactory.sol:MadnetFactory",
+    "src/tokens/Foundation.sol:Foundation",
+    "src/tokens/MadByte.sol:MadByte",
+    "src/tokens/MadToken.sol:MadToken",
+    "src/tokens/StakeNFT.sol:StakeNFT",
+    "src/tokens/StakeNFTLP.sol:StakeNFTLP",
+    "src/tokens/ValidatorNFT.sol:ValidatorNFT",
+    "src/tokens/periphery/ethdkg/ETHDKGAccusations.sol:ETHDKGAccusations",
+    "src/tokens/periphery/ethdkg/ETHDKGPhases.sol:ETHDKGPhases",
+    "src/tokens/periphery/ethdkg/ETHDKG.sol:ETHDKG",
+    "src/tokens/periphery/governance/Governance.sol:Governance",
+    "src/tokens/periphery/snapshots/Snapshots.sol:Snapshots",
+    "src/tokens/periphery/validatorPool/ValidatorPool.sol:ValidatorPool"
+  ]
+}

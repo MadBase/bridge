@@ -13,12 +13,11 @@ import {
   PLACEHOLDER_ADDRESS,
   submitValidatorsKeyShares,
   submitMasterPublicKey,
-  mineBlocks,
   submitValidatorsGPKJ,
   completeETHDKG,
-  getValidatorEthAccount,
 } from "../setup";
 import { BigNumberish } from "ethers";
+import { getValidatorEthAccount, mineBlocks } from "../../setup";
 
 describe("Dispute bad shares", () => {
 
@@ -83,7 +82,7 @@ describe("Dispute bad shares", () => {
     .to.be.revertedWith("ETHDKG: Dispute failed! Contract is not in dispute phase!")
 
     // submit GPKj
-    await submitValidatorsGPKJ(ethdkg, validatorPool, validators4, expectedNonce, 1)
+    await submitValidatorsGPKJ(ethdkg, validatorPool, validators4, expectedNonce, 0)
 
     await assertETHDKGPhase(ethdkg, Phase.DisputeGPKJSubmission)
 
@@ -98,7 +97,7 @@ describe("Dispute bad shares", () => {
     .to.be.revertedWith("ETHDKG: Dispute failed! Contract is not in dispute phase!")
 
     // complete ethdkg
-    await completeETHDKG(ethdkg, validators4, expectedNonce, 1, 1)
+    await completeETHDKG(ethdkg, validators4, expectedNonce, 0, 0)
 
     await assertETHDKGPhase(ethdkg, Phase.Completion)
 

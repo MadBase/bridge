@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT-open-group
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.11;
 
 interface INFTStake {
-    function accumulatorScaleFactor() external pure returns (uint256);
+    function getAccumulatorScaleFactor() external view returns (uint256);
 
     function getTotalShares() external view returns (uint256);
 
@@ -22,15 +22,19 @@ interface INFTStake {
 
     function skimExcessToken(address to_) external returns (uint256 excess);
 
+    function depositToken(uint8 magic_, uint256 amount_) external;
+
+    function depositEth(uint8 magic_) external payable;
+
     function lockPosition(
         address caller_,
         uint256 tokenID_,
         uint256 lockDuration_
-    ) external returns (uint256 numberShares);
+    ) external returns (uint256);
 
-    function lockWithdraw(uint256 tokenID_, uint256 lockDuration_)
-        external
-        returns (uint256 numberShares);
+    function lockOwnPosition(uint256 tokenID_, uint256 lockDuration_) external returns (uint256);
+
+    function lockWithdraw(uint256 tokenID_, uint256 lockDuration_) external returns (uint256);
 
     function mint(uint256 amount_) external returns (uint256 tokenID);
 

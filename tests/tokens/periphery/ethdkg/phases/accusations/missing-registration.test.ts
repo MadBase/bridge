@@ -1,7 +1,6 @@
 import { validators4 } from "../../assets/4-validators-successful-case";
 import { validators10 } from "../../assets/10-validators-successful-case";
 import {
-  getFixture,
   addValidators,
   initializeETHDKG,
   registerValidators,
@@ -10,17 +9,17 @@ import {
   Phase,
   endCurrentAccusationPhase,
   expect,
-  getValidatorEthAccount,
 } from "../../setup";
+import { getFixture, getValidatorEthAccount } from "../../../setup";
 
 describe("Missing registration Accusation", () => {
   it("allows accusation of all missing validators after ETHDKG registration", async function () {
-    const { ethdkg, validatorPool } = await getFixture();
+    const { ethdkg, validatorPool } = await getFixture(true);
 
     const expectedNonce = 1;
 
     // add validators
-    await validatorPool.setETHDKG(ethdkg.address);
+
     await addValidators(validatorPool, validators4);
 
     // start ETHDKG
@@ -55,12 +54,12 @@ describe("Missing registration Accusation", () => {
   });
 
   it("allows accusation of some missing validators after ETHDKG registration", async function () {
-    const { ethdkg, validatorPool } = await getFixture();
+    const { ethdkg, validatorPool } = await getFixture(true);
 
     const expectedNonce = 1;
 
     // add validators
-    await validatorPool.setETHDKG(ethdkg.address);
+
     await addValidators(validatorPool, validators4);
 
     // start ETHDKG
@@ -94,12 +93,12 @@ describe("Missing registration Accusation", () => {
   // MISSING REGISTRATION ACCUSATION TESTS
 
   it("won't let non-registration accusations to take place while ETHDKG registration is open", async function () {
-    const { ethdkg, validatorPool } = await getFixture();
+    const { ethdkg, validatorPool } = await getFixture(true);
 
     const expectedNonce = 1;
 
     // add validators
-    await validatorPool.setETHDKG(ethdkg.address);
+
     await addValidators(validatorPool, validators4);
 
     // start ETHDKG
@@ -123,12 +122,12 @@ describe("Missing registration Accusation", () => {
   });
 
   it("should not allow validators to proceed to next phase if 2 out of 4 did not register and the phase has finished", async function () {
-    const { ethdkg, validatorPool } = await getFixture();
+    const { ethdkg, validatorPool } = await getFixture(true);
 
     const expectedNonce = 1;
 
     // add validators
-    await validatorPool.setETHDKG(ethdkg.address);
+
     await addValidators(validatorPool, validators4);
 
     // start ETHDKG
@@ -158,12 +157,12 @@ describe("Missing registration Accusation", () => {
   });
 
   it("should not allow validators who did not register in time to register on the accusation phase", async function () {
-    const { ethdkg, validatorPool } = await getFixture();
+    const { ethdkg, validatorPool } = await getFixture(true);
 
     const expectedNonce = 1;
 
     // add validators
-    await validatorPool.setETHDKG(ethdkg.address);
+
     await addValidators(validatorPool, validators4);
 
     // start ETHDKG
@@ -187,11 +186,11 @@ describe("Missing registration Accusation", () => {
   });
 
   it("should not allow validators who did not register in time to distribute shares", async function () {
-    const { ethdkg, validatorPool } = await getFixture();
+    const { ethdkg, validatorPool } = await getFixture(true);
     const expectedNonce = 1;
 
     // add validators
-    await validatorPool.setETHDKG(ethdkg.address);
+
     await addValidators(validatorPool, validators4);
 
     // start ETHDKG
@@ -221,11 +220,11 @@ describe("Missing registration Accusation", () => {
   });
 
   it("should not allow accusation of validators that registered in ETHDKG", async function () {
-    const { ethdkg, validatorPool } = await getFixture();
+    const { ethdkg, validatorPool } = await getFixture(true);
     const expectedNonce = 1;
 
     // add validators
-    await validatorPool.setETHDKG(ethdkg.address);
+
     await addValidators(validatorPool, validators4);
 
     // start ETHDKG
@@ -253,11 +252,11 @@ describe("Missing registration Accusation", () => {
   });
 
   it("should not allow accusation of non-existent validators in ETHDKG", async function () {
-    const { ethdkg, validatorPool } = await getFixture();
+    const { ethdkg, validatorPool } = await getFixture(true);
     const expectedNonce = 1;
 
     // add validators
-    await validatorPool.setETHDKG(ethdkg.address);
+
     await addValidators(validatorPool, validators4);
 
     // start ETHDKG
@@ -285,11 +284,11 @@ describe("Missing registration Accusation", () => {
   });
 
   it("should not allow accusations after the accusation window", async function () {
-    const { ethdkg, validatorPool } = await getFixture();
+    const { ethdkg, validatorPool } = await getFixture(true);
     const expectedNonce = 1;
 
     // add validators
-    await validatorPool.setETHDKG(ethdkg.address);
+
     await addValidators(validatorPool, validators4);
 
     // start ETHDKG
@@ -320,11 +319,11 @@ describe("Missing registration Accusation", () => {
   });
 
   it("should not allow accusations of non-existent validators along with existent", async function () {
-    const { ethdkg, validatorPool } = await getFixture();
+    const { ethdkg, validatorPool } = await getFixture(true);
     const expectedNonce = 1;
 
     // add validators
-    await validatorPool.setETHDKG(ethdkg.address);
+
     await addValidators(validatorPool, validators4);
 
     // start ETHDKG
@@ -356,11 +355,11 @@ describe("Missing registration Accusation", () => {
   it("should not move to ShareDistribution phase when only 2 out of 4 validators have participated", async function () {
     // Accuse 1 participant that didn't participate and wait the window to expire and try to go to the next phase after accusation
 
-    const { ethdkg, validatorPool } = await getFixture();
+    const { ethdkg, validatorPool } = await getFixture(true);
     const expectedNonce = 1;
 
     // add validators
-    await validatorPool.setETHDKG(ethdkg.address);
+
     await addValidators(validatorPool, validators4);
 
     // start ETHDKG
@@ -399,18 +398,18 @@ describe("Missing registration Accusation", () => {
   });
 
   it("should move to ShareDistribution phase when all non-participant validators have been accused and #validators >= _minValidators", async function () {
-    const { ethdkg, validatorPool } = await getFixture();
+    const { ethdkg, validatorPool } = await getFixture(true);
     const expectedNonce = 1;
 
     // validator 11
     const validator11 = "0x23EA3Bad9115d436190851cF4C49C1032fA7579A";
 
     // add validators
-    await validatorPool.setETHDKG(ethdkg.address);
+
     await addValidators(validatorPool, validators10);
 
     // add validator 11
-    await validatorPool.addValidator(validator11);
+    await validatorPool.registerValidators([validator11], []);
     expect(await validatorPool.isValidator(validator11)).to.equal(true);
 
     // start ETHDKG
@@ -451,11 +450,11 @@ describe("Missing registration Accusation", () => {
   });
 
   it("should not allow double accusation for missing registration", async function () {
-    const { ethdkg, validatorPool } = await getFixture();
+    const { ethdkg, validatorPool } = await getFixture(true);
     const expectedNonce = 1;
 
     // add validators
-    await validatorPool.setETHDKG(ethdkg.address);
+
     await addValidators(validatorPool, validators4);
 
     // start ETHDKG

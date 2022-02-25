@@ -8,11 +8,9 @@ interface IETHDKG {
 
     function setConfirmationLength(uint16 confirmationLength_) external;
 
-    function setValidatorPoolAddress(address validatorPool) external;
+    function setCustomMadnetHeight(uint256 madnetHeight) external;
 
-    function setMinNumberOfValidator(uint16 minValidators_) external;
-
-    function isAccusationWindowOver() external view returns (bool);
+    function isETHDKGRunning() external view returns (bool);
 
     function isMasterPublicKeySet() external view returns (bool);
 
@@ -38,6 +36,8 @@ interface IETHDKG {
         returns (Participant memory);
 
     function getMasterPublicKey() external view returns (uint256[4] memory);
+
+    function tryGetParticipantIndex(address participant) external view returns(bool, uint256);
 
     function initializeETHDKG() external;
 

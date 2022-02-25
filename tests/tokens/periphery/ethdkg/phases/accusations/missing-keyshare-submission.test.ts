@@ -6,8 +6,8 @@ import {
   startAtSubmitKeyShares,
   expect,
   endCurrentAccusationPhase,
-  getValidatorEthAccount,
 } from "../../setup";
+import { getValidatorEthAccount } from "../../../setup";
 
 describe("Accuse participant of not submitting key shares", () => {
   it("allows accusation of all missing validators after Key share phase", async function () {

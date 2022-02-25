@@ -2,7 +2,10 @@
 pragma solidity ^0.8.11;
 
 import "../validatorPool/interfaces/IValidatorPool.sol";
-
+import "../snapshots/interfaces/ISnapshots.sol";
+import "../../../utils/ImmutableAuth.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import "../../../proxy/Proxy.sol";
 enum Phase {
     RegistrationOpen,
     ShareDistribution,
@@ -26,22 +29,24 @@ struct Participant {
     uint256[4] gpkj;
 }
 
-abstract contract ETHDKGStorage {
+abstract contract ETHDKGStorage is Initializable, ImmutableFactory, ImmutableSnapshots, ImmutableValidatorPool {
+
+    // ISnapshots internal immutable _snapshots;
+    // IValidatorPool internal immutable _validatorPool;
+    //address internal immutable _factory;
+    uint256 internal constant  MIN_VALIDATOR = 4;
+
     uint64 internal _nonce;
     uint64 internal _phaseStartBlock;
     Phase internal _ethdkgPhase;
     uint32 internal _numParticipants;
     uint16 internal _badParticipants;
-
-    uint16 internal _minValidators;
     uint16 internal _phaseLength;
     uint16 internal _confirmationLength;
-    IValidatorPool internal _validatorPool;
-    // todo: use contract factory with create2 to get rid of this
-    address internal _ethdkgAccusations;
 
-    // todo: use contract factory with create2 to get rid of this
-    address internal _ethdkgPhases;
+    // Madnet height used to start the new validator set in arbitrary height points if the Madnet
+    // Consensus is halted
+    uint256 internal _customMadnetHeight;
 
     address internal _admin;
 
@@ -49,4 +54,7 @@ abstract contract ETHDKGStorage {
     uint256[2] internal _mpkG1;
 
     mapping(address => Participant) internal _participants;
+
+    constructor() ImmutableFactory(msg.sender) ImmutableSnapshots() ImmutableValidatorPool() {
+    }
 }

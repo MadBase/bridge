@@ -8,8 +8,8 @@ import {
   startAtSubmitKeyShares,
   waitNextPhaseStartDelay,
   expect,
-  getValidatorEthAccount,
 } from "../setup";
+import { getValidatorEthAccount } from "../../setup";
 
 describe("Submit Key share", () => {
   it("should not allow submission of key shares when not in KeyShareSubmission phase", async () => {
