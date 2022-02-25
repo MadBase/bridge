@@ -125,7 +125,8 @@ describe('With successful ETHDKG round completed', () => {
         expectedEpoch,
         expectedHeight,
         ethers.utils.getAddress(validatorsSnapshots[0].address),
-        expectedSafeToProceedConsensus
+        expectedSafeToProceedConsensus,
+        validSnapshot1024.GroupSignature
       )
   })
 
@@ -191,9 +192,6 @@ describe('With successful ETHDKG round completed', () => {
         .connect(await getValidatorEthAccount(validatorsSnapshots[0]))
         .getLatestSnapshot()
 
-      await expect(snapshotData.signature[0]).to.be.equal(expectedSignature[0])
-      await expect(snapshotData.signature[1]).to.be.equal(expectedSignature[1])
-
       const blockClaims = snapshotData.blockClaims
       await expect(blockClaims.chainId).to.be.equal(expectedChainId)
       await expect(blockClaims.height).to.be.equal(expectedHeight)
@@ -202,42 +200,6 @@ describe('With successful ETHDKG round completed', () => {
       await expect(blockClaims.txRoot).to.be.equal(expectedTxRoot)
       await expect(blockClaims.stateRoot).to.be.equal(expectedStateRoot)
       await expect(blockClaims.headerRoot).to.be.equal(expectedHeaderRoot)
-    })
-
-    it('getSignatureFromSnapshot returns correct snapshot data', async function () {
-      const expectedSignature = [
-        BigNumber.from(
-          '1255022359938341263552008964652785372053438514616831677297275448520908946987'
-        ),
-        BigNumber.from(
-          '14701588978138831040868532458058035157389630420138682442198805011661026372629'
-        )
-      ]
-
-      const signature = await snapshots
-        .connect(await getValidatorEthAccount(validatorsSnapshots[0]))
-        .getSignatureFromSnapshot(snapshotNumber)
-
-      await expect(signature[0]).to.be.equal(expectedSignature[0])
-      await expect(signature[1]).to.be.equal(expectedSignature[1])
-    })
-
-    it('getSignatureFromLatestSnapshot returns correct snapshot data', async function () {
-      const expectedSignature = [
-        BigNumber.from(
-          '1255022359938341263552008964652785372053438514616831677297275448520908946987'
-        ),
-        BigNumber.from(
-          '14701588978138831040868532458058035157389630420138682442198805011661026372629'
-        )
-      ]
-
-      const signature = await snapshots
-        .connect(await getValidatorEthAccount(validatorsSnapshots[0]))
-        .getSignatureFromLatestSnapshot()
-
-      await expect(signature[0]).to.be.equal(expectedSignature[0])
-      await expect(signature[1]).to.be.equal(expectedSignature[1])
     })
 
     it('getBlockClaimsFromSnapshot returns correct data', async function () {
