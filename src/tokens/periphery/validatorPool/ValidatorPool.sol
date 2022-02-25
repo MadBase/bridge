@@ -192,7 +192,7 @@ contract ValidatorPool is
 
         for (uint256 i = 0; i < validators_.length; i++) {
             require(
-                _factoryAddress() == IERC721(_StakeNFTAddress()).ownerOf(stakerTokenIDs_[i]),
+                msg.sender == IERC721(_StakeNFTAddress()).ownerOf(stakerTokenIDs_[i]),
                 "ValidatorPool: The factory should be the owner of the StakeNFT position!"
             );
             _registerValidator(validators_[i], stakerTokenIDs_[i]);
@@ -432,7 +432,7 @@ contract ValidatorPool is
             "ValidatorStakeNFT: Error, the Stake position doesn't have enough funds!"
         );
         IERC721Transferable(_StakeNFTAddress()).safeTransferFrom(
-            to_,
+            msg.sender,
             address(this),
             stakerTokenID_
         );
