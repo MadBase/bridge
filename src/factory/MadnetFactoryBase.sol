@@ -333,7 +333,7 @@ abstract contract MadnetFactoryBase is DeterministicAddress, ProxyUpgrader {
         bytes calldata _initCallData
     ) internal {
         address proxy = DeterministicAddress.getMetamorphicContractAddress(_salt, address(this));
-        __upgrade(proxy, _newImpl);
+        __upgrade(proxy, _newImpl); 
         assert(IProxy(proxy).getImplementationAddress() == _newImpl);
         initializeContractInternal(proxy, _initCallData);
     }

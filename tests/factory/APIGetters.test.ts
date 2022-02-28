@@ -1,4 +1,4 @@
-import { ethers } from "hardhat";
+import { ethers, artifacts } from "hardhat";
 import {
   deployStatic,
   deployUpgradeable,
@@ -14,7 +14,6 @@ import {
   getMetamorphicAddress,
   MADNET_FACTORY,
   PROXY,
-  utilsBase,
 } from "./Setup.test";
 
 describe("Madnetfactory API test", async () => {
@@ -25,11 +24,13 @@ describe("Madnetfactory API test", async () => {
   let factory: MadnetFactory;
 
   beforeEach(async () => {
+    let utilsBase = await ethers.getContractFactory("Utils");
     accounts = await getAccounts();
     //set owner and delegator
     firstOwner = accounts[0];
     firstDelegator = accounts[1];
-    utilsContract = await utilsBase.new();
+
+    utilsContract = await utilsBase.deploy();
     factory = await deployFactory(MADNET_FACTORY);
     let cSize = await utilsContract.getCodeSize(factory.address);
     expect(cSize.toNumber()).to.be.greaterThan(0);

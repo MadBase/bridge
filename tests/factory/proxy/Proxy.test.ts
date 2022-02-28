@@ -1,13 +1,12 @@
 import { TransactionRequest } from '@ethersproject/abstract-provider';
 import { BN, expectEvent} from '@openzeppelin/test-helpers';
-import { ethers } from 'hardhat';
+import { ethers, artifacts } from 'hardhat';
 import { EndPoint, EndPointLockable, MadnetFactory, Proxy } from '../../../typechain-types';
 import { expect } from '../../chai-setup';
 import { CONTRACT_ADDR, DEPLOYED_PROXY, deployFactory, expectTxSuccess, getAccounts, getEventVar, getMetamorphicAddress, getSalt, MADNET_FACTORY } from '../Setup.test';
 
 
 describe("PROXY", async () => {
-
     it("deploy proxy through factory", async () => {
         let factory = await deployFactory(MADNET_FACTORY);
         let salt = getSalt();
