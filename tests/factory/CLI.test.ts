@@ -4,13 +4,13 @@ import {
   getAccounts,
   MADNET_FACTORY,
   predictFactoryAddress,
-  utilsBase,
 } from "./Setup.test";
 import { artifacts, ethers, run } from "hardhat";
 import { getDefaultFactoryAddress } from "../../scripts/lib/factoryStateUtils";
 import { MadnetFactory } from "../../typechain-types";
 
 describe("Cli tasks", async () => {
+  let utilsBase;
   let firstOwner: string;
   let firstDelegator: string;
   let accounts: Array<string> = [];

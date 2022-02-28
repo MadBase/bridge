@@ -25,13 +25,12 @@ import {
   MOCK_INITIALIZABLE,
   proxyBase,
   RECEIPT,
-  utilsBase,
 } from "./Setup.test";
-import { ethers } from "hardhat";
+import { ethers, artifacts } from "hardhat";
 import { BytesLike, ContractFactory } from "ethers";
 import { MadnetFactory, Utils } from "../../typechain-types";
-
 describe("Madnet Contract Factory", () => {
+  let utilsBase
   let firstOwner: string;
   let secondOwner: string;
   let firstDelegator: string;
@@ -44,7 +43,8 @@ describe("Madnet Contract Factory", () => {
     firstOwner = accounts[0];
     secondOwner = accounts[1];
     firstDelegator = accounts[2];
-    utilsContract = await utilsBase.new();
+    let UtilsBase = await ethers.getContractFactory("Utils")
+    utilsContract = await UtilsBase.deploy();
     factory = await deployFactory(MADNET_FACTORY);
     let cSize = await utilsContract.getCodeSize(factory.address);
     expect(cSize.toNumber()).to.be.greaterThan(0);
@@ -421,6 +421,6 @@ describe("Madnet Contract Factory", () => {
     let lockResponse = await proxyContract.upgradeLock();
     let receipt = await lockResponse.wait();
     expect(receipt.status).to.equal(1);
-    expect(factory.upgradeProxy(salt, endPoint.address, "0x"));
+    await expect(factory.upgradeProxy(salt, endPoint.address, "0x")).to.revertedWith("reverted with an unrecognized custom error");
   });
 });

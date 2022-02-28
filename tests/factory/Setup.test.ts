@@ -21,7 +21,7 @@ export const endPointBase = artifacts.require(END_POINT);
 export const mockBase = artifacts.require(MOCK);
 export const mockInitBase = artifacts.require(MOCK_INITIALIZABLE);
 export const mockFactoryBase = artifacts.require("MockFactory");
-export const utilsBase = artifacts.require("Utils");
+
 
 export async function getAccounts() {
   let signers = await ethers.getSigners();
