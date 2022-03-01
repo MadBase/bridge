@@ -63,11 +63,11 @@ contract ValidatorPoolMock is Initializable, IValidatorPool, ImmutableFactory, I
         return _stakeAmount;
     }
 
-    function getMaxNumValidators() public view returns(uint256) {
+    function getMaxNumValidators() public pure returns(uint256) {
         return 5;
     }
 
-    function getDisputerReward() public view returns(uint256) {
+    function getDisputerReward() public pure returns(uint256) {
         return 1;
     }
 

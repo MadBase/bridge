@@ -9,7 +9,7 @@ import "./utils/ETHDKGUtils.sol";
 
 ///@custom:salt ETHDKGPhases
 ///@custom:deploy-type deployUpgradeable
-abstract contract ETHDKGPhases is ETHDKGStorage, IETHDKGEvents, ETHDKGUtils {
+contract ETHDKGPhases is ETHDKGStorage, IETHDKGEvents, ETHDKGUtils {
     constructor() ETHDKGStorage(){
     }
     function getMyAddress() public view returns(address) {
