@@ -11,7 +11,7 @@ import {
 } from "../setup";
 import { getValidatorEthAccount } from "../../setup";
 
-describe("Submit Key share", () => {
+describe("ETHDKG: Submit Key share", () => {
   it("should not allow submission of key shares when not in KeyShareSubmission phase", async () => {
     let [ethdkg, validatorPool, expectedNonce] = await startAtDistributeShares(
       validators4

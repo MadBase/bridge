@@ -12,7 +12,7 @@ import {
   submitValidatorsGPKJ,
 } from "../setup";
 
-describe("ETHDKG Completion", () => {
+describe("ETHDKG: ETHDKG Completion", () => {
   it("should not allow completion until after the DisputeGPKj phase", async () => {
     let [ethdkg, validatorPool, expectedNonce] = await startAtGPKJ(validators4);
 

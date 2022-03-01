@@ -12,7 +12,7 @@ import {
 } from "../../setup";
 import { getFixture, getValidatorEthAccount } from "../../../setup";
 
-describe("Missing registration Accusation", () => {
+describe("ETHDKG: Missing registration Accusation", () => {
   it("allows accusation of all missing validators after ETHDKG registration", async function () {
     const { ethdkg, validatorPool } = await getFixture(true);
 

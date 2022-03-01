@@ -8,7 +8,7 @@ import {
 } from "../setup";
 import { getValidatorEthAccount } from "../../setup";
 
-describe("GPKj submission", () => {
+describe("ETHDKG: GPKj submission", () => {
   it("should not allow GPKj submission outside of GPKjSubmission phase", async () => {
     let [ethdkg] = await startAtMPKSubmission(validators4);
 

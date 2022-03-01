@@ -5,8 +5,6 @@ import "../interfaces/ISnapshots.sol";
 import "../../validatorPool/interfaces/IValidatorPool.sol";
 import "../../../../utils/ImmutableAuth.sol";
 
-import "hardhat/console.sol";
-
 contract SnapshotsMock is ImmutableValidatorPool, ISnapshots {
     uint32 internal _epoch;
     uint32 internal _epochLength;
@@ -98,8 +96,6 @@ contract SnapshotsMock is ImmutableValidatorPool, ISnapshots {
     }
 
     function getCommittedHeightFromLatestSnapshot() public view returns (uint256) {
-        console.log("Getting Height", _snapshots[_epoch].committedAt);
-
         return _snapshots[_epoch].committedAt;
     }
 
@@ -140,7 +136,6 @@ contract SnapshotsMock is ImmutableValidatorPool, ISnapshots {
     }
 
     function setCommittedHeightFromLatestSnapshot(uint256 height_) public returns (uint256) {
-        console.log("Setting Height", height_);
         _snapshots[_epoch].committedAt = height_;
         return height_;
     }

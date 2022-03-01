@@ -16,6 +16,7 @@ import {
 } from "../../../typechain-types";
 
 import {
+  BigNumber,
   BigNumberish,
   BytesLike,
   Contract,
@@ -241,14 +242,19 @@ async function deployUpgradeableWithFactory(
   if (receipt.gasUsed.gt(10_000_000)) {
     throw `Contract deployment size:${receipt.gasUsed} is greater than 10 million`;
   }
-  let initCallDataBin;
-  try {
-    initCallDataBin = _Contract.interface.encodeFunctionData(
-      "initialize",
-      initCallData
-    );
-  } catch (error) {
-    initCallDataBin = "0x";
+
+  let initCallDataBin = "0x";
+  if (initCallData !== undefined) {
+    try {
+      initCallDataBin = _Contract.interface.encodeFunctionData(
+        "initialize",
+        initCallData
+      );
+    } catch (error) {
+      console.warn(
+        `Error deploying contract ${contractName} couldn't get initialize arguments: ${error}`
+      );
+    }
   }
   await factory.upgradeProxy(saltBytes, logicAddr, initCallDataBin);
   return _Contract.attach(
@@ -259,7 +265,7 @@ async function deployUpgradeableWithFactory(
 export const getFixture = async (
   mockValidatorPool?: boolean,
   mockSnapshots?: boolean,
-  mockETHDKG?: boolean,
+  mockETHDKG?: boolean
 ): Promise<Fixture> => {
   await network.provider.send("evm_setAutomine", [true]);
   // hardhat is not being able to estimate correctly the tx gas due to the massive bytes array
@@ -310,8 +316,7 @@ export const getFixture = async (
     validatorPool = (await deployUpgradeableWithFactory(
       factory,
       "ValidatorPoolMock",
-      "ValidatorPool",
-      [20000 * 10 ** 18, 10, 3* 10 ** 18 ]
+      "ValidatorPool"
     )) as ValidatorPoolMock;
   } else {
     // ValidatorPool
@@ -319,7 +324,11 @@ export const getFixture = async (
       factory,
       "ValidatorPool",
       "ValidatorPool",
-      [20000 * 10 ** 18, 10, 3* 10 ** 18 ]
+      [
+        ethers.utils.parseUnits("20000", 18),
+        10,
+        ethers.utils.parseUnits("3", 18),
+      ]
     )) as ValidatorPool;
   }
 
@@ -333,20 +342,18 @@ export const getFixture = async (
   let ethdkg;
   if (typeof mockETHDKG !== "undefined" && mockETHDKG) {
     // ValidatorPoolMock
-    ethdkg =  (await deployUpgradeableWithFactory(
+    ethdkg = (await deployUpgradeableWithFactory(
       factory,
       "ETHDKGMock",
       "ETHDKG",
-      [40, 6]
+      [BigNumber.from(40), BigNumber.from(6)]
     )) as ETHDKG;
   } else {
     // ValidatorPool
-    ethdkg = (await deployUpgradeableWithFactory(
-      factory,
-      "ETHDKG",
-      "ETHDKG",
-      [40, 6]
-    )) as ETHDKG;
+    ethdkg = (await deployUpgradeableWithFactory(factory, "ETHDKG", "ETHDKG", [
+      BigNumber.from(40),
+      BigNumber.from(6),
+    ])) as ETHDKG;
   }
 
   let snapshots;
@@ -422,5 +429,3 @@ export async function factoryCallAny(
   let receipt = await txResponse.wait();
   return receipt;
 }
-
-

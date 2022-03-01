@@ -21,7 +21,7 @@ import { validators10BadGPKJSubmission } from "../assets/10-validators-1-bad-gpk
 import { validators10_2BadGPKJSubmission } from "../assets/10-validators-2-bad-gpkj-submission";
 import { getValidatorEthAccount, mineBlocks } from "../../setup";
 
-describe("Dispute GPKj", () => {
+describe("ETHDKG: Dispute GPKj", () => {
   it("accuse good and bad participants of sending bad gpkj shares with 4 validators", async function () {
     // last validator is the bad one
     let validators = validators4BadGPKJSubmission;

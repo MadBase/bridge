@@ -5,7 +5,7 @@ import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { BigNumberish } from "ethers";
 import { ValidatorPoolMock } from "../../../typechain-types";
 
-describe("Tests ValidatorNFT Business Logic methods", () => {
+describe("ValidatorNFT: Tests ValidatorNFT Business Logic methods", async () => {
   let fixture: Fixture;
   let notAdminSigner: SignerWithAddress;
   let adminSigner: SignerWithAddress;

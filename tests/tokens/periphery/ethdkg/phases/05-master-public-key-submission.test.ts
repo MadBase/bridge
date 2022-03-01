@@ -13,7 +13,7 @@ import {
 } from "../setup";
 import { getValidatorEthAccount } from "../../setup";
 
-describe("Submit Master Public Key", () => {
+describe("ETHDKG: Submit Master Public Key", () => {
   it("should not allow submission of master public key when not in MPKSubmission phase", async () => {
     let [ethdkg, validatorPool, expectedNonce] = await startAtSubmitKeyShares(
       validators4
