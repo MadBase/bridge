@@ -6,7 +6,7 @@ import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { BigNumberish } from "ethers";
 import { ValidatorPoolMock } from "../../../typechain-types";
 
-describe("Testing ValidatorNFT Access Control", () => {
+describe("ValidatorNFT: Testing ValidatorNFT Access Control", async () => {
   let fixture: Fixture;
   let notAdminSigner: SignerWithAddress;
   let lockTime = 1;
@@ -22,7 +22,7 @@ describe("Testing ValidatorNFT Access Control", () => {
     await fixture.madToken.approve(validatorPool.address, amount);
   });
 
-  describe("A user with admin role should be able to:", () => {
+  describe("A user with admin role should be able to:", async () => {
     it("Mint a token", async function () {
       let rcpt = await (await validatorPool.mintValidatorNFT()).wait();
       expect(rcpt.status).to.be.equal(1);

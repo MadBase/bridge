@@ -8,7 +8,7 @@ import {
 } from "../setup";
 import { getFixture, getValidatorEthAccount } from "../../setup";
 
-describe("Registration Open", () => {
+describe("ETHDKG: Registration Open", () => {
   it("does not let registrations before ETHDKG Registration is open", async function () {
     const { ethdkg, validatorPool } = await getFixture(true);
 

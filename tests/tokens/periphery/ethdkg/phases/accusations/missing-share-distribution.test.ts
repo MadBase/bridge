@@ -9,7 +9,7 @@ import {
 } from "../../setup";
 import { getValidatorEthAccount } from "../../../setup";
 
-describe("Missing distribute share accusation", () => {
+describe("ETHDKG: Missing distribute share accusation", () => {
   it("allows accusation of all missing validators after distribute shares Phase", async function () {
     let [ethdkg, validatorPool, expectedNonce] = await startAtDistributeShares(
       validators4
