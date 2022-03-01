@@ -10,7 +10,7 @@ import "../../../CryptoLibrary.sol";
 
 /// @custom:salt ETHDKGAccusations
 /// @custom:deploy-type deployUpgradeable
-contract ETHDKGAccusations is ETHDKGStorage, IETHDKGEvents, ETHDKGUtils {
+abstract contract ETHDKGAccusations is ETHDKGStorage, IETHDKGEvents, ETHDKGUtils {
 
     constructor() ETHDKGStorage(){
     }

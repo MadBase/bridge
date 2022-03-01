@@ -7,8 +7,10 @@ import "hardhat-contract-sizer";
 import "hardhat-gas-reporter";
 import "solidity-coverage";
 import "@nomiclabs/hardhat-truffle5";
+import 'hardhat-abi-exporter';
 import "./scripts/lib/madnetFactoryTasks";
 import "./scripts/lib/madnetTasks";
+import "./scripts/lib/gogogen";
 require("dotenv").config();
 
 /**
@@ -23,6 +25,7 @@ task("accounts", "Prints the list of accounts", async (taskArgs, hre) => {
     console.log(account.address);
   }
 });
+
 const config: HardhatUserConfig = {
   namedAccounts: {
     admin: 0,
@@ -219,6 +222,32 @@ const config: HardhatUserConfig = {
   mocha: {
     timeout: 600000,
   },
+
+  abiExporter: {
+    path: './artifacts/abigen',
+    runOnCompile: true,
+    clear: true,
+    flat: true,
+    only: [
+    "MadnetFactory",
+    "ETHDKG",
+    "ValidatorPool",
+    "Snapshots",
+    "MadByte",
+    "MadToken",
+    "StakeNFT",
+    "ValidatorNFT",
+    ],
+    except: [
+      ".*Mock",
+      ".*Base",
+      ".*Storage",
+      "ETHDKGAccusations",
+      "ETHDKGPhases",
+    ],
+    spacing: 2,
+    pretty: false,
+  }
 };
 
 export default config;

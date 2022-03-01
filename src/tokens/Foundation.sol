@@ -3,14 +3,10 @@ pragma solidity ^0.8.11;
 
 import "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol";
-import "../governance/GovernanceMaxLock.sol";
 import "../utils/ImmutableAuth.sol";
-import "../governance/GovernanceManager.sol";
 import "./utils/EthSafeTransfer.sol";
 import "./utils/ERC20SafeTransfer.sol";
 import "./utils/MagicValue.sol";
-import "./interfaces/ICBOpener.sol";
-import "./interfaces/INFTStake.sol";
 
 /// @custom:salt Foundation
 /// @custom:deploy-type deployUpgradeable
