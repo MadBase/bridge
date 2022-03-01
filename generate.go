@@ -1,5 +1,6 @@
 package bridge
 
+mkdir -p bindings
 //go:generate abigen --abi artifacts/abigen/ETHDKG.json --pkg bindings --type ETHDKG --out bindings/ETHDKG.go
 //go:generate abigen --abi artifacts/abigen/IETHDKG.json --pkg bindings --type IETHDKG --out bindings/IETHDKG.go
 //go:generate abigen --abi artifacts/abigen/IETHDKGEvents.json --pkg bindings --type IETHDKGEvents --out bindings/IETHDKGEvents.go
