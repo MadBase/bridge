@@ -1,11 +1,7 @@
 
-import { types, task, subtask, HardhatUserConfig } from "hardhat/config";
+import { task } from "hardhat/config";
 import { HardhatRuntimeEnvironment, } from "hardhat/types";
 import fs from 'fs';
-import path from 'path';
-import { AbiExporterUserConfig } from "hardhat-abi-exporter"
-import { TASK_COMPILE } from 'hardhat/builtin-tasks/task-names';
-import { string } from "hardhat/internal/core/params/argumentTypes";
 
 task("go-go-gen", "Builds generate.go file from all json files in path")
 .addParam("in", "relative path of the output files")

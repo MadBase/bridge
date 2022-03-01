@@ -220,11 +220,11 @@ const config: HardhatUserConfig = {
     excludeContracts: ["*.t.sol"],
   },
   mocha: {
-    timeout: 600000,
+    timeout: 120000,
   },
 
   abiExporter: {
-    path: './artifacts/abigen',
+    path: './bindings-artifacts',
     runOnCompile: true,
     clear: true,
     flat: true,
