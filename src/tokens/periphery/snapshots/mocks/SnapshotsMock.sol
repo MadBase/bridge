@@ -2,8 +2,12 @@
 pragma solidity ^0.8.11;
 
 import "../interfaces/ISnapshots.sol";
+import "../../validatorPool/interfaces/IValidatorPool.sol";
+import "../../../../utils/ImmutableAuth.sol";
 
-contract SnapshotsMock is ISnapshots {
+import "hardhat/console.sol";
+
+contract SnapshotsMock is ImmutableValidatorPool, ISnapshots {
     uint32 internal _epoch;
     uint32 internal _epochLength;
 
@@ -18,7 +22,11 @@ contract SnapshotsMock is ISnapshots {
 
     address internal _admin;
     uint256 internal immutable _chainId;
-    constructor(uint32 chainID_, uint32 epochLength_) {
+
+    constructor(uint32 chainID_, uint32 epochLength_)
+        ImmutableFactory(msg.sender)
+        ImmutableValidatorPool()
+    {
         _admin = msg.sender;
         _chainId = chainID_;
         _epochLength = epochLength_;
@@ -90,6 +98,8 @@ contract SnapshotsMock is ISnapshots {
     }
 
     function getCommittedHeightFromLatestSnapshot() public view returns (uint256) {
+        console.log("Getting Height", _snapshots[_epoch].committedAt);
+
         return _snapshots[_epoch].committedAt;
     }
 
@@ -113,6 +123,11 @@ contract SnapshotsMock is ISnapshots {
         public
         returns (bool)
     {
+        bool isSafeToProceedConsensus = true;
+        if (IValidatorPool(_ValidatorPoolAddress()).isMaintenanceScheduled()) {
+            isSafeToProceedConsensus = false;
+            IValidatorPool(_ValidatorPoolAddress()).pauseConsensus();
+        }
         // dummy to silence compiling warnings
         groupSignature_;
         bClaims_;
@@ -125,7 +140,9 @@ contract SnapshotsMock is ISnapshots {
     }
 
     function setCommittedHeightFromLatestSnapshot(uint256 height_) public returns (uint256) {
-        return _snapshots[_epoch].committedAt = height_;
+        console.log("Setting Height", height_);
+        _snapshots[_epoch].committedAt = height_;
+        return height_;
     }
 
     function mayValidatorSnapshot(
@@ -142,5 +159,4 @@ contract SnapshotsMock is ISnapshots {
         desperationFactor;
         return true;
     }
-
 }

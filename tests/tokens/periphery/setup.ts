@@ -9,8 +9,6 @@ import {
   ETHDKG,
   ValidatorPool,
   Snapshots,
-  ETHDKGAccusations,
-  ETHDKGPhases,
   ValidatorPoolMock,
   MadnetFactory,
   SnapshotsMock,
@@ -260,7 +258,8 @@ async function deployUpgradeableWithFactory(
 
 export const getFixture = async (
   mockValidatorPool?: boolean,
-  mockSnapshots?: boolean
+  mockSnapshots?: boolean,
+  mockETHDKG?: boolean,
 ): Promise<Fixture> => {
   await network.provider.send("evm_setAutomine", [true]);
   // hardhat is not being able to estimate correctly the tx gas due to the massive bytes array
@@ -311,13 +310,16 @@ export const getFixture = async (
     validatorPool = (await deployUpgradeableWithFactory(
       factory,
       "ValidatorPoolMock",
-      "ValidatorPool"
+      "ValidatorPool",
+      [20000 * 10 ** 18, 10, 3* 10 ** 18 ]
     )) as ValidatorPoolMock;
   } else {
     // ValidatorPool
     validatorPool = (await deployUpgradeableWithFactory(
       factory,
-      "ValidatorPool"
+      "ValidatorPool",
+      "ValidatorPool",
+      [20000 * 10 ** 18, 10, 3* 10 ** 18 ]
     )) as ValidatorPool;
   }
 
@@ -328,12 +330,24 @@ export const getFixture = async (
   await deployUpgradeableWithFactory(factory, "ETHDKGPhases");
 
   // ETHDKG
-  const ethdkg = (await deployUpgradeableWithFactory(
-    factory,
-    "ETHDKG",
-    "ETHDKG",
-    [40, 6]
-  )) as ETHDKG;
+  let ethdkg;
+  if (typeof mockETHDKG !== "undefined" && mockETHDKG) {
+    // ValidatorPoolMock
+    ethdkg =  (await deployUpgradeableWithFactory(
+      factory,
+      "ETHDKGMock",
+      "ETHDKG",
+      [40, 6]
+    )) as ETHDKG;
+  } else {
+    // ValidatorPool
+    ethdkg = (await deployUpgradeableWithFactory(
+      factory,
+      "ETHDKG",
+      "ETHDKG",
+      [40, 6]
+    )) as ETHDKG;
+  }
 
   let snapshots;
   if (typeof mockSnapshots !== "undefined" && mockSnapshots) {
@@ -409,25 +423,4 @@ export async function factoryCallAny(
   return receipt;
 }
 
-export async function factoryCallAnyFrom(
-  fixture: Fixture,
-  contractFromName: string,
-  contractName: string,
-  functionName: string,
-  args?: Array<any>
-) {
-  let factory = fixture.factory;
-  let contract = fixture[contractName];
-  let contractFrom = fixture[contractFromName];
-  if (args === undefined) {
-    args = [];
-  }
-  let txResponse = await factory.callAny(
-    contractFrom.address,
-    0,
-    contract.interface.encodeFunctionData(functionName, args)
-  );
-  let receipt = await txResponse.wait();
-  return receipt;
-}
 

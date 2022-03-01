@@ -46,13 +46,13 @@ describe("Testing ValidatorPool Access Control ", () => {
     it("Register validators", async function () {
       await expect(factoryCallAny(fixture, "validatorPool",
         "registerValidators", [["0x000000000000000000000000000000000000dEaD"], [1]])
-      ).to.be.revertedWith("ERC721: owner query for nonexistent token")
+      ).to.be.revertedWith("ValidatorPool: There are not enough free spots for all new validators!")
     })
 
     it("Initialize ETHDKG", async function () {
-      await expect(factoryCallAny(fixture, "validatorPool",
+      await expect( factoryCallAny(fixture, "validatorPool",
         "initializeETHDKG")
-      ).to.be.revertedWith("THDKG: Minimum number of validators staked not met!")
+      ).to.be.revertedWith("ETHDKG: Minimum number of validators staked not met!")
     })
 
     it("Unregister validators", async function () {
