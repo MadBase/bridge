@@ -631,5 +631,6 @@ contract ValidatorPool is
         delete _exitingValidatorsData[validator_];
     }
 
-    receive() external payable {}
+    receive() external payable onlyValidatorNFT() {
+    }
 }
