@@ -67,9 +67,6 @@ const config: HardhatUserConfig = {
       url: "http://127.0.0.1:8545",
     },
     hardhat: {
-      // blockGasLimit: 30000000000000,
-      // gas: 30000000,
-      // gasPrice: 10000000000,
       allowUnlimitedContractSize: false,
       mining: {
         auto: true,

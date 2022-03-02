@@ -1,20 +1,24 @@
 import { ethers, artifacts } from "hardhat";
+import { boolean } from "hardhat/internal/core/params/argumentTypes";
 import {
   deployStatic,
   deployUpgradeable,
-  upgradeProxy,
+  upgradeProxy
 } from "../../scripts/lib/MadnetFactory";
 import { MadnetFactory, Utils } from "../../typechain-types";
 import { assert, expect } from "../chai-setup";
 import {
+  END_POINT,
+  PROXY,
+  UTILS
+} from './../../scripts/lib/constants';
+import {
   bytes32ArrayToStringArray,
   deployFactory,
-  END_POINT,
   getAccounts,
-  getMetamorphicAddress,
-  MADNET_FACTORY,
-  PROXY,
-} from "./Setup.test";
+  getMetamorphicAddress
+} from "./Setup";
+process.env.silencer = "true";
 
 describe("Madnetfactory API test", async () => {
   let firstOwner: string;
@@ -24,14 +28,13 @@ describe("Madnetfactory API test", async () => {
   let factory: MadnetFactory;
 
   beforeEach(async () => {
-    let utilsBase = await ethers.getContractFactory("Utils");
+    let utilsBase = await ethers.getContractFactory(UTILS);
     accounts = await getAccounts();
     //set owner and delegator
     firstOwner = accounts[0];
     firstDelegator = accounts[1];
-
     utilsContract = await utilsBase.deploy();
-    factory = await deployFactory(MADNET_FACTORY);
+    factory = await deployFactory();
     let cSize = await utilsContract.getCodeSize(factory.address);
     expect(cSize.toNumber()).to.be.greaterThan(0);
   });
