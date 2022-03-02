@@ -31,7 +31,7 @@ describe("Madnetfactory API test", async () => {
     firstDelegator = accounts[1];
 
     utilsContract = await utilsBase.deploy();
-    factory = await deployFactory(MADNET_FACTORY);
+    factory = await deployFactory();
     let cSize = await utilsContract.getCodeSize(factory.address);
     expect(cSize.toNumber()).to.be.greaterThan(0);
   });

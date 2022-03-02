@@ -23,7 +23,7 @@ describe("Cli tasks", async () => {
     firstDelegator = accounts[1];
     let UtilsBase = await ethers.getContractFactory("Utils")
     let utilsContract = await UtilsBase.deploy();
-    factory = await deployFactory(MADNET_FACTORY);
+    factory = await deployFactory();
     let cSize = await utilsContract.getCodeSize(factory.address);
     expect(cSize.toNumber()).to.be.greaterThan(0);
   });
@@ -40,8 +40,8 @@ describe("Cli tasks", async () => {
 
   it("deploy mock with deploystatic", async () => {
     await run("deployMetamorphic", {
-      contractName: "EndPoint",
-      constructorArgs: "0x92D3A65c5890a5623F3d73Bf3a30c973043eE90C",
+      contractName: "Mock",
+      constructorArgs: ["2", "s"]
     });
   });
 });

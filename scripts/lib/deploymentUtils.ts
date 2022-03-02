@@ -31,6 +31,7 @@ export async function deployStatic(fullyQualifiedName: string) {
       initializerArgs
     );
   }
+  console.log(fullyQualifiedName, "initCD", initCallData);
   let hasConArgs = await hasConstructorArgs(fullyQualifiedName);
   let constructorArgs = hasConArgs
     ? getDeploymentConstructorArgs(fullyQualifiedName)
@@ -49,7 +50,6 @@ export async function deployUpgradeableProxy(fullyQualifiedName: string) {
   let initAble = await isInitializable(fullyQualifiedName);
   if (initAble) {
     initializerArgs = await getDeploymentInitializerArgs(fullyQualifiedName);
-    console.log(initializerArgs);
     initCallData = await getEncodedInitCallData(
       fullyQualifiedName,
       initializerArgs
