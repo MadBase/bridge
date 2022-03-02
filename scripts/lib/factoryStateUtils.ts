@@ -1,7 +1,7 @@
+import { BigNumberish, BytesLike } from "ethers";
 import fs from "fs";
 import { env } from "./constants";
 export type FactoryData = {
-  name: string;
   address: string;
   gas?: number;
 };
@@ -34,13 +34,13 @@ export interface FactoryConfig {
   [key: string]: any;
 }
 export type ProxyData = {
-  proxyAddress: string;
-  salt: string;
+  proxyAddress: BytesLike;
+  salt: BytesLike;
   logicName: string;
-  logicAddress: string;
-  factoryAddress: string;
-  gas: number;
-  initCallData?: string;
+  logicAddress: BytesLike;
+  factoryAddress: BytesLike;
+  gas: BigNumberish;
+  initCallData?: BytesLike;
 };
 
 export async function getDefaultFactoryAddress(): Promise<string> {
@@ -68,14 +68,7 @@ async function writeFactoryConfig(
   let jsonString = JSON.stringify(newFactoryConfig, null, 2);
   if (lastFactoryConfig !== undefined) {
     let date = new Date();
-    let timestamp =
-      date.getMonth().toString() +
-      "-" +
-      date.getDate().toString() +
-      "-" +
-      date.getFullYear().toString() +
-      "-" +
-      date.getTime().toString();
+    let timestamp = date.toUTCString().replace(" ", "_").replace(",", "");
     if (!fs.existsSync(`./deployments/${env()}/archive`)) {
       fs.mkdirSync(`./deployments/${env()}/archive`);
     }
@@ -108,13 +101,8 @@ export async function updateDeployCreateList(data: DeployCreateData) {
   //fetch whats in the factory config file
   //It is safe to use as
   let config = await readFactoryStateData();
-  if (config.deployCreates === undefined) {
-    config.deployCreates = [];
-    //Add the proxy Data to theoxies array
-    config.deployCreates.push(data);
-  } else {
-    config.deployCreates.push(data);
-  }
+  config.rawDeployments = config.rawDeployments === undefined ? [] : config.rawDeployments;
+  config.rawDeployments.push(data) 
   // write new data to config file
   await writeFactoryConfig(config);
 }
@@ -122,13 +110,8 @@ export async function updateDeployCreateList(data: DeployCreateData) {
 export async function updateTemplateList(data: TemplateData) {
   //fetch whats in the factory config file
   let config = await readFactoryStateData();
-  if (config.templates === undefined) {
-    config.templates = [];
-    //Add the proxy Data to the proxies array
-    config.templates.push(data);
-  } else {
-    config.templates.push(data);
-  }
+  config.templates = config.templates === undefined ? [] : config.templates;
+  config.templates.push(data);
   // write new data to config file
   await writeFactoryConfig(config);
 }
@@ -142,13 +125,8 @@ export async function updateTemplateList(data: TemplateData) {
 export async function updateProxyList(data: ProxyData) {
   //fetch whats in the factory config file
   let config = await readFactoryStateData();
-  if (config.proxies === undefined) {
-    config.proxies = [];
-    //Add the proxy Data to the proxies array
-    config.proxies.push(data);
-  } else {
-    config.proxies.push(data);
-  }
+  config.proxies = config.proxies === undefined ? [] : config.proxies;
+  config.proxies.push(data);
   // write new data to config file
   await writeFactoryConfig(config);
 }
@@ -156,13 +134,8 @@ export async function updateProxyList(data: ProxyData) {
 export async function updateMetaList(data: MetaContractData) {
   //fetch whats in the factory config file
   let config = await readFactoryStateData();
-  if (config.staticContracts === undefined) {
-    config.staticContracts = [];
-    //Add the proxy Data to the proxies array
-    config.staticContracts.push(data);
-  } else {
-    config.staticContracts.push(data);
-  }
+  config.staticContracts = config.staticContracts === undefined ? [] : config.staticContracts;
+  config.staticContracts.push(data);
   // write new data to config file
   await writeFactoryConfig(config);
 }

@@ -1,15 +1,22 @@
-import { expect } from "chai";
-import { expectRevert } from "@openzeppelin/test-helpers";
 import {
-  checkMockInit,
-  CONTRACT_ADDR,
-  deployCreate2Initable as deployCreate2Initializable,
+  MOCK,
   DEPLOYED_PROXY,
   DEPLOYED_RAW,
   DEPLOYED_STATIC,
   DEPLOYED_TEMPLATE,
+  MOCK_INITIALIZABLE,
+  END_POINT,
+  CONTRACT_ADDR,
+  PROXY,
+  UTILS,
+  MADNET_FACTORY,
+} from './../../scripts/lib/constants';
+import { expect } from "chai";
+import { expectRevert } from "@openzeppelin/test-helpers";
+import {
+  checkMockInit,
+  deployCreate2Initable as deployCreate2Initializable,
   deployFactory,
-  endPointBase,
   expectTxSuccess,
   getAccounts,
   getCreateAddress,
@@ -18,74 +25,73 @@ import {
   getEventVar,
   getMetamorphicAddress,
   getSalt,
-  MADNET_FACTORY,
-  metaMockLogicTest,
-  mockBase,
-  mockFactoryBase,
-  MOCK_INITIALIZABLE,
-  proxyBase,
-  RECEIPT,
-} from "./Setup.test";
+} from "./Setup";
 import { ethers, artifacts } from "hardhat";
 import { BytesLike, ContractFactory } from "ethers";
-import { MadnetFactory, Utils } from "../../typechain-types";
 describe("Madnet Contract Factory", () => {
-  let utilsBase
   let firstOwner: string;
   let secondOwner: string;
   let firstDelegator: string;
   let accounts: Array<string> = [];
-  let utilsContract: Utils;
-  let factory: MadnetFactory;
+
 
   beforeEach(async () => {
+    process.env.silencer = "true";
     accounts = await getAccounts();
     firstOwner = accounts[0];
     secondOwner = accounts[1];
     firstDelegator = accounts[2];
-    let UtilsBase = await ethers.getContractFactory("Utils")
-    utilsContract = await UtilsBase.deploy();
-    factory = await deployFactory(MADNET_FACTORY);
-    let cSize = await utilsContract.getCodeSize(factory.address);
-    expect(cSize.toNumber()).to.be.greaterThan(0);
   });
 //delete
   it("deploy mock", async () => {
-    let mock = await mockBase.new(2, "s");
-    let size = await utilsContract.getCodeSize(mock.address);
+    let UtilsBase = await ethers.getContractFactory(UTILS)
+    let utils = await UtilsBase.deploy();
+    let mockFactory = await ethers.getContractFactory(MOCK)
+    let mock = await mockFactory.deploy(2, "s");
+    let size = await utils.getCodeSize(mock.address);
     expect(size.toNumber()).to.be.greaterThan(0);
   });
 //delete
   it("deploy endpoint", async () => {
-    let endPoint = await endPointBase.new(factory.address);
-    let size = await utilsContract.getCodeSize(endPoint.address);
+    let UtilsBase = await ethers.getContractFactory(UTILS);
+    let utils = await UtilsBase.deploy();
+    let factory = await deployFactory();
+    let endPointFactory = await ethers.getContractFactory(END_POINT)
+    let endPoint = await endPointFactory.deploy(factory.address);
+    let size = await utils.getCodeSize(endPoint.address);
     expect(size.toNumber()).to.be.greaterThan(0);
   });
 
   it("set owner", async () => {
+    let factory = await deployFactory();
     //sets the second account as owner
     expect(await factory.owner()).to.equal(firstOwner);
-    await factory.setOwner(accounts[1], { from: firstOwner });
+    await factory.setOwner(accounts[1]);
     expect(await factory.owner()).to.equal(accounts[1]);
   });
 
   it("set delegator", async () => {
+    let factory = await deployFactory();
     //sets the second account as delegator
-    await factory.setDelegator(firstDelegator, { from: firstOwner });
+    await factory.setDelegator(firstDelegator);
     expect(await factory.delegator()).to.equal(firstDelegator);
   });
 
   it("should not allow set owner via delegator", async () => {
+    let factory = await deployFactory();
+    let signers = await ethers.getSigners()
+    let factoryBase = (await ethers.getContractFactory(MADNET_FACTORY)).connect(signers[2])
     //sets the second account as delegator
     await factory.setDelegator(firstDelegator, { from: firstOwner });
     expect(await factory.delegator()).to.equal(firstDelegator);
-    await expectRevert(
-      factory.setOwner(accounts[0], { from: firstDelegator }),
-      "unauthorized"
-    );
+    factory = factoryBase.attach(factory.address)
+    await expect(
+      factory.setOwner(accounts[0])
+    ).to.be.revertedWith("unauthorized")
   });
 
   it("get owner, delegator", async () => {
+    let factory = await deployFactory();
     await factory.setDelegator(firstDelegator, { from: firstOwner });
     expect(await factory.delegator()).to.equal(firstDelegator);
     let owner = await factory.owner();
@@ -95,6 +101,7 @@ describe("Madnet Contract Factory", () => {
   });
 
   it("deploy mock with deploytemplate as owner expect succeed", async () => {
+    let factory = await deployFactory();
     //ethers instance of Mock contract abstraction
     let mockCon = await ethers.getContractFactory("Mock");
     //deploy code for mock with constructor args i = 2
@@ -107,10 +114,10 @@ describe("Madnet Contract Factory", () => {
       factory.address,
       transactionCount
     );
-    let receipt = await factory.deployTemplate(deployTxData);
-    expectTxSuccess(receipt);
+    let txResponse = await factory.deployTemplate(deployTxData);
+    await expectTxSuccess(txResponse);
     let mockTempAddress = await getEventVar(
-      receipt,
+      txResponse,
       DEPLOYED_TEMPLATE,
       CONTRACT_ADDR
     );
@@ -119,6 +126,7 @@ describe("Madnet Contract Factory", () => {
   });
 
   it("should not allow deploy contract with bytecode 0", async () => {
+    let factory = await deployFactory();
     let Salt = getSalt();
     await expectRevert(
         factory.deployStatic(Salt, "0x"),
@@ -128,48 +136,59 @@ describe("Madnet Contract Factory", () => {
   });
 
   it("should not allow deploy static with unauthorized account", async () => {
+    let signers = await ethers.getSigners()
+    let factoryBase = (await ethers.getContractFactory(MADNET_FACTORY)).connect(signers[2])
+    let factory = await deployFactory();
+    factory = factoryBase.attach(factory.address)
     let Salt = getSalt();
-    await expectRevert(
-      factory.deployStatic(Salt, "0x", { from: firstDelegator }),
-      "unauthorized"
-    );
+    await expect(
+      factory.deployStatic(Salt, "0x", { from: firstDelegator })).to.be.revertedWith("unauthorized");
   });
 
   it("deploy contract with deploystatic", async () => {
+    let factory = await deployFactory();
     //deploy a template of the mock Initializable
     let byteCode = (await getDeployTemplateArgs(
       MOCK_INITIALIZABLE
     )) as BytesLike;
-    let receipt = await factory.deployTemplate(byteCode);
+    let txResponse = await factory.deployTemplate(byteCode);
     let deployStatic = await getDeployStaticArgs(MOCK_INITIALIZABLE, [2]);
-    receipt = await factory.deployStatic(
+    txResponse = await factory.deployStatic(
       deployStatic.salt,
       deployStatic.initCallData
     );
-    let mockInitAddr = getEventVar(receipt, DEPLOYED_STATIC, CONTRACT_ADDR);
+    let mockInitAddr = await getEventVar(txResponse, DEPLOYED_STATIC, CONTRACT_ADDR);
     checkMockInit(mockInitAddr, 2);
   });
 
   it("deployproxy", async () => {
+    let UtilsBase = await ethers.getContractFactory(UTILS);
+    let utils = await UtilsBase.deploy();
+    let factory = await deployFactory();
+    let proxyBase = await artifacts.require(PROXY);
     let proxySalt = getSalt();
     //the calculated proxy address
     const expectedProxyAddr = getMetamorphicAddress(factory.address, proxySalt);
     //deploy the proxy through the factory
-    let receipt = await factory.deployProxy(proxySalt);
+    let txResponse = await factory.deployProxy(proxySalt);
     //check if transaction succeeds
-    expectTxSuccess(receipt);
+    await expectTxSuccess(txResponse);
     //get the deployed proxy contract address fom the DeployedProxy event
-    let proxyAddr = await getEventVar(receipt, DEPLOYED_PROXY, CONTRACT_ADDR);
+    let proxyAddr = await await getEventVar(txResponse, DEPLOYED_PROXY, CONTRACT_ADDR);
     //check if the deployed contract address match the calculated address
     expect(proxyAddr).to.equal(expectedProxyAddr);
     // console.log("DEPLOYPROXY GASUSED: ", receipt["receipt"]["gasUsed"]);
-    let cSize = await utilsContract.getCodeSize(proxyAddr);
+    let cSize = await utils.getCodeSize(proxyAddr);
     expect(cSize.toNumber()).to.equal(
       (proxyBase.deployedBytecode.length - 2) / 2
     );
   });
 
   it("should not allow deploy proxy with unauthorized account", async () => {
+    let signers = await ethers.getSigners()
+    let factoryBase = (await ethers.getContractFactory(MADNET_FACTORY)).connect(signers[2])
+    let factory = await deployFactory();
+    factory = factoryBase.attach(factory.address)
     let Salt = getSalt();
     await expectRevert(
       factory.deployProxy(Salt, { from: firstDelegator }),
@@ -178,6 +197,7 @@ describe("Madnet Contract Factory", () => {
   });
 
   it("deploycreate mock logic contract expect success", async () => {
+    let factory = await deployFactory();
     //use the ethers Mock contract abstraction to generate the deploy transaction data
     let mockCon: ContractFactory = await ethers.getContractFactory("Mock");
     //get the init code with contructor args appended
@@ -187,10 +207,10 @@ describe("Madnet Contract Factory", () => {
     );
     //deploy Mock Logic through the factory
     // 27fe1822
-    let receipt = await factory.deployCreate(deployTx.data as BytesLike);
+    let txResponse = await factory.deployCreate(deployTx.data as BytesLike);
     //check if the transaction is mined or failed
-    expectTxSuccess(receipt);
-    let dcMockAddress = getEventVar(receipt, DEPLOYED_RAW, CONTRACT_ADDR);
+    await expectTxSuccess(txResponse);
+    let dcMockAddress = await getEventVar(txResponse, DEPLOYED_RAW, CONTRACT_ADDR);
     //calculate the deployed address
     let expectedMockAddr = ethers.utils.getContractAddress({
       from: factory.address,
@@ -201,51 +221,63 @@ describe("Madnet Contract Factory", () => {
   });
 
   it("should not allow deploycreate mock logic contract with unauthorized account", async () => {
+    let factory = await deployFactory();
     //use the ethers Mock contract abstraction to generate the deploy transaction data
     let mockCon = await ethers.getContractFactory("Mock");
     //get the init code with contructor args appended
     let deployTx = mockCon.getDeployTransaction(2, "s");
     //deploy Mock Logic through the factory
-    // 27fe1822
-    let receipt = factory.deployCreate(deployTx.data as BytesLike, { from: firstDelegator });
-    await expectRevert(receipt, "unauthorized");
+    let signers = await ethers.getSigners()
+    let factoryBase = (await ethers.getContractFactory(MADNET_FACTORY)).connect(signers[2])
+    factory = factoryBase.attach(factory.address)
+    let txResponse = factory.deployCreate(deployTx.data as BytesLike);
+    await expect(txResponse).to.be.revertedWith("unauthorized");
   });
 
-
   it("upgrade proxy to point to mock address with the factory", async () => {
+    let factory = await deployFactory();
+    let mockFactory = await ethers.getContractFactory(MOCK);
     let proxySalt = getSalt();
     let txResponse = await factory.deployProxy(proxySalt);
-    expectTxSuccess(txResponse);
-    let mockContract = await mockBase.new(2, "s");
+    await expectTxSuccess(txResponse);
+    let mockContract = await mockFactory.deploy(2, "s");
     txResponse = await factory.upgradeProxy(
       proxySalt,
       mockContract.address,
       "0x"
     );
-    expectTxSuccess(txResponse);
+    await expectTxSuccess(txResponse);
     // console.log("UPGRADE PROXY GASUSED: ", txResponse["receipt"]["gasUsed"]);
   });
 
   it("should not allow unauthorized account to update proxy to point to other address ", async () => {
+    let factory = await deployFactory();
+    let mockFactory = await ethers.getContractFactory(MOCK);
     let proxySalt = getSalt();
     let txResponse = await factory.deployProxy(proxySalt);
-    expectTxSuccess(txResponse);
-    let mockContract = await mockBase.new(2, "s");
+    await expectTxSuccess(txResponse);
+    let mockContract = await mockFactory.deploy(2, "s");
     txResponse = await factory.upgradeProxy(
       proxySalt,
       mockContract.address,
       "0x"
     );
-    expectTxSuccess(txResponse);
+    await expectTxSuccess(txResponse);
+    let signers = await ethers.getSigners()
+    let factoryBase = (await ethers.getContractFactory(MADNET_FACTORY)).connect(signers[2])
+    factory = factoryBase.attach(factory.address)
     // console.log("UPGRADE PROXY GASUSED: ", txResponse["receipt"]["gasUsed"]);
-    await expectRevert(factory.upgradeProxy(proxySalt, mockContract.address, "0x", {
+    await expect(factory.upgradeProxy(proxySalt, mockContract.address, "0x", {
         from: firstDelegator,
-      }), "unauthorized");
+      })).to.be.revertedWith("unauthorized")
   });
 
   it("call setfactory in mock through proxy expect su", async () => {
-    let endPoint = await endPointBase.new(factory.address);
-    let mockContract = await mockBase.new(2, "s");
+    let factory = await deployFactory();
+    let mockFactory = await ethers.getContractFactory(MOCK);
+    let endPointFactory = await ethers.getContractFactory(END_POINT);
+    let endPoint = await endPointFactory.deploy(factory.address);
+    let mockContract = await mockFactory.deploy(2, "s");
     let proxySalt = getSalt();
     let txResponse = await factory.deployProxy(proxySalt);
     let proxyAddr = await getEventVar(
@@ -258,70 +290,80 @@ describe("Madnet Contract Factory", () => {
       mockContract.address,
       "0x"
     );
-    expectTxSuccess(txResponse);
+    await expectTxSuccess(txResponse);
     //connect a Mock interface to the proxy contract
-    let proxyMock = await mockBase.at(proxyAddr);
+    let proxyMock = await mockFactory.attach(proxyAddr);
     txResponse = await proxyMock.setFactory(accounts[0]);
-    expectTxSuccess(txResponse);
-    let mockFactoryAddress = await proxyMock.getFactory.call();
+    await expectTxSuccess(txResponse);
+    let mockFactoryAddress = await proxyMock.callStatic.getFactory();
     expect(mockFactoryAddress).to.equal(accounts[0]);
     // console.log("SETFACTORY GASUSED: ", txResponse["receipt"]["gasUsed"]);
     //lock the proxy
     txResponse = await proxyMock.lock();
-    expectTxSuccess(txResponse);
+    await expectTxSuccess(txResponse);
     // console.log("LOCK UPGRADES GASUSED: ", txResponse["receipt"]["gasUsed"]);
-    let txResponse2 = factory.upgradeProxy(proxySalt, endPoint.address, "0x");
-    expectRevert(txResponse2, "revert");
+    let txRes = factory.upgradeProxy(proxySalt, endPoint.address, "0x");
+    await expect(txRes).to.be.revertedWith("revert");
     txResponse = await proxyMock.unlock();
-    expectTxSuccess(txResponse);
+    await expectTxSuccess(txResponse);
     txResponse = await factory.upgradeProxy(proxySalt, endPoint.address, "0x");
-    expectTxSuccess(txResponse);
+    await expectTxSuccess(txResponse);
   });
 
   //fail on bad code
   it("should not allow deploycreate with bad code", async () => {
-    let receipt = factory.deployCreate("0x6000", { from: firstOwner });
-    await expectRevert(receipt, "csize0");
+    let factory = await deployFactory();
+    let txResponse = factory.deployCreate("0x6000");
+    await expect(txResponse).to.be.revertedWith("csize0");
   });
 
   //fail on unauthorized with bad code
   it("should not allow deploycreate with bad code and unauthorized account", async () => {
-    let receipt = factory.deployCreate("0x6000", { from: accounts[2] });
-    await expectRevert(receipt, "unauthorized");
+    let factory = await deployFactory();
+    let signers = await ethers.getSigners()
+    let factoryBase = (await ethers.getContractFactory(MADNET_FACTORY)).connect(signers[2])
+    factory = factoryBase.attach(factory.address)
+    let txResponse = factory.deployCreate("0x6000");
+    await expect(txResponse).to.be.revertedWith("unauthorized");
   });
 
   //fail on unauthorized with good code
   it("should not allow deploycreate with valid code and unauthorized account", async () => {
-    const receipt = factory.deployCreate(endPointBase.bytecode, {
-      from: accounts[2],
-    });
-    await expectRevert(receipt, "unauthorized");
+    let factory = await deployFactory();
+    let endPointFactory = await ethers.getContractFactory(END_POINT)
+    let signers = await ethers.getSigners()
+    let factoryBase = (await ethers.getContractFactory(MADNET_FACTORY)).connect(signers[2])
+    let factory2 = factoryBase.attach(factory.address)
+    let txResponse = factory2.deployCreate(endPointFactory.bytecode);
+    await expect(txResponse).to.be.revertedWith("unauthorized");
   });
 
   it("deploycreate2 mockinitializable", async () => {
-    let receiptObj = await deployCreate2Initializable(factory);
-    let receipt = receiptObj[RECEIPT];
-    expectTxSuccess(receipt);
-    let mockInitAddr = await getEventVar(receipt, DEPLOYED_RAW, CONTRACT_ADDR);
+    let factory = await deployFactory();
+    let salt = getSalt();
+    let txResponse = await deployCreate2Initializable(factory, salt);
+    await expectTxSuccess(txResponse);
+    let mockInitAddr = await await getEventVar(txResponse, DEPLOYED_RAW, CONTRACT_ADDR);
     expect(mockInitAddr).to.not.be.undefined;
     let mockInitializable = await ethers.getContractFactory(MOCK_INITIALIZABLE);
-    let initCallData = await mockInitializable.interface.encodeFunctionData(
+    let initCallData = mockInitializable.interface.encodeFunctionData(
       "initialize",
       [2]
     );
-    let txResponse = await factory.initializeContract(
+    txResponse = await factory.initializeContract(
       mockInitAddr,
       initCallData
     );
-    expectTxSuccess(txResponse);
+    await expectTxSuccess(txResponse);
     await checkMockInit(mockInitAddr, 2);
   });
 
   it("callany", async () => {
-    let receiptObj = await deployCreate2Initializable(factory);
-    let receipt = receiptObj[RECEIPT];
-    expectTxSuccess(receipt);
-    let mockInitAddr = await getEventVar(receipt, DEPLOYED_RAW, CONTRACT_ADDR);
+    let factory = await deployFactory();
+    let salt = await getSalt();
+    let txResponse = await deployCreate2Initializable(factory, salt);
+    await expectTxSuccess(txResponse);
+    let mockInitAddr = await getEventVar(txResponse, DEPLOYED_RAW, CONTRACT_ADDR);
     expect(mockInitAddr).to.not.be.undefined;
     // call data to initialize mockInitializable
     let mockInitable = await ethers.getContractFactory(MOCK_INITIALIZABLE);
@@ -329,52 +371,56 @@ describe("Madnet Contract Factory", () => {
       "initialize",
       [2]
     );
-    receipt = await factory.callAny(mockInitAddr, 0, initCallData);
+    txResponse = await factory.callAny(mockInitAddr, 0, initCallData);
     await checkMockInit(mockInitAddr, 2);
   });
 
   it("delegatecallany", async () => {
+    let factory = await deployFactory();
     expect(await factory.owner()).to.equal(firstOwner);
     //deploy an instance of mock logic for factory
-    let mockFactoryInstance = await mockFactoryBase.new();
+    let mockFactoryBase = await ethers.getContractFactory("MockFactory")
+    let mockFactoryInstance = await mockFactoryBase.deploy();
     //generate the call data for the factory instance
     let mfEncode = await ethers.getContractFactory("MockFactory");
-    let setOwner = await mfEncode.interface.encodeFunctionData("setOwner", [
+    let setOwner = mfEncode.interface.encodeFunctionData("setOwner", [
       accounts[2],
     ]);
     //delegate call into the factory and change the owner
-    let receipt = await factory.delegateCallAny(
+    let txResponse = await factory.delegateCallAny(
       mockFactoryInstance.address,
       setOwner
     );
-    expectTxSuccess(receipt);
+    await expectTxSuccess(txResponse);
     let owner = await factory.owner();
     expect(owner).to.equal(accounts[2]);
     setOwner = await mfEncode.interface.encodeFunctionData("setOwner", [
       accounts[0],
     ]);
-    receipt = await factory.delegateCallAny(
+    let signers = await ethers.getSigners()
+    let factoryBase = (await ethers.getContractFactory(MADNET_FACTORY)).connect(signers[2])
+    let factory2 = factoryBase.attach(factory.address)
+    txResponse = await factory2.delegateCallAny(
       mockFactoryInstance.address,
-      setOwner,
-      { from: accounts[2] }
+      setOwner
     );
-    expectTxSuccess(receipt);
+    await expectTxSuccess(txResponse);
     owner = await factory.owner();
     expect(owner).to.equal(accounts[0]);
   });
 
   it("upgrade proxy through factory", async () => {
-    let factory = await deployFactory(MADNET_FACTORY);
+    let factory = await deployFactory();
     let endPointLockableFactory = await ethers.getContractFactory("EndPointLockable");
     let endPointLockable = await endPointLockableFactory.deploy(factory.address);
     let salt = getSalt();
     let expectedProxyAddr = getMetamorphicAddress(factory.address, salt);
     let txResponse = await factory.deployProxy(salt);
-    expectTxSuccess(txResponse);
+    await expectTxSuccess(txResponse);
     let proxyAddr = await getEventVar(txResponse, DEPLOYED_PROXY, CONTRACT_ADDR);
     expect(proxyAddr).to.equal(expectedProxyAddr);
     txResponse = await factory.upgradeProxy(salt, endPointLockable.address, "0x");
-    expectTxSuccess(txResponse);
+    await expectTxSuccess(txResponse);
     let proxyFactory = await ethers.getContractFactory("Proxy");
     let proxyContract = proxyFactory.attach(proxyAddr)
     let proxyImplAddress = await proxyContract.callStatic.getImplementationAddress();
@@ -382,17 +428,17 @@ describe("Madnet Contract Factory", () => {
   });
 
   it("lock proxy upgrade from factory", async () => {
-    let factory = await deployFactory(MADNET_FACTORY);
+    let factory = await deployFactory();
     let endPointLockableFactory = await ethers.getContractFactory("EndPointLockable");
     let endPointLockable = await endPointLockableFactory.deploy(factory.address);
     let salt = getSalt();
     let expectedProxyAddr = getMetamorphicAddress(factory.address, salt);
     let txResponse = await factory.deployProxy(salt);
-    expectTxSuccess(txResponse);
+    await expectTxSuccess(txResponse);
     let proxyAddr = await getEventVar(txResponse, DEPLOYED_PROXY, CONTRACT_ADDR);
     expect(proxyAddr).to.equal(expectedProxyAddr);
     txResponse = await factory.upgradeProxy(salt, endPointLockable.address, "0x");
-    expectTxSuccess(txResponse);
+    await expectTxSuccess(txResponse);
     let proxyFactory = await ethers.getContractFactory("Proxy");
     let proxyContract = proxyFactory.attach(proxyAddr)
     let proxyImplAddress = await proxyContract.callStatic.getImplementationAddress();
@@ -400,19 +446,19 @@ describe("Madnet Contract Factory", () => {
   });
 
   it("should prevent locked proxy logic from being upgraded from factory", async () => {
-    let factory = await deployFactory(MADNET_FACTORY);
-    let endPointFactory = await ethers.getContractFactory("EndPoint");
+    let factory = await deployFactory();
+    let endPointFactory = await ethers.getContractFactory(END_POINT);
     let endPoint = await endPointFactory.deploy(factory.address);
     let endPointLockableFactory = await ethers.getContractFactory("EndPointLockable");
     let endPointLockable = await endPointLockableFactory.deploy(factory.address);
     let salt = getSalt();
     let expectedProxyAddr = getMetamorphicAddress(factory.address, salt);
     let txResponse = await factory.deployProxy(salt);
-    expectTxSuccess(txResponse);
+    await expectTxSuccess(txResponse);
     let proxyAddr = await getEventVar(txResponse, DEPLOYED_PROXY, CONTRACT_ADDR);
     expect(proxyAddr).to.equal(expectedProxyAddr);
     txResponse = await factory.upgradeProxy(salt, endPointLockable.address, "0x");
-    expectTxSuccess(txResponse);
+    await expectTxSuccess(txResponse);
     let proxyFactory = await ethers.getContractFactory("Proxy");
     let proxy = proxyFactory.attach(proxyAddr)
     let proxyImplAddress = await proxy.callStatic.getImplementationAddress();
