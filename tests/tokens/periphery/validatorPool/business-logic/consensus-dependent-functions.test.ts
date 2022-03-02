@@ -18,6 +18,8 @@ import {
   showState,
   stakeValidators,
 } from "../setup";
+import { ethers } from "hardhat";
+import { exit } from "process";
 
 describe("ValidatorPool: Consensus dependent logic ", async () => {
   let fixture: Fixture;
@@ -41,14 +43,46 @@ describe("ValidatorPool: Consensus dependent logic ", async () => {
     await factoryCallAny(fixture, "validatorPool", "initializeETHDKG");
   });
 
-  xit("Should not allow pausing “consensus” before 1.5 without snapshots.", async function () {
-    await fixture.validatorPool
-      .connect(await getValidatorEthAccount(validatorsSnapshots[0]))
-      .pauseConsensus();
+  it("Should not allow pausing “consensus” before 1.5 without snapshots.", async function () {
+    await expect(
+      factoryCallAny(
+        fixture,
+        "validatorPool",
+        "pauseConsensusOnArbitraryHeight",
+        [1]
+      )
+    ).to.be.revertedWith("ValidatorPool: Condition not met to stop consensus!");
+  });
 
-    // await expect(factoryCallAny(fixture, "snapshots",
-    //   "pauseConsensus"))
-    //   .to.be.revertedWith("ValidatorPool: Condition not met to stop consensus!");
+  it("Pause consensus after 1.5 days without snapshot.", async function () {
+    // Simulating in mock with _maxIntervalWithoutSnapshot = 0 instead of 8192
+    fixture = await getFixture(true, true, true);
+    await factoryCallAny(
+      fixture,
+      "validatorPool",
+      "pauseConsensusOnArbitraryHeight",
+      [1]
+    );
+  });
+
+  it("After 1.5 days without snapshots, replace validators and run ETHDKG to completion.", async function () {
+    // Simulating in mock with _maxIntervalWithoutSnapshot = 0 instead of 8192
+    fixture = await getFixture(true, true, true);
+    validators = await createValidators(fixture, validatorsSnapshots);
+    stakingTokenIds = await stakeValidators(fixture, validators);
+    await factoryCallAny(fixture, "validatorPool", "registerValidators", [
+      validators,
+      stakingTokenIds,
+    ]);
+    // Complete ETHDKG Round
+    await factoryCallAny(fixture, "validatorPool", "initializeETHDKG");
+    await factoryCallAny(fixture, "validatorPool", "unregisterValidators", [
+      validators,
+    ]);
+    await completeETHDKGRound(validatorsSnapshots, {
+      ethdkg: fixture.ethdkg,
+      validatorPool: fixture.validatorPool,
+    });
   });
 
   it("Complete ETHDKG and check if the necessary state was set properly", async function () {
@@ -92,67 +126,15 @@ describe("ValidatorPool: Consensus dependent logic ", async () => {
     );
   });
 
-  xit("Admin should be able to send Madtokens and eth sent to the contract accidentally.", async function () {
-    const user = await getValidatorEthAccount(validatorsSnapshots[0]);
-    await fixture.madToken
-      .connect(user)
-      .transferFrom(await user.getAddress(), fixture.madToken.address, 1);
-    showState(
-      "after accidentally sending MAD",
-      await getCurrentState(fixture, validators)
-    );
-    await fixture.madToken
-      .connect(adminSigner)
-      .transfer(await user.getAddress(), 1);
-    showState(
-      "after recovering it",
-      await getCurrentState(fixture, validators)
-    );
-  });
-
-  xit("Test running ETHDKG with the arbitrary height sent as input, see if the value (the arbitrary height) is correctly added to the ethdkg completion event.", async function () {
-    await factoryCallAny(fixture, "validatorPool", "registerValidators", [
-      validators,
-      stakingTokenIds,
-    ]);
-    // Complete ETHDKG Round
-    await factoryCallAny(fixture, "validatorPool", "initializeETHDKG");
-    await completeETHDKGRound(validatorsSnapshots, {
-      ethdkg: fixture.ethdkg,
-      validatorPool: fixture.validatorPool,
-    });
-    // await factoryCallAny(fixture, "snapshots",
-    // "setCommittedHeightFromLatestSnapshot",[221])
-    let snp = fixture.snapshots as SnapshotsMock;
-
-    await factoryCallAny(
-      fixture,
-      "validatorPool",
-      "pauseConsensusOnArbitraryHeight",
-      [4]
-    );
-    await commitSnapshots(fixture, 4);
-    await expect(
-      // fixture.ethdkg.
-      //   connect(await getValidatorEthAccount(validatorsSnapshots[0])).
-      //   setCustomMadnetHeight(4)
-      factoryCallAny(fixture, "validatorPool", "setCustomMadnetHeight", [4])
-    )
+  it("Test running ETHDKG with the arbitrary height sent as input, see if the value (the arbitrary height) is correctly added to the ethdkg completion event.", async function () {
+    const height = 4;
+    const ETHDKGMockFactory = await ethers.getContractFactory("ETHDKGMock");
+    let ethdkg = ETHDKGMockFactory.attach(fixture.ethdkg.address);
+    await expect(fixture.ethdkg.setCustomMadnetHeight(height))
       .to.emit(fixture.ethdkg, "ValidatorSetCompleted")
-      .withArgs(
-        0,
-        0,
-        fixture.snapshots.getEpoch(),
-        fixture.snapshots.getCommittedHeightFromLatestSnapshot(),
-        fixture.snapshots.getMadnetHeightFromSnapshot(
-          await fixture.snapshots.getEpoch()
-        ),
-        0x0,
-        0x0,
-        0x0,
-        0x0
-      );
+      .withArgs(0, 0, 0, 0, height, 0, 0, 0, 0);
   });
+
   it("Check if consensus is halted after maintenance is scheduled and snapshot is done.", async function () {
     await factoryCallAny(fixture, "validatorPool", "registerValidators", [
       validators,
@@ -233,10 +215,13 @@ describe("ValidatorPool: Consensus dependent logic ", async () => {
       "After initializing",
       await getCurrentState(fixture, validators)
     );
-    await completeETHDKGRound(validatorsSnapshots2, {
-      ethdkg: fixture.ethdkg,
-      validatorPool: fixture.validatorPool,
-    },
-    5);
+    await completeETHDKGRound(
+      validatorsSnapshots2,
+      {
+        ethdkg: fixture.ethdkg,
+        validatorPool: fixture.validatorPool,
+      },
+      5
+    );
   });
 });

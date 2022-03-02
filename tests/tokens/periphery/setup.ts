@@ -405,7 +405,9 @@ export async function getTokenIdFromTx(tx: any) {
   ];
   let iface = new ethers.utils.Interface(abi);
   let receipt = await ethers.provider.getTransactionReceipt(tx.hash);
-  let log = iface.parseLog(receipt.logs[2]);
+  let logs =
+    typeof receipt.logs[2] !== "undefined" ? receipt.logs[2] : receipt.logs[0];
+  let log = iface.parseLog(logs);
   const { from, to, tokenId } = log.args;
   return tokenId;
 }
