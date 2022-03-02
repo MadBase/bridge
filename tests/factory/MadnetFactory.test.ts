@@ -39,6 +39,7 @@ describe("Madnet Contract Factory", () => {
 
 
   beforeEach(async () => {
+    process.env.silencer = "true";
     accounts = await getAccounts();
     firstOwner = accounts[0];
     secondOwner = accounts[1];

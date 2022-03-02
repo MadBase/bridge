@@ -16,6 +16,7 @@ describe("Cli tasks", async () => {
 
   beforeEach(async () => {
     accounts = await getAccounts();
+    process.env.silencer = "true";
     //set owner and delegator
     firstOwner = accounts[0];
     firstDelegator = accounts[1];

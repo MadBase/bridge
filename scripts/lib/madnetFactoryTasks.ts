@@ -50,14 +50,14 @@ task("getSalt", "gets salt from contract")
   .addParam("contractName", "test contract")
   .setAction(async (taskArgs, hre) => {
     let salt = await getSalt(taskArgs.contractName, hre);
-    console.log(salt);
+    await showState(salt)
   });
 
 task("getBytes32Salt", "gets the bytes32 version of salt from contract")
   .addParam("contractName", "test contract")
   .setAction(async (taskArgs, hre) => {
     let salt = await getBytes32Salt(taskArgs.contractName, hre);
-    console.log(salt);
+    await showState(salt)
   });
 
 task(
@@ -84,7 +84,7 @@ task(
       gas: gasCost.toNumber(),
     };
     await updateDefaultFactoryData(factoryData);
-    console.log("Deployed:", MADNET_FACTORY, "at address:", factory.address);
+    await showState(`Deployed: ${MADNET_FACTORY}, at address: ${factory.address}`)
     return factory.address;
   });
 
@@ -125,8 +125,9 @@ task(
       logicAddress: result.address,
       initCallData: initCallData,
     };
-    let proxyData = await hre.run("multiCallDeployProxy", mcCallArgs);
-    console.log("deployed Proxy at: ", proxyData)
+    
+    let proxyData:ProxyData = await hre.run("multiCallDeployProxy", mcCallArgs);
+    await showState(`deployed Proxy at: ${proxyData.proxyAddress}, pointed to ${proxyData.logicName}, at ${proxyData.logicAddress}, gasCost: ${proxyData.gas}`);
     return proxyData;
   });
 
@@ -156,11 +157,10 @@ task(
     //uses the factory Data and logic contractName and returns deploybytecode and any constructor args attached
     let callArgs: DeployArgs = await getDeployTemplateArgs(taskArgs);
     //deploy create the logic contract
-    console.log(taskArgs.contractName, "callargs:", callArgs)
     let templateAddress = await hre.run("deployTemplate", callArgs);
     callArgs = await getDeployStaticSubtaskArgs(taskArgs);
     let metaContractData = await hre.run("deployStatic", callArgs);
-    console.log("deployed Metamorphic at: ", metaContractData.metaAddress, "with logic from,", metaContractData.templateAddress);
+    await showState(`deployed Metamorphic at: ${metaContractData.metaAddress}, with logic from, ${metaContractData.templateAddress}`)
     return metaContractData;
   });
 
@@ -194,7 +194,7 @@ task("deployCreate", "deploys a contract from the factory using create")
         constructorArgs: taskArgs?.constructorArgs,
       };
       await updateDeployCreateList(deployCreateData);
-      console.log(`Deployed ${taskArgs.contractName} contract at: ${deployCreateData.address}, gas: ${receipt.gasUsed}`);
+      await showState(`Deployed ${taskArgs.contractName} contract at: ${deployCreateData.address}, gas: ${receipt.gasUsed}`)
       return deployCreateData;
     } else {
       throw new Error(`failed to get deployment bytecode for ${taskArgs.contractName}`)
@@ -237,13 +237,13 @@ task("upgradeDeployedProxy", "deploys a contract from the factory using create")
       gas: receipt.gasUsed.toNumber(),
       initCallData: initCallData,
     };
-    console.log(
-      "Subtask upgradeDeployedProxy ",
-      taskArgs.contractName,
-      " contract at ",
-      proxyData.proxyAddress,
-      "gas: ",
-      receipt.gasUsed
+    await showState(
+      `Subtask upgradeDeployedProxy,
+      ${taskArgs.contractName}
+      contract at 
+      ${proxyData.proxyAddress}
+      gas: 
+      ${receipt.gasUsed}`
     );
     await updateProxyList(proxyData);
     return proxyData;
@@ -268,7 +268,6 @@ task(
     let deployTxReq =
       taskArgs.constructorArgs === undefined ?
         logicContract.getDeployTransaction() : logicContract.getDeployTransaction(...taskArgs.constructorArgs);
-    console.log(taskArgs.constructorArgs)
     if (deployTxReq.data !== undefined) {
       let deployBytecode = deployTxReq.data;
       //get a factory instance connected to the factory addr
@@ -290,7 +289,7 @@ task(
       if (taskArgs.constructorArgs !== undefined) {
         templateData.constructorArgs = taskArgs.constructorArgs;
       }
-      console.log("Subtask deployeTemplate ", taskArgs.contractName, " contract at ", templateData.address, "gas: ", receipt.gasUsed);
+      await showState(`Subtask deployeTemplate ${taskArgs.contractName}, contract at, ${templateData.address}, gas: ${receipt.gasUsed}`);
       updateTemplateList(templateData);
       return templateData;
     } else {
@@ -325,7 +324,7 @@ task(
       DEPLOYED_STATIC,
       CONTRACT_ADDR
     );
-    console.log("Subtask deployStatic ", taskArgs.contractName, " contract at ", contractAddr, "gas: ", receipt.gasUsed);
+    await showState(`Subtask deployStatic, ${taskArgs.contractName}, contract at ${contractAddr}, gas: ${receipt.gasUsed}`);
     let outputData: MetaContractData = {
       metaAddress: contractAddr,
       salt: Salt,
@@ -383,7 +382,7 @@ task("multiCallDeployProxy", "deploy and upgrade proxy with multicall")
       gas: receipt.gasUsed.toNumber(),
       initCallData: initCallData,
     };
-    console.log("Subtask multiCallDeployProxy: ", proxyData.logicName, "with proxy at:", proxyData.proxyAddress, "and logic at:", proxyData.logicAddress, "gas: ", receipt.gasUsed);
+    await showState(`deployed Proxy at: ${proxyData.proxyAddress}, pointed to ${proxyData.logicName}, at ${proxyData.logicAddress}, gasCost: ${proxyData.gas}`);
     updateProxyList(proxyData);
     return proxyData;
   });
@@ -455,7 +454,6 @@ async function getProxyMultiCallArgs(
     "deployProxy",
     [Salt]
   );
-  console.log("a")
   //encode upgrade proxy multicall
   let upgradeProxy: BytesLike = factoryBase.interface.encodeFunctionData(
     "upgradeProxy",
@@ -628,3 +626,8 @@ function getMetamorphicAddress(
   );
 }
 
+export const showState = async (message:string):Promise<void> => {
+  if (process.env.silencer === undefined || process.env.silencer === "false") {
+    console.log(message);
+  }
+}

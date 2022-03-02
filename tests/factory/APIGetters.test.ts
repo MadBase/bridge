@@ -1,4 +1,5 @@
 import { ethers, artifacts } from "hardhat";
+import { boolean } from "hardhat/internal/core/params/argumentTypes";
 import {
   deployStatic,
   deployUpgradeable,
@@ -17,6 +18,7 @@ import {
   getAccounts,
   getMetamorphicAddress
 } from "./Setup.test";
+process.env.silencer = "true";
 
 describe("Madnetfactory API test", async () => {
   let firstOwner: string;
@@ -31,7 +33,6 @@ describe("Madnetfactory API test", async () => {
     //set owner and delegator
     firstOwner = accounts[0];
     firstDelegator = accounts[1];
-
     utilsContract = await utilsBase.deploy();
     factory = await deployFactory();
     let cSize = await utilsContract.getCodeSize(factory.address);

@@ -36,43 +36,42 @@ export async function deployUpgradeable(
   let deployTxReq = await logicFactory.getDeployTransaction(...constructorArgs);
   let deployBytecode = deployTxReq.data;
   if(deployBytecode !== undefined){
-
+    //deploy the bytecode using the factory
+    let txResponse = await factory.deployCreate(deployBytecode);
+    let receipt = await txResponse.wait();
+    let proxySalt = await getSalt(contractName);
+    let res = <
+      {
+        logicAddress: string;
+        proxyAddress: string;
+        proxySalt: string;
+      }
+      >{
+        logicAddress: getEventVar(receipt, DEPLOYED_RAW, CONTRACT_ADDR),
+        proxySalt: proxySalt,
+      };
+    if (proxySalt !== undefined) {
+      //multicall deployProxy. upgradeProxy
+      let multiCallArgs = await getDeployUpgradeableMultiCallArgs(
+        defaultFactoryName,
+        res.proxySalt,
+        res.logicAddress
+      );
+      txResponse = await factory.multiCall(multiCallArgs);
+      receipt = await txResponse.wait();
+      res.proxyAddress = await getEventVar(
+        receipt,
+        DeployedProxyEvent,
+        contractAddrVar
+      );
+      return res;
+    } else {
+      console.error(`${contractName} contract missing salt`);
+    }
+    return res;
   } else {
     throw new Error(`failed to get contract bytecode for ${contractName}`);
   }
-  //deploy the bytecode using the factory
-  let txResponse = await factory.deployCreate(deployBytecode);
-  let receipt = await txResponse.wait();
-  let proxySalt = await getSalt(contractName);
-  let res = <
-    {
-      logicAddress: string;
-      proxyAddress: string;
-      proxySalt: string;
-    }
-    >{
-      logicAddress: getEventVar(receipt, DEPLOYED_RAW, CONTRACT_ADDR),
-      proxySalt: proxySalt,
-    };
-  if (proxySalt !== undefined) {
-    //multicall deployProxy. upgradeProxy
-    let multiCallArgs = await getDeployUpgradeableMultiCallArgs(
-      defaultFactoryName,
-      res.proxySalt,
-      res.logicAddress
-    );
-    txResponse = await factory.multiCall(multiCallArgs);
-    receipt = await txResponse.wait();
-    res.proxyAddress = await getEventVar(
-      receipt,
-      DeployedProxyEvent,
-      contractAddrVar
-    );
-    return res;
-  } else {
-    console.error(`${contractName} contract missing salt`);
-  }
-  return res;
 }
 
 export async function upgradeProxy(
@@ -228,4 +227,4 @@ function getEventVar(receipt: ContractReceipt, eventName: string, varName: strin
   }
   throw new Error(`failed to find event: ${eventName}`)
 }
-module.exports = { deployUpgradeable, upgradeProxy, deployStatic };
+

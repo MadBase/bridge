@@ -77,7 +77,6 @@ describe("Multicall deploy proxy", () => {
       DEPLOYED_RAW,
       CONTRACT_ADDR
     );
-    console.log(txResponse)
     let proxyAddr = await getEventVar(txResponse, DEPLOYED_PROXY, CONTRACT_ADDR);
     expect(mockLogicAddr).to.equal(expectedMockLogicAddr);
     // console.log("MULTICALL DEPLOYPROXY, DEPLOYCREATE, UPGRADEPROXY GASUSED: ", receipt["receipt"]["gasUsed"]);
