@@ -31,7 +31,6 @@ export async function deployStatic(fullyQualifiedName: string) {
       initializerArgs
     );
   }
-  console.log(fullyQualifiedName, "initCD", initCallData);
   let hasConArgs = await hasConstructorArgs(fullyQualifiedName);
   let constructorArgs = hasConArgs
     ? getDeploymentConstructorArgs(fullyQualifiedName)

@@ -1,22 +1,14 @@
-import { MadnetFactory } from './../../typechain-types/MadnetFactory';
-import { ContractFactory, ContractReceipt, ContractTransaction } from 'ethers';
+import { MadnetFactory } from '../../typechain-types/MadnetFactory';
+import { ContractFactory, ContractTransaction } from 'ethers';
 //const { contracts } from"@openzeppelin/cli/lib/prompts/choices");
-import { expectRevert } from "@openzeppelin/test-helpers";
 import { expect } from "chai";
 import { BytesLike } from "ethers";
-import { ethers, artifacts } from "hardhat";
-import { 
+import { ethers } from "hardhat";
+import {
   MOCK,
-  DEPLOYED_PROXY,
-  DEPLOYED_RAW,
-  DEPLOYED_STATIC,
-  DEPLOYED_TEMPLATE,
-  MOCK_INITIALIZABLE,
   END_POINT,
-  CONTRACT_ADDR,
-  RECEIPT,
   MADNET_FACTORY,
-} from './../../scripts/lib/constants';
+} from '../../scripts/lib/constants';
 import { Mock__factory } from '../../typechain-types';
 
 
@@ -47,7 +39,7 @@ export async function proxyMockLogicTest(
   endPointAddr: string,
   factoryAddress: string
 ) {
-  const endPointFactory = await ethers.getContractFactory(END_POINT); 
+  const endPointFactory = await ethers.getContractFactory(END_POINT);
   const factoryBase = await ethers.getContractFactory(MADNET_FACTORY);
   const factory = factoryBase.attach(factoryAddress);
   const mockProxy = contract.attach(proxyAddress);
@@ -230,7 +222,7 @@ export async function deployFactory() {
 }
 
 export async function deployCreate2Initable(factory: MadnetFactory, salt:BytesLike) {
-  let mockInitFactory = await ethers.getContractFactory("MockInitializable") 
+  let mockInitFactory = await ethers.getContractFactory("MockInitializable")
   let txResponse = await factory.deployCreate2(0, salt, mockInitFactory.bytecode)
   return txResponse;
 }

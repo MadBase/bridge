@@ -17,7 +17,7 @@ import {
   deployFactory,
   getAccounts,
   getMetamorphicAddress
-} from "./Setup.test";
+} from "./Setup";
 process.env.silencer = "true";
 
 describe("Madnetfactory API test", async () => {

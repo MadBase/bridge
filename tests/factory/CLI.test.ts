@@ -1,15 +1,12 @@
 import { expect } from "chai";
-import { ethers, run } from "hardhat";
+import { run } from "hardhat";
 import { getDefaultFactoryAddress } from "../../scripts/lib/factoryStateUtils";
-import { MadnetFactory } from "../../typechain-types";
 import {
-  deployFactory,
   getAccounts,
   predictFactoryAddress
-} from "./Setup.test";
+} from "./Setup";
 
 describe("Cli tasks", async () => {
-  let utilsBase;
   let firstOwner: string;
   let firstDelegator: string;
   let accounts: Array<string> = [];

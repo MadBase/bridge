@@ -5,6 +5,7 @@ import {
   MADNET_FACTORY,
   DEPLOY_CREATE,
   DEPLOYED_STATIC,
+  PROXY,
 } from "./constants";
 import { task } from "hardhat/config";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
@@ -107,7 +108,7 @@ task(
   )
   .addOptionalVariadicPositionalParam(
     "constructorArgs",
-    "array that holds all arguements for constructor"
+    "array that holds all arguments for constructor"
   )
   .setAction(async (taskArgs, hre) => {
     let factoryAddress = await getFactoryAddress(taskArgs);
@@ -125,9 +126,8 @@ task(
       logicAddress: result.address,
       initCallData: initCallData,
     };
-    
+
     let proxyData:ProxyData = await hre.run("multiCallDeployProxy", mcCallArgs);
-    await showState(`deployed Proxy at: ${proxyData.proxyAddress}, pointed to ${proxyData.logicName}, at ${proxyData.logicAddress}, gasCost: ${proxyData.gas}`);
     return proxyData;
   });
 
@@ -160,7 +160,7 @@ task(
     let templateAddress = await hre.run("deployTemplate", callArgs);
     callArgs = await getDeployStaticSubtaskArgs(taskArgs);
     let metaContractData = await hre.run("deployStatic", callArgs);
-    await showState(`deployed Metamorphic at: ${metaContractData.metaAddress}, with logic from, ${metaContractData.templateAddress}`)
+    await showState(`Deployed Metamorphic for ${taskArgs.contractName} at: ${metaContractData.metaAddress}, with logic from, ${metaContractData.templateAddress}, gas used: ${metaContractData.gas}`)
     return metaContractData;
   });
 
@@ -170,7 +170,7 @@ task("deployCreate", "deploys a contract from the factory using create")
   .addOptionalParam("factoryAddress", "factory deploying the contract")
   .addOptionalVariadicPositionalParam(
     "constructorArgs",
-    "array that holds all arguements for constructor"
+    "array that holds all arguments for constructor"
   )
   .setAction(async (taskArgs, hre) => {
     let factoryAddress = await getFactoryAddress(taskArgs);
@@ -182,7 +182,7 @@ task("deployCreate", "deploys a contract from the factory using create")
     );
     let constructorArgs = taskArgs.constructor === undefined ? [] : taskArgs.constructorArgs
     //encode deployBcode
-    let deployTx = logicContract.getDeployTransaction(constructorArgs);
+    let deployTx = logicContract.getDeployTransaction(...constructorArgs);
     if (deployTx.data !== undefined) {
       let txResponse = await factory.deployCreate(deployTx.data);
       let receipt = await txResponse.wait();
@@ -194,7 +194,7 @@ task("deployCreate", "deploys a contract from the factory using create")
         constructorArgs: taskArgs?.constructorArgs,
       };
       await updateDeployCreateList(deployCreateData);
-      await showState(`Deployed ${taskArgs.contractName} contract at: ${deployCreateData.address}, gas: ${receipt.gasUsed}`)
+      await showState(`[DEBUG ONLY, DONT USE THIS ADDRESS IN THE SIDE CHAIN, USE THE PROXY INSTEAD!] Deployed logic for ${taskArgs.contractName} contract at: ${deployCreateData.address}, gas: ${receipt.gasUsed}`)
       return deployCreateData;
     } else {
       throw new Error(`failed to get deployment bytecode for ${taskArgs.contractName}`)
@@ -238,11 +238,11 @@ task("upgradeDeployedProxy", "deploys a contract from the factory using create")
       initCallData: initCallData,
     };
     await showState(
-      `Subtask upgradeDeployedProxy,
+      `Updated logic with upgradeDeployedProxy for the
       ${taskArgs.contractName}
-      contract at 
+      contract at
       ${proxyData.proxyAddress}
-      gas: 
+      gas:
       ${receipt.gasUsed}`
     );
     await updateProxyList(proxyData);
@@ -289,7 +289,7 @@ task(
       if (taskArgs.constructorArgs !== undefined) {
         templateData.constructorArgs = taskArgs.constructorArgs;
       }
-      await showState(`Subtask deployeTemplate ${taskArgs.contractName}, contract at, ${templateData.address}, gas: ${receipt.gasUsed}`);
+    //   await showState(`Subtask deployedTemplate for ${taskArgs.contractName} contract at ${templateData.address}, gas: ${receipt.gasUsed}`);
       updateTemplateList(templateData);
       return templateData;
     } else {
@@ -324,7 +324,7 @@ task(
       DEPLOYED_STATIC,
       CONTRACT_ADDR
     );
-    await showState(`Subtask deployStatic, ${taskArgs.contractName}, contract at ${contractAddr}, gas: ${receipt.gasUsed}`);
+    // await showState(`Subtask deployStatic, ${taskArgs.contractName}, contract at ${contractAddr}, gas: ${receipt.gasUsed}`);
     let outputData: MetaContractData = {
       metaAddress: contractAddr,
       salt: Salt,
@@ -382,7 +382,7 @@ task("multiCallDeployProxy", "deploy and upgrade proxy with multicall")
       gas: receipt.gasUsed.toNumber(),
       initCallData: initCallData,
     };
-    await showState(`deployed Proxy at: ${proxyData.proxyAddress}, pointed to ${proxyData.logicName}, at ${proxyData.logicAddress}, gasCost: ${proxyData.gas}`);
+    await showState(`Deployed ${proxyData.logicName} with proxy at ${proxyData.proxyAddress}, gasCost: ${proxyData.gas}`);
     updateProxyList(proxyData);
     return proxyData;
   });
@@ -404,8 +404,13 @@ task("multiCallUpgradeProxy", "multi call to deploy logic and upgrade proxy thro
     let txCount = await hre.ethers.provider.getTransactionCount(factory.address)
     let implAddress = hre.ethers.utils.getContractAddress({ from: factory.address, nonce: txCount });
     let upgradeProxy = factoryBase.interface.encodeFunctionData(DEPLOY_CREATE, [salt, implAddress, initCallData]);
+    const PROXY_FACTORY = await hre.ethers.getContractFactory(PROXY)
+    let proxyAddress = getMetamorphicAddress(factoryAddress, salt, hre)
+    let proxyContract = await PROXY_FACTORY.attach(proxyAddress)
+    let oldImpl = await proxyContract.getImplementationAddress()
     let txResponse = await factory.multiCall([deployCreate, upgradeProxy]);
     let receipt = await txResponse.wait();
+    await showState(`Updating logic for the ${taskArgs.contractName} proxy at ${proxyAddress} from ${oldImpl} to ${implAddress}, gasCost: ${receipt.gasUsed}`);
     return receipt
   });
 
@@ -511,7 +516,7 @@ async function getAccounts(hre: HardhatRuntimeEnvironment) {
   return accounts;
 }
 
-async function getFullyQaulifiedName(
+async function getFullyQualifiedName(
   contractName: string,
   hre: HardhatRuntimeEnvironment
 ) {
@@ -574,7 +579,7 @@ async function getSalt(
   contractName: string,
   hre: HardhatRuntimeEnvironment
 ): Promise<string> {
-  let qualifiedName: any = await getFullyQaulifiedName(contractName, hre);
+  let qualifiedName: any = await getFullyQualifiedName(contractName, hre);
   let buildInfo = await hre.artifacts.getBuildInfo(qualifiedName);
   let contractOutput: any;
   let devdoc: any;

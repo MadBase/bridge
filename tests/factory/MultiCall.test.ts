@@ -1,22 +1,21 @@
 import { expect } from "chai";
-import { artifacts, ethers } from "hardhat";
-import { MadnetFactory, Mock__factory, Utils, Utils__factory } from "../../typechain-types";
+import { ethers } from "hardhat";
+import { Mock__factory, Utils__factory } from "../../typechain-types";
 import {
   CONTRACT_ADDR, DEPLOYED_PROXY,
   DEPLOYED_RAW,
   DEPLOYED_STATIC,
-  DEPLOYED_TEMPLATE, DEPLOY_STATIC, DEPLOY_TEMPLATE, END_POINT, MADNET_FACTORY, MOCK, PROXY, UTILS
+  DEPLOYED_TEMPLATE, DEPLOY_STATIC, DEPLOY_TEMPLATE, END_POINT, MADNET_FACTORY, MOCK, UTILS
 } from './../../scripts/lib/constants';
 import {
   deployFactory,
   getAccounts,
   getCreateAddress,
   getEventVar,
-  getMetamorphicAddress,
   getSalt,
   metaMockLogicTest,
   proxyMockLogicTest
-} from "./Setup.test";
+} from "./Setup";
 
 
 describe("Multicall deploy proxy", () => {

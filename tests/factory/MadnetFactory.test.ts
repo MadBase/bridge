@@ -1,4 +1,4 @@
-import { 
+import {
   MOCK,
   DEPLOYED_PROXY,
   DEPLOYED_RAW,
@@ -7,7 +7,6 @@ import {
   MOCK_INITIALIZABLE,
   END_POINT,
   CONTRACT_ADDR,
-  RECEIPT,
   PROXY,
   UTILS,
   MADNET_FACTORY,
@@ -26,12 +25,10 @@ import {
   getEventVar,
   getMetamorphicAddress,
   getSalt,
-} from "./Setup.test";
+} from "./Setup";
 import { ethers, artifacts } from "hardhat";
 import { BytesLike, ContractFactory } from "ethers";
-import { MadnetFactory, Utils } from "../../typechain-types";
 describe("Madnet Contract Factory", () => {
-  let utilsBase
   let firstOwner: string;
   let secondOwner: string;
   let firstDelegator: string;
@@ -283,7 +280,6 @@ describe("Madnet Contract Factory", () => {
     let mockContract = await mockFactory.deploy(2, "s");
     let proxySalt = getSalt();
     let txResponse = await factory.deployProxy(proxySalt);
-    let receipt = await txResponse.wait();
     let proxyAddr = await getEventVar(
       txResponse,
       "DeployedProxy",
@@ -346,7 +342,6 @@ describe("Madnet Contract Factory", () => {
     let factory = await deployFactory();
     let salt = getSalt();
     let txResponse = await deployCreate2Initializable(factory, salt);
-    let receipt = await txResponse.wait()
     await expectTxSuccess(txResponse);
     let mockInitAddr = await await getEventVar(txResponse, DEPLOYED_RAW, CONTRACT_ADDR);
     expect(mockInitAddr).to.not.be.undefined;
@@ -439,7 +434,6 @@ describe("Madnet Contract Factory", () => {
     let salt = getSalt();
     let expectedProxyAddr = getMetamorphicAddress(factory.address, salt);
     let txResponse = await factory.deployProxy(salt);
-    let receipt = await txResponse.wait();
     await expectTxSuccess(txResponse);
     let proxyAddr = await getEventVar(txResponse, DEPLOYED_PROXY, CONTRACT_ADDR);
     expect(proxyAddr).to.equal(expectedProxyAddr);
