@@ -14,6 +14,7 @@ import {
   getCurrentState,
   showState,
   stakeValidators,
+  commitSnapshots,
 } from "../setup";
 
 describe("ValidatorPool: Collecting logic", async function () {
@@ -95,8 +96,6 @@ describe("ValidatorPool: Collecting logic", async function () {
       ethdkg: fixture.ethdkg,
       validatorPool: fixture.validatorPool,
     });
-
-    expectedState.ValidatorNFT.ETH;
     for (let index = 0; index < validators.length; index++) {
       await fixture.validatorPool
         .connect(await getValidatorEthAccount(validatorsSnapshots[index]))
@@ -113,6 +112,42 @@ describe("ValidatorPool: Collecting logic", async function () {
     currentState = await getCurrentState(fixture, validators);
     await showState("Expected state after collect profit", expectedState);
     await showState("Current state after collect profit", currentState);
+    expect(currentState).to.be.deep.equal(expectedState);
+  });
+
+  xit("Skim excess of tokens end ether in the contract", async function () {
+    let expectedState = await getCurrentState(fixture, validators);
+    // await factoryCallAny(fixture, "validatorPool", "registerValidators", [
+    //   validators,
+    //   stakingTokenIds,
+    // ]);
+    // await factoryCallAny(fixture, "validatorPool", "unregisterValidators", [
+    //   validators,
+    // ]);
+    // await commitSnapshots(fixture, 4);
+    // for (const validator of validatorsSnapshots) {
+    //   await fixture.validatorPool
+    //     .connect(await getValidatorEthAccount(validator))
+    //     .claimExitingNFTPosition();
+    // }
+    await showState(
+      "After claiming:",
+      await getCurrentState(fixture, validators)
+    );
+    console.log(
+      await fixture.stakeNFT
+        .connect(await getValidatorEthAccount(validatorsSnapshots[0]))
+        .ownerOf(1)
+    );
+
+    await fixture.stakeNFT
+      .connect(await getValidatorEthAccount(validatorsSnapshots[0]))
+      .collectEthTo(validatorsSnapshots[0].address, 1);
+    console.log(1);
+    await fixture.stakeNFT.collectTokenTo(validatorsSnapshots[1].address, 2);
+    let currentState = await getCurrentState(fixture, validators);
+    await showState("Expected state", expectedState);
+    await showState("Current state", currentState);
     expect(currentState).to.be.deep.equal(expectedState);
   });
 });
