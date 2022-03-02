@@ -1,31 +1,24 @@
 import { expect } from "chai";
+import { ethers, run } from "hardhat";
+import { getDefaultFactoryAddress } from "../../scripts/lib/factoryStateUtils";
+import { MadnetFactory } from "../../typechain-types";
 import {
   deployFactory,
   getAccounts,
-  MADNET_FACTORY,
-  predictFactoryAddress,
+  predictFactoryAddress
 } from "./Setup.test";
-import { artifacts, ethers, run } from "hardhat";
-import { getDefaultFactoryAddress } from "../../scripts/lib/factoryStateUtils";
-import { MadnetFactory } from "../../typechain-types";
 
 describe("Cli tasks", async () => {
   let utilsBase;
   let firstOwner: string;
   let firstDelegator: string;
   let accounts: Array<string> = [];
-  let factory: MadnetFactory;
 
   beforeEach(async () => {
     accounts = await getAccounts();
     //set owner and delegator
     firstOwner = accounts[0];
     firstDelegator = accounts[1];
-    let UtilsBase = await ethers.getContractFactory("Utils")
-    let utilsContract = await UtilsBase.deploy();
-    factory = await deployFactory();
-    let cSize = await utilsContract.getCodeSize(factory.address);
-    expect(cSize.toNumber()).to.be.greaterThan(0);
   });
 
   it("deploy factory with cli", async () => {

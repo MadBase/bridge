@@ -1,19 +1,21 @@
-import { ethers, artifacts } from "hardhat";
+import { ethers } from "hardhat";
 import {
   deployStatic,
   deployUpgradeable,
-  upgradeProxy,
+  upgradeProxy
 } from "../../scripts/lib/MadnetFactory";
 import { MadnetFactory, Utils } from "../../typechain-types";
 import { assert, expect } from "../chai-setup";
 import {
+  END_POINT,
+  PROXY,
+  UTILS
+} from './../../scripts/lib/constants';
+import {
   bytes32ArrayToStringArray,
   deployFactory,
-  END_POINT,
   getAccounts,
-  getMetamorphicAddress,
-  MADNET_FACTORY,
-  PROXY,
+  getMetamorphicAddress
 } from "./Setup.test";
 
 describe("Madnetfactory API test", async () => {
@@ -24,7 +26,7 @@ describe("Madnetfactory API test", async () => {
   let factory: MadnetFactory;
 
   beforeEach(async () => {
-    let utilsBase = await ethers.getContractFactory("Utils");
+    let utilsBase = await ethers.getContractFactory(UTILS);
     accounts = await getAccounts();
     //set owner and delegator
     firstOwner = accounts[0];

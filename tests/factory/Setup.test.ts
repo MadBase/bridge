@@ -1,4 +1,5 @@
-import { ContractFactory, ContractReceipt } from 'ethers';
+import { MadnetFactory } from './../../typechain-types/MadnetFactory';
+import { ContractFactory, ContractReceipt, ContractTransaction } from 'ethers';
 //const { contracts } from"@openzeppelin/cli/lib/prompts/choices");
 import { expectRevert } from "@openzeppelin/test-helpers";
 import { expect } from "chai";
@@ -16,6 +17,7 @@ import {
   RECEIPT,
   MADNET_FACTORY,
 } from './../../scripts/lib/constants';
+import { Mock__factory } from '../../typechain-types';
 
 
 export async function getAccounts() {
@@ -38,7 +40,7 @@ export async function predictFactoryAddress(ownerAddress: string) {
 }
 
 export async function proxyMockLogicTest(
-  contract: ContractFactory,
+  contract: Mock__factory,
   salt: string,
   proxyAddress: string,
   mockLogicAddr: string,
@@ -52,58 +54,57 @@ export async function proxyMockLogicTest(
   let txResponse = await mockProxy.setFactory(factoryAddress);
   let receipt = await txResponse.wait();
   const testArg = 4;
-  expectTxSuccess(receipt);
-  let fa = await mockProxy.getFactory.call();
+  await expectTxSuccess(txResponse);
+  let fa = await mockProxy.callStatic.getFactory();
   expect(fa).to.equal(factoryAddress);
   txResponse = await mockProxy.setv(testArg);
   receipt = await txResponse.wait();
-  expectTxSuccess(receipt);
-  let v = await mockProxy.v.call();
+  await expectTxSuccess(txResponse);
+  let v = await mockProxy.callStatic.v();
   expect(v.toNumber()).to.equal(testArg);
-  let i = await mockProxy.i.call();
+  let i = await mockProxy.callStatic.i();
   expect(i.toNumber()).to.equal(2);
   //upgrade the proxy
   txResponse = await factory.upgradeProxy(salt, endPointAddr, "0x");
   receipt = await txResponse.wait();
-  expectTxSuccess(receipt);
+  await expectTxSuccess(txResponse);
   //endpoint interface connected to proxy address
-  let proxyEndpoint = await endPointFactory.attach(proxyAddress);
+  let proxyEndpoint = endPointFactory.attach(proxyAddress);
   i = await proxyEndpoint.callStatic.i();
-  i = i.toNumber() + 2;
+  let num = i.toNumber() + 2;
   txResponse = await proxyEndpoint.addTwo();
   receipt = await txResponse.wait();
-  let test = await getEventVar(receipt, "addedTwo", "i");
-  expect(test.toNumber()).to.equal(i);
+  let test = await getEventVar(txResponse, "addedTwo", "i");
+  expect(test.toNumber()).to.equal(num);
   //lock the proxy upgrade
   txResponse = await factory.upgradeProxy(salt, mockLogicAddr, "0x");
   receipt = await txResponse.wait();
-  expectTxSuccess(receipt);
+  await expectTxSuccess(txResponse);
   txResponse = await mockProxy.setv(testArg + 2);
   receipt = await txResponse.wait();
-  expectTxSuccess(receipt);
-  v = await mockProxy.v.call();
+  await expectTxSuccess(txResponse);
+  v = await mockProxy.callStatic.v();
   receipt = await txResponse.wait();
   expect(v.toNumber()).to.equal(testArg + 2);
   //lock the upgrade functionality
   txResponse = await mockProxy.lock();
   receipt = await txResponse.wait();
-  expectTxSuccess(receipt);
-  txResponse = factory.upgradeProxy(salt, endPointAddr, "0x");
-  receipt = txResponse.wait();
-  await expectRevert(receipt, "revert");
+  await expectTxSuccess(txResponse);
+  let txRes = factory.upgradeProxy(salt, endPointAddr, "0x");
+  await expect(txRes).to.be.revertedWith("reverted with an unrecognized custom error");
   //unlock the proxy
   txResponse = await mockProxy.unlock();
   receipt = await txResponse.wait();
-  expectTxSuccess(receipt);
+  await expectTxSuccess(txResponse);
   txResponse = await factory.upgradeProxy(salt, endPointAddr, "0x");
   receipt = await txResponse.wait();
-  expectTxSuccess(receipt);
+  await expectTxSuccess(txResponse);
   i = await proxyEndpoint.callStatic.i();
-  i = i.toNumber() + 2;
+  num = i.toNumber() + 2;
   txResponse = await proxyEndpoint.addTwo();
   receipt = await txResponse.wait();
-  test = await getEventVar(receipt, "addedTwo", "i");
-  expect(test.toNumber()).to.equal(i);
+  test = await getEventVar(txResponse, "addedTwo", "i");
+  expect(test.toNumber()).to.equal(num);
 }
 
 export async function metaMockLogicTest(
@@ -115,20 +116,21 @@ export async function metaMockLogicTest(
   let txResponse = await Contract.setFactory(factoryAddress);
   let test = 4;
   let receipt = await txResponse.wait();
-  expectTxSuccess(receipt);
+  await expectTxSuccess(txResponse);
   let fa = await Contract.getFactory.call();
   expect(fa).to.equal(factoryAddress);
   txResponse = await Contract.setv(test);
   receipt = await txResponse.wait();
-  expectTxSuccess(receipt);
+  await expectTxSuccess(txResponse);
   let v = await Contract.callStatic.v();
   expect(v.toNumber()).to.equal(test);
   let i = await Contract.callStatic.i();
   expect(i.toNumber()).to.equal(2);
 }
 
-export function getEventVar(receipt: ContractReceipt, eventName: string, varName: string) {
+export async function getEventVar(txResponse: ContractTransaction, eventName: string, varName: string) {
   let result:any;
+  let receipt = await txResponse.wait();
   if (receipt.events !== undefined) {
     let events = receipt.events
     for (let i = 0; i < events.length; i++) {
@@ -150,8 +152,9 @@ export function getEventVar(receipt: ContractReceipt, eventName: string, varName
   throw new Error(`failed to find event: ${eventName}`)
 }
 
-export function expectTxSuccess(txResponse: any) {
-  expect(txResponse["receipt"]["status"]).to.equal(true);
+export async function expectTxSuccess(txResponse: ContractTransaction) {
+  let receipt = await txResponse.wait();
+  expect(receipt.status).to.equal(1);
 }
 
 export function getCreateAddress(Address: string, nonce: number) {
@@ -211,7 +214,8 @@ export async function checkMockInit(target: string, initVal: number) {
 
 export async function deployFactory() {
   let factoryBase = await ethers.getContractFactory(MADNET_FACTORY);
-  let firstOwner = (await getAccounts())[0];
+  let accounts = await getAccounts();
+  let firstOwner = accounts[0];
   //gets the initial transaction count for the address
   let transactionCount = await ethers.provider.getTransactionCount(firstOwner);
   //pre calculate the address of the factory contract
@@ -225,20 +229,10 @@ export async function deployFactory() {
   return factory;
 }
 
-export async function deployCreate2Initable(factory: any) {
+export async function deployCreate2Initable(factory: MadnetFactory, salt:BytesLike) {
   let mockInitFactory = await ethers.getContractFactory("MockInitializable") 
-  //set a new salt
-  let salt = new Date();
-  //use the time as the salt
-  let Salt = ethers.utils.formatBytes32String(salt.getTime().toString());
-  let ret: {
-    Salt: string;
-    receipt: any;
-  } = {
-    Salt: Salt,
-    receipt: await factory.deployCreate2(0, Salt, mockInitFactory.bytecode),
-  };
-  return ret;
+  let txResponse = await factory.deployCreate2(0, salt, mockInitFactory.bytecode)
+  return txResponse;
 }
 
 export function getMetamorphicAddress(factoryAddress: string, salt: string) {

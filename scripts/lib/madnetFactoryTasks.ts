@@ -23,9 +23,6 @@ import {
   updateTemplateList,
 } from "./factoryStateUtils";
 import { BytesLike, ContractFactory, ContractReceipt } from "ethers";
-//import { MadnetFactory__factory } from "../../typechain-types";
-import prompt from "prompt";
-//Should look into extending types into the hardhat type lib
 
 type DeployProxyMCArgs = {
   contractName: string;
@@ -276,7 +273,6 @@ task(
       let deployBytecode = deployTxReq.data;
       //get a factory instance connected to the factory addr
       const factory = factoryBase.attach(factoryAddress);
-      
       if (hre.network.name === "hardhat"){
         // hardhat is not being able to estimate correctly the tx gas due to the massive bytes array
         // being sent as input to the function (the contract bytecode), so we need to increase the block
