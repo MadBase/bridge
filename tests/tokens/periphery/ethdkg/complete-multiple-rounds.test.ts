@@ -3,7 +3,7 @@ import { validators10 } from "./assets/10-validators-successful-case";
 import { completeETHDKGRound, expect, registerValidators } from "./setup";
 
 
-describe("Complete an ETHDKG Round and change validators", () => {
+describe("ETHDKG: Complete an ETHDKG Round and change validators", () => {
   it("completes ETHDKG with 10 validators then change to 4 validators", async function () {
     let [ethdkg, validatorPool, expectedNonce, ] = await completeETHDKGRound(
       validators10

@@ -19,7 +19,7 @@ import {
 import { BigNumberish } from "ethers";
 import { getValidatorEthAccount, mineBlocks } from "../../setup";
 
-describe("Dispute bad shares", () => {
+describe("ETHDKG: Dispute bad shares", () => {
 
   it("should not allow accusations before time", async function () {
     let [ethdkg, validatorPool, expectedNonce] = await startAtDistributeShares(

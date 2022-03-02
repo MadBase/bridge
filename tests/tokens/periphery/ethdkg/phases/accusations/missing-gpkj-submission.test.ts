@@ -11,7 +11,7 @@ import {
 } from "../../setup";
 import { getValidatorEthAccount } from "../../../setup";
 
-describe("Accuse participant of not submitting GPKj", () => {
+describe("ETHDKG: Accuse participant of not submitting GPKj", () => {
   it("allows accusation of all missing validators at once", async () => {
     let [ethdkg, validatorPool, expectedNonce] = await startAtGPKJ(validators4);
 

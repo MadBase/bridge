@@ -5,7 +5,6 @@ import "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol";
 import "../governance/GovernanceMaxLock.sol";
 import "../utils/ImmutableAuth.sol";
-import "../governance/GovernanceManager.sol";
 import "./utils/EthSafeTransfer.sol";
 import "./utils/ERC20SafeTransfer.sol";
 import "./utils/MagicValue.sol";
@@ -109,10 +108,6 @@ abstract contract StakeNFTLPBase is
     modifier withCircuitBreaker() {
         require(_circuitBreaker == CIRCUIT_BREAKER_CLOSED, "CircuitBreaker: The Circuit breaker is opened!");
         _;
-    }
-
-    function isAllowedProposal(address addr) public view returns(bool) {
-        return _isAllowedProposal(addr);
     }
 
     function circuitBreakerState() public view returns(bool) {
@@ -692,10 +687,6 @@ abstract contract StakeNFTLPBase is
             }
         }
         return (accumulator_, slush_);
-    }
-
-    function _isAllowedProposal(address addr) internal view returns(bool) {
-        return IGovernanceManager(_GovernanceAddress()).allowedProposal() == addr;
     }
 
     function _tripCB() internal {

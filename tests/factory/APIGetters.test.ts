@@ -1,4 +1,4 @@
-import { ethers } from "hardhat";
+import { ethers, artifacts } from "hardhat";
 import {
   deployStatic,
   deployUpgradeable,
