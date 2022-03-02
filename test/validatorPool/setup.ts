@@ -190,7 +190,7 @@ export const getCurrentState = async (
 
 export const showState = async (title: string, state: State): Promise<void> => {
   if (process.env.npm_config_detailed == "true") {
-    // execute "npm --detailed=true  run test" to see this showBalancess
+    // execute "npm --detailed=true  run test" to see this output
     console.log(title);
     console.log(state);
   }
@@ -235,7 +235,7 @@ export const stakeValidators = async (
   let [adminSigner] = await ethers.getSigners();
   let stakeAmountMadWei = await fixture.validatorPool.getStakeAmount();
   let lockTime = 1;
-  for (let _ of validators) {
+  for (let i=0; i< validators.length ; i++) {
     // Stake all MAD tokens
     let tx = await fixture.stakeNFT
       .connect(adminSigner)
@@ -260,7 +260,5 @@ export const claimPosition = async (
     .connect(await getValidatorEthAccount(validator))
     .claimExitingNFTPosition()) as ContractTransaction;
   let receipt = await ethers.provider.getTransactionReceipt(claimTx.hash);
-  // When a token is claimed it gets burned an minted so it gets a new tokenId so we need to update
-  // array for re-registration
   return BigNumber.from(receipt.logs[0].topics[3]);
 };

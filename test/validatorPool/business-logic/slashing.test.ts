@@ -84,38 +84,28 @@ describe("ValidatorPool: Slashing logic", async () => {
     let expectedState = await getCurrentState(fixture, validators);
     await ethdkg.majorSlash(validators[0], validators[1]);
     await showState("After major slashing", await getCurrentState(fixture, validators));
-
     // Expect infringer unregister the validator position
     expectedState.ValidatorPool.ValNFT -= 1;
-    // expectedState.ValidatorPool.StakeNFT += 1
-    // Expect infringer to loose the validator position
-    // expectedState.StakeNFT.MAD += stakeAmount
+    // Expect reward to be transferred from ValidatorNFT to disputer
     expectedState.ValidatorNFT.MAD -= reward;
-    // Expect infringer to loose reward on his staking position and be transferred to disputer
-    // expectedState.StakeNFT.MAD -= reward
     expectedState.validators[1].MAD += reward;
     // Expect infringer to be unregistered, not in exiting queue and not accusable
     expectedState.validators[0].Reg = false;
     expectedState.validators[0].ExQ = false;
     expectedState.validators[0].Acc = false;
-
     let currentState = await getCurrentState(fixture, validators);
     await showState("Expected state", expectedState);
     await showState("Current state", currentState);
     expect(currentState).to.be.deep.equal(expectedState);
-
     await ethdkg.setConsensusRunning();
     expectedState = await getCurrentState(fixture, validators);
-
     for (let index = 1; index <= 3; index++) {
-      // validators.slice(1).map(async (validator, index) => {
       await fixture.validatorPool
         .connect(await getValidatorEthAccount(validatorsSnapshots[index]))
         .collectProfits();
       expectedState.validators[index].MAD +=
         (stakeAmount - reward) / (maxNumValidators - 1);
     }
-
     expectedState.ValidatorNFT.MAD -= stakeAmount - reward;
     currentState = await getCurrentState(fixture, validators);
     await showState("Expected state", expectedState);
@@ -123,7 +113,7 @@ describe("ValidatorPool: Slashing logic", async () => {
     expect(currentState).to.be.deep.equal(expectedState);
   });
 
-  it("Minor slash a validator until he has no more funds ( The last slash should return a stakeNFT id 0, i.e, a new stakeNFT should not be minted if the guy doesn’t have any funds)", async function () {
+  it("Minor slash a validator until he has no more funds", async function () {
     //Set reward to 1 MadToken
     let reward = 1;
     // Set infringer and disputer validators

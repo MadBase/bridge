@@ -25,7 +25,7 @@ describe("ValidatorPool: Unregistration logic", async () => {
     fixture = await getFixture(false, true, true);
   });
 
-  xit("Should not allow unregistering of non-validators (even in the middle of array of validators)", async function () {
+  it("Should not allow unregistering of non-validators (even in the middle of array of validators)", async function () {
     let validators = await createValidators(fixture, validatorsSnapshots);
     let stakingTokenIds = await stakeValidators(fixture, validators);
     await factoryCallAny(fixture, "validatorPool", "registerValidators", [
@@ -42,7 +42,7 @@ describe("ValidatorPool: Unregistration logic", async () => {
     ).to.be.revertedWith("ValidatorPool: Address is not a validator_!");
   });
 
-  xit("Should not allow unregistering if consensus or an ETHDKG round is running", async function () {
+  it("Should not allow unregistering if consensus or an ETHDKG round is running", async function () {
     let validators = await createValidators(fixture, validatorsSnapshots);
     let stakingTokenIds = await stakeValidators(fixture, validators);
     await factoryCallAny(fixture, "validatorPool", "registerValidators", [
@@ -174,7 +174,7 @@ describe("ValidatorPool: Unregistration logic", async () => {
     ).to.be.true;
   });
 
-  xit("Do an ether and Madtoken deposit for the VALIDATORNFT contract before unregistering, but don’t collect the profits", async function () {
+  it("Do an ether and Madtoken deposit for the VALIDATORNFT contract before unregistering, but don’t collect the profits", async function () {
     let validators = await createValidators(fixture, validatorsSnapshots);
     let stakingTokenIds = await stakeValidators(fixture, validators);
     const [admin, , ,] = fixture.namedSigners;
@@ -190,14 +190,14 @@ describe("ValidatorPool: Unregistration logic", async () => {
     let eths = 4;
     let mads = 4;
     await fixture.validatorNFT.connect(adminSigner).depositEth(42, {
-      value: ethers.utils.parseEther("4.0"),
+      value: ethers.utils.parseEther(eths.toString()),
     });
     await fixture.madToken
       .connect(adminSigner)
-      .approve(fixture.validatorNFT.address, ethers.utils.parseEther("4"));
+      .approve(fixture.validatorNFT.address, ethers.utils.parseEther(mads.toString()));
     await fixture.validatorNFT
       .connect(adminSigner)
-      .depositToken(42, ethers.utils.parseEther("4"));
+      .depositToken(42, ethers.utils.parseEther(mads.toString()));
     let expectedState = await getCurrentState(fixture, validators);
     validators.map((element, index) => {
       expectedState.ValidatorNFT.ETH -= eths / maxNumValidators;

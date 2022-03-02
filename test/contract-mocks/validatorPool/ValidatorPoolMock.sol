@@ -10,8 +10,20 @@ import "contracts/utils/CustomEnumerableMaps.sol";
 import "contracts/utils/DeterministicAddress.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 
-contract ValidatorPoolMock is Initializable, IValidatorPool, ImmutableFactory, ImmutableSnapshots, ImmutableETHDKG, ImmutableValidatorNFT, ImmutableMadToken {
+contract ValidatorPoolMock is
+    Initializable,
+    IValidatorPool,
+    ImmutableFactory,
+    ImmutableSnapshots,
+    ImmutableETHDKG,
+    ImmutableValidatorNFT,
+    ImmutableMadToken
+{
     using CustomEnumerableMaps for ValidatorDataMap;
+
+    uint256 public constant _positionLockPeriod = 3; // Actual is 172800
+
+    uint256 public constant _maxIntervalWithoutSnapshot = 0; // Actual is 8192
 
     uint256 internal _tokenIDCounter;
     //IETHDKG immutable internal _ethdkg;
@@ -27,8 +39,13 @@ contract ValidatorPoolMock is Initializable, IValidatorPool, ImmutableFactory, I
     uint256 internal _stakeAmount;
 
     // solhint-disable no-empty-blocks
-    constructor() ImmutableFactory(msg.sender) ImmutableValidatorNFT() ImmutableSnapshots() ImmutableETHDKG() ImmutableMadToken() {
-    }
+    constructor()
+        ImmutableFactory(msg.sender)
+        ImmutableValidatorNFT()
+        ImmutableSnapshots()
+        ImmutableETHDKG()
+        ImmutableMadToken()
+    {}
 
     function initialize() public onlyFactory initializer {
         //20000*10**18 MadWei = 20k MadTokens
@@ -44,23 +61,37 @@ contract ValidatorPoolMock is Initializable, IValidatorPool, ImmutableFactory, I
         _;
     }
 
-    function mintValidatorNFT() public returns(uint256 stakeID_){
-        IERC20Transferable(_MadTokenAddress()).transferFrom(msg.sender, address(this), _stakeAmount);
+    function mintValidatorNFT() public returns (uint256 stakeID_) {
+        IERC20Transferable(_MadTokenAddress()).transferFrom(
+            msg.sender,
+            address(this),
+            _stakeAmount
+        );
         IERC20Transferable(_MadTokenAddress()).approve(_ValidatorNFTAddress(), _stakeAmount);
         stakeID_ = INFTStake(_ValidatorNFTAddress()).mint(_stakeAmount);
     }
 
-    function burnValidatorNFT(uint256 tokenID_) public returns(uint256 payoutEth, uint256 payoutMadToken) {
+    function burnValidatorNFT(uint256 tokenID_)
+        public
+        returns (uint256 payoutEth, uint256 payoutMadToken)
+    {
         return INFTStake(_ValidatorNFTAddress()).burn(tokenID_);
     }
 
-    function mintToValidatorNFT(address to_) public returns(uint256 stakeID_){
-        IERC20Transferable(_MadTokenAddress()).transferFrom(msg.sender, address(this), _stakeAmount);
+    function mintToValidatorNFT(address to_) public returns (uint256 stakeID_) {
+        IERC20Transferable(_MadTokenAddress()).transferFrom(
+            msg.sender,
+            address(this),
+            _stakeAmount
+        );
         IERC20Transferable(_MadTokenAddress()).approve(_ValidatorNFTAddress(), _stakeAmount);
         stakeID_ = INFTStake(_ValidatorNFTAddress()).mintTo(to_, _stakeAmount, 1);
     }
 
-    function burnToValidatorNFT(uint256 tokenID_, address to_) public returns(uint256 payoutEth, uint256 payoutMadToken) {
+    function burnToValidatorNFT(uint256 tokenID_, address to_)
+        public
+        returns (uint256 payoutEth, uint256 payoutMadToken)
+    {
         return INFTStake(_ValidatorNFTAddress()).burnTo(to_, tokenID_);
     }
 
@@ -72,15 +103,15 @@ contract ValidatorPoolMock is Initializable, IValidatorPool, ImmutableFactory, I
         return _validators.contains(participant);
     }
 
-    function getStakeAmount() public view returns(uint256) {
+    function getStakeAmount() public view returns (uint256) {
         return _stakeAmount;
     }
 
-    function getMaxNumValidators() public pure returns(uint256) {
+    function getMaxNumValidators() public pure returns (uint256) {
         return 5;
     }
 
-    function getDisputerReward() public pure returns(uint256) {
+    function getDisputerReward() public pure returns (uint256) {
         return 1;
     }
 
@@ -169,7 +200,7 @@ contract ValidatorPoolMock is Initializable, IValidatorPool, ImmutableFactory, I
             uint256
         )
     {
-        account_;//no-op to suppress compiling warnings
+        account_; //no-op to suppress compiling warnings
         return (false, address(0), 0);
     }
 
@@ -201,8 +232,6 @@ contract ValidatorPoolMock is Initializable, IValidatorPool, ImmutableFactory, I
         registerValidators(validators);
     }
 
-    function pauseConsensusOnArbitraryHeight(uint256 madnetHeight) external {}
-
     function isInExitingQueue(address participant) external pure returns (bool) {
         participant;
         return false;
@@ -218,10 +247,20 @@ contract ValidatorPoolMock is Initializable, IValidatorPool, ImmutableFactory, I
         return "";
     }
 
-    function setDisputerReward(uint256 disputerReward_) public {
-    }
+    function setDisputerReward(uint256 disputerReward_) public {}
 
     function isMock() public pure returns (bool) {
         return true;
+    }
+
+    function pauseConsensusOnArbitraryHeight(uint256 madnetHeight_) public onlyFactory {
+        require(
+            block.number >
+                ISnapshots(_SnapshotsAddress()).getCommittedHeightFromLatestSnapshot() +
+                    _maxIntervalWithoutSnapshot,
+            "ValidatorPool: Condition not met to stop consensus!"
+        );
+        _isConsensusRunning = false;
+        IETHDKG(_ETHDKGAddress()).setCustomMadnetHeight(madnetHeight_);
     }
 }
