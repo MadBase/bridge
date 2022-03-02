@@ -68,26 +68,28 @@ describe("Madnet Contract Factory", () => {
     let factory = await deployFactory();
     //sets the second account as owner
     expect(await factory.owner()).to.equal(firstOwner);
-    await factory.setOwner(accounts[1], { from: firstOwner });
+    await factory.setOwner(accounts[1]);
     expect(await factory.owner()).to.equal(accounts[1]);
   });
 
   it("set delegator", async () => {
     let factory = await deployFactory();
     //sets the second account as delegator
-    await factory.setDelegator(firstDelegator, { from: firstOwner });
+    await factory.setDelegator(firstDelegator);
     expect(await factory.delegator()).to.equal(firstDelegator);
   });
 
   it("should not allow set owner via delegator", async () => {
     let factory = await deployFactory();
+    let signers = await ethers.getSigners()
+    let factoryBase = (await ethers.getContractFactory(MADNET_FACTORY)).connect(signers[2])
     //sets the second account as delegator
     await factory.setDelegator(firstDelegator, { from: firstOwner });
     expect(await factory.delegator()).to.equal(firstDelegator);
-    await expectRevert(
-      factory.setOwner(accounts[0], { from: firstDelegator }),
-      "unauthorized"
-    );
+    factory = factoryBase.attach(factory.address)
+    await expect(
+      factory.setOwner(accounts[0])
+    ).to.be.revertedWith("unauthorized")
   });
 
   it("get owner, delegator", async () => {
@@ -136,12 +138,13 @@ describe("Madnet Contract Factory", () => {
   });
 
   it("should not allow deploy static with unauthorized account", async () => {
+    let signers = await ethers.getSigners()
+    let factoryBase = (await ethers.getContractFactory(MADNET_FACTORY)).connect(signers[2])
     let factory = await deployFactory();
+    factory = factoryBase.attach(factory.address)
     let Salt = getSalt();
-    await expectRevert(
-      factory.deployStatic(Salt, "0x", { from: firstDelegator }),
-      "unauthorized"
-    );
+    await expect(
+      factory.deployStatic(Salt, "0x", { from: firstDelegator })).to.be.revertedWith("unauthorized");
   });
 
   it("deploy contract with deploystatic", async () => {
@@ -184,7 +187,10 @@ describe("Madnet Contract Factory", () => {
   });
 
   it("should not allow deploy proxy with unauthorized account", async () => {
+    let signers = await ethers.getSigners()
+    let factoryBase = (await ethers.getContractFactory(MADNET_FACTORY)).connect(signers[2])
     let factory = await deployFactory();
+    factory = factoryBase.attach(factory.address)
     let Salt = getSalt();
     await expectRevert(
       factory.deployProxy(Salt, { from: firstDelegator }),
