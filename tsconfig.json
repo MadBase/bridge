@@ -12,7 +12,7 @@
   },
   "include": [
     "./deploy",
-    "./tests",
+    "test",
     "./scripts",
     "./src/**/*",
     "./typechain-types/**/*",

@@ -102,7 +102,7 @@ export async function updateDeployCreateList(data: DeployCreateData) {
   //It is safe to use as
   let config = await readFactoryStateData();
   config.rawDeployments = config.rawDeployments === undefined ? [] : config.rawDeployments;
-  config.rawDeployments.push(data) 
+  config.rawDeployments.push(data)
   // write new data to config file
   await writeFactoryConfig(config);
 }

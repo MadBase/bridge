@@ -6,7 +6,6 @@ package bridge
 //go:generate abigen --abi bindings-artifacts/IETHDKGEvents.json --pkg bindings --type IETHDKGEvents --out bindings/IETHDKGEvents.go
 //go:generate abigen --abi bindings-artifacts/ISnapshots.json --pkg bindings --type ISnapshots --out bindings/ISnapshots.go
 //go:generate abigen --abi bindings-artifacts/IValidatorPool.json --pkg bindings --type IValidatorPool --out bindings/IValidatorPool.go
-//go:generate abigen --abi bindings-artifacts/IValidatorPoolEvents.json --pkg bindings --type IValidatorPoolEvents --out bindings/IValidatorPoolEvents.go
 //go:generate abigen --abi bindings-artifacts/ImmutableETHDKG.json --pkg bindings --type ImmutableETHDKG --out bindings/ImmutableETHDKG.go
 //go:generate abigen --abi bindings-artifacts/ImmutableMadByte.json --pkg bindings --type ImmutableMadByte --out bindings/ImmutableMadByte.go
 //go:generate abigen --abi bindings-artifacts/ImmutableMadToken.json --pkg bindings --type ImmutableMadToken --out bindings/ImmutableMadToken.go
